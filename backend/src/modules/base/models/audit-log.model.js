@@ -57,7 +57,7 @@ export default (sequelize) => {
     tableName: 'audit_logs',
     timestamps: true,
     underscored: true,
-    paranoid: false
+    softDelete: false
   };
   
   const baseModel = new BaseModel(sequelize, 'AuditLog', attributes, options);

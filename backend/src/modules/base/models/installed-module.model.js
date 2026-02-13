@@ -72,7 +72,7 @@ export default (sequelize, securityService) => {
     tableName: 'installed_modules',
     timestamps: true,
     underscored: true,
-    paranoid: false, // Don't soft delete modules
+    softDelete: false, // Don't soft delete modules
     indexes: [
       {
         fields: ['name']

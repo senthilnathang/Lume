@@ -451,6 +451,7 @@ export {
   loadAllModules,
   loadModule,
   initializeModule,
+  resolveDependencies,
   getModule,
   getAllModules,
   getAllMenus,

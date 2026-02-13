@@ -56,7 +56,7 @@ export default (sequelize, securityService) => {
     tableName: 'record_rules',
     timestamps: true,
     underscored: true,
-    paranoid: false
+    softDelete: false
   };
   
   const baseModel = new BaseModel(sequelize, 'RecordRule', attributes, options);

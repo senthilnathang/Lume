@@ -65,7 +65,7 @@ export const authorize = (resource = null, action = null) => {
         return res.status(403).json(responseUtil.forbidden('Role not found'));
       }
 
-      if (role.name === 'super_admin') {
+      if (role.name === 'admin' || role.name === 'super_admin') {
         return next();
       }
 

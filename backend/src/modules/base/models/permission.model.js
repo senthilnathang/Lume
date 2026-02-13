@@ -40,7 +40,7 @@ export default (sequelize, securityService) => {
     tableName: 'permissions',
     timestamps: true,
     underscored: true,
-    paranoid: false
+    softDelete: false
   };
   
   const baseModel = new BaseModel(sequelize, 'Permission', attributes, options);

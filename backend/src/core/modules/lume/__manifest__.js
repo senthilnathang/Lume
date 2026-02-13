@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     name: "lume",
     version: "1.0.0",
     summary: "Lume - Modular Vue.js Framework",
