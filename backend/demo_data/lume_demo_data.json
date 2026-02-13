@@ -1,0 +1,252 @@
+{
+  "version": "1.0.0",
+  "description": "Lume Framework Demo Data - Sample data for development and testing",
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@lume.local",
+      "password_hash": "pbkdf2:sha256:260000$salt$hashed_password",
+      "is_superuser": true,
+      "is_active": true,
+      "role": "admin",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "username": "demo_user",
+      "email": "demo@lume.local",
+      "password_hash": "pbkdf2:sha256:260000$salt$hashed_password",
+      "is_superuser": false,
+      "is_active": true,
+      "role": "user",
+      "created_at": "2024-01-02T00:00:00Z",
+      "updated_at": "2024-01-02T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "username": "manager",
+      "email": "manager@lume.local",
+      "password_hash": "pbkdf2:sha256:260000$salt$hashed_password",
+      "is_superuser": false,
+      "is_active": true,
+      "role": "manager",
+      "created_at": "2024-01-03T00:00:00Z",
+      "updated_at": "2024-01-03T00:00:00Z"
+    },
+    {
+      "id": 4,
+      "username": "viewer",
+      "email": "viewer@lume.local",
+      "password_hash": "pbkdf2:sha256:260000$salt$hashed_password",
+      "is_superuser": false,
+      "is_active": true,
+      "role": "viewer",
+      "created_at": "2024-01-04T00:00:00Z",
+      "updated_at": "2024-01-04T00:00:00Z"
+    },
+    {
+      "id": 5,
+      "username": "editor",
+      "email": "editor@lume.local",
+      "password_hash": "pbkdf2:sha256:260000$salt$hashed_password",
+      "is_superuser": false,
+      "is_active": true,
+      "role": "editor",
+      "created_at": "2024-01-05T00:00:00Z",
+      "updated_at": "2024-01-05T00:00:00Z"
+    }
+  ],
+  "roles": [
+    {
+      "id": 1,
+      "name": "admin",
+      "description": "Full system access",
+      "permissions": ["*"],
+      "is_system": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "manager",
+      "description": "Management access",
+      "permissions": ["users.read", "users.update", "reports.read", "reports.create"],
+      "is_system": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "user",
+      "description": "Standard user access",
+      "permissions": ["profile.read", "profile.update"],
+      "is_system": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 4,
+      "name": "viewer",
+      "description": "Read-only access",
+      "permissions": ["profile.read"],
+      "is_system": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 5,
+      "name": "editor",
+      "description": "Content editor access",
+      "permissions": ["profile.read", "profile.update", "content.read", "content.create", "content.update"],
+      "is_system": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "settings": [
+    {
+      "key": "app.name",
+      "value": "Lume Framework",
+      "description": "Application name",
+      "category": "general"
+    },
+    {
+      "key": "app.version",
+      "value": "1.0.0",
+      "description": "Application version",
+      "category": "general"
+    },
+    {
+      "key": "app.debug",
+      "value": "true",
+      "description": "Debug mode enabled",
+      "category": "general"
+    },
+    {
+      "key": "security.password_min_length",
+      "value": "8",
+      "description": "Minimum password length",
+      "category": "security"
+    },
+    {
+      "key": "security.session_timeout",
+      "value": "3600",
+      "description": "Session timeout in seconds",
+      "category": "security"
+    },
+    {
+      "key": "api.rate_limit",
+      "value": "100",
+      "description": "API rate limit per minute",
+      "category": "api"
+    }
+  ],
+  "modules": [
+    {
+      "name": "base",
+      "display_name": "Base Module",
+      "description": "Core functionality for Lume Framework",
+      "version": "1.0.0",
+      "state": "installed",
+      "auto_install": true,
+      "dependencies": []
+    },
+    {
+      "name": "users",
+      "display_name": "User Management",
+      "description": "User authentication and management",
+      "version": "1.0.0",
+      "state": "installed",
+      "auto_install": true,
+      "dependencies": ["base"]
+    },
+    {
+      "name": "auth",
+      "display_name": "Authentication",
+      "description": "JWT authentication and OAuth support",
+      "version": "1.0.0",
+      "state": "installed",
+      "auto_install": true,
+      "dependencies": ["users"]
+    },
+    {
+      "name": "api",
+      "display_name": "REST API",
+      "description": "RESTful API endpoints",
+      "version": "1.0.0",
+      "state": "installed",
+      "auto_install": true,
+      "dependencies": ["auth"]
+    },
+    {
+      "name": "dashboard",
+      "display_name": "Dashboard",
+      "description": "Admin dashboard",
+      "version": "1.0.0",
+      "state": "uninstalled",
+      "auto_install": false,
+      "dependencies": ["api"]
+    }
+  ],
+  "audit_logs": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "action": "user.create",
+      "resource_type": "user",
+      "resource_id": "1",
+      "details": {"message": "Created superuser admin"},
+      "ip_address": "127.0.0.1",
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "user_id": 1,
+      "action": "module.install",
+      "resource_type": "module",
+      "resource_id": "users",
+      "details": {"message": "Installed users module"},
+      "ip_address": "127.0.0.1",
+      "created_at": "2024-01-01T00:01:00Z"
+    },
+    {
+      "id": 3,
+      "user_id": 1,
+      "action": "module.install",
+      "resource_type": "module",
+      "resource_id": "auth",
+      "details": {"message": "Installed auth module"},
+      "ip_address": "127.0.0.1",
+      "created_at": "2024-01-01T00:02:00Z"
+    }
+  ],
+  "sequences": [
+    {
+      "id": 1,
+      "name": "user_sequence",
+      "prefix": "USR",
+      "padding": 5,
+      "step": 1,
+      "current_value": 100,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "order_sequence",
+      "prefix": "ORD",
+      "padding": 6,
+      "step": 1,
+      "current_value": 1,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "invoice_sequence",
+      "prefix": "INV",
+      "padding": 6,
+      "step": 1,
+      "current_value": 1,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}

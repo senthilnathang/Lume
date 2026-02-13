@@ -1,0 +1,462 @@
+.workflows-page {
+  padding: 0;
+  background: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.page-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 32px 24px;
+  color: #fff;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  opacity: 0.85;
+  font-size: 15px;
+}
+
+.stats-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #fff;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.entity-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.entity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Card View Styles */
+.workflow-cards {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.workflow-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.workflow-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.workflow-card.inactive {
+  opacity: 0.7;
+}
+
+.card-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.entity-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.entity-badge.lg {
+  padding: 6px 16px;
+  font-size: 12px;
+}
+
+.card-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.card-description {
+  margin: 0;
+  font-size: 13px;
+  color: #8c8c8c;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.workflow-preview {
+  padding: 20px;
+  background: #fafafa;
+  overflow-x: auto;
+}
+
+.states-flow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+}
+
+.state-node {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.state-node.initial {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.state-node.intermediate {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.state-node.terminal {
+  background: #fff1f0;
+  color: #f5222d;
+  border: 1px solid #ffa39e;
+}
+
+.flow-arrow {
+  color: #bfbfbf;
+}
+
+.state-more {
+  padding: 8px 12px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.card-stats {
+  display: flex;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #595959;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+}
+
+.status-tag {
+  margin: 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* Table View Styles */
+.workflow-table {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.workflow-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.workflow-name {
+  font-weight: 500;
+  color: #262626;
+}
+
+.workflow-desc {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* Modal Styles */
+.workflow-modal :deep(.ant-modal-body) {
+  padding: 0;
+}
+
+.workflow-detail {
+  padding: 0;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.detail-title {
+  margin: 12px 0 4px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.detail-description {
+  margin: 0;
+  opacity: 0.85;
+}
+
+.detail-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.workflow-diagram {
+  padding: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-title {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diagram-container {
+  overflow-x: auto;
+  padding: 16px 0;
+}
+
+.flow-diagram {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: max-content;
+}
+
+.diagram-state {
+  min-width: 140px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.diagram-state.initial {
+  border: 2px solid #52c41a;
+}
+
+.diagram-state.intermediate {
+  border: 2px solid #1890ff;
+}
+
+.diagram-state.terminal {
+  border: 2px solid #f5222d;
+}
+
+.state-header {
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.diagram-state.initial .state-header {
+  background: #f6ffed;
+}
+
+.diagram-state.intermediate .state-header {
+  background: #e6f7ff;
+}
+
+.diagram-state.terminal .state-header {
+  background: #fff1f0;
+}
+
+.state-type-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.diagram-state.initial .state-type-badge {
+  color: #52c41a;
+}
+
+.diagram-state.intermediate .state-type-badge {
+  color: #1890ff;
+}
+
+.diagram-state.terminal .state-type-badge {
+  color: #f5222d;
+}
+
+.state-body {
+  padding: 16px 12px;
+  text-align: center;
+  background: #fff;
+}
+
+.state-code {
+  display: block;
+  font-size: 11px;
+  color: #8c8c8c;
+  margin-bottom: 4px;
+}
+
+.state-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.state-footer {
+  padding: 8px 12px;
+  background: #fafafa;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sla-badge {
+  font-size: 10px;
+  color: #8c8c8c;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.diagram-arrow {
+  display: flex;
+  align-items: center;
+  color: #bfbfbf;
+}
+
+.arrow-line {
+  width: 24px;
+  height: 2px;
+  background: #d9d9d9;
+}
+
+.arrow-icon {
+  font-size: 16px;
+  color: #1890ff;
+}
+
+.transitions-section {
+  padding: 24px;
+}
+

@@ -1,0 +1,41 @@
+.filters-row {
+  margin-bottom: 16px;
+}
+
+.help-text {
+  color: #999;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 0;
+  color: #999;
+}
+
+.test-result {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.test-result h4 {
+  margin: 0 0 12px;
+}
+
+.result-errors,
+.result-warnings {
+  margin-top: 12px;
+}
+
+.result-errors ul,
+.result-warnings ul {
+  margin: 4px 0 0 20px;
+  padding: 0;
+}
+
+.result-warnings {
+  color: #fa8c16;
+}

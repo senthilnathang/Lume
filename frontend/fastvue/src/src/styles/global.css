@@ -1,0 +1,261 @@
+/**
+ * Global styles for HRMS application
+ * Fixes scroll, responsiveness, and layout issues
+ */
+
+/* ==============================================
+   SCROLL FIXES
+   ============================================== */
+
+/* Ensure the Page content area is scrollable */
+.vben-page-wrapper {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Fix scroll for page content containers */
+.vben-page-wrapper > .p-4,
+.vben-page-wrapper > div > .p-4 {
+  min-height: 100%;
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* ==============================================
+   RESPONSIVE FIXES
+   ============================================== */
+
+/* Prevent horizontal overflow on mobile */
+.ant-row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Responsive grid improvements */
+@media (max-width: 576px) {
+  .ant-col {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .p-4 {
+    padding: 12px !important;
+  }
+
+  /* Stack buttons on small screens */
+  .ant-space-horizontal {
+    flex-wrap: wrap;
+  }
+
+  /* Responsive cards */
+  .ant-card {
+    margin-bottom: 12px;
+  }
+
+  /* Responsive statistics */
+  .ant-statistic-title {
+    font-size: 12px;
+  }
+
+  .ant-statistic-content {
+    font-size: 20px;
+  }
+}
+
+/* Tablet adjustments */
+@media (max-width: 768px) {
+  .ant-col {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+}
+
+/* ==============================================
+   DRAG AND DROP FIXES
+   ============================================== */
+
+/* Prevent text selection during drag */
+[draggable="true"] {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+}
+
+/* Improve drag handle visibility */
+.drag-handle {
+  cursor: grab;
+  touch-action: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Drop zone visual feedback */
+.drop-zone {
+  transition: all 0.2s ease;
+}
+
+.drop-zone--active,
+.drop-zone.is-dragging {
+  border-color: #1890ff !important;
+  background-color: rgba(24, 144, 255, 0.04) !important;
+}
+
+/* Ant Design Upload drag area */
+.ant-upload-drag {
+  transition: border-color 0.3s;
+}
+
+.ant-upload-drag.ant-upload-drag-hover {
+  border-color: #1890ff;
+}
+
+/* Fix Sortable.js ghost element */
+.sortable-ghost {
+  opacity: 0.4;
+  background: #c8ebfb;
+}
+
+.sortable-chosen {
+  background: #f0f0f0;
+}
+
+.sortable-drag {
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Touch device improvements */
+@media (pointer: coarse) {
+  [draggable="true"] {
+    touch-action: manipulation;
+  }
+
+  .drag-handle {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ==============================================
+   LAYOUT IMPROVEMENTS
+   ============================================== */
+
+/* Fix flex container issues */
+.flex-wrap {
+  gap: 8px;
+}
+
+/* Ensure proper card content scrolling */
+.ant-card-body {
+  overflow: visible;
+}
+
+/* Fix modal scroll on mobile */
+.ant-modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Responsive table fix */
+.ant-table-wrapper {
+  overflow-x: auto;
+}
+
+/* ==============================================
+   FORM IMPROVEMENTS
+   ============================================== */
+
+/* Better form layout on mobile */
+@media (max-width: 576px) {
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .ant-form-item-label {
+    padding-bottom: 4px;
+  }
+
+  /* Full width selects on mobile */
+  .ant-select {
+    width: 100% !important;
+  }
+}
+
+/* ==============================================
+   NOTIFICATION PAGE SPECIFIC
+   ============================================== */
+
+/* Fix quick templates grid on mobile */
+@media (max-width: 768px) {
+  .flex.flex-wrap.gap-2 > .ant-btn {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 140px;
+  }
+}
+
+/* ==============================================
+   ANALYTICS DASHBOARD RESPONSIVE
+   ============================================== */
+
+/* Chart containers responsive */
+.echarts-container,
+div[class*="chart"]:not(.anticon):not(.ant-statistic *) {
+  width: 100% !important;
+  min-height: 250px;
+}
+
+@media (max-width: 576px) {
+  .echarts-container,
+  div[class*="chart"]:not(.anticon):not(.ant-statistic *) {
+    min-height: 200px;
+  }
+}
+
+/* Stats cards grid on mobile */
+@media (max-width: 576px) {
+  .ant-statistic {
+    text-align: center;
+  }
+}
