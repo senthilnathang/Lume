@@ -65,7 +65,7 @@ export default (sequelize, securityService) => {
     tableName: 'sequences',
     timestamps: true,
     underscored: true,
-    paranoid: false
+    softDelete: false
   };
   
   const baseModel = new BaseModel(sequelize, 'Sequence', attributes, options);

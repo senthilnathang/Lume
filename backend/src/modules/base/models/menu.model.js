@@ -72,7 +72,7 @@ export default (sequelize, securityService) => {
     tableName: 'menus',
     timestamps: true,
     underscored: true,
-    paranoid: false
+    softDelete: false
   };
   
   const baseModel = new BaseModel(sequelize, 'Menu', attributes, options);

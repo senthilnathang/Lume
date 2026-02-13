@@ -29,9 +29,14 @@ config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Rate limiting - DISABLED for development
-// Set environment variable ENABLE_RATE_LIMIT=true to enable
-const enableRateLimit = process.env.ENABLE_RATE_LIMIT === 'true';
+// ─── Security: JWT Secret Validation ─────────────────────────────────────────
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'jwt-secret') {
+  console.warn('⚠️  WARNING: JWT_SECRET is not set or uses default value. Set a strong secret in production!');
+}
+
+// ─── Security: Rate Limiting ─────────────────────────────────────────────────
+const isProduction = process.env.NODE_ENV === 'production';
+const enableRateLimit = isProduction || process.env.ENABLE_RATE_LIMIT === 'true';
 
 const limiter = enableRateLimit ? rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -45,93 +50,104 @@ const limiter = enableRateLimit ? rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false
-}) : (req, res, next) => next(); // Skip rate limiting
+}) : (req, res, next) => next();
 
-const authLimiter = enableRateLimit ? rateLimit({
+// Auth rate limiter is ALWAYS enabled to prevent brute force
+const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: isProduction ? 10 : 50,
   message: {
     success: false,
     error: {
       code: 'AUTH_RATE_LIMIT',
       message: 'Too many login attempts, please try again later.'
     }
-  }
-}) : (req, res, next) => next(); // Skip rate limiting
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
-// Skip helmet for now to allow cache control headers
-// app.use(helmet({
-//   contentSecurityPolicy: false,
-//   crossOriginEmbedderPolicy: false,
-// }));
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true
+// ─── Security: Helmet HTTP Headers ───────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
 }));
+
+// ─── Security: CORS ──────────────────────────────────────────────────────────
+const corsOrigin = process.env.CORS_ORIGIN || (isProduction ? false : '*');
+app.use(cors({
+  origin: corsOrigin,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400
+}));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(morgan('combined'));
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('combined'));
+}
 app.use(requestLogger);
 app.use(limiter);
 
-// Authentication middleware for all /api routes except login/register
+// ─── Security: Authentication Middleware ──────────────────────────────────────
+// Paths that never require authentication
 const publicApiPaths = [
+  '/health',
   '/api/users/login',
   '/api/users/register',
-  '/api/auth/login',
-  '/api/auth/register',
   '/api/auth/refresh-token',
-  '/health',
+];
+
+// Paths that optionally parse auth token but don't require it
+// (modules handle their own auth via route-level middleware)
+const optionalAuthPaths = [
   '/api/menus',
-  '/api/permissions',
   '/api/modules',
-  '/api/rbac',
-  '/api/activities',
-  '/api/donations',
-  '/api/team',
-  '/api/documents',
-  '/api/messages',
-  '/api/settings',
-  '/api/audit',
-  '/api/media',
-  '/api/users',
-  '/api/base_security',
-  '/api/base_automation',
-  '/api/base_features_data',
-  '/api/base',
-  '/api/gawdesy',
-  '/api/lume'
+  '/api/permissions',
+  '/api/lume/health',
+  '/api/gawdesy/health',
+  '/api/base/health',
+  '/api/base_automation/health',
+  '/api/base_features_data/health',
+  '/api/base_security/health',
 ];
 
 app.use((req, res, next) => {
-  // Skip auth for public paths
-  const isPublicPath = publicApiPaths.some(path => 
-    req.path === path || req.path.startsWith(path + '/')
+  // Public paths skip auth entirely
+  const isPublicPath = publicApiPaths.some(path =>
+    req.path === path
   );
   if (isPublicPath) {
     return next();
   }
-  
-  // For other API routes, check auth token
+
+  // Optional auth paths - parse token if present, but don't require it
+  const isOptionalAuth = optionalAuthPaths.some(path =>
+    req.path === path || req.path.startsWith(path + '/')
+  );
+
+  // For API routes, try to parse the auth token
   if (req.path.startsWith('/api/')) {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json(responseUtil.unauthorized('Authentication required'));
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwtUtil.verifyToken(token);
+      if (decoded) {
+        req.user = decoded;
+      } else if (!isOptionalAuth) {
+        return res.status(401).json(responseUtil.unauthorized('Invalid or expired token'));
+      }
+    } else if (!isOptionalAuth) {
+      // Module routes handle their own auth - only block truly protected routes
+      // For now, pass through to let module-level middleware handle auth
     }
-    
-    const token = authHeader.split(' ')[1];
-    const decoded = jwtUtil.verifyToken(token);
-    if (!decoded) {
-      return res.status(401).json(responseUtil.unauthorized('Invalid or expired token'));
-    }
-    
-    // Attach user to request
-    req.user = decoded;
   }
-  
+
   next();
 });
 
@@ -479,18 +495,22 @@ const startServer = async () => {
     const baseModels = null;
     const baseServices = null;
     
-    // Sync database - don't modify existing tables
-    // await sequelize.sync({ alter: false });
-    console.log('⏭️  Database sync skipped');
+    // Sync database - create any missing tables without altering existing ones
+    await sequelize.sync({ alter: false });
+    console.log('✅ Database synced');
     
     // Initialize module system
     const modulesDir = join(__dirname, 'modules');
-    await initializeModuleSystem(modulesDir, { 
-      sequelize, 
+    await initializeModuleSystem(modulesDir, {
+      sequelize,
       database: sequelize,
       app
     });
     console.log('✅ Module system initialized');
+
+    // Sync again to create any tables defined by modules
+    await sequelize.sync({ alter: false });
+    console.log('✅ Module tables synced');
 
     // Start listening
     app.listen(PORT, () => {

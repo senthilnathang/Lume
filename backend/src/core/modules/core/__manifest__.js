@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     name: "core",
     version: "1.0.0",
     summary: "Core Module",

@@ -32,7 +32,7 @@ export default (sequelize, securityService) => {
     tableName: 'groups',
     timestamps: true,
     underscored: true,
-    paranoid: false
+    softDelete: false
   };
   
   const baseModel = new BaseModel(sequelize, 'Group', attributes, options);

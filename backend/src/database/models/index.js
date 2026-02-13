@@ -10,10 +10,8 @@ import Document from '../../modules/documents/document.model.js';
 import TeamMember from '../../modules/team/teamMember.model.js';
 import Message from '../../modules/messages/message.model.js';
 import Setting from '../../modules/settings/setting.model.js';
-// import AuditLog from '../../modules/audit/auditLog.model.js';
-// import MediaLibrary from '../../modules/media/media.model.js';
-// import { Sequence } from '../../core/models/sequence.model.js';
-// import { RecordRule } from '../../core/models/record-rule.model.js';
+import MediaLibrary from '../../modules/media/media.model.js';
+// AuditLog is handled by the Base module to avoid model conflicts
 
 export const setupModels = (sequelize) => {
   const UserModel = User(sequelize);
@@ -28,10 +26,7 @@ export const setupModels = (sequelize) => {
   const TeamMemberModel = TeamMember(sequelize);
   const MessageModel = Message(sequelize);
   const SettingModel = Setting(sequelize);
-  // const AuditLogModel = AuditLog(sequelize);
-  // const MediaLibraryModel = MediaLibrary(sequelize);
-  // const SequenceModel = Sequence(sequelize);
-  // const RecordRuleModel = RecordRule(sequelize);
+  const MediaLibraryModel = MediaLibrary(sequelize);
 
   RolePermissionModel.belongsTo(RoleModel, { foreignKey: 'role_id' });
   RolePermissionModel.belongsTo(PermissionModel, { foreignKey: 'permission_id' });
@@ -52,10 +47,6 @@ export const setupModels = (sequelize) => {
 
   DocumentModel.belongsTo(UserModel, { foreignKey: 'uploaded_by' });
   UserModel.hasMany(DocumentModel, { foreignKey: 'uploaded_by' });
-
-  // AuditLog associations commented out due to ESM compatibility
-  // AuditLogModel.belongsTo(UserModel, { foreignKey: 'user_id', as: 'user' });
-  // UserModel.hasMany(AuditLogModel, { foreignKey: 'user_id', as: 'auditLogs' });
 
   return sequelize.models;
 };

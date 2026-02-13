@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     name: "Gawdesy Core",
     version: "1.0.0",
     summary: "Core module system with hooks, services, and security",

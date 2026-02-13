@@ -1,0 +1,8 @@
+backend/**
+frontend/**
+packages/**
+internal/**
+data/**
+docs/**
+docker/**
+scripts/**

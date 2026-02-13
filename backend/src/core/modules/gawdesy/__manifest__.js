@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     name: "gawdesy",
     version: "1.0.0",
     summary: "Gawdesy Enterprise Module",

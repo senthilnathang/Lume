@@ -297,24 +297,30 @@ start_backend() {
         # Production mode - build and start
         if [ ! -d "node_modules" ]; then
             print_status "Installing dependencies..."
-            command_exists pnpm && pnpm install || npm install
+            if command_exists pnpm; then pnpm install; else npm install; fi
         fi
-        
+
         print_status "Building for production..."
-        command_exists pnpm && pnpm run build || npm run build 2>/dev/null || true
-        
+        if command_exists pnpm; then pnpm run build; else npm run build 2>/dev/null || true; fi
+
         export NODE_ENV=production
-        command_exists pnpm && pnpm start > "$LOG_DIR/backend.log" 2>&1 &
-        npm start > "$LOG_DIR/backend.log" 2>&1 &
+        if command_exists pnpm; then
+            pnpm start > "$LOG_DIR/backend.log" 2>&1 &
+        else
+            npm start > "$LOG_DIR/backend.log" 2>&1 &
+        fi
     else
         # Development mode
         if [ ! -d "node_modules" ]; then
             print_status "Installing dependencies..."
-            command_exists pnpm && pnpm install || npm install
+            if command_exists pnpm; then pnpm install; else npm install; fi
         fi
-        
-        command_exists pnpm && pnpm run dev > "$LOG_DIR/backend.log" 2>&1 &
-        npm run dev > "$LOG_DIR/backend.log" 2>&1 &
+
+        if command_exists pnpm; then
+            pnpm run dev > "$LOG_DIR/backend.log" 2>&1 &
+        else
+            npm run dev > "$LOG_DIR/backend.log" 2>&1 &
+        fi
     fi
     
     local pid=$!
@@ -383,12 +389,11 @@ start_frontend_dev() {
     export FRONTEND_PORT="$port"
     
     cd "$WEB_LUME_DIR"
-    
-    # Remove strictPort and set port in config
+
     if command_exists pnpm; then
-        pnpm run dev > "$LOG_DIR/frontend.log" 2>&1 &
+        pnpm run dev --port "$port" > "$LOG_DIR/frontend.log" 2>&1 &
     else
-        npm run dev > "$LOG_DIR/frontend.log" 2>&1 &
+        npm run dev -- --port "$port" > "$LOG_DIR/frontend.log" 2>&1 &
     fi
     
     local pid=$!
@@ -518,7 +523,7 @@ start_all() {
     
     mkdir -p "$LOG_DIR"
     
-    start_backend 3000 "$bg"
+    start_backend 3000 "$mode" "$bg"
     sleep 2
     
     if [ "$mode" = "prod" ]; then
