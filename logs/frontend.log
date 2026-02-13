@@ -1,0 +1,14 @@
+
+> @lume/web@1.0.0 dev /opt/Lume/frontend/apps/web-lume
+> vite
+
+Re-optimizing dependencies because vite config has changed
+
+  VITE v5.4.21  ready in 519 ms
+
+  ➜  Local:   http://localhost:3001/
+  ➜  Network: http://192.168.1.5:3001/
+10:22:57 PM [vite] hmr update /src/components/layout/Breadcrumb.vue, /src/style.css
+10:23:09 PM [vite] hmr update /src/components/ModuleView.vue, /src/style.css
+10:23:24 PM [vite] hmr update /src/components/ModuleView.vue, /src/style.css
+10:23:38 PM [vite] hmr update /src/components/ModuleView.vue, /src/style.css

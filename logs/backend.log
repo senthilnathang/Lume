@@ -1,0 +1,121 @@
+
+> lume-backend@1.0.0 dev /opt/Lume/backend
+> nodemon src/index.js
+
+[33m[nodemon] 3.1.11[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node s🚀 Starting Lume🚀 Starting Lume Modular Backend...
+✅ Database connection established successfully (MYSQL)
+✅ Database connected
+✅ Legacy models loaded
+⏭️  Skipping Base Module initialization temporarily
+⏭️  Database sync skipped
+🚀 Initializing Gawdesy Module System...
+📦 Found 18 modules to load
+✅ Module loaded: Activities (v1.0.0)
+✅ Module loaded: Audit (v1.0.0)
+✅ Module loaded: Authentication (v1.0.0)
+✅ Module loaded: Base (v1.0.0)
+✅ Module loaded: Base Automation (v1.0.0)
+✅ Module loaded: Base Features Data (v1.0.0)
+✅ Module loaded: Base Security (v1.0.0)
+✅ Module loaded: Common Utilities (v1.0.0)
+✅ Module loaded: Documents (v1.0.0)
+✅ Module loaded: Donations (v1.0.0)
+✅ Module loaded: Gawdesy (v1.0.0)
+✅ Module loaded: Lume (v1.0.0)
+✅ Module loaded: Media Library (v1.0.0)
+✅ Module loaded: Messages (v1.0.0)
+✅ Module loaded: RBAC (v1.0.0)
+✅ Module loaded: Settings (v1.0.0)
+✅ Module loaded: Team (v1.0.0)
+✅ Module loaded: User Management (v1.0.0)
+📋 Module load order: base -> activities -> audit -> auth -> base_automation -> base_features_data -> base_security -> common -> documents -> donations -> gawdesy -> lume -> media -> messages -> rbac -> settings -> team -> user
+🔧 Initializing Base Module...
+✅ Base models created: InstalledModule, Menu, Permission, Role, Group, RecordRule, Sequence, AuditLog
+✅ Base services created
+✅ Base API routes registered: /api/base
+✅ Base Module initialized
+✅ Module initialized: Base
+⚠️  Invalid router for base: function
+✅ Module initialized: Activities
+✅ Module initialized: Audit
+✅ Module initialized: Authentication
+🔧 Initializing Base Automation Module...
+✅ Base Automation API routes registered: /api/base_automation
+✅ Base Automation Module initialized
+✅ Module initialized: Base Automation
+⚠️  Invalid router for base_automation: function
+🔧 Initializing Base Features Data Module...
+✅ Base Features Data models created: FeatureFlag, DataImport, DataExport, Backup
+✅ Base Features Data services created
+✅ Base Features Data API routes registered: /api/base_features_data
+✅ Base Features Data Module initialized
+✅ Module initialized: Base Features Data
+⚠️  Invalid router for base_features_data: function
+🔧 Initializing Base Security Module...
+✅ Base Security models created: ApiKey, Session, IpAccess, TwoFactor, SecurityLog
+✅ Base Security services created
+✅ Base Security API routes registered: /api/base_security
+✅ Base Security Module initialized
+✅ Module initialized: Base Security
+⚠️  Invalid router for base_security: function
+✅ Module initialized: Common Utilities
+✅ Module initialized: Documents
+✅ Module initialized: Donations
+✅ Module initialized: Gawdesy
+✅ Module initialized: Lume
+✅ Module initialized: Media Library
+✅ Module initialized: Messages
+Initializing RBAC module...
+✅ RBAC API routes registered: /api/rbac
+RBAC module initialized
+✅ Module initialized: RBAC
+⚠️  Invalid router for rbac: function
+✅ Module initialized: Settings
+✅ Module initialized: Team
+✅ Module initialized: User Management
+✅ Module system initialized with 18 modules
+📋 Registered 15 menu groups
+🔐 Registered 109 permissions
+✅ Module system initialized
+node:events:496
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at Function.listen (/opt/Lume/backend/node_modules/express/lib/application.js:635:24)
+    at startServer (file:///opt/Lume/backend/src/index.js:496:9)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}
+
+Node.js v22.17.0
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+�══╝
+
+::1 - - [13/Feb/2026:16:54:41 +0000] "GET /health HTTP/1.1" 200 145 "-" "curl/8.5.0"
+Request: {"timestamp":"2026-02-13T16:54:41Z","method":"GET","url":"/health","status":200,"duration":"9ms","userAgent":"curl/8.5.0","ip":"::1"}
+::1 - - [13/Feb/2026:16:54:47 +0000] "GET /health HTTP/1.1" 200 145 "-" "curl/8.5.0"
+Request: {"timestamp":"2026-02-13T16:54:47Z","method":"GET","url":"/health","status":200,"duration":"2ms","userAgent":"curl/8.5.0","ip":"::1"}
+::ffff:127.0.0.1 - - [13/Feb/2026:17:01:13 +0000] "GET /api/menus HTTP/1.1" 200 8257 "http://localhost:3001/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"
+Request: {"timestamp":"2026-02-13T17:01:13Z","method":"GET","url":"/api/menus","status":200,"duration":"2ms","userAgent":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0","ip":"::ffff:127.0.0.1"}
+::ffff:127.0.0.1 - - [13/Feb/2026:17:01:13 +0000] "GET /api/permissions HTTP/1.1" 200 2362 "http://localhost:3001/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"
+Request: {"timestamp":"2026-02-13T17:01:13Z","method":"GET","url":"/api/permissions","status":200,"duration":"1ms","userAgent":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0","ip":"::ffff:127.0.0.1"}
+::ffff:127.0.0.1 - - [13/Feb/2026:17:01:13 +0000] "GET /api/menus HTTP/1.1" 200 8257 "http://localhost:3001/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"
+Request: {"timestamp":"2026-02-13T17:01:13Z","method":"GET","url":"/api/menus","status":200,"duration":"1ms","userAgent":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0","ip":"::ffff:127.0.0.1"}
+::ffff:127.0.0.1 - - [13/Feb/2026:17:01:14 +0000] "GET /api/permissions HTTP/1.1" 200 2362 "http://localhost:3001/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"
+Request: {"timestamp":"2026-02-13T17:01:14Z","method":"GET","url":"/api/permissions","status":200,"duration":"1ms","userAgent":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0","ip":"::ffff:127.0.0.1"}
+::ffff:127.0.0.1 - - [13/Feb/2026:17:01:16 +0000] "GET /api/dashboard/stats HTTP/1.1" 200 980 "http://localhost:3001/" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0"
+Request: {"timestamp":"2026-02-13T17:01:16Z","method":"GET","url":"/api/dashboard/stats","status":200,"duration":"52ms","userAgent":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0","ip":"::ffff:127.0.0.1","userId":2}

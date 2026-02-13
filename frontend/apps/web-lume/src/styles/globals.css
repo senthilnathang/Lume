@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --border: 220 13% 91%;
+    --card-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --input: 220 13% 91%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --ring: 221.2 83.2% 53.3%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+@layer utilities {
+  .animate-accordion-down {
+    animation: accordion-down 0.2s ease-out;
+  }
+
+  .animate-accordion-up {
+    animation: accordion-up 0.2s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.2s ease-out;
+  }
+
+  .animate-fade-out {
+    animation: fade-out 0.2s ease-out;
+  }
+
+  .animate-in {
+    animation: fade-in 0.2s ease-out;
+  }
+
+  .animate-slide-in-from-bottom {
+    animation: slide-in-from-bottom 0.2s ease-out;
+  }
+
+  .animate-slide-in-from-left {
+    animation: slide-in-from-left 0.2s ease-out;
+  }
+
+  .animate-slide-in-from-right {
+    animation: slide-in-from-right 0.2s ease-out;
+  }
+
+  .animate-slide-in-from-top {
+    animation: slide-in-from-top 0.2s ease-out;
+  }
+
+  .animate-slide-out-to-bottom {
+    animation: slide-out-to-bottom 0.2s ease-out;
+  }
+
+  .animate-slide-out-to-left {
+    animation: slide-out-to-left 0.2s ease-out;
+  }
+
+  .animate-slide-out-to-right {
+    animation: slide-out-to-right 0.2s ease-out;
+  }
+
+  .animate-slide-out-to-top {
+    animation: slide-out-to-top 0.2s ease-out;
+  }
+
+  .animate-out {
+    animation: fade-out 0.2s ease-out;
+  }
+
+  .animate-zoom-in {
+    animation: zoom-in 0.2s ease-out;
+  }
+
+  .animate-zoom-out {
+    animation: zoom-out 0.2s ease-out;
+  }
+}

@@ -1,0 +1,32 @@
+.approval-inbox {
+  padding: 0;
+}
+
+.inbox-header {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.step-name {
+  font-weight: 500;
+}
+
+.time-info {
+  margin-left: 12px;
+  color: #999;
+  font-size: 12px;
+}
+
+.time-info.overdue {
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+.task-comments {
+  margin-top: 4px;
+  color: #666;
+  font-size: 12px;
+  font-style: italic;
+}

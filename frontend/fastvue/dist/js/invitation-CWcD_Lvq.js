@@ -1,0 +1,1 @@
+import{r as n}from"./bootstrap-D-OKgEJR.js";const i="/invitations";function a(t={}){return n.get(i,{params:t})}function o(){return n.get(`${i}/stats/`)}function s(t){return n.post(i,t)}function u(t,e={}){return n.post(`${i}/${t}/resend`,e)}function c(t){return n.delete(`${i}/${t}`)}export{a,c as b,s as c,o as g,u as r};

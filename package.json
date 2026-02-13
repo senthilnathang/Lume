@@ -1,0 +1,20 @@
+{
+  "name": "lume-workspace",
+  "version": "1.0.0",
+  "description": "Lume Framework Workspace - Full-Stack Monorepo",
+  "type": "module",
+  "workspaces": [
+    "frontend/apps/*",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "echo 'Use ./start.sh to manage services'",
+    "start": "./start.sh start all",
+    "test": "cd backend && npm test",
+    "lint": "cd backend && npm run lint",
+    "build": "cd backend && npm run build"
+  },
+  "engines": {
+    "node": ">=18.19.0"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "description": "Core module demo data",
+  "data": {
+    "users": [
+      {
+        "email": "admin@gawdesy.org",
+        "password": "Admin@123",
+        "first_name": "Super",
+        "last_name": "Admin",
+        "role_id": 1,
+        "is_active": true,
+        "is_email_verified": true
+      },
+      {
+        "email": "staff@gawdesy.org",
+        "password": "Staff@123",
+        "first_name": "Staff",
+        "last_name": "Member",
+        "role_id": 4,
+        "is_active": true,
+        "is_email_verified": true
+      }
+    ],
+    "roles": [
+      {
+        "name": "super_admin",
+        "display_name": "Super Admin",
+        "description": "Full system access",
+        "is_system": true
+      }
+    ],
+    "settings": [
+      {
+        "key": "demo_mode",
+        "value": "true",
+        "type": "boolean",
+        "category": "system",
+        "description": "Enable demo mode"
+      }
+    ]
+  }
+}
