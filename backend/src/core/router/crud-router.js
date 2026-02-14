@@ -57,7 +57,7 @@ export function createCrudRouter(model, options = {}) {
         order: [[orderBy, orderDir]],
       });
 
-      res.json({ success: true, ...result });
+      res.json({ success: true, data: result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }

@@ -51,7 +51,7 @@ export class BaseService {
 
     const { count, rows } = await this.model.findAndCountAll(findOptions);
     return {
-      data: rows,
+      items: rows,
       total: count,
       page,
       limit,
