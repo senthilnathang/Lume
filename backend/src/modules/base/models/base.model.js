@@ -86,6 +86,10 @@ export class BaseModel {
    */
   use(mixin) {
     this.mixins.push(mixin);
+    // Apply mixin immediately since constructor already ran applyMixins()
+    if (typeof mixin === 'function') {
+      mixin(this.model, this);
+    }
     return this;
   }
   

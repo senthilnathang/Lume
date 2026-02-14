@@ -58,7 +58,9 @@ export class ModuleService {
    * Get all menus from installed modules
    */
   async getAllMenus() {
-    return this.models.Menu.getAllMenus();
+    return this.models.Menu.findAll({
+      order: [['sequence', 'ASC'], ['name', 'ASC']]
+    });
   }
   
   /**

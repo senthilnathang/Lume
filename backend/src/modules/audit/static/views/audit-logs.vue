@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { computed, h, onMounted, ref } from 'vue';
-import { message, Modal } from 'ant-design-vue';
+import { computed, onMounted, ref } from 'vue';
+import { message } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
   Activity,

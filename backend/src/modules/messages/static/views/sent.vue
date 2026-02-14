@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import { Send, RefreshCw, Eye, Mail, Clock } from 'lucide-vue-next';
+import { Send, RefreshCw, Eye, Mail } from 'lucide-vue-next';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import { getMessages, getMessage, type Message } from '@modules/messages/static/api/index';
 

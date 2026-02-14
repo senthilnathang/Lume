@@ -1,4 +1,4 @@
-<script setup>
+<script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
 import { message } from 'ant-design-vue';
 import {

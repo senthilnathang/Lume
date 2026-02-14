@@ -43,7 +43,7 @@ const ruleFormLoading = ref(false);
 const editingRule = ref<AccessRule | null>(null);
 const ruleForm = reactive({
   name: '', model: '', roleId: undefined as number | undefined,
-  permission: 'read' as string, field: '', filter: '',
+  permission: 'read' as AccessRule['permission'], field: '', filter: '',
   isActive: true, priority: 0,
 });
 
@@ -147,7 +147,7 @@ async function loadAuditLogs() {
     const all = Array.isArray(res) ? res : (res as any)?.data || [];
     auditLogs.value = all.filter((l: any) =>
       ['role', 'permission', 'access_rule', 'rbac'].some((k) =>
-        (l.resource_type || l.model || '').toLowerCase().includes(k)
+        (l.resource_type || '').toLowerCase().includes(k)
       )
     );
   } catch { auditLogs.value = []; }
@@ -242,12 +242,12 @@ onMounted(() => { loadData(); });
       <h2 class="text-lg font-semibold mb-4">RBAC Audit Trail</h2>
       <a-table :columns="auditColumns" :data-source="auditLogs" :loading="loading" row-key="id" size="middle" :pagination="{ pageSize: 20 }">
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'time'">{{ formatRelativeTime(record.createdAt || record.created_at) }}</template>
-          <template v-else-if="column.key === 'user'">{{ record.user?.email || record.userId || '-' }}</template>
+          <template v-if="column.key === 'time'">{{ formatRelativeTime(record.created_at) }}</template>
+          <template v-else-if="column.key === 'user'">{{ record.user_id || '-' }}</template>
           <template v-else-if="column.key === 'action'">
             <a-tag :color="actionColors[record.action] || 'default'">{{ record.action }}</a-tag>
           </template>
-          <template v-else-if="column.key === 'resource'">{{ record.resource_type || record.model || '-' }}</template>
+          <template v-else-if="column.key === 'resource'">{{ record.resource_type || '-' }}</template>
           <template v-else-if="column.key === 'actions'">
             <a-button size="small" @click="viewLog(record)"><FileText :size="14" /></a-button>
           </template>
@@ -289,19 +289,19 @@ onMounted(() => { loadData(); });
       <template v-if="selectedLog">
         <a-descriptions :column="1" bordered size="small">
           <a-descriptions-item label="Action"><a-tag :color="actionColors[selectedLog.action] || 'default'">{{ selectedLog.action }}</a-tag></a-descriptions-item>
-          <a-descriptions-item label="Resource">{{ selectedLog.resource_type || selectedLog.model || '-' }}</a-descriptions-item>
-          <a-descriptions-item label="Record ID">{{ selectedLog.record_id || selectedLog.recordId || '-' }}</a-descriptions-item>
-          <a-descriptions-item label="User">{{ selectedLog.user?.email || selectedLog.userId || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="Resource">{{ selectedLog.resource_type || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="Record ID">{{ selectedLog.resource_id || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="User">{{ selectedLog.user_id || '-' }}</a-descriptions-item>
           <a-descriptions-item label="IP Address">{{ selectedLog.ip_address || '-' }}</a-descriptions-item>
-          <a-descriptions-item label="Time">{{ formatDate(selectedLog.createdAt || selectedLog.created_at) }}</a-descriptions-item>
+          <a-descriptions-item label="Time">{{ formatDate(selectedLog.created_at) }}</a-descriptions-item>
         </a-descriptions>
-        <div v-if="selectedLog.old_values || selectedLog.oldValues" class="mt-4">
+        <div v-if="selectedLog.old_data" class="mt-4">
           <h4 class="font-medium mb-2">Old Values</h4>
-          <pre class="bg-gray-50 p-3 rounded text-xs overflow-auto">{{ JSON.stringify(selectedLog.old_values || selectedLog.oldValues, null, 2) }}</pre>
+          <pre class="bg-gray-50 p-3 rounded text-xs overflow-auto">{{ JSON.stringify(selectedLog.old_data, null, 2) }}</pre>
         </div>
-        <div v-if="selectedLog.new_values || selectedLog.newValues" class="mt-4">
+        <div v-if="selectedLog.new_data" class="mt-4">
           <h4 class="font-medium mb-2">New Values</h4>
-          <pre class="bg-gray-50 p-3 rounded text-xs overflow-auto">{{ JSON.stringify(selectedLog.new_values || selectedLog.newValues, null, 2) }}</pre>
+          <pre class="bg-gray-50 p-3 rounded text-xs overflow-auto">{{ JSON.stringify(selectedLog.new_data, null, 2) }}</pre>
         </div>
       </template>
     </a-drawer>

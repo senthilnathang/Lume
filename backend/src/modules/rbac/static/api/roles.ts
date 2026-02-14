@@ -39,21 +39,21 @@ export interface UpdateRoleData {
 }
 
 export function getRoles(): Promise<Role[]> {
-  return get<Role[]>('/auth/roles');
+  return get<Role[]>('/rbac/roles');
 }
 
 export function getRole(id: number): Promise<Role> {
-  return get<Role>(`/auth/roles/${id}`);
+  return get<Role>(`/rbac/roles/${id}`);
 }
 
 export function createRole(data: CreateRoleData): Promise<Role> {
-  return post<Role>('/auth/roles', data);
+  return post<Role>('/rbac/roles', data);
 }
 
 export function updateRole(id: number, data: UpdateRoleData): Promise<Role> {
-  return put<Role>(`/auth/roles/${id}`, data);
+  return put<Role>(`/rbac/roles/${id}`, data);
 }
 
 export function deleteRole(id: number): Promise<void> {
-  return del(`/auth/roles/${id}`);
+  return del(`/rbac/roles/${id}`);
 }

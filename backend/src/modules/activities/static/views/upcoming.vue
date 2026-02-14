@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref } from 'vue';
 import { Clock, RefreshCw, MapPin, Users, Calendar, Star } from 'lucide-vue-next';
 import { getUpcomingActivities, type Activity } from '@modules/activities/static/api/index';
 

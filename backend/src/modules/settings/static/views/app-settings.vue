@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { message, Modal } from 'ant-design-vue';
-import { Settings, Save, RefreshCw, RotateCcw, Sliders, Mail, Globe, Share2 } from 'lucide-vue-next';
+import { Save, RefreshCw, RotateCcw, Sliders, Mail, Globe, Share2 } from 'lucide-vue-next';
 import { getSettingsByCategory, bulkSetSettings, initializeDefaults, type BulkSettingData } from '@modules/settings/static/api/index';
 
 defineOptions({ name: 'AppSettingsView' });

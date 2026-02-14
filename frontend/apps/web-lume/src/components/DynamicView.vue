@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, shallowRef, defineAsyncComponent } from 'vue';
+import { ref, onMounted, shallowRef, defineAsyncComponent } from 'vue';
 import { useRoute } from 'vue-router';
 import { message } from 'ant-design-vue';
 

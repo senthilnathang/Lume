@@ -212,7 +212,7 @@ export class UserService {
     const newThisMonth = await this.User.count({
       where: {
         created_at: {
-          [Op.gte]: dayjs().startOf('month').format()
+          [Op.gte]: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
         }
       }
     });

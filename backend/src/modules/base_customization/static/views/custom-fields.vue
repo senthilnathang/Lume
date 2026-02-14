@@ -1,4 +1,4 @@
-<script setup>
+<script lang="ts" setup>
 import { computed, h, onMounted, reactive, ref, watch } from 'vue';
 import { message, Modal } from 'ant-design-vue';
 import {
