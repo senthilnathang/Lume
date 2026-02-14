@@ -1,19 +1,32 @@
-// CRUD Composable for API Operations
+/**
+ * CRUD Composable for API Operations
+ * Uses the centralized Axios client from @/api/request.ts
+ * Response interceptor unwraps {success, data} → returns data directly
+ */
 import { ref, computed } from 'vue';
-import type { ApiResponse, PaginatedResponse, PaginationParams } from '@/types/api';
-import api from '@/api';
+import { get as apiGet, post as apiPost, put as apiPut, del as apiDel } from '@/api/request';
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 interface CRUDOptions {
   endpoint: string;
-  pagination?: boolean;
 }
 
-export function useCrud<T>(options: CRUDOptions) {
-  const { endpoint, pagination = true } = options;
+export function useCrud<T extends { id: number | string }>(options: CRUDOptions) {
+  const { endpoint } = options;
 
   // State
   const data = ref<T[]>([]) as { value: T[] };
   const total = ref(0);
+  const page = ref(1);
+  const limit = ref(20);
+  const totalPages = ref(0);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -22,27 +35,29 @@ export function useCrud<T>(options: CRUDOptions) {
   const hasData = computed(() => data.value.length > 0);
 
   // List with pagination
-  const list = async (params?: PaginationParams): Promise<T[]> => {
+  const list = async (params?: Record<string, any>): Promise<T[]> => {
     loading.value = true;
     error.value = null;
-    
+
     try {
-      const res = await api.get<ApiResponse<T[]>>(endpoint, { params });
-      
-      if (pagination && 'items' in res) {
-        // Handle paginated response
-        const paginatedRes = res as ApiResponse<PaginatedResponse<T>>;
-        data.value = paginatedRes.data.items;
-        total.value = paginatedRes.data.total;
-      } else {
-        // Handle array response
-        data.value = (res as any).data || res.items || res;
-        total.value = data.value.length;
+      // Interceptor unwraps {success, data} → returns data
+      // For search endpoint, data = { items, total, page, limit, totalPages }
+      const result = await apiGet<PaginatedResult<T>>(endpoint, params);
+
+      if (result && typeof result === 'object' && 'items' in result) {
+        data.value = result.items;
+        total.value = result.total;
+        page.value = result.page;
+        limit.value = result.limit;
+        totalPages.value = result.totalPages;
+      } else if (Array.isArray(result)) {
+        data.value = result;
+        total.value = result.length;
       }
-      
+
       return data.value;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch data';
+      error.value = err.response?.data?.error || err.message || 'Failed to fetch data';
       throw err;
     } finally {
       loading.value = false;
@@ -53,12 +68,13 @@ export function useCrud<T>(options: CRUDOptions) {
   const get = async (id: number | string): Promise<T> => {
     loading.value = true;
     error.value = null;
-    
+
     try {
-      const res = await api.get<ApiResponse<T>>(`${endpoint}/${id}`);
-      return res.data;
+      // Interceptor unwraps → returns the record directly
+      const record = await apiGet<T>(`${endpoint}/${id}`);
+      return record;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch item';
+      error.value = err.response?.data?.error || err.message || 'Failed to fetch item';
       throw err;
     } finally {
       loading.value = false;
@@ -69,15 +85,14 @@ export function useCrud<T>(options: CRUDOptions) {
   const create = async (payload: Partial<T>): Promise<T> => {
     loading.value = true;
     error.value = null;
-    
+
     try {
-      const res = await api.post<ApiResponse<T>>(endpoint, payload);
-      const newItem = res.data;
+      const newItem = await apiPost<T>(endpoint, payload);
       data.value.unshift(newItem);
       total.value++;
       return newItem;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to create item';
+      error.value = err.response?.data?.error || err.message || 'Failed to create item';
       throw err;
     } finally {
       loading.value = false;
@@ -88,17 +103,16 @@ export function useCrud<T>(options: CRUDOptions) {
   const update = async (id: number | string, payload: Partial<T>): Promise<T> => {
     loading.value = true;
     error.value = null;
-    
+
     try {
-      const res = await api.put<ApiResponse<T>>(`${endpoint}/${id}`, payload);
-      const updatedItem = res.data;
-      const index = data.value.findIndex((item: any) => item.id === id);
+      const updatedItem = await apiPut<T>(`${endpoint}/${id}`, payload);
+      const index = data.value.findIndex((item) => item.id === id);
       if (index > -1) {
         data.value[index] = updatedItem;
       }
       return updatedItem;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to update item';
+      error.value = err.response?.data?.error || err.message || 'Failed to update item';
       throw err;
     } finally {
       loading.value = false;
@@ -109,45 +123,73 @@ export function useCrud<T>(options: CRUDOptions) {
   const remove = async (id: number | string): Promise<void> => {
     loading.value = true;
     error.value = null;
-    
+
     try {
-      await api.delete(`${endpoint}/${id}`);
-      data.value = data.value.filter((item: any) => item.id !== id);
+      await apiDel(`${endpoint}/${id}`);
+      data.value = data.value.filter((item) => item.id !== id);
       total.value--;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to delete item';
+      error.value = err.response?.data?.error || err.message || 'Failed to delete item';
       throw err;
     } finally {
       loading.value = false;
     }
   };
 
-  // Batch delete
-  const batchRemove = async (ids: (number | string)[]): Promise<void> => {
+  // Bulk create
+  const bulkCreate = async (records: Partial<T>[]): Promise<T[]> => {
     loading.value = true;
     error.value = null;
-    
+
     try {
-      await api.post(`${endpoint}/batch-delete`, { ids });
-      data.value = data.value.filter((item: any) => !ids.includes(item.id));
-      total.value -= ids.length;
+      const newItems = await apiPost<T[]>(`${endpoint}/bulk`, records);
+      data.value.unshift(...newItems);
+      total.value += newItems.length;
+      return newItems;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to delete items';
+      error.value = err.response?.data?.error || err.message || 'Failed to bulk create';
       throw err;
     } finally {
       loading.value = false;
+    }
+  };
+
+  // Bulk delete
+  const bulkRemove = async (ids: (number | string)[]): Promise<void> => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await apiDel(`${endpoint}/bulk`, { data: { ids } });
+      data.value = data.value.filter((item) => !ids.includes(item.id));
+      total.value -= ids.length;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || err.message || 'Failed to bulk delete';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Get model field definitions
+  const fieldsGet = async (): Promise<Record<string, any>> => {
+    try {
+      return await apiGet(`${endpoint}/fields`);
+    } catch (err: any) {
+      error.value = err.response?.data?.error || err.message || 'Failed to fetch fields';
+      throw err;
     }
   };
 
   // Refresh data
-  const refresh = async () => {
-    return list();
-  };
+  const refresh = async () => list();
 
   // Reset state
   const reset = () => {
     data.value = [];
     total.value = 0;
+    page.value = 1;
+    totalPages.value = 0;
     error.value = null;
   };
 
@@ -155,21 +197,26 @@ export function useCrud<T>(options: CRUDOptions) {
     // State
     data,
     total,
+    page,
+    limit,
+    totalPages,
     loading,
     error,
-    
+
     // Computed
     isEmpty,
     hasData,
-    
+
     // Methods
     list,
     get,
     create,
     update,
     remove,
-    batchRemove,
+    bulkCreate,
+    bulkRemove,
+    fieldsGet,
     refresh,
-    reset
+    reset,
   };
 }
