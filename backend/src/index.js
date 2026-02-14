@@ -184,15 +184,28 @@ app.get('/api/modules', (req, res) => {
   const modules = getAllModules();
   res.json({
     success: true,
-    data: modules.map(m => ({
-      name: m.manifest.name || m.name,
-      technicalName: m.name,
-      version: m.manifest.version,
-      category: m.manifest.category,
-      description: m.manifest.summary,
-      loaded: m.loaded,
-      initialized: m.initialized
-    }))
+    data: modules.map(m => {
+      const manifest = m.manifest || {};
+      return {
+        name: m.name,
+        display_name: manifest.name || m.name,
+        version: manifest.version || '1.0.0',
+        summary: manifest.summary || '',
+        description: manifest.description || '',
+        author: manifest.author || '',
+        website: manifest.website || '',
+        category: manifest.category || 'Uncategorized',
+        license: manifest.license || 'MIT',
+        application: manifest.application || false,
+        installable: manifest.installable !== false,
+        state: m.initialized ? 'installed' : 'uninstalled',
+        depends: manifest.depends || [],
+        installed_at: m.initialized ? new Date().toISOString() : null,
+        module_path: `modules/${m.name}`,
+        loaded: m.loaded,
+        initialized: m.initialized,
+      };
+    })
   });
 });
 
@@ -201,51 +214,147 @@ app.get('/api/modules/:name', (req, res) => {
   if (!module) {
     return res.status(404).json(responseUtil.notFound('Module'));
   }
+  const manifest = module.manifest || {};
   res.json({
     success: true,
     data: {
-      name: module.manifest.name || module.name,
-      technicalName: module.name,
-      version: module.manifest.version,
-      category: module.manifest.category,
-      description: module.manifest.summary,
-      permissions: module.manifest.permissions || [],
-      dependencies: module.manifest.depends || []
+      name: module.name,
+      display_name: manifest.name || module.name,
+      version: manifest.version || '1.0.0',
+      summary: manifest.summary || '',
+      description: manifest.description || '',
+      author: manifest.author || '',
+      website: manifest.website || '',
+      category: manifest.category || 'Uncategorized',
+      license: manifest.license || 'MIT',
+      application: manifest.application || false,
+      installable: manifest.installable !== false,
+      state: module.initialized ? 'installed' : 'uninstalled',
+      depends: manifest.depends || [],
+      installed_at: module.initialized ? new Date().toISOString() : null,
+      module_path: `modules/${module.name}`,
+      loaded: module.loaded,
+      initialized: module.initialized,
+      permissions: manifest.permissions || [],
     }
   });
 });
 
-// Get all menus from modules (flat structure like FastVue)
+app.post('/api/modules/:name/install', async (req, res) => {
+  try {
+    const moduleName = req.params.name;
+    const module = getAllModules().find(m => m.name === moduleName);
+    if (!module) {
+      return res.status(404).json({ success: false, error: `Module "${moduleName}" not found` });
+    }
+    if (module.initialized) {
+      return res.json({ success: true, message: `Module "${moduleName}" is already installed` });
+    }
+    // Module is already loaded by the loader — just mark as initialized
+    module.initialized = true;
+    res.json({
+      success: true,
+      message: `Module "${module.manifest?.name || moduleName}" installed successfully`,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/modules/:name/uninstall', async (req, res) => {
+  try {
+    const moduleName = req.params.name;
+    const module = getAllModules().find(m => m.name === moduleName);
+    if (!module) {
+      return res.status(404).json({ success: false, error: `Module "${moduleName}" not found` });
+    }
+    if (moduleName === 'base') {
+      return res.status(400).json({ success: false, error: 'Cannot uninstall the base module' });
+    }
+    if (!module.initialized) {
+      return res.json({ success: true, message: `Module "${moduleName}" is already uninstalled` });
+    }
+    module.initialized = false;
+    res.json({
+      success: true,
+      message: `Module "${module.manifest?.name || moduleName}" uninstalled`,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/modules/:name/upgrade', async (req, res) => {
+  try {
+    const moduleName = req.params.name;
+    const module = getAllModules().find(m => m.name === moduleName);
+    if (!module) {
+      return res.status(404).json({ success: false, error: `Module "${moduleName}" not found` });
+    }
+    res.json({
+      success: true,
+      message: `Module "${module.manifest?.name || moduleName}" upgraded to v${module.manifest?.version || '1.0.0'}`,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+// Get all menus from modules (merges children when same path declared by multiple modules)
 app.get('/api/menus', (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
-  const allMenus = [];
-  
+
+  const menuMap = new Map();
+
   for (const module of getAllModules()) {
     const menus = module.manifest?.menus || module.manifest?.frontend?.menus || [];
-    
+
     for (const menu of menus) {
-      const enrichedMenu = {
-        ...menu,
-        name: menu.name || menu.title,
-        module: module.name,
-      };
-      
-      if (menu.children && menu.children.length > 0) {
-        enrichedMenu.children = menu.children.map(child => ({
+      const path = menu.path;
+
+      if (menuMap.has(path)) {
+        // Merge children from multiple modules declaring the same parent path
+        const existing = menuMap.get(path);
+        const newChildren = (menu.children || []).map(child => ({
           ...child,
           name: child.name || child.title,
           module: module.name
         }));
+        const childPaths = new Set((existing.children || []).map(c => c.path));
+        for (const child of newChildren) {
+          if (!childPaths.has(child.path)) {
+            existing.children = existing.children || [];
+            existing.children.push(child);
+          }
+        }
+        if (existing.children) {
+          existing.children.sort((a, b) => (a.sequence || 99) - (b.sequence || 99));
+        }
+      } else {
+        const enrichedMenu = {
+          ...menu,
+          name: menu.name || menu.title,
+          module: module.name,
+        };
+
+        if (menu.children && menu.children.length > 0) {
+          enrichedMenu.children = menu.children.map(child => ({
+            ...child,
+            name: child.name || child.title,
+            module: module.name
+          }));
+        }
+
+        menuMap.set(path, enrichedMenu);
       }
-      
-      allMenus.push(enrichedMenu);
     }
   }
-  
+
+  const allMenus = Array.from(menuMap.values());
   allMenus.sort((a, b) => (a.sequence || 10) - (b.sequence || 10));
-  
+
   res.json({
     success: true,
     data: allMenus

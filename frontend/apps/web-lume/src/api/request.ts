@@ -78,13 +78,13 @@ request.interceptors.response.use(
           break;
         }
         case 403:
-          window.location.href = '/forbidden';
+          // Only redirect for non-API auth failures
           break;
         case 404:
-          window.location.href = '/not-found';
+          // API 404s are handled by individual callers, not global redirect
           break;
         case 500:
-          window.location.href = '/server-error';
+          console.error('Server error:', response.data?.message || 'Internal server error');
           break;
         default:
           break;

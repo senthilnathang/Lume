@@ -10,7 +10,6 @@
         @logout="handleLogout"
       />
       <div class="lume-layout-content">
-        <Breadcrumb v-if="showBreadcrumb" />
         <RouterView />
       </div>
     </div>
@@ -24,7 +23,6 @@ import { useAuthStore } from '@/store/auth';
 import { usePermissionStore, type MenuItem } from '@/store/permission';
 import Sidebar from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
-import Breadcrumb from '@/components/layout/Breadcrumb.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -36,11 +34,6 @@ const sidebarCollapsed = ref(false);
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.userInfo);
 const menus = computed(() => permissionStore.menus);
-
-// Show breadcrumb on all authenticated pages except dashboard
-const showBreadcrumb = computed(() => {
-  return isAuthenticated.value && route.path !== '/dashboard' && route.path !== '/';
-});
 
 // Fetch permissions and menus on mount
 onMounted(async () => {

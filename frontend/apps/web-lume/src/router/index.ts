@@ -12,11 +12,104 @@ const LOGIN_PATH = '/login';
 const DEFAULT_HOME_PATH = '/dashboard';
 
 /**
- * Dynamic module view loader
- * Tries to load Vue component from backend static views first,
- * falls back to ModuleView if not found
+ * Custom view registry
+ * Maps route paths to dedicated Vue components instead of the generic ModuleView
  */
-async function loadModuleView(moduleName: string, routeName: string) {
+const customViews: Record<string, () => Promise<any>> = {
+  'settings/modules': () => import('@/views/settings/modules.vue'),
+  'settings/users': () => import('@/views/settings/users.vue'),
+  'settings/roles': () => import('@/views/settings/roles.vue'),
+  'settings/permissions': () => import('@/views/settings/permissions.vue'),
+  'settings/groups': () => import('@/views/settings/groups.vue'),
+  'settings/audit-logs': () => import('@/views/settings/audit-logs.vue'),
+  'activities': () => import('@/views/activities/index.vue'),
+  'team': () => import('@/views/team/index.vue'),
+  'donations': () => import('@/views/donations/index.vue'),
+  'donations/donors': () => import('@/views/donations/donors.vue'),
+  'messages': () => import('@/views/messages/index.vue'),
+  'audit': () => import('@/views/settings/audit-logs.vue'),
+  // Documents
+  'documents': () => import('@/views/documents/index.vue'),
+  'documents/images': () => import('@/views/documents/index.vue'),
+  'documents/videos': () => import('@/views/documents/index.vue'),
+  // Media
+  'media': () => import('@/views/media/index.vue'),
+  'media/upload': () => import('@/views/media/index.vue'),
+  'media/featured': () => import('@/views/media/index.vue'),
+  // Settings (form)
+  'settings/general': () => import('@/views/settings/app-settings.vue'),
+  'settings/contact': () => import('@/views/settings/app-settings.vue'),
+  'settings/localization': () => import('@/views/settings/app-settings.vue'),
+  'settings/social': () => import('@/views/settings/app-settings.vue'),
+  // Security
+  'settings/security/access': () => import('@/views/settings/security/index.vue'),
+  'settings/security/2fa': () => import('@/views/settings/security/index.vue'),
+  'settings/security/sessions': () => import('@/views/settings/security/index.vue'),
+  'settings/security/api-keys': () => import('@/views/settings/security/index.vue'),
+  // Features & Data
+  'settings/features/flags': () => import('@/views/settings/features/index.vue'),
+  'settings/features/import': () => import('@/views/settings/features/index.vue'),
+  'settings/features/export': () => import('@/views/settings/features/index.vue'),
+  'settings/features/backups': () => import('@/views/settings/features/index.vue'),
+  // Campaigns
+  'donations/campaigns': () => import('@/views/donations/campaigns.vue'),
+  // Donation Reports
+  'donations/reports': () => import('@/views/donations/reports.vue'),
+  // Automation
+  'settings/automation/workflows': () => import('@/views/settings/automation/index.vue'),
+  'settings/automation/flows': () => import('@/views/settings/automation/index.vue'),
+  'settings/automation/business-rules': () => import('@/views/settings/automation/index.vue'),
+  'settings/automation/approvals': () => import('@/views/settings/automation/index.vue'),
+  'settings/automation/scheduled': () => import('@/views/settings/automation/index.vue'),
+  // RBAC
+  'settings/rbac/access-rules': () => import('@/views/settings/rbac/index.vue'),
+  'settings/rbac/audit': () => import('@/views/settings/rbac/index.vue'),
+  // Settings children
+  'settings/menus': () => import('@/views/settings/menus.vue'),
+  'settings/record-rules': () => import('@/views/settings/record-rules.vue'),
+  'settings/sequences': () => import('@/views/settings/sequences.vue'),
+  'settings/system': () => import('@/views/settings/system.vue'),
+  // Audit cleanup
+  'audit/cleanup': () => import('@/views/audit/cleanup.vue'),
+  // Team sub-views
+  'team/leadership': () => import('@/views/team/leadership.vue'),
+  'team/departments': () => import('@/views/team/departments.vue'),
+  // Activities sub-views
+  'activities/upcoming': () => import('@/views/activities/upcoming.vue'),
+  'activities/calendar': () => import('@/views/activities/calendar.vue'),
+  // Messages sub-views
+  'messages/sent': () => import('@/views/messages/sent.vue'),
+};
+
+/**
+ * Dynamic module view loader
+ * Checks custom views first, then backend static views, falls back to ModuleView
+ * @param moduleName - The module owning this route
+ * @param routeName - The display name of the route
+ * @param fullPath - Optional full route path for exact custom view matching
+ */
+async function loadModuleView(moduleName: string, routeName: string, fullPath?: string) {
+  // Check for a custom local view by exact path first (most reliable)
+  if (fullPath) {
+    const normalizedPath = fullPath.replace(/^\//, '').toLowerCase();
+    for (const [key, loader] of Object.entries(customViews)) {
+      if (normalizedPath === key.toLowerCase()) {
+        const mod = await loader();
+        return mod.default;
+      }
+    }
+  }
+
+  // Check by module/routeName combination
+  const routePath = `${moduleName}/${routeName}`.replace(/^\//, '').toLowerCase();
+  for (const [key, loader] of Object.entries(customViews)) {
+    const lowerKey = key.toLowerCase();
+    if (routePath === lowerKey || routePath.endsWith(lowerKey)) {
+      const mod = await loader();
+      return mod.default;
+    }
+  }
+
   const possiblePaths = [
     `/modules/${moduleName}/static/views/${routeName}.vue`,
     `/modules/${moduleName}/static/views/list.vue`,
@@ -29,12 +122,8 @@ async function loadModuleView(moduleName: string, routeName: string) {
       const response = await fetch(path);
       if (response.ok) {
         const vueContent = await response.text();
-        
-        // If we found a valid Vue file with our custom views, return a wrapper
-        // that displays a message that this custom view is available
         if (vueContent.includes('<script setup') || vueContent.includes('<script>')) {
-          console.log(`✅ Found custom view at ${path} for ${moduleName}`);
-          // Use the ModuleView but with moduleName set properly
+          console.log(`Found custom view at ${path} for ${moduleName}`);
           const { default: ModuleView } = await import('@/components/ModuleView.vue');
           return ModuleView;
         }
@@ -43,7 +132,7 @@ async function loadModuleView(moduleName: string, routeName: string) {
       // Continue to next path
     }
   }
-  
+
   // Fallback to ModuleView
   const { default: ModuleView } = await import('@/components/ModuleView.vue');
   return ModuleView;
@@ -191,7 +280,7 @@ function setupAccessGuard() {
         router.addRoute('App', {
           path: menu.path.startsWith('/') ? menu.path.slice(1) : menu.path,
           name: routeName,
-          component: () => loadModuleView(moduleName as string, routeName as string),
+          component: () => loadModuleView(moduleName as string, routeName as string, menu.path),
           props: {
             moduleName: moduleName,
           },
@@ -209,13 +298,15 @@ function setupAccessGuard() {
       if (menu.children?.length) {
         for (const child of menu.children) {
           if (!child.path || child.hideInMenu) continue;
-          const childRouteName = child.name || child.path.split('/').pop();
+          // Use path-based name to avoid collisions (e.g., both RBAC and Settings have "Roles")
+          const childBaseName = child.name || child.path.split('/').pop();
+          const childRouteName = child.path.replace(/^\//, '').replace(/\//g, '-') || childBaseName;
           const childModule = child.module || moduleName;
           if (!router.hasRoute(childRouteName as string)) {
             router.addRoute('App', {
               path: child.path.startsWith('/') ? child.path.slice(1) : child.path,
               name: childRouteName,
-              component: () => loadModuleView(childModule as string, childRouteName as string),
+              component: () => loadModuleView(childModule as string, childBaseName as string, child.path),
               props: {
                 moduleName: childModule,
               },
@@ -235,6 +326,15 @@ function setupAccessGuard() {
     // Redirect to dashboard if at root
     if (to.path === LOGIN_PATH || to.path === '/') {
       return { path: DEFAULT_HOME_PATH, replace: true };
+    }
+
+    // If route matched catch-all (NotFound) but we just added dynamic routes,
+    // re-navigate to let the new routes be evaluated
+    if (to.name === 'NotFound' || to.name === 'NotFoundPage') {
+      const resolved = router.resolve(to.fullPath);
+      if (resolved.name !== 'NotFound' && resolved.name !== 'NotFoundPage') {
+        return { path: to.fullPath, replace: true };
+      }
     }
 
     return true;
@@ -298,7 +398,7 @@ export function addDynamicRoutes(menus: MenuItem[]): RouteRecordRaw[] {
       if (menu.children?.length) {
         for (const child of menu.children) {
           if (!child.path || child.hideInMenu) continue;
-          const childRouteName = child.name || child.path.split('/').pop() || 'ChildRoute';
+          const childRouteName = child.path.replace(/^\//, '').replace(/\//g, '-') || child.name || 'ChildRoute';
           const childModule = child.module || moduleName;
 
           const childRoute: RouteRecordRaw = {

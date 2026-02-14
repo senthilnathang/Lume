@@ -268,22 +268,38 @@ const getAllModules = () => {
 /**
  * Get all menus from modules
  * Returns flat array with module name enriched
+ * Merges children when multiple modules declare the same parent path
  */
 const getAllMenus = () => {
-  const allMenus = [];
+  const menuMap = new Map();
 
   for (const module of moduleRegistry.values()) {
     const menus = module.manifest?.menus || module.manifest?.frontend?.menus || [];
     for (const menu of menus) {
-      allMenus.push({
-        ...menu,
-        name: menu.name || menu.title,
-        module: module.name
-      });
+      const path = menu.path;
+      if (menuMap.has(path)) {
+        // Merge children from both menu declarations
+        const existing = menuMap.get(path);
+        const existingChildren = existing.children || [];
+        const newChildren = menu.children || [];
+        const childPaths = new Set(existingChildren.map(c => c.path));
+        for (const child of newChildren) {
+          if (!childPaths.has(child.path)) {
+            existingChildren.push(child);
+          }
+        }
+        existing.children = existingChildren.sort((a, b) => (a.sequence || 99) - (b.sequence || 99));
+      } else {
+        menuMap.set(path, {
+          ...menu,
+          name: menu.name || menu.title,
+          module: module.name
+        });
+      }
     }
   }
 
-  return allMenus.sort((a, b) => (a.sequence || 99) - (b.sequence || 99));
+  return Array.from(menuMap.values()).sort((a, b) => (a.sequence || 99) - (b.sequence || 99));
 };
 
 /**

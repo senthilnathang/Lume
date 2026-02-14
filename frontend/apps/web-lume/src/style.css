@@ -37,6 +37,77 @@ button {
   font-family: inherit;
 }
 
+/* Ant Design Button overrides */
+.ant-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.ant-btn .anticon {
+  display: inline-flex;
+}
+
+.ant-btn > svg {
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.ant-btn > svg + span,
+.ant-btn > .anticon + span {
+  margin-inline-start: 6px;
+}
+
+/* Primary button polish */
+.ant-btn-primary {
+  font-weight: 500;
+  box-shadow: 0 2px 0 rgba(79, 70, 229, 0.06);
+}
+
+.ant-btn-primary:not(:disabled):hover {
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+/* Default button polish */
+.ant-btn-default {
+  font-weight: 500;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
+}
+
+.ant-btn-default:not(:disabled):hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Danger button */
+.ant-btn-dangerous.ant-btn-primary {
+  box-shadow: 0 2px 0 rgba(239, 68, 68, 0.06);
+}
+
+.ant-btn-dangerous.ant-btn-primary:not(:disabled):hover {
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+/* Text/link buttons - no shadow */
+.ant-btn-text,
+.ant-btn-link {
+  box-shadow: none !important;
+}
+
+/* Icon-only buttons */
+.ant-btn-icon-only {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Disabled state */
+.ant-btn:disabled,
+.ant-btn[disabled] {
+  box-shadow: none;
+}
+
 input, textarea, select {
   font-family: inherit;
 }
