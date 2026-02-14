@@ -28,7 +28,6 @@ export default {
     routes: [],
     views: [
       'views/webhooks.vue',
-      'views/webhooks-form.vue',
       'views/notifications.vue',
       'views/notification-channels.vue',
       'views/tags.vue',

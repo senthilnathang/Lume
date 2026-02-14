@@ -77,6 +77,17 @@ const customViews: Record<string, () => Promise<any>> = {
   'settings/automation/business-rules': () => import('@modules/base_automation/static/views/automation.vue'),
   'settings/automation/approvals': () => import('@modules/base_automation/static/views/automation.vue'),
   'settings/automation/scheduled': () => import('@modules/base_automation/static/views/automation.vue'),
+  // Customization module
+  'settings/customization/fields': () => import('@modules/base_customization/static/views/custom-fields.vue'),
+  'settings/customization/views': () => import('@modules/base_customization/static/views/custom-views.vue'),
+  'settings/customization/forms': () => import('@modules/base_customization/static/views/form-builder.vue'),
+  'settings/customization/lists': () => import('@modules/base_customization/static/views/list-configs.vue'),
+  'settings/customization/widgets': () => import('@modules/base_customization/static/views/dashboard-widgets.vue'),
+  // Advanced Features module
+  'settings/advanced/webhooks': () => import('@modules/advanced_features/static/views/webhooks.vue'),
+  'settings/advanced/notifications': () => import('@modules/advanced_features/static/views/notifications.vue'),
+  'settings/advanced/notification-channels': () => import('@modules/advanced_features/static/views/notification-channels.vue'),
+  'settings/advanced/tags': () => import('@modules/advanced_features/static/views/tags.vue'),
 };
 
 /**
