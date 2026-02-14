@@ -26,7 +26,25 @@ export default {
   
   frontend: {
     routes: [],
-    views: [],
+    views: [
+      'views/automation.vue',
+      'views/workflows.vue',
+      'views/workflow-form.vue',
+      'views/workflow-designer.vue',
+      'views/flows-list.vue',
+      'views/flow-designer.vue',
+      'views/business-rules.vue',
+      'views/business-rules-form.vue',
+      'views/approval-chains.vue',
+      'views/approval-chains-form.vue',
+      'views/approvals-inbox.vue',
+      'views/validation-rules.vue',
+      'views/validation-rules-form.vue',
+      'views/assignment-rules.vue',
+      'views/assignment-rules-form.vue',
+      'views/rollup-fields.vue',
+      'views/rollup-fields-form.vue',
+    ],
     menus: [
       {
         name: 'Automation',

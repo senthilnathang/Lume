@@ -1,82 +1,64 @@
 /**
- * Base Features Data Module Manifest
- * Features and data management
+ * Data Management Module Manifest
+ * Data import & export management
  */
 
 export default {
-  name: 'Base Features Data',
+  name: 'Data Management',
   technicalName: 'base_features_data',
   version: '1.0.0',
-  summary: 'Features and data management module',
-  description: '# Base Features Data Module\n\nFeature flags and data management:\n\n- **Feature Flags** - Toggle features on/off\n- **Data Import/Export** - CSV, JSON import/export\n- **Data Backup** - Database backups\n- **Data Cleaning** - Data deduplication and cleanup\n- **Data Mapping** - Field mapping and transformations',
+  summary: 'Data Import & Export Management',
+  description: '# Data Management Module\n\nProvides comprehensive data import and export functionality.\n\n- **Data Import** - CSV file import with column mapping, preview, validation, and execution\n- **Data Export** - Model data export to CSV/JSON with field selection and filters',
   author: 'Gawdesy',
   website: 'https://gawdesy.org',
   license: 'MIT',
-  category: 'System',
-  
-  application: false,
+  category: 'Administration',
+
+  application: true,
   installable: true,
   autoInstall: true,
-  
+
   depends: ['base'],
-  
+
   models: ['models/index.js'],
   services: ['services/index.js'],
   api: ['api/index.js'],
-  
+
   frontend: {
     routes: [],
-    views: [],
+    views: [
+      'views/data-import.vue',
+      'views/data-export.vue',
+    ],
     menus: [
       {
-        name: 'Features & Data',
-        path: '/settings/features',
-        icon: 'lucide:toggle-left',
-        sequence: 5,
-        permission: 'base_features_data.access',
+        name: 'Data Management',
+        path: '/base-features-data/data',
+        icon: 'lucide:database',
+        sequence: 3,
         children: [
           {
-            name: 'Feature Flags',
-            path: '/settings/features/flags',
-            icon: 'lucide:flag',
-            sequence: 1,
-            permission: 'base_features_data.flags.manage'
-          },
-          {
-            name: 'Import Data',
-            path: '/settings/features/import',
+            name: 'Data Import',
+            path: '/base-features-data/data-import',
             icon: 'lucide:upload',
-            sequence: 2,
-            permission: 'base_features_data.import.manage'
+            sequence: 1,
           },
           {
-            name: 'Export Data',
-            path: '/settings/features/export',
+            name: 'Data Export',
+            path: '/base-features-data/data-export',
             icon: 'lucide:download',
-            sequence: 3,
-            permission: 'base_features_data.export.manage'
+            sequence: 2,
           },
-          {
-            name: 'Backups',
-            path: '/settings/features/backups',
-            icon: 'lucide:database',
-            sequence: 4,
-            permission: 'base_features_data.backups.manage'
-          }
-        ]
-      }
-    ]
+        ],
+      },
+    ],
   },
-  
+
   permissions: [
-    { name: 'base_features_data.access', description: 'Access features & data', group: 'Features' },
-    { name: 'base_features_data.flags', description: 'View feature flags', group: 'Features' },
-    { name: 'base_features_data.flags.manage', description: 'Manage feature flags', group: 'Features' },
-    { name: 'base_features_data.import', description: 'Import data', group: 'Features' },
-    { name: 'base_features_data.import.manage', description: 'Manage data import', group: 'Features' },
-    { name: 'base_features_data.export', description: 'Export data', group: 'Features' },
-    { name: 'base_features_data.export.manage', description: 'Manage data export', group: 'Features' },
-    { name: 'base_features_data.backups', description: 'View backups', group: 'Features' },
-    { name: 'base_features_data.backups.manage', description: 'Manage backups', group: 'Features' }
-  ]
+    { name: 'base_features_data.import.view', description: 'View data imports', group: 'Data Management' },
+    { name: 'base_features_data.import.execute', description: 'Execute data imports', group: 'Data Management' },
+    { name: 'base_features_data.export.view', description: 'View data exports', group: 'Data Management' },
+    { name: 'base_features_data.export.execute', description: 'Execute data exports', group: 'Data Management' },
+    { name: 'base_features_data.export.template_manage', description: 'Manage export templates', group: 'Data Management' },
+  ],
 };

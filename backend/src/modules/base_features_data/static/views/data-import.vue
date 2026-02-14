@@ -1,8 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 
-import { Page } from '@vben/common-ui';
-
 import {
   Alert,
   Button,
@@ -26,14 +24,11 @@ import {
   UploadDragger,
 } from 'ant-design-vue';
 import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
   DownloadOutlined,
   InboxOutlined,
-  WarningOutlined,
 } from '@ant-design/icons-vue';
 
-import { requestClient } from '#/api/request';
+import { get, post } from '@/api/request';
 
 const { Step } = Steps;
 
@@ -78,7 +73,7 @@ const importPreviewATableColumns = computed(() => {
 async function fetchImportModels() {
   importLoading.value = true;
   try {
-    const res = await requestClient.get('/base_features_data/import/models');
+    const res = await get('/base_features_data/import/models');
     importModels.value = res || [];
   } catch (err) {
     console.error('Failed to fetch import models:', err);
@@ -113,7 +108,7 @@ async function previewImport() {
 
   importLoading.value = true;
   try {
-    const res = await requestClient.post('/base_features_data/import/preview', {
+    const res = await post('/base_features_data/import/preview', {
       model_name: selectedImportModel.value,
       file_content: importFileContent.value,
       file_name: importFileName.value,
@@ -138,7 +133,7 @@ async function previewImport() {
     console.error('Failed to preview import:', err);
     Modal.error({
       title: 'Preview Failed',
-      content: err.response?.data?.detail || 'Failed to parse file',
+      content: err.response?.data?.error || err.message || 'Failed to parse file',
     });
   } finally {
     importLoading.value = false;
@@ -150,7 +145,7 @@ async function validateImport() {
   try {
     const mappings = importColumnMappings.value.filter(m => m.target_field);
 
-    const res = await requestClient.post('/base_features_data/import/validate', {
+    const res = await post('/base_features_data/import/validate', {
       model_name: selectedImportModel.value,
       file_content: importFileContent.value,
       file_name: importFileName.value,
@@ -165,7 +160,7 @@ async function validateImport() {
     console.error('Failed to validate import:', err);
     Modal.error({
       title: 'Validation Failed',
-      content: err.response?.data?.detail || 'Validation failed',
+      content: err.response?.data?.error || err.message || 'Validation failed',
     });
   } finally {
     importLoading.value = false;
@@ -177,7 +172,7 @@ async function executeImport() {
   try {
     const mappings = importColumnMappings.value.filter(m => m.target_field);
 
-    const res = await requestClient.post('/base_features_data/import/execute', {
+    const res = await post('/base_features_data/import/execute', {
       model_name: selectedImportModel.value,
       file_content: importFileContent.value,
       file_name: importFileName.value,
@@ -194,7 +189,7 @@ async function executeImport() {
     console.error('Failed to execute import:', err);
     Modal.error({
       title: 'Import Failed',
-      content: err.response?.data?.detail || 'Import failed',
+      content: err.response?.data?.error || err.message || 'Import failed',
     });
   } finally {
     importLoading.value = false;
@@ -219,7 +214,7 @@ async function downloadTemplate() {
   if (!selectedImportModel.value) return;
 
   try {
-    window.open(`/api/v1/base_features_data/import/template/${selectedImportModel.value}`, '_blank');
+    window.open(`/api/base_features_data/import/template/${selectedImportModel.value}`, '_blank');
   } catch (err) {
     console.error('Failed to download template:', err);
   }
@@ -232,7 +227,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page title="Data Import" description="Import data from CSV files">
+  <div>
+    <div style="margin-bottom: 16px;">
+      <h2 style="margin: 0;">Data Import</h2>
+      <p style="color: #666; margin: 4px 0 0;">Import data from CSV files</p>
+    </div>
+
     <Card>
       <Steps :current="importStep" style="margin-bottom: 24px;">
         <Step title="Upload File" description="Select file and model" />
@@ -348,7 +348,7 @@ onMounted(() => {
                   style="display: flex; align-items: center; margin-bottom: 12px;"
                 >
                   <Tag style="min-width: 120px;">{{ mapping.source_column }}</Tag>
-                  <span style="margin: 0 12px;">→</span>
+                  <span style="margin: 0 12px;">&rarr;</span>
                   <Select
                     v-model:value="mapping.target_field"
                     style="width: 200px;"
@@ -433,12 +433,13 @@ onMounted(() => {
                 :dataSource="importValidationResult.errors"
                 :pagination="{ pageSize: 5 }"
                 size="small"
-              >
-                <ATableColumn title="Row" dataIndex="row_number" width="80" />
-                <ATableColumn title="Column" dataIndex="column" width="120" />
-                <ATableColumn title="Value" dataIndex="value" width="150" />
-                <ATableColumn title="Error" dataIndex="error" />
-              </Table>
+                :columns="[
+                  { title: 'Row', dataIndex: 'row_number', width: 80 },
+                  { title: 'Column', dataIndex: 'column', width: 120 },
+                  { title: 'Value', dataIndex: 'value', width: 150 },
+                  { title: 'Error', dataIndex: 'error' },
+                ]"
+              />
             </div>
 
             <Row :gutter="16">
@@ -492,7 +493,7 @@ onMounted(() => {
         </div>
       </Spin>
     </Card>
-  </Page>
+  </div>
 </template>
 
 <style scoped>
