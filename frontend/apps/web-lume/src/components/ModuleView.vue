@@ -258,7 +258,7 @@ const props = defineProps<{
 }>();
 
 const route = useRoute();
-const router = useRouter();
+useRouter();
 
 // Use route params as fallback for moduleName
 const effectiveModuleName = computed(() => {
@@ -320,7 +320,7 @@ function getConfigKey(moduleName: string, routePath: string): string {
 }
 
 const currentConfigKey = computed(() => {
-  return getConfigKey(effectiveModuleName.value, route.path);
+  return getConfigKey(String(effectiveModuleName.value), route.path);
 });
 
 const moduleConfig: Record<string, any> = {
@@ -744,34 +744,11 @@ const moduleConfig: Record<string, any> = {
       { key: 'reply', title: 'Reply', type: 'textarea' },
     ],
   },
-  users: {
-    title: 'Users',
-    description: 'User management',
-    apiEndpoint: '/users',
-    columns: [
-      { key: 'name', title: 'Name', sortable: true },
-      { key: 'email', title: 'Email', sortable: true },
-      { key: 'role', title: 'Role', sortable: true },
-      { key: 'status', title: 'Status', type: 'status', sortable: true },
-      { key: 'created_at', title: 'Joined', type: 'date', sortable: true },
-      { key: 'actions', title: 'Actions', type: 'action' },
-    ],
-    formFields: [
-      { key: 'first_name', title: 'First Name', type: 'text', required: true },
-      { key: 'last_name', title: 'Last Name', type: 'text', required: true },
-      { key: 'email', title: 'Email', type: 'email', required: true },
-      { key: 'role', title: 'Role', type: 'select', options: [
-        { value: 'user', label: 'User' },
-        { value: 'admin', label: 'Admin' },
-        { value: 'editor', label: 'Editor' },
-      ]},
-    ],
-  },
 };
 
 const config = computed(() => moduleConfig[currentConfigKey.value] || {
-  title: props.moduleName.charAt(0).toUpperCase() + props.moduleName.slice(1),
-  apiEndpoint: `/${props.moduleName}`,
+  title: (props.moduleName || 'Module').charAt(0).toUpperCase() + (props.moduleName || 'module').slice(1),
+  apiEndpoint: `/${props.moduleName || 'module'}`,
   columns: [
     { key: 'name', title: 'Name', sortable: true },
     { key: 'status', title: 'Status', type: 'status' },

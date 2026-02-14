@@ -3,7 +3,7 @@
  * TTL-based caching with request deduplication and stale-while-revalidate.
  * Useful for reference data (departments, categories) shared across components.
  */
-import { ref, shallowRef, type Ref, type ShallowRef } from 'vue';
+import { ref, shallowRef, type ShallowRef } from 'vue';
 
 interface CacheEntry<T> {
   data: T;
@@ -125,13 +125,13 @@ export function useApiCache<T>(
 
     const request = (async () => {
       try {
-        let result = await fetcher(params);
+        let result: any = await fetcher(params);
         if (transform) {
           result = transform(result);
         }
 
         setCacheEntry(key, result);
-        data.value = result;
+        data.value = result as Awaited<T>;
         lastFetched.value = Date.now();
         isStale.value = false;
 

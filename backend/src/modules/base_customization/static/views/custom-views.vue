@@ -28,20 +28,32 @@ import {
 
 defineOptions({ name: 'CustomViewsView' });
 
+interface ViewItem {
+  id: number;
+  name: string;
+  model_name: string;
+  view_type: string;
+  description?: string;
+  config?: any;
+  is_default?: boolean;
+  is_shared?: boolean;
+  is_active?: boolean;
+}
+
 // State
 const loading = ref(false);
-const views = ref([]);
-const models = ref([]);
+const views = ref<ViewItem[]>([]);
+const models = ref<any[]>([]);
 const searchQuery = ref('');
-const modelFilter = ref(undefined);
-const typeFilter = ref(undefined);
-const statusFilter = ref(undefined);
+const modelFilter = ref<string | undefined>(undefined);
+const typeFilter = ref<string | undefined>(undefined);
+const statusFilter = ref<string | undefined>(undefined);
 
 // Drawer state
 const showDrawer = ref(false);
 const drawerMode = ref('create');
 const drawerLoading = ref(false);
-const editingView = ref(null);
+const editingView = ref<any>(null);
 const formState = reactive({
   name: '',
   model_name: '',
@@ -61,7 +73,7 @@ const viewTypes = [
   { value: 'chart', label: 'Chart' },
 ];
 
-const viewTypeConfig = {
+const viewTypeConfig: Record<string, { color: string; icon: any }> = {
   list: { color: 'blue', icon: List },
   kanban: { color: 'purple', icon: KanbanSquare },
   calendar: { color: 'green', icon: Calendar },
@@ -99,7 +111,7 @@ const activeViews = computed(() => views.value.filter((v) => v.is_active).length
 const sharedViews = computed(() => views.value.filter((v) => v.is_shared).length);
 
 const modelOptions = computed(() => {
-  const fromApi = models.value.map((m) =>
+  const fromApi = models.value.map((m: any) =>
     typeof m === 'string' ? { value: m, label: m } : { value: m.name || m.value, label: m.label || m.name || m.value },
   );
   if (fromApi.length > 0) return fromApi;
@@ -162,7 +174,7 @@ function openCreate() {
   showDrawer.value = true;
 }
 
-async function openEdit(record) {
+async function openEdit(record: any) {
   drawerMode.value = 'edit';
   editingView.value = record;
   try {
@@ -226,14 +238,14 @@ async function handleSubmit() {
     }
     showDrawer.value = false;
     await loadData();
-  } catch (error) {
+  } catch (error: any) {
     message.error(error?.response?.data?.message || error?.message || 'Operation failed');
   } finally {
     drawerLoading.value = false;
   }
 }
 
-function handleDelete(record) {
+function handleDelete(record: any) {
   Modal.confirm({
     title: 'Delete Custom View',
     content: `Are you sure you want to delete "${record.name}"?`,
@@ -245,14 +257,14 @@ function handleDelete(record) {
         await deleteCustomView(record.id);
         message.success('Custom view deleted');
         await loadData();
-      } catch (error) {
+      } catch (error: any) {
         message.error(error?.response?.data?.message || error?.message || 'Failed to delete');
       }
     },
   });
 }
 
-function getViewTypeIcon(type) {
+function getViewTypeIcon(type: string) {
   return viewTypeConfig[type]?.icon || List;
 }
 
@@ -355,7 +367,7 @@ onMounted(() => {
         :columns="columns"
         :data-source="filteredViews"
         :loading="loading"
-        :pagination="{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `${total} views` }"
+        :pagination="{ pageSize: 20, showSizeChanger: true, showTotal: (total: number) => `${total} views` }"
         row-key="id"
         size="middle"
         :scroll="{ x: 900 }"
@@ -445,7 +457,7 @@ onMounted(() => {
                 placeholder="Select model"
                 :options="modelOptions"
                 show-search
-                :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())"
+                :filter-option="(input: string, option: any) => option.label.toLowerCase().includes(input.toLowerCase())"
               />
             </a-form-item>
           </a-col>

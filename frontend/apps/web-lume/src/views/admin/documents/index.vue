@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Card, Button, Table, Modal, Form, Input, Select, message, Upload } from 'ant-design-vue';
+import { Card, Button, Table, Modal, Form, Input, Select, message } from 'ant-design-vue';
 import { UploadOutlined } from '@ant-design/icons-vue';
 import api from '@/api';
 
@@ -27,7 +27,7 @@ const columns = [
 
 onMounted(async () => {
   try {
-    const data = await api.get('/admin/documents');
+    const data = await api.get('/admin/documents') as any;
     documents.value = data.documents || [];
   } catch (error) {
     console.error('Failed to fetch documents:', error);

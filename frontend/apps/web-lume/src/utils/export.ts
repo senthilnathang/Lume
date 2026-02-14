@@ -22,6 +22,7 @@ export interface ExportOptions {
   title?: string;
   subtitle?: string;
   includeHeaders?: boolean;
+  includeFiltered?: boolean;
 }
 
 export interface ExportTemplate {
@@ -108,7 +109,6 @@ export const useExport = () => {
       sheetName = 'Sheet1',
       columns = [],
       title,
-      subtitle,
       dateFormat = 'YYYY-MM-DD'
     } = options;
 

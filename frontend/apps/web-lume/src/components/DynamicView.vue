@@ -18,7 +18,6 @@
 <script setup lang="ts">
 import { ref, onMounted, shallowRef, defineAsyncComponent } from 'vue';
 import { useRoute } from 'vue-router';
-import { message } from 'ant-design-vue';
 
 const props = defineProps<{
   moduleName?: string;
@@ -29,10 +28,8 @@ const route = useRoute();
 const loading = ref(true);
 const error = ref<string | null>(null);
 const errorTitle = ref('Failed to load view');
-const dynamicComponent = shallowRef(null);
+const dynamicComponent = shallowRef<any>(null);
 const componentProps = ref({});
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 const loadView = async () => {
   loading.value = true;
@@ -50,49 +47,15 @@ const loadView = async () => {
     ];
 
     let loadedComponent = null;
-    let loadedPath = '';
 
     for (const viewPath of possiblePaths) {
       try {
         const response = await fetch(viewPath);
         if (response.ok) {
-          loadedPath = viewPath;
           const vueContent = await response.text();
-          
-          // Use vue3-sfc-loader to compile the component
-          const options = {
-            moduleCache: {
-              vue: Vue,
-            },
-            async getFile(url: string) {
-              const res = await fetch(url);
-              if (!res.ok) throw new Error(`Failed to load ${url}`);
-              return {
-                getContentData: (asBinary: boolean) => asBinary ? res.arrayBuffer() : res.text(),
-              };
-            },
-            handleModule: (mod: any, node) => {
-              // Handle common imports
-              if (node.src?.includes('@vben/common-ui')) {
-                // Skip or provide mock
-              }
-              if (node.src?.includes('ant-design-vue')) {
-                // Skip or provide mock
-              }
-              if (node.src?.includes('@ant-design/icons-vue')) {
-                // Skip or provide mock
-              }
-            },
-          };
-          
-          // Try to parse and register the component
-          const { parse, register } = await import('vue3-sfc-loader');
-          const compiled = parse(vueContent, loadedPath);
-          
+
           loadedComponent = defineAsyncComponent({
             loader: async () => {
-              const { _resolveTemplate } = await import('vue3-sfc-loader');
-              // Simple fallback - just return a basic component
               return Promise.resolve({
                 name: 'DynamicView',
                 template: vueContent,

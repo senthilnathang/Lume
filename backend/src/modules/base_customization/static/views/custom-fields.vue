@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, h, onMounted, reactive, ref, watch } from 'vue';
+import { computed, h, onMounted, reactive, ref } from 'vue';
 import { message, Modal } from 'ant-design-vue';
 import {
   Columns3,
@@ -10,9 +10,6 @@ import {
   Trash2,
   AlertTriangle,
   MoreVertical,
-  Database,
-  ToggleRight,
-  Hash,
 } from 'lucide-vue-next';
 
 import {
@@ -25,19 +22,38 @@ import {
 
 defineOptions({ name: 'CustomFieldsView' });
 
+interface CustomField {
+  id: number;
+  name: string;
+  label?: string;
+  model_name: string;
+  field_type: string;
+  is_required?: boolean;
+  is_active?: boolean;
+  default_value?: string;
+  description?: string;
+  options?: any;
+}
+
+interface ModelOption {
+  name?: string;
+  value?: string;
+  label?: string;
+}
+
 // State
 const loading = ref(false);
-const fields = ref([]);
-const models = ref([]);
+const fields = ref<CustomField[]>([]);
+const models = ref<(string | ModelOption)[]>([]);
 const searchQuery = ref('');
-const modelFilter = ref(undefined);
-const statusFilter = ref(undefined);
+const modelFilter = ref<string | undefined>(undefined);
+const statusFilter = ref<string | undefined>(undefined);
 
 // Drawer state
 const showDrawer = ref(false);
 const drawerMode = ref('create');
 const drawerLoading = ref(false);
-const editingField = ref(null);
+const editingField = ref<any>(null);
 const formState = reactive({
   name: '',
   label: '',
@@ -66,7 +82,7 @@ const fieldTypes = [
   { value: 'phone', label: 'Phone' },
 ];
 
-const fieldTypeColors = {
+const fieldTypeColors: Record<string, string> = {
   string: 'blue',
   text: 'cyan',
   integer: 'green',
@@ -122,7 +138,7 @@ const columns = [
 
 // Model options for filter
 const modelOptions = computed(() => {
-  const fromApi = models.value.map((m) =>
+  const fromApi = models.value.map((m: any) =>
     typeof m === 'string' ? { value: m, label: m } : { value: m.name || m.value, label: m.label || m.name || m.value },
   );
   if (fromApi.length > 0) return fromApi;
@@ -176,7 +192,7 @@ function openCreate() {
   showDrawer.value = true;
 }
 
-function openEdit(record) {
+function openEdit(record: any) {
   drawerMode.value = 'edit';
   editingField.value = record;
   Object.assign(formState, {
@@ -220,14 +236,14 @@ async function handleSubmit() {
     }
     showDrawer.value = false;
     await loadData();
-  } catch (error) {
+  } catch (error: any) {
     message.error(error?.response?.data?.message || error?.message || 'Operation failed');
   } finally {
     drawerLoading.value = false;
   }
 }
 
-function handleDelete(record) {
+function handleDelete(record: any) {
   Modal.confirm({
     title: 'Delete Custom Field',
     content: `Are you sure you want to delete "${record.label || record.name}"? This may affect existing data.`,
@@ -239,19 +255,10 @@ function handleDelete(record) {
         await deleteCustomField(record.id);
         message.success('Custom field deleted');
         await loadData();
-      } catch (error) {
+      } catch (error: any) {
         message.error(error?.response?.data?.message || error?.message || 'Failed to delete');
       }
     },
-  });
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
   });
 }
 
@@ -347,7 +354,7 @@ onMounted(() => {
         :columns="columns"
         :data-source="filteredFields"
         :loading="loading"
-        :pagination="{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `${total} fields` }"
+        :pagination="{ pageSize: 20, showSizeChanger: true, showTotal: (total: number) => `${total} fields` }"
         row-key="id"
         size="middle"
         :scroll="{ x: 900 }"
@@ -437,7 +444,7 @@ onMounted(() => {
             placeholder="Select model"
             :options="modelOptions"
             show-search
-            :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())"
+            :filter-option="(input: string, option: any) => option.label.toLowerCase().includes(input.toLowerCase())"
           />
         </a-form-item>
 

@@ -6,7 +6,6 @@ import {
   Plus,
   RefreshCw,
   Search,
-  Eye,
   Edit3,
   Trash2,
   ScrollText,
@@ -23,17 +22,47 @@ import {
 
 defineOptions({ name: 'WebhooksView' });
 
+interface WebhookItem {
+  id: number;
+  name: string;
+  url: string;
+  events?: any[];
+  headers?: any;
+  secret?: string;
+  model?: string;
+  retryCount?: number;
+  retry_count?: number;
+  status: string;
+  lastTriggeredAt?: string;
+  last_triggered_at?: string;
+  lastStatus?: string;
+  last_status?: string;
+  createdAt?: string;
+  created_at?: string;
+}
+
+interface WebhookLog {
+  id: number;
+  event?: string;
+  status?: string;
+  responseStatus?: string;
+  response_status?: string;
+  duration?: number;
+  createdAt?: string;
+  created_at?: string;
+}
+
 // State
 const loading = ref(false);
-const webhooks = ref([]);
+const webhooks = ref<WebhookItem[]>([]);
 const searchQuery = ref('');
-const statusFilter = ref(undefined);
-const modelFilter = ref(undefined);
+const statusFilter = ref<string | undefined>(undefined);
+const modelFilter = ref<string | undefined>(undefined);
 
 // Form drawer
 const showFormDrawer = ref(false);
 const formLoading = ref(false);
-const editingId = ref(null);
+const editingId = ref<number | null>(null);
 const form = ref({
   name: '',
   url: '',
@@ -48,7 +77,7 @@ const form = ref({
 // Logs drawer
 const showLogsDrawer = ref(false);
 const logsLoading = ref(false);
-const webhookLogs = ref([]);
+const webhookLogs = ref<WebhookLog[]>([]);
 const logsWebhookName = ref('');
 
 // Computed
@@ -101,13 +130,13 @@ const logColumns = [
   { title: 'Time', key: 'logTime', width: 160 },
 ];
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   active: 'green',
   inactive: 'default',
   error: 'red',
 };
 
-const logStatusColors = {
+const logStatusColors: Record<string, string> = {
   success: 'green',
   failed: 'red',
   pending: 'orange',
@@ -142,7 +171,7 @@ function openCreate() {
   showFormDrawer.value = true;
 }
 
-async function openEdit(record) {
+async function openEdit(record: any) {
   editingId.value = record.id;
   formLoading.value = true;
   showFormDrawer.value = true;
@@ -217,14 +246,14 @@ async function handleSave() {
     }
     showFormDrawer.value = false;
     await loadData();
-  } catch (error) {
+  } catch (error: any) {
     message.error(error?.message || 'Failed to save webhook');
   } finally {
     formLoading.value = false;
   }
 }
 
-function confirmDelete(record) {
+function confirmDelete(record: any) {
   Modal.confirm({
     title: 'Delete Webhook',
     content: `Are you sure you want to delete "${record.name}"? This action cannot be undone.`,
@@ -235,14 +264,14 @@ function confirmDelete(record) {
         await deleteWebhook(record.id);
         message.success('Webhook deleted');
         await loadData();
-      } catch (error) {
+      } catch (error: any) {
         message.error(error?.message || 'Failed to delete webhook');
       }
     },
   });
 }
 
-async function openLogs(record) {
+async function openLogs(record: any) {
   logsWebhookName.value = record.name;
   logsLoading.value = true;
   showLogsDrawer.value = true;
@@ -258,7 +287,7 @@ async function openLogs(record) {
   }
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string) {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('en-US', {
     month: 'short',
@@ -268,7 +297,7 @@ function formatDate(dateStr) {
   });
 }
 
-function formatRelativeTime(dateStr) {
+function formatRelativeTime(dateStr: string) {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   const now = new Date();

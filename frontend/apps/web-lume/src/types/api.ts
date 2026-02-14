@@ -1,5 +1,4 @@
 // TypeScript Interfaces for GAWDESY API
-import type { PaginationProps } from 'ant-design-vue';
 
 // API Response Types
 export interface ApiResponse<T> {

@@ -286,20 +286,3 @@ export interface DashboardStats {
   }>;
 }
 
-export default {
-  ModuleManifest,
-  MenuItem,
-  User,
-  Activity,
-  Donor,
-  Donation,
-  Campaign,
-  TeamMember,
-  Message,
-  Document,
-  Setting,
-  AuditLog,
-  ApiResponse,
-  Pagination,
-  DashboardStats
-};

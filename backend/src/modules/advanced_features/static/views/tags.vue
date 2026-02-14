@@ -20,16 +20,26 @@ import {
 
 defineOptions({ name: 'TagsView' });
 
+interface TagItem {
+  id: number;
+  name: string;
+  color?: string;
+  description?: string;
+  category?: string;
+  createdAt?: string;
+  created_at?: string;
+}
+
 // State
 const loading = ref(false);
-const tags = ref([]);
+const tags = ref<TagItem[]>([]);
 const searchQuery = ref('');
-const categoryFilter = ref(undefined);
+const categoryFilter = ref<string | undefined>(undefined);
 
 // Form drawer
 const showFormDrawer = ref(false);
 const formLoading = ref(false);
-const editingId = ref(null);
+const editingId = ref<number | null>(null);
 const form = ref({
   name: '',
   color: '#1890ff',
@@ -95,7 +105,7 @@ function openCreate() {
   showFormDrawer.value = true;
 }
 
-async function openEdit(record) {
+async function openEdit(record: any) {
   editingId.value = record.id;
   formLoading.value = true;
   showFormDrawer.value = true;
@@ -144,14 +154,14 @@ async function handleSave() {
     }
     showFormDrawer.value = false;
     await loadData();
-  } catch (error) {
+  } catch (error: any) {
     message.error(error?.message || 'Failed to save tag');
   } finally {
     formLoading.value = false;
   }
 }
 
-function confirmDelete(record) {
+function confirmDelete(record: any) {
   Modal.confirm({
     title: 'Delete Tag',
     content: `Are you sure you want to delete "${record.name}"? This will remove the tag from all associated records.`,
@@ -162,14 +172,14 @@ function confirmDelete(record) {
         await deleteTag(record.id);
         message.success('Tag deleted');
         await loadData();
-      } catch (error) {
+      } catch (error: any) {
         message.error(error?.message || 'Failed to delete tag');
       }
     },
   });
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string) {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('en-US', {
     month: 'short',

@@ -24,19 +24,31 @@ import {
 
 defineOptions({ name: 'FormBuilderView' });
 
+interface LayoutItem {
+  id: number;
+  name: string;
+  model_name: string;
+  description?: string;
+  layout_config?: any;
+  config?: any;
+  is_default?: boolean;
+  is_active?: boolean;
+  updated_at?: string;
+}
+
 // State
 const loading = ref(false);
-const layouts = ref([]);
-const models = ref([]);
+const layouts = ref<LayoutItem[]>([]);
+const models = ref<any[]>([]);
 const searchQuery = ref('');
-const modelFilter = ref(undefined);
-const statusFilter = ref(undefined);
+const modelFilter = ref<string | undefined>(undefined);
+const statusFilter = ref<string | undefined>(undefined);
 
 // Drawer state
 const showDrawer = ref(false);
 const drawerMode = ref('create');
 const drawerLoading = ref(false);
-const editingLayout = ref(null);
+const editingLayout = ref<any>(null);
 const formState = reactive({
   name: '',
   model_name: '',
@@ -48,7 +60,7 @@ const formState = reactive({
 
 // Preview modal
 const showPreview = ref(false);
-const previewData = ref(null);
+const previewData = ref<any>(null);
 
 // Computed
 const filteredLayouts = computed(() => {
@@ -77,7 +89,7 @@ const activeLayouts = computed(() => layouts.value.filter((l) => l.is_active).le
 const defaultLayouts = computed(() => layouts.value.filter((l) => l.is_default).length);
 
 const modelOptions = computed(() => {
-  const fromApi = models.value.map((m) =>
+  const fromApi = models.value.map((m: any) =>
     typeof m === 'string' ? { value: m, label: m } : { value: m.name || m.value, label: m.label || m.name || m.value },
   );
   if (fromApi.length > 0) return fromApi;
@@ -137,7 +149,7 @@ function openCreate() {
   showDrawer.value = true;
 }
 
-async function openEdit(record) {
+async function openEdit(record: any) {
   drawerMode.value = 'edit';
   editingLayout.value = record;
   try {
@@ -166,7 +178,7 @@ async function openEdit(record) {
   showDrawer.value = true;
 }
 
-function openPreview(record) {
+function openPreview(record: any) {
   const config = record.layout_config || record.config;
   try {
     previewData.value = typeof config === 'string' ? JSON.parse(config) : config;
@@ -208,14 +220,14 @@ async function handleSubmit() {
     }
     showDrawer.value = false;
     await loadData();
-  } catch (error) {
+  } catch (error: any) {
     message.error(error?.response?.data?.message || error?.message || 'Operation failed');
   } finally {
     drawerLoading.value = false;
   }
 }
 
-function handleDelete(record) {
+function handleDelete(record: any) {
   Modal.confirm({
     title: 'Delete Form Layout',
     content: `Are you sure you want to delete "${record.name}"?`,
@@ -227,14 +239,14 @@ function handleDelete(record) {
         await deleteFormLayout(record.id);
         message.success('Form layout deleted');
         await loadData();
-      } catch (error) {
+      } catch (error: any) {
         message.error(error?.response?.data?.message || error?.message || 'Failed to delete');
       }
     },
   });
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string) {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -335,7 +347,7 @@ onMounted(() => {
         :columns="columns"
         :data-source="filteredLayouts"
         :loading="loading"
-        :pagination="{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `${total} layouts` }"
+        :pagination="{ pageSize: 20, showSizeChanger: true, showTotal: (total: number) => `${total} layouts` }"
         row-key="id"
         size="middle"
         :scroll="{ x: 800 }"
@@ -415,7 +427,7 @@ onMounted(() => {
             placeholder="Select model"
             :options="modelOptions"
             show-search
-            :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())"
+            :filter-option="(input: string, option: any) => option.label.toLowerCase().includes(input.toLowerCase())"
           />
         </a-form-item>
 

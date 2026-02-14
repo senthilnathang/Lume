@@ -29,6 +29,7 @@ export interface RouteRecord {
   path: string;
   name: string;
   component?: string;
+  props?: Record<string, any>;
   meta?: {
     title?: string;
     icon?: string;

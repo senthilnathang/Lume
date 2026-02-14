@@ -130,7 +130,7 @@ const getIconComponent = (iconName: string) => {
   }
   
   // Handle ant design icons
-  return antIcons[iconName] || antIcons.FolderOutlined;
+  return (antIcons as Record<string, any>)[iconName] || antIcons.FolderOutlined;
 };
 </script>
 

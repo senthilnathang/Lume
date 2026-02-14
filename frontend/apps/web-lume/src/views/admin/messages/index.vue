@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Card, Table, Button, Modal, Input, message } from 'ant-design-vue';
-import { ReplyOutlined } from '@ant-design/icons-vue';
+import { Card, Table, Modal, Input, message } from 'ant-design-vue';
 import api from '@/api';
 
 interface Message {
@@ -30,7 +29,7 @@ const columns = [
 
 onMounted(async () => {
   try {
-    const data = await api.get('/admin/contact-messages');
+    const data = await api.get('/admin/contact-messages') as any;
     messages.value = data.messages || [];
   } catch (error) {
     console.error('Failed to fetch messages:', error);
@@ -38,12 +37,6 @@ onMounted(async () => {
     loading.value = false;
   }
 });
-
-const openReplyModal = (message: Message) => {
-  selectedMessage.value = message;
-  replyContent.value = '';
-  replyModalVisible.value = true;
-};
 
 const handleReply = async () => {
   if (!selectedMessage.value || !replyContent.value) return;

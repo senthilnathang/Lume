@@ -4,7 +4,7 @@
  * Follows FastVue patterns with dynamic menu loading
  */
 
-import { createRouter, createWebHistory, RouteRecordRaw, defineAsyncComponent } from 'vue-router';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '@/store/auth';
 import { usePermissionStore, type MenuItem } from '@/store/permission';
 
@@ -234,7 +234,7 @@ function setupCommonGuard() {
  * Access guard - handles authentication and initial route generation
  */
 function setupAccessGuard() {
-  router.beforeEach(async (to, from) => {
+  router.beforeEach(async (to, _from) => {
     const authStore = useAuthStore();
     const permissionStore = usePermissionStore();
 

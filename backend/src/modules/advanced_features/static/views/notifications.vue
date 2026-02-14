@@ -20,12 +20,23 @@ import {
 
 defineOptions({ name: 'NotificationsView' });
 
+interface Notification {
+  id: number;
+  title: string;
+  message?: string;
+  type: string;
+  channel?: string;
+  status: string;
+  createdAt?: string;
+  created_at?: string;
+}
+
 // State
 const loading = ref(false);
-const notifications = ref([]);
+const notifications = ref<Notification[]>([]);
 const searchQuery = ref('');
-const statusFilter = ref(undefined);
-const typeFilter = ref(undefined);
+const statusFilter = ref<string | undefined>(undefined);
+const typeFilter = ref<string | undefined>(undefined);
 const unreadCount = ref(0);
 
 // Computed
@@ -63,7 +74,7 @@ const columns = [
   { title: 'Actions', key: 'actions', width: 100, fixed: 'right' },
 ];
 
-const typeColors = {
+const typeColors: Record<string, string> = {
   info: 'blue',
   success: 'green',
   warning: 'orange',
@@ -71,13 +82,13 @@ const typeColors = {
   action: 'purple',
 };
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   unread: 'orange',
   read: 'green',
   dismissed: 'default',
 };
 
-const channelLabels = {
+const channelLabels: Record<string, string> = {
   in_app: 'In-App',
   email: 'Email',
   sms: 'SMS',
@@ -102,12 +113,12 @@ async function loadData() {
   }
 }
 
-async function handleMarkRead(record) {
+async function handleMarkRead(record: any) {
   try {
     await markAsRead(record.id);
     message.success('Notification marked as read');
     await loadData();
-  } catch (error) {
+  } catch (error: any) {
     message.error(error?.message || 'Failed to mark as read');
   }
 }
@@ -117,22 +128,22 @@ async function handleMarkAllRead() {
     await markAllAsRead();
     message.success('All notifications marked as read');
     await loadData();
-  } catch (error) {
+  } catch (error: any) {
     message.error(error?.message || 'Failed to mark all as read');
   }
 }
 
-async function handleDismiss(record) {
+async function handleDismiss(record: any) {
   try {
     await dismissNotification(record.id);
     message.success('Notification dismissed');
     await loadData();
-  } catch (error) {
+  } catch (error: any) {
     message.error(error?.message || 'Failed to dismiss notification');
   }
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string) {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('en-US', {
     month: 'short',
@@ -142,7 +153,7 @@ function formatDate(dateStr) {
   });
 }
 
-function formatRelativeTime(dateStr) {
+function formatRelativeTime(dateStr: string) {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   const now = new Date();
@@ -250,7 +261,7 @@ onMounted(() => {
         :pagination="{ pageSize: 20, showSizeChanger: true, pageSizeOptions: ['10', '20', '50'] }"
         row-key="id"
         size="middle"
-        :row-class-name="(record) => record.status === 'unread' ? 'unread-row' : ''"
+        :row-class-name="(record: any) => record.status === 'unread' ? 'unread-row' : ''"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'title'">

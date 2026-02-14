@@ -154,19 +154,19 @@ export function useMessage() {
   };
 
   const success = (content: string, duration?: number) => {
-    show({ type: 'success', content, duration });
+    show({ type: 'success', content, duration: duration ?? 3000 });
   };
 
   const error = (content: string, duration?: number) => {
-    show({ type: 'error', content, duration });
+    show({ type: 'error', content, duration: duration ?? 3000 });
   };
 
   const warning = (content: string, duration?: number) => {
-    show({ type: 'warning', content, duration });
+    show({ type: 'warning', content, duration: duration ?? 3000 });
   };
 
   const info = (content: string, duration?: number) => {
-    show({ type: 'info', content, duration });
+    show({ type: 'info', content, duration: duration ?? 3000 });
   };
 
   const remove = (key: string) => {

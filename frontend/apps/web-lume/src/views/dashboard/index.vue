@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { reactive, onMounted } from 'vue';
 import { get } from '@/api/request';
 
 const stats = reactive({
