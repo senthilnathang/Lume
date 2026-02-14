@@ -1,7 +1,6 @@
-const { Op } = require('sequelize');
-const { registry } = require('../hooks');
+import { Op } from 'sequelize';
 
-class RecordRuleService {
+export class RecordRuleService {
     constructor(db) {
         this._db = db;
     }
@@ -107,4 +106,4 @@ class RecordRuleService {
     }
 }
 
-module.exports = { RecordRuleService };
+export default RecordRuleService;

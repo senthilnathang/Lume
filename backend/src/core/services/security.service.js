@@ -1,6 +1,6 @@
-const { Op } = require('sequelize');
+import { Op } from 'sequelize';
 
-class SecurityService {
+export class SecurityService {
     constructor(db) {
         this._db = db;
     }
@@ -167,4 +167,4 @@ class SecurityService {
     }
 }
 
-module.exports = { SecurityService };
+export default SecurityService;

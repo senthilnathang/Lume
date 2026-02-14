@@ -252,6 +252,54 @@ const initializeModule = async (module, context = {}) => {
 };
 
 /**
+ * Run a module's install hook (if defined in manifest)
+ */
+const runInstallHook = async (module, context = {}) => {
+  const hookFile = module.manifest?.installHook;
+  if (!hookFile) return true;
+
+  try {
+    const hookPath = join(module.path, hookFile);
+    if (existsSync(hookPath)) {
+      const hook = await import(hookPath);
+      const fn = hook.default || hook.install || hook.onInstall;
+      if (typeof fn === 'function') {
+        await fn(context);
+        console.log(`✅ Install hook executed for ${module.name}`);
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error(`❌ Install hook failed for ${module.name}:`, error.message);
+    return false;
+  }
+};
+
+/**
+ * Run a module's uninstall hook (if defined in manifest)
+ */
+const runUninstallHook = async (module, context = {}) => {
+  const hookFile = module.manifest?.uninstallHook;
+  if (!hookFile) return true;
+
+  try {
+    const hookPath = join(module.path, hookFile);
+    if (existsSync(hookPath)) {
+      const hook = await import(hookPath);
+      const fn = hook.default || hook.uninstall || hook.onUninstall;
+      if (typeof fn === 'function') {
+        await fn(context);
+        console.log(`✅ Uninstall hook executed for ${module.name}`);
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error(`❌ Uninstall hook failed for ${module.name}:`, error.message);
+    return false;
+  }
+};
+
+/**
  * Get module by name
  */
 const getModule = (name) => {
@@ -475,6 +523,8 @@ export {
   getAllRoutes,
   registerModuleRoutes,
   seedModuleDemoData,
+  runInstallHook,
+  runUninstallHook,
   moduleRegistry,
   moduleLoaderState
 };
@@ -485,5 +535,7 @@ export default {
   getModule,
   getAllModules,
   getAllMenus,
-  getAllPermissions
+  getAllPermissions,
+  runInstallHook,
+  runUninstallHook
 };

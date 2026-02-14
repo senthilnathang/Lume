@@ -1,21 +1,12 @@
-const { CRUDMixin } = require('./crud.mixin');
-const { HookRegistry, registry, before_create, after_create, before_update, after_update, before_delete, after_delete, onchange, constrains } = require('./hooks');
-const { RecordRuleService } = require('./record-rule.service');
-const { SequenceService } = require('./sequence.service');
-const { SecurityService } = require('./security.service');
+import { CRUDMixin } from './crud.mixin.js';
+import { BaseService } from './base.service.js';
+import { RecordRuleService } from './record-rule.service.js';
+import { SequenceService } from './sequence.service.js';
+import { SecurityService } from './security.service.js';
 
-module.exports = {
+export {
+    BaseService,
     CRUDMixin,
-    HookRegistry,
-    registry,
-    before_create,
-    after_create,
-    before_update,
-    after_update,
-    before_delete,
-    after_delete,
-    onchange,
-    constrains,
     RecordRuleService,
     SequenceService,
     SecurityService

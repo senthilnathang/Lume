@@ -1,6 +1,6 @@
-const { Op } = require('sequelize');
+import { Op } from 'sequelize';
 
-class CRUDMixin {
+export class CRUDMixin {
     constructor(model, db, context = {}) {
         this._model = model;
         this._db = db;
@@ -10,7 +10,7 @@ class CRUDMixin {
         this._company_scoped = true;
     }
 
-    withContext(**kwargs) {
+    withContext(kwargs = {}) {
         return new this.constructor(this._model, this._db, { ...this._context, ...kwargs });
     }
 
@@ -134,4 +134,4 @@ class CRUDMixin {
     }
 }
 
-module.exports = { CRUDMixin };
+export default CRUDMixin;
