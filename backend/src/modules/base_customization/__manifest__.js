@@ -28,12 +28,9 @@ export default {
     routes: [],
     views: [
       'views/custom-fields.vue',
-      'views/custom-fields-form.vue',
       'views/custom-views.vue',
-      'views/custom-views-form.vue',
-      'views/form-layouts.vue',
-      'views/form-layouts-form.vue',
-      'views/list-configurations.vue',
+      'views/form-builder.vue',
+      'views/list-configs.vue',
       'views/dashboard-widgets.vue',
     ],
     menus: [
