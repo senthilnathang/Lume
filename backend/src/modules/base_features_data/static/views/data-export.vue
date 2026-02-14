@@ -1,8 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 
-import { Page } from '@vben/common-ui';
-
 import {
   Button,
   Card,
@@ -32,7 +30,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons-vue';
 
-import { requestClient } from '#/api/request';
+import { get, post } from '@/api/request';
 
 const exportLoading = ref(false);
 const exportModels = ref([]);
@@ -64,7 +62,7 @@ const exportPreviewTableColumns = computed(() => {
 async function fetchExportModels() {
   exportLoading.value = true;
   try {
-    const res = await requestClient.get('/base_features_data/export/models');
+    const res = await get('/base_features_data/export/models');
     exportModels.value = res || [];
   } catch (err) {
     console.error('Failed to fetch export models:', err);
@@ -82,7 +80,7 @@ async function previewExport() {
   if (!selectedExportModel.value) return;
   exportLoading.value = true;
   try {
-    const res = await requestClient.post('/base_features_data/export/preview', {
+    const res = await post('/base_features_data/export/preview', {
       model_name: selectedExportModel.value,
       fields: exportSelectedFields.value.length ? exportSelectedFields.value : null,
       search: exportSearch.value || null,
@@ -101,16 +99,13 @@ async function executeExport() {
   if (!selectedExportModel.value) return;
   exportLoading.value = true;
   try {
-    // Use raw fetch for file downloads to avoid requestClient auto-parsing
+    // Use raw fetch for file downloads to avoid Axios auto-parsing
     const token = localStorage.getItem('accessToken');
-    const csrfMatch = document.cookie.match(/(^|;\s*)csrf_token=([^;]+)/);
-    const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[2]) : null;
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     };
-    if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
-    const res = await fetch('/api/v1/base_features_data/export/download', {
+    const res = await fetch('/api/base_features_data/export/download', {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -147,7 +142,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page title="Data Export">
+  <div>
+    <div style="margin-bottom: 16px;">
+      <h2 style="margin: 0;">Data Export</h2>
+      <p style="color: #666; margin: 4px 0 0;">Export model data to CSV or JSON</p>
+    </div>
+
     <Card>
       <Spin :spinning="exportLoading">
         <Row :gutter="24">
@@ -238,11 +238,11 @@ onMounted(() => {
                 :scroll="{ x: 'max-content', y: 400 }"
                 rowKey="id"
               />
-              <AEmpty v-else description="Select a model to preview data" />
+              <Empty v-else description="Select a model to preview data" />
             </Card>
           </Col>
         </Row>
       </Spin>
     </Card>
-  </Page>
+  </div>
 </template>

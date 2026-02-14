@@ -20,7 +20,7 @@ const initializeBaseFeaturesData = async (context) => {
   console.log(`✅ Base Features Data models created: ${Object.keys(models).join(', ')}`);
   
   const services = {
-    featuresDataService: new FeaturesDataService(models)
+    featuresDataService: new FeaturesDataService(models, sequelize)
   };
   console.log('✅ Base Features Data services created');
   

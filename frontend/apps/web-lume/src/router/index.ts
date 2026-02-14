@@ -68,11 +68,9 @@ const customViews: Record<string, () => Promise<any>> = {
   'settings/security/2fa': () => import('@modules/base_security/static/views/security.vue'),
   'settings/security/sessions': () => import('@modules/base_security/static/views/security.vue'),
   'settings/security/api-keys': () => import('@modules/base_security/static/views/security.vue'),
-  // Features & Data module
-  'settings/features/flags': () => import('@modules/base_features_data/static/views/features.vue'),
-  'settings/features/import': () => import('@modules/base_features_data/static/views/features.vue'),
-  'settings/features/export': () => import('@modules/base_features_data/static/views/features.vue'),
-  'settings/features/backups': () => import('@modules/base_features_data/static/views/features.vue'),
+  // Data Management module
+  'base-features-data/data-import': () => import('@modules/base_features_data/static/views/data-import.vue'),
+  'base-features-data/data-export': () => import('@modules/base_features_data/static/views/data-export.vue'),
   // Automation module
   'settings/automation/workflows': () => import('@modules/base_automation/static/views/automation.vue'),
   'settings/automation/flows': () => import('@modules/base_automation/static/views/automation.vue'),

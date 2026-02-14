@@ -117,6 +117,8 @@ const optionalAuthPaths = [
   '/api/base_automation/health',
   '/api/base_features_data/health',
   '/api/base_security/health',
+  '/api/base_customization/health',
+  '/api/advanced_features/health',
 ];
 
 app.use((req, res, next) => {
@@ -677,35 +679,8 @@ app.use('/api/settings', (await import('./modules/settings/index.js')).settingRo
 app.use('/api/audit', (await import('./modules/audit/index.js')).auditRoutes);
 app.use('/api/media', (await import('./modules/media/index.js')).mediaRoutes);
 
-// Base Automation routes
-const baseAutoRouter = Router();
-baseAutoRouter.get('/health', (req, res) => res.json({ success: true, message: 'Base Automation module running' }));
-baseAutoRouter.get('/workflows', (req, res) => res.json({ success: true, data: [] }));
-baseAutoRouter.post('/workflows', (req, res) => res.json({ success: true, data: { id: 1, name: req.body.name, model: req.body.model } }));
-baseAutoRouter.get('/flows', (req, res) => res.json({ success: true, data: [] }));
-baseAutoRouter.get('/rules', (req, res) => res.json({ success: true, data: [] }));
-baseAutoRouter.get('/approvals', (req, res) => res.json({ success: true, data: [] }));
-app.use('/api/base_automation', baseAutoRouter);
-
-// Base Features Data routes
-const baseFeaturesRouter = Router();
-baseFeaturesRouter.get('/health', (req, res) => res.json({ success: true, message: 'Base Features Data module running' }));
-baseFeaturesRouter.get('/flags', (req, res) => res.json({ success: true, data: [] }));
-baseFeaturesRouter.get('/imports', (req, res) => res.json({ success: true, data: [] }));
-baseFeaturesRouter.get('/exports', (req, res) => res.json({ success: true, data: [] }));
-baseFeaturesRouter.get('/backups', (req, res) => res.json({ success: true, data: [] }));
-app.use('/api/base_features_data', baseFeaturesRouter);
-
-// Base module routes are registered by the module system via base/__init__.js
-
-// Base Security routes
-const baseSecurityRouter = Router();
-baseSecurityRouter.get('/health', (req, res) => res.json({ success: true, message: 'Base Security module running' }));
-baseSecurityRouter.get('/api-keys', (req, res) => res.json({ success: true, data: [] }));
-baseSecurityRouter.get('/ip-access', (req, res) => res.json({ success: true, data: [] }));
-baseSecurityRouter.get('/sessions', (req, res) => res.json({ success: true, data: [] }));
-baseSecurityRouter.get('/logs', (req, res) => res.json({ success: true, data: [] }));
-app.use('/api/base_security', baseSecurityRouter);
+// Module routes (base_automation, base_security, base_features_data, base_customization, advanced_features)
+// are registered by the module system via their __init__.js during initialization
 
 // Gawdesy routes
 const gawdesyRouter = Router();
@@ -724,9 +699,8 @@ lumeRouter.get('/health', (req, res) => res.json({ success: true, status: 'healt
 app.use('/api/lume', lumeRouter);
 app.use('/api/rbac', (await import('./modules/rbac/api/index.js')).default);
 
-// Error handling
-app.use(notFoundHandler);
-app.use(errorHandler);
+// Error handling — registered after module system init in startServer()
+// (moved to end of startServer so module-registered routes aren't shadowed)
 
 // Start server
 const startServer = async () => {
@@ -793,6 +767,10 @@ const startServer = async () => {
     // Make base models accessible to route handlers
     app.locals.baseModels = baseModels;
     app.locals.moduleContext = moduleContext;
+
+    // Register error handlers AFTER module routes (so module routes aren't shadowed)
+    app.use(notFoundHandler);
+    app.use(errorHandler);
 
     // Start listening
     app.listen(PORT, () => {
