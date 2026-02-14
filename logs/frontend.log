@@ -4,7 +4,12 @@
 
 Re-optimizing dependencies because vite config has changed
 
-  VITE v5.4.21  ready in 1268 ms
+  VITE v5.4.21  ready in 1090 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: http://192.168.1.5:5173/
+10:04:10 AM [vite] hmr update /src/components/layout/Sidebar.vue, /src/style.css, /src/components/layout/Sidebar.vue?vue&type=style&index=0&scoped=7ade5772&lang.css
+10:04:11 AM [vite] ✨ new dependencies optimized: lucide-vue-next
+10:04:11 AM [vite] ✨ optimized dependencies changed. reloading
+10:04:26 AM [vite] page reload src/router/index.ts
+10:04:37 AM [vite] page reload src/router/index.ts
