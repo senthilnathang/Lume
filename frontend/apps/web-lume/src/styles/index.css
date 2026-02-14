@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
-  --primary-color: #2E7D32;
-  --primary-light: #4CAF50;
-  --primary-dark: #1B5E20;
-  --secondary-color: #EF6C00;
-  --secondary-light: #FFA726;
-  --background-color: #FAFAFA;
-  --surface-color: #FFFFFF;
-  --text-primary: #212121;
-  --text-secondary: #757575;
-  --border-color: #E0E0E0;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --primary-color: #4f46e5;
+  --primary-light: #6366f1;
+  --primary-dark: #4338ca;
+  --secondary-color: #6b7280;
+  --secondary-light: #9ca3af;
+  --background-color: #f1f5f9;
+  --surface-color: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
 }
 
 * {
@@ -65,40 +65,51 @@ a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 28px;
-  font-size: 15px;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
   font-weight: 500;
   border-radius: var(--radius-md);
-  border: none;
+  border: 1px solid var(--border-color);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
+  background: var(--surface-color);
+  color: var(--text-primary);
+}
+
+.btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .btn-primary {
   background: var(--primary-color);
+  border-color: var(--primary-color);
   color: white;
+  box-shadow: 0 2px 0 rgba(79, 70, 229, 0.06);
 }
 
 .btn-primary:hover {
   background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  border-color: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .btn-secondary {
-  background: var(--secondary-color);
-  color: white;
+  background: #f3f4f6;
+  border-color: #f3f4f6;
+  color: var(--text-primary);
 }
 
 .btn-secondary:hover {
-  background: #E65100;
-  transform: translateY(-1px);
+  background: #e5e7eb;
+  border-color: #e5e7eb;
 }
 
 .btn-outline {
   background: transparent;
-  border: 2px solid var(--primary-color);
+  border: 1px solid var(--primary-color);
   color: var(--primary-color);
 }
 

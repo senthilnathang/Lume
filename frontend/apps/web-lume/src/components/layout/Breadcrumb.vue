@@ -72,13 +72,13 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
     });
   }
   
-  if (found.current) {
+  if (found.current && currentPath !== '/dashboard' && currentPath !== '/') {
     items.push({
       title: found.current.title || found.current.name,
       path: found.current.path,
       icon: found.current.icon
     });
-  } else {
+  } else if (!found.current) {
     // Use route meta as fallback
     const routeTitle = route.meta?.title as string;
     if (routeTitle && routeTitle !== 'Dashboard') {
@@ -136,26 +136,41 @@ const getIconComponent = (iconName: string) => {
 
 <style scoped>
 .lume-breadcrumb {
-  margin-bottom: 16px;
-  padding: 12px 16px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 0;
 }
 
-.lume-breadcrumb :deep(.ant-breadcrumb-link) {
-  color: #64748b;
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
   font-size: 14px;
+  line-height: 1;
+}
+
+.breadcrumb-link {
+  color: #6b7280;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
   transition: color 0.2s;
 }
 
-.lume-breadcrumb :deep(.ant-breadcrumb-link:hover) {
+.breadcrumb-link:hover {
   color: #1890ff;
 }
 
-.lume-breadcrumb-current {
-  color: #1e293b !important;
+.breadcrumb-current {
+  color: #111827;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+}
+
+.breadcrumb-separator {
+  margin: 0 8px;
+  color: #d1d5db;
+  font-size: 13px;
 }
 
 .lume-breadcrumb-icon {

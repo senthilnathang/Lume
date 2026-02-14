@@ -9,9 +9,7 @@
         </svg>
       </button>
       
-      <div class="lume-breadcrumb">
-        <span class="breadcrumb-item">Dashboard</span>
-      </div>
+      <Breadcrumb />
     </div>
 
     <div class="lume-header-center">
@@ -116,6 +114,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import Breadcrumb from '@/components/layout/Breadcrumb.vue';
 
 interface UserInfo {
   id: number;
@@ -259,18 +258,6 @@ onUnmounted(() => {
 .lume-menu-toggle:hover {
   background: #f3f4f6;
   color: #111827;
-}
-
-.lume-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.breadcrumb-item {
-  font-size: 14px;
-  font-weight: 500;
-  color: #6b7280;
 }
 
 .lume-header-center {
