@@ -180,28 +180,55 @@ function setupAccessGuard() {
     
     for (const menu of menus) {
       if (!menu.path || menu.hideInMenu) continue;
-      
+
       const routeName = menu.name || menu.path.split('/').pop();
       if (staticRoutes.includes(routeName as string)) continue;
-      
-      // Only add if route doesn't exist
+
+      const moduleName = menu.module || routeName;
+
+      // Register parent route
       if (!router.hasRoute(routeName as string)) {
-        // Try to load from backend static views first
-        const moduleName = menu.module || routeName;
-        const viewPath = `/modules/${moduleName}/static/views/list.vue`;
-        
-        // Check if static view exists, use DynamicViewLoader if it does
         router.addRoute('App', {
           path: menu.path.startsWith('/') ? menu.path.slice(1) : menu.path,
           name: routeName,
-          component: () => loadModuleView(moduleName, routeName as string),
+          component: () => loadModuleView(moduleName as string, routeName as string),
+          props: {
+            moduleName: moduleName,
+          },
           meta: {
             title: menu.name || menu.title,
             icon: menu.icon,
             permission: menu.permission,
             requiresAuth: true,
+            module: moduleName,
           },
         });
+      }
+
+      // Register child routes
+      if (menu.children?.length) {
+        for (const child of menu.children) {
+          if (!child.path || child.hideInMenu) continue;
+          const childRouteName = child.name || child.path.split('/').pop();
+          const childModule = child.module || moduleName;
+          if (!router.hasRoute(childRouteName as string)) {
+            router.addRoute('App', {
+              path: child.path.startsWith('/') ? child.path.slice(1) : child.path,
+              name: childRouteName,
+              component: () => loadModuleView(childModule as string, childRouteName as string),
+              props: {
+                moduleName: childModule,
+              },
+              meta: {
+                title: child.name || child.title,
+                icon: child.icon,
+                permission: child.permission,
+                requiresAuth: true,
+                module: childModule,
+              },
+            });
+          }
+        }
       }
     }
 
@@ -244,13 +271,14 @@ export function addDynamicRoutes(menus: MenuItem[]): RouteRecordRaw[] {
   for (const menu of menus) {
     if (menu.path && !menu.hideInMenu) {
       const routeName = menu.name || menu.path.split('/').pop() || 'Route';
-      
+      const moduleName = menu.module || routeName;
+
       const route: RouteRecordRaw = {
         path: menu.path.startsWith('/') ? menu.path.slice(1) : menu.path,
         name: routeName,
         component: () => import('@/components/ModuleView.vue'),
         props: {
-          moduleName: menu.module || routeName,
+          moduleName,
         },
         meta: {
           title: menu.name || menu.title,
@@ -264,6 +292,35 @@ export function addDynamicRoutes(menus: MenuItem[]): RouteRecordRaw[] {
       if (!router.hasRoute(routeName)) {
         router.addRoute('App', route);
         addedRoutes.push(route);
+      }
+
+      // Register child routes
+      if (menu.children?.length) {
+        for (const child of menu.children) {
+          if (!child.path || child.hideInMenu) continue;
+          const childRouteName = child.name || child.path.split('/').pop() || 'ChildRoute';
+          const childModule = child.module || moduleName;
+
+          const childRoute: RouteRecordRaw = {
+            path: child.path.startsWith('/') ? child.path.slice(1) : child.path,
+            name: childRouteName,
+            component: () => import('@/components/ModuleView.vue'),
+            props: {
+              moduleName: childModule,
+            },
+            meta: {
+              title: child.name || child.title,
+              icon: child.icon,
+              permission: child.permission,
+              module: childModule,
+            },
+          };
+
+          if (!router.hasRoute(childRouteName)) {
+            router.addRoute('App', childRoute);
+            addedRoutes.push(childRoute);
+          }
+        }
       }
     }
   }

@@ -1,34 +1,118 @@
 <template>
-  <aside class="lume-sidebar" :class="{ collapsed }">
+  <aside
+    class="lume-sidebar"
+    :class="{ collapsed: isCollapsed, 'expand-on-hover': collapsed }"
+    @mouseenter="hovering = true"
+    @mouseleave="hovering = false"
+  >
     <div class="lume-sidebar-header">
       <div class="lume-logo">
         <div class="lume-logo-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="9" y1="3" x2="9" y2="21"></line>
-          </svg>
+          <LayoutDashboard :size="20" />
         </div>
-        <span v-if="!collapsed" class="lume-logo-text">Lume</span>
+        <span v-if="!isCollapsed" class="lume-logo-text">Lume</span>
       </div>
     </div>
 
     <nav class="lume-sidebar-nav">
-      <template v-for="group in menuGroups" :key="group.id">
-        <div v-if="group.title && !collapsed" class="lume-nav-group-title">
+      <template v-for="(group, gi) in menuGroups" :key="group.id">
+        <div v-if="group.title && !isCollapsed" class="lume-nav-group-title">
           {{ group.title }}
         </div>
+        <div v-else-if="gi > 0" class="lume-nav-divider" />
         <ul class="lume-nav-list">
           <template v-for="item in group.items" :key="item.path">
-            <li v-if="!item.hideInMenu">
-              <router-link
-                :to="item.path"
-                class="lume-nav-item"
-                :class="{ active: isActive(item.path) }"
-              >
-                <component :is="getIcon(item.icon)" class="lume-nav-icon" />
-                <span v-if="!collapsed" class="lume-nav-label">{{ item.name || item.title }}</span>
-              </router-link>
-            </li>
+
+            <!-- COLLAPSED MODE -->
+            <template v-if="isCollapsed">
+              <!-- Parent with children: popover -->
+              <li v-if="item.children?.length && !item.hideInMenu">
+                <a-popover placement="right" trigger="hover" overlay-class-name="lume-popup-overlay">
+                  <template #content>
+                    <div class="lume-popup-menu">
+                      <div class="lume-popup-title">{{ item.name || item.title }}</div>
+                      <router-link
+                        v-for="child in visibleChildren(item)"
+                        :key="child.path"
+                        :to="child.path"
+                        class="lume-popup-item"
+                        :class="{ active: isActive(child.path) }"
+                      >
+                        <component :is="resolveIcon(child.icon)" :size="14" />
+                        {{ child.name || child.title }}
+                      </router-link>
+                    </div>
+                  </template>
+                  <button class="lume-nav-item" :class="{ active: isChildActive(item) }">
+                    <component :is="resolveIcon(item.icon)" :size="20" class="lume-nav-icon" />
+                  </button>
+                </a-popover>
+              </li>
+              <!-- Leaf item: tooltip -->
+              <li v-else-if="!item.hideInMenu">
+                <a-tooltip :title="item.name || item.title" placement="right">
+                  <router-link
+                    :to="item.path"
+                    class="lume-nav-item"
+                    :class="{ active: isActive(item.path) }"
+                  >
+                    <component :is="resolveIcon(item.icon)" :size="20" class="lume-nav-icon" />
+                  </router-link>
+                </a-tooltip>
+              </li>
+            </template>
+
+            <!-- EXPANDED MODE -->
+            <template v-else>
+              <!-- Leaf item (no children) -->
+              <li v-if="!item.children?.length && !item.hideInMenu">
+                <router-link
+                  :to="item.path"
+                  class="lume-nav-item"
+                  :class="{ active: isActive(item.path) }"
+                >
+                  <component :is="resolveIcon(item.icon)" :size="20" class="lume-nav-icon" />
+                  <span class="lume-nav-label">{{ item.name || item.title }}</span>
+                  <span v-if="item.badge" class="lume-nav-badge" :class="item.badgeType || 'dot'">
+                    {{ item.badgeType === 'dot' ? '' : item.badge }}
+                  </span>
+                </router-link>
+              </li>
+              <!-- Parent item (has children) -->
+              <li v-else-if="!item.hideInMenu" class="lume-nav-submenu">
+                <button
+                  class="lume-nav-item"
+                  :class="{ active: isChildActive(item) }"
+                  @click="toggleSubmenu(item.path)"
+                >
+                  <component :is="resolveIcon(item.icon)" :size="20" class="lume-nav-icon" />
+                  <span class="lume-nav-label">{{ item.name || item.title }}</span>
+                  <span v-if="item.badge" class="lume-nav-badge" :class="item.badgeType || 'dot'">
+                    {{ item.badgeType === 'dot' ? '' : item.badge }}
+                  </span>
+                  <ChevronDown
+                    :size="16"
+                    class="lume-nav-arrow"
+                    :class="{ rotated: openMenus.has(item.path) }"
+                  />
+                </button>
+                <transition name="submenu">
+                  <ul v-show="openMenus.has(item.path)" class="lume-nav-children">
+                    <li v-for="child in visibleChildren(item)" :key="child.path">
+                      <router-link
+                        :to="child.path"
+                        class="lume-nav-item child-item"
+                        :class="{ active: isActive(child.path) }"
+                      >
+                        <component :is="resolveIcon(child.icon)" :size="16" class="lume-nav-icon" />
+                        <span class="lume-nav-label">{{ child.name || child.title }}</span>
+                      </router-link>
+                    </li>
+                  </ul>
+                </transition>
+              </li>
+            </template>
+
           </template>
         </ul>
       </template>
@@ -36,18 +120,17 @@
 
     <div class="lume-sidebar-footer">
       <button class="lume-collapse-btn" @click="$emit('toggle')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline :points="collapsed ? '9 18 15 12 9 6' : '15 18 9 12 15 6'"></polyline>
-        </svg>
-        <span v-if="!collapsed">Collapse</span>
+        <component :is="isCollapsed ? ChevronsRight : ChevronsLeft" :size="18" />
+        <span v-if="!isCollapsed">Collapse</span>
       </button>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { computed, h } from 'vue';
+import { computed, ref, watch, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
+import { icons, ChevronDown, ChevronsLeft, ChevronsRight, LayoutDashboard } from 'lucide-vue-next';
 
 export interface MenuItem {
   name: string;
@@ -58,6 +141,8 @@ export interface MenuItem {
   module?: string;
   hideInMenu?: boolean;
   children?: MenuItem[];
+  badge?: string | number;
+  badgeType?: 'dot' | 'count';
 }
 
 interface MenuGroup {
@@ -76,200 +161,93 @@ defineEmits<{
 }>();
 
 const route = useRoute();
+const hovering = ref(false);
+const openMenus = ref<Set<string>>(new Set());
+
+const isCollapsed = computed(() => props.collapsed && !hovering.value);
+
+/**
+ * Icon resolver — handles "lucide:xxx", plain names, and kebab-case.
+ * Converts to PascalCase and looks up in lucide-vue-next icons object.
+ */
+function resolveIcon(name?: string) {
+  if (!name) return icons.Circle;
+  const key = name.replace('lucide:', '');
+  const pascal = key.replace(/(^|[-_])(\w)/g, (_: string, __: string, c: string) => c.toUpperCase());
+  return (icons as Record<string, any>)[pascal] || icons.Circle;
+}
+
+// --- Phase 3: Menu grouping by category ---
+const menuCategories = [
+  { id: 'main', title: 'Navigation', paths: ['/dashboard', '/activities', '/team', '/donations', '/messages'] },
+  { id: 'content', title: 'Content', paths: ['/documents', '/media'] },
+  { id: 'admin', title: 'Administration', paths: ['/settings', '/audit', '/access-control', '/security'] },
+  { id: 'system', title: 'System', paths: ['/lume', '/automation', '/features'] },
+];
 
 const menuGroups = computed((): MenuGroup[] => {
-  // All menus under single "Gawdesy" group
   const allMenus = props.menus.filter(menu => !menu.hideInMenu);
-  
-  if (allMenus.length === 0) {
-    return [];
+  if (allMenus.length === 0) return [];
+
+  const categorized = menuCategories.map(cat => ({
+    ...cat,
+    items: allMenus.filter(menu =>
+      cat.paths.some(p => menu.path.startsWith(p))
+    )
+  })).filter(cat => cat.items.length > 0);
+
+  const categorizedPaths = new Set(categorized.flatMap(c => c.items.map(i => i.path)));
+  const uncategorized = allMenus.filter(m => !categorizedPaths.has(m.path));
+  if (uncategorized.length) {
+    categorized.push({ id: 'other', title: 'Other', items: uncategorized, paths: [] });
   }
-  
-  return [{
-    id: 'gawdesy',
-    title: 'Gawdesy',
-    items: allMenus
-  }];
+
+  return categorized;
 });
 
+// --- Phase 6: Active state helpers ---
 const isActive = (path: string): boolean => {
   return route.path === path || route.path.startsWith(path + '/');
 };
 
-const getIcon = (icon?: string) => {
-  const icons: Record<string, () => any> = {
-    dashboard: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('rect', { x: '3', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '14', width: '7', height: '7' }),
-      h('rect', { x: '3', y: '14', width: '7', height: '7' }),
-    ]),
-    home: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' }),
-      h('polyline', { points: '9 22 9 12 15 12 15 22' }),
-    ]),
-    users: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
-      h('circle', { cx: '9', cy: '7', r: '4' }),
-      h('path', { d: 'M23 21v-2a4 4 0 0 0-3-3.87' }),
-      h('path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }),
-    ]),
-    user: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2' }),
-      h('circle', { cx: '12', cy: '7', r: '4' }),
-    ]),
-    donations: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('line', { x1: '12', y1: '1', x2: '12', y2: '23' }),
-      h('path', { d: 'M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' }),
-    ]),
-    money: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('line', { x1: '12', y1: '1', x2: '12', y2: '23' }),
-      h('path', { d: 'M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' }),
-    ]),
-    heart: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M20.84 4.61a7.5 7.5 0 0 0-10.74 0L12 5.67l-1.06-1.06a7.5 7.5 0 0 0-10.74 10.74l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a7.5 7.5 0 0 0 0-10.74z' }),
-    ]),
-    documents: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }),
-      h('polyline', { points: '14 2 14 8 20 8' }),
-      h('line', { x1: '16', y1: '13', x2: '8', y2: '13' }),
-      h('line', { x1: '16', y1: '17', x2: '8', y2: '17' }),
-    ]),
-    file: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z' }),
-      h('polyline', { points: '13 2 13 9 20 9' }),
-    ]),
-    folder: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' }),
-    ]),
-    team: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
-      h('circle', { cx: '9', cy: '7', r: '4' }),
-      h('path', { d: 'M23 21v-2a4 4 0 0 0-3-3.87' }),
-      h('path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }),
-    ]),
-    messages: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' }),
-    ]),
-    mail: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z' }),
-      h('polyline', { points: '22,6 12,13 2,6' }),
-    ]),
-    message: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' }),
-    ]),
-    activities: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('polyline', { points: '22 12 18 12 15 21 9 3 6 12 2 12' }),
-    ]),
-    activity: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('polyline', { points: '22 12 18 12 15 21 9 3 6 12 2 12' }),
-    ]),
-    calendar: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('rect', { x: '3', y: '4', width: '18', height: '18', rx: '2', ry: '2' }),
-      h('line', { x1: '16', y1: '2', x2: '16', y2: '6' }),
-      h('line', { x1: '8', y1: '2', x2: '8', y2: '6' }),
-      h('line', { x1: '3', y1: '10', x2: '21', y2: '10' }),
-    ]),
-    settings: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('circle', { cx: '12', cy: '12', r: '3' }),
-      h('path', { d: 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z' }),
-    ]),
-    cog: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('circle', { cx: '12', cy: '12', r: '3' }),
-      h('path', { d: 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z' }),
-    ]),
-    audit: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' }),
-      h('polyline', { points: '14 2 14 8 20 8' }),
-      h('line', { x1: '16', y1: '13', x2: '8', y2: '13' }),
-      h('line', { x1: '16', y1: '17', x2: '8', y2: '17' }),
-    ]),
-    shield: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' }),
-    ]),
-    code: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('polyline', { points: '16 18 22 12 16 6' }),
-      h('polyline', { points: '8 6 2 12 8 18' }),
-    ]),
-    list: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('line', { x1: '8', y1: '6', x2: '21', y2: '6' }),
-      h('line', { x1: '8', y1: '12', x2: '21', y2: '12' }),
-      h('line', { x1: '8', y1: '18', x2: '21', y2: '18' }),
-      h('line', { x1: '3', y1: '6', x2: '3.01', y2: '6' }),
-      h('line', { x1: '3', y1: '12', x2: '3.01', y2: '12' }),
-      h('line', { x1: '3', y1: '18', x2: '3.01', y2: '18' }),
-    ]),
-    'list-ol': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('line', { x1: '10', y1: '6', x2: '21', y2: '6' }),
-      h('line', { x1: '10', y1: '12', x2: '21', y2: '12' }),
-      h('line', { x1: '10', y1: '18', x2: '21', y2: '18' }),
-      h('path', { d: 'M4 6h1v4' }),
-      h('path', { d: 'M4 10h2' }),
-      h('path', { d: 'M6 18H4c0-1 2-2 2-3s-1-1.5-2-1' }),
-    ]),
-    media: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('rect', { x: '3', y: '3', width: '18', height: '18', rx: '2', ry: '2' }),
-      h('circle', { cx: '8.5', cy: '8.5', r: '1.5' }),
-      h('polyline', { points: '21 15 16 10 5 21' }),
-    ]),
-    image: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('rect', { x: '3', y: '3', width: '18', height: '18', rx: '2', ry: '2' }),
-      h('circle', { cx: '8.5', cy: '8.5', r: '1.5' }),
-      h('polyline', { points: '21 15 16 10 5 21' }),
-    ]),
-    picture: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('rect', { x: '3', y: '3', width: '18', height: '18', rx: '2', ry: '2' }),
-      h('circle', { cx: '8.5', cy: '8.5', r: '1.5' }),
-      h('polyline', { points: '21 15 16 10 5 21' }),
-    ]),
-    circle: () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('circle', { cx: '12', cy: '12', r: '10' }),
-    ]),
-    // Lucide icons
-    'lucide:home': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' }),
-      h('polyline', { points: '9 22 9 12 15 12 15 22' }),
-    ]),
-    'lucide:users': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2' }),
-      h('circle', { cx: '9', cy: '7', r: '4' }),
-      h('path', { d: 'M23 21v-2a4 4 0 0 0-3-3.87' }),
-      h('path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }),
-    ]),
-    'lucide:calendar': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('rect', { x: '3', y: '4', width: '18', height: '18', rx: '2', ry: '2' }),
-      h('line', { x1: '16', y1: '2', x2: '16', y2: '6' }),
-      h('line', { x1: '8', y1: '2', x2: '8', y2: '6' }),
-      h('line', { x1: '3', y1: '10', x2: '21', y2: '10' }),
-    ]),
-    'lucide:heart': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M20.84 4.61a7.5 7.5 0 0 0-10.74 0L12 5.67l-1.06-1.06a7.5 7.5 0 0 0-10.74 10.74l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a7.5 7.5 0 0 0 0-10.74z' }),
-    ]),
-    'lucide:settings': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('circle', { cx: '12', cy: '12', r: '3' }),
-      h('path', { d: 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z' }),
-    ]),
-    'lucide:activity': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('polyline', { points: '22 12 18 12 15 21 9 3 6 12 2 12' }),
-    ]),
-    'lucide:message-square': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' }),
-    ]),
-    'lucide:image': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('rect', { x: '3', y: '3', width: '18', height: '18', rx: '2', ry: '2' }),
-      h('circle', { cx: '8.5', cy: '8.5', r: '1.5' }),
-      h('polyline', { points: '21 15 16 10 5 21' }),
-    ]),
-    'lucide:folder': () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-      h('path', { d: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' }),
-    ]),
-  };
-  
-  const iconKey = icon || 'circle';
-  return icons[iconKey] || icons.circle || (() => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: '20', height: '20', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' }, [
-    h('circle', { cx: '12', cy: '12', r: '10' }),
-  ]));
+const isChildActive = (item: MenuItem): boolean => {
+  return item.children?.some(c => isActive(c.path)) || isActive(item.path);
 };
+
+const visibleChildren = (item: MenuItem): MenuItem[] => {
+  return item.children?.filter(c => !c.hideInMenu) || [];
+};
+
+// --- Phase 2: Submenu toggle with accordion ---
+function toggleSubmenu(path: string) {
+  if (openMenus.value.has(path)) {
+    openMenus.value.delete(path);
+  } else {
+    openMenus.value.clear();
+    openMenus.value.add(path);
+  }
+  openMenus.value = new Set(openMenus.value);
+}
+
+// Auto-expand the submenu containing the active route
+watch(() => route.path, (path) => {
+  for (const group of menuGroups.value) {
+    for (const menu of group.items) {
+      if (menu.children?.some(c => path.startsWith(c.path))) {
+        openMenus.value.add(menu.path);
+        openMenus.value = new Set(openMenus.value);
+      }
+    }
+  }
+}, { immediate: true });
+
+// Scroll to active item on mount
+onMounted(() => {
+  nextTick(() => {
+    const activeEl = document.querySelector('.lume-nav-item.active');
+    activeEl?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
+});
 </script>
 
 <style scoped>
@@ -288,6 +266,10 @@ const getIcon = (icon?: string) => {
 
 .lume-sidebar.collapsed {
   width: 72px;
+}
+
+.lume-sidebar.expand-on-hover:not(.collapsed) {
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .lume-sidebar-header {
@@ -323,16 +305,33 @@ const getIcon = (icon?: string) => {
 .lume-sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 0;
+  padding: 8px 0;
+}
+
+/* Custom scrollbar */
+.lume-sidebar-nav::-webkit-scrollbar { width: 4px; }
+.lume-sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.lume-sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+.lume-sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .lume-nav-group-title {
-  padding: 8px 20px;
+  padding: 16px 20px 6px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.lume-nav-divider {
+  height: 1px;
+  margin: 8px 16px;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .lume-nav-list {
@@ -345,22 +344,33 @@ const getIcon = (icon?: string) => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 20px;
-  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 20px;
+  color: rgba(255, 255, 255, 0.65);
   text-decoration: none;
   transition: all 0.2s;
+  border: none;
+  background: none;
+  width: 100%;
+  font-size: 14px;
+  cursor: pointer;
   border-left: 3px solid transparent;
+  font-family: inherit;
 }
 
 .lume-nav-item:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .lume-nav-item.active {
-  background: rgba(79, 70, 229, 0.2);
+  background: rgba(79, 70, 229, 0.15);
   color: white;
   border-left-color: #4f46e5;
+}
+
+.lume-nav-submenu > .lume-nav-item.active {
+  background: rgba(79, 70, 229, 0.08);
+  border-left-color: transparent;
 }
 
 .lume-nav-icon {
@@ -369,10 +379,75 @@ const getIcon = (icon?: string) => {
 
 .lume-nav-label {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* Submenu arrow */
+.lume-nav-arrow {
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  opacity: 0.5;
+}
+
+.lume-nav-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+/* Children list */
+.lume-nav-children {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lume-nav-item.child-item {
+  padding-left: 48px;
+  font-size: 13px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* Submenu transition */
+.submenu-enter-active, .submenu-leave-active {
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  overflow: hidden;
+}
+.submenu-enter-from, .submenu-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+.submenu-enter-to, .submenu-leave-from {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* Badge */
+.lume-nav-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.lume-nav-badge.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+.lume-nav-badge:not(.dot) {
+  background: #ef4444;
+  color: white;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Footer */
 .lume-sidebar-footer {
-  padding: 16px;
+  padding: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -389,6 +464,7 @@ const getIcon = (icon?: string) => {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s;
+  font-family: inherit;
 }
 
 .lume-collapse-btn:hover {
@@ -396,14 +472,57 @@ const getIcon = (icon?: string) => {
   color: white;
 }
 
+/* Collapsed states */
 .lume-sidebar.collapsed .lume-nav-item {
   justify-content: center;
   padding: 12px;
+}
+
+.lume-sidebar.collapsed .lume-sidebar-header {
+  padding: 20px 18px;
+}
+
+.lume-sidebar.collapsed .lume-logo {
+  justify-content: center;
 }
 
 @media (max-width: 1024px) {
   .lume-sidebar {
     transform: translateX(-100%);
   }
+}
+</style>
+
+<style>
+/* Popover styles (unscoped — required for antd overlay) */
+.lume-popup-menu {
+  min-width: 160px;
+}
+.lume-popup-title {
+  font-weight: 600;
+  font-size: 13px;
+  padding: 4px 0 8px;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 4px;
+}
+.lume-popup-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  color: #4b5563;
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.lume-popup-item:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+.lume-popup-item.active {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4f46e5;
 }
 </style>
