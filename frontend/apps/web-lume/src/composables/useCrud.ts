@@ -51,8 +51,8 @@ export function useCrud<T extends { id: number | string }>(options: CRUDOptions)
         limit.value = result.limit;
         totalPages.value = result.totalPages;
       } else if (Array.isArray(result)) {
-        data.value = result;
-        total.value = result.length;
+        data.value = result as unknown as T[];
+        total.value = (result as unknown as T[]).length;
       }
 
       return data.value;

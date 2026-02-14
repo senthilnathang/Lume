@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { Card, Button, Table, Modal, Form, Input, message } from 'ant-design-vue';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import { PlusOutlined } from '@ant-design/icons-vue';
 import api from '@/api';
 
 interface TeamMember {
@@ -25,7 +25,7 @@ const columns = [
 
 onMounted(async () => {
   try {
-    const data = await api.get('/admin/team-members');
+    const data = await api.get('/admin/team-members') as any;
     teamMembers.value = data.members || [];
   } catch (error) {
     console.error('Failed to fetch team members:', error);

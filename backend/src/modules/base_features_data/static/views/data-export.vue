@@ -32,14 +32,20 @@ import {
 
 import { get, post } from '@/api/request';
 
+interface ExportModel {
+  name: string;
+  display_name: string;
+  fields: { name: string; display_name: string }[];
+}
+
 const exportLoading = ref(false);
-const exportModels = ref([]);
-const selectedExportModel = ref(null);
-const exportSelectedFields = ref([]);
+const exportModels = ref<ExportModel[]>([]);
+const selectedExportModel = ref<string | undefined>(undefined);
+const exportSelectedFields = ref<string[]>([]);
 const exportFormat = ref('csv');
 const exportSearch = ref('');
-const exportLimit = ref(null);
-const exportPreviewData = ref([]);
+const exportLimit = ref<number | string | undefined>(undefined);
+const exportPreviewData = ref<any[]>([]);
 const exportTotalRecords = ref(0);
 
 const exportModelFields = computed(() => {
@@ -50,8 +56,8 @@ const exportModelFields = computed(() => {
 
 const exportPreviewTableColumns = computed(() => {
   if (!exportPreviewData.value.length) return [];
-  return Object.keys(exportPreviewData.value[0]).map(col => ({
-    title: col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+  return Object.keys(exportPreviewData.value[0]).map((col: string) => ({
+    title: col.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
     dataIndex: col,
     key: col,
     width: 150,

@@ -37,7 +37,7 @@ export function useTable<T = any>(options: {
   fetchFn: (params: any) => Promise<{ list: T[]; total: number }>;
   immediate?: boolean;
   defaultPageSize?: number;
-} = {}) {
+}) {
   const { fetchFn, immediate = true, defaultPageSize = 10 } = options;
 
   const state = reactive<TableState>({

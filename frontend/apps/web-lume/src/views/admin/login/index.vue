@@ -6,7 +6,6 @@ import { UserOutlined, LockOutlined, SafetyCertificateOutlined } from '@ant-desi
 import { useAuthStore } from '@/store/auth';
 
 const { Item: FormItem } = Form;
-const { PasswordInput } = Input;
 const { Title } = Typography;
 
 const router = useRouter();
@@ -21,7 +20,7 @@ const formState = reactive({
   remember: true
 });
 
-const rules = {
+const rules: Record<string, any[]> = {
   email: [
     { required: true, message: 'Please enter your email', trigger: 'blur' },
     { type: 'email', message: 'Please enter a valid email', trigger: 'blur' }
@@ -37,7 +36,7 @@ const handleLogin = async () => {
   loading.value = true;
   
   try {
-    const success = await authStore.login(formState.email, formState.password);
+    const success = await authStore.login({ email: formState.email, password: formState.password });
     if (success) {
       router.push('/admin');
     } else {

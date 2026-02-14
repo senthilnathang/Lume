@@ -4,6 +4,96 @@
 // These files live outside the frontend's node_modules tree, so TypeScript
 // can't resolve bare specifiers from their directory. We re-declare them here.
 
+// Wildcard declaration for backend module API files (.js) accessed via @modules alias
+declare module '@modules/*/static/api/index' {
+  const api: Record<string, (...args: any[]) => Promise<any>>;
+  export default api;
+  export const getCustomFields: (...args: any[]) => Promise<any>;
+  export const createCustomField: (...args: any[]) => Promise<any>;
+  export const updateCustomField: (...args: any[]) => Promise<any>;
+  export const deleteCustomField: (...args: any[]) => Promise<any>;
+  export const getAvailableModels: (...args: any[]) => Promise<any>;
+  export const getCustomViews: (...args: any[]) => Promise<any>;
+  export const getCustomView: (...args: any[]) => Promise<any>;
+  export const createCustomView: (...args: any[]) => Promise<any>;
+  export const updateCustomView: (...args: any[]) => Promise<any>;
+  export const deleteCustomView: (...args: any[]) => Promise<any>;
+  export const getDashboardWidgets: (...args: any[]) => Promise<any>;
+  export const getDashboardWidget: (...args: any[]) => Promise<any>;
+  export const createDashboardWidget: (...args: any[]) => Promise<any>;
+  export const updateDashboardWidget: (...args: any[]) => Promise<any>;
+  export const deleteDashboardWidget: (...args: any[]) => Promise<any>;
+  export const getFormLayouts: (...args: any[]) => Promise<any>;
+  export const getFormLayout: (...args: any[]) => Promise<any>;
+  export const createFormLayout: (...args: any[]) => Promise<any>;
+  export const updateFormLayout: (...args: any[]) => Promise<any>;
+  export const deleteFormLayout: (...args: any[]) => Promise<any>;
+  export const getListConfigs: (...args: any[]) => Promise<any>;
+  export const getListConfig: (...args: any[]) => Promise<any>;
+  export const createListConfig: (...args: any[]) => Promise<any>;
+  export const updateListConfig: (...args: any[]) => Promise<any>;
+  export const deleteListConfig: (...args: any[]) => Promise<any>;
+  export const getNotificationChannels: (...args: any[]) => Promise<any>;
+  export const getNotificationChannel: (...args: any[]) => Promise<any>;
+  export const createNotificationChannel: (...args: any[]) => Promise<any>;
+  export const updateNotificationChannel: (...args: any[]) => Promise<any>;
+  export const deleteNotificationChannel: (...args: any[]) => Promise<any>;
+  export const getNotifications: (...args: any[]) => Promise<any>;
+  export const getUnreadCount: (...args: any[]) => Promise<any>;
+  export const markAsRead: (...args: any[]) => Promise<any>;
+  export const markAllAsRead: (...args: any[]) => Promise<any>;
+  export const dismissNotification: (...args: any[]) => Promise<any>;
+  export const getTags: (...args: any[]) => Promise<any>;
+  export const getTag: (...args: any[]) => Promise<any>;
+  export const createTag: (...args: any[]) => Promise<any>;
+  export const updateTag: (...args: any[]) => Promise<any>;
+  export const deleteTag: (...args: any[]) => Promise<any>;
+  export const getWebhooks: (...args: any[]) => Promise<any>;
+  export const getWebhook: (...args: any[]) => Promise<any>;
+  export const createWebhook: (...args: any[]) => Promise<any>;
+  export const updateWebhook: (...args: any[]) => Promise<any>;
+  export const deleteWebhook: (...args: any[]) => Promise<any>;
+  export const getWebhookLogs: (...args: any[]) => Promise<any>;
+}
+
+// @ant-design/icons-vue ambient declaration for backend module views
+declare module '@ant-design/icons-vue' {
+  import type { DefineComponent } from 'vue';
+  type IconComponent = DefineComponent<any, any, any>;
+  const icons: Record<string, IconComponent>;
+  export default icons;
+  export const AppstoreOutlined: IconComponent;
+  export const BarsOutlined: IconComponent;
+  export const CalendarOutlined: IconComponent;
+  export const CameraOutlined: IconComponent;
+  export const DashboardOutlined: IconComponent;
+  export const DeleteOutlined: IconComponent;
+  export const DollarOutlined: IconComponent;
+  export const DownloadOutlined: IconComponent;
+  export const EditOutlined: IconComponent;
+  export const ExclamationCircleOutlined: IconComponent;
+  export const EyeOutlined: IconComponent;
+  export const FileExcelOutlined: IconComponent;
+  export const FileOutlined: IconComponent;
+  export const FileTextOutlined: IconComponent;
+  export const FolderOutlined: IconComponent;
+  export const HeartOutlined: IconComponent;
+  export const InboxOutlined: IconComponent;
+  export const LockOutlined: IconComponent;
+  export const LogoutOutlined: IconComponent;
+  export const MailOutlined: IconComponent;
+  export const MenuFoldOutlined: IconComponent;
+  export const MenuUnfoldOutlined: IconComponent;
+  export const MessageOutlined: IconComponent;
+  export const PlusOutlined: IconComponent;
+  export const ReloadOutlined: IconComponent;
+  export const SafetyCertificateOutlined: IconComponent;
+  export const SettingOutlined: IconComponent;
+  export const TeamOutlined: IconComponent;
+  export const UploadOutlined: IconComponent;
+  export const UserOutlined: IconComponent;
+}
+
 declare module 'ant-design-vue' {
   export * from 'ant-design-vue/es';
   import AntDesignVue from 'ant-design-vue/es';
@@ -26,6 +116,7 @@ declare module 'lucide-vue-next' {
   }>;
   // Allow any named export as an icon component
   const icons: Record<string, IconComponent>;
+  export { icons };
   export default icons;
   export const Activity: IconComponent;
   export const AlertCircle: IconComponent;
@@ -144,6 +235,9 @@ declare module 'lucide-vue-next' {
   export const X: IconComponent;
   export const XCircle: IconComponent;
   export const Zap: IconComponent;
+  export const CheckCheck: IconComponent;
+  export const ScrollText: IconComponent;
+  export const ToggleRight: IconComponent;
 }
 
 // ECharts ambient declarations for module views using charts

@@ -18,14 +18,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/auth';
-import { usePermissionStore, type MenuItem } from '@/store/permission';
+import { usePermissionStore } from '@/store/permission';
 import Sidebar from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
 
 const router = useRouter();
-const route = useRoute();
 const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
 
@@ -33,7 +32,7 @@ const sidebarCollapsed = ref(false);
 
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.userInfo);
-const menus = computed(() => permissionStore.menus);
+const menus = computed(() => permissionStore.menus as any[]);
 
 // Fetch permissions and menus on mount
 onMounted(async () => {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Card, Button, Table, Modal, Form, Input, message, Tag, Select } from 'ant-design-vue';
-import { PlusOutlined, EditOutlined } from '@ant-design/icons-vue';
+import { Card, Button, Table, Modal, Form, Input, message, Select } from 'ant-design-vue';
+import { PlusOutlined } from '@ant-design/icons-vue';
 import api from '@/api';
 
 interface Activity {
@@ -30,7 +30,7 @@ const columns = [
 
 onMounted(async () => {
   try {
-    const data = await api.get('/admin/activities');
+    const data = await api.get('/admin/activities') as any;
     activities.value = data.activities || [];
   } catch (error) {
     console.error('Failed to fetch activities:', error);

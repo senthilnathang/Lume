@@ -29,20 +29,32 @@ import {
 
 defineOptions({ name: 'DashboardWidgetsView' });
 
+interface WidgetItem {
+  id: number;
+  name: string;
+  widget_type: string;
+  model_name?: string;
+  description?: string;
+  config?: any;
+  position?: number;
+  size?: string;
+  is_active?: boolean;
+}
+
 // State
 const loading = ref(false);
-const widgets = ref([]);
-const models = ref([]);
+const widgets = ref<WidgetItem[]>([]);
+const models = ref<any[]>([]);
 const searchQuery = ref('');
-const modelFilter = ref(undefined);
-const typeFilter = ref(undefined);
-const statusFilter = ref(undefined);
+const modelFilter = ref<string | undefined>(undefined);
+const typeFilter = ref<string | undefined>(undefined);
+const statusFilter = ref<string | undefined>(undefined);
 
 // Drawer state
 const showDrawer = ref(false);
 const drawerMode = ref('create');
 const drawerLoading = ref(false);
-const editingWidget = ref(null);
+const editingWidget = ref<any>(null);
 const formState = reactive({
   name: '',
   widget_type: 'counter',
@@ -63,7 +75,7 @@ const widgetTypes = [
   { value: 'custom', label: 'Custom' },
 ];
 
-const widgetTypeConfig = {
+const widgetTypeConfig: Record<string, { color: string; icon: any }> = {
   counter: { color: 'blue', icon: Hash },
   chart: { color: 'green', icon: BarChart3 },
   table: { color: 'purple', icon: Table2 },
@@ -109,11 +121,11 @@ const activeWidgets = computed(() => widgets.value.filter((w) => w.is_active).le
 const widgetTypeCount = computed(() => new Set(widgets.value.map((w) => w.widget_type)).size);
 
 const modelOptions = computed(() => {
-  const fromApi = models.value.map((m) =>
+  const fromApi = models.value.map((m: any) =>
     typeof m === 'string' ? { value: m, label: m } : { value: m.name || m.value, label: m.label || m.name || m.value },
   );
   if (fromApi.length > 0) return fromApi;
-  const names = [...new Set(widgets.value.map((w) => w.model_name).filter(Boolean))];
+  const names = [...new Set(widgets.value.map((w) => w.model_name).filter(Boolean))] as string[];
   return names.map((n) => ({ value: n, label: n }));
 });
 
@@ -172,7 +184,7 @@ function openCreate() {
   showDrawer.value = true;
 }
 
-async function openEdit(record) {
+async function openEdit(record: any) {
   drawerMode.value = 'edit';
   editingWidget.value = record;
   try {
@@ -236,14 +248,14 @@ async function handleSubmit() {
     }
     showDrawer.value = false;
     await loadData();
-  } catch (error) {
+  } catch (error: any) {
     message.error(error?.response?.data?.message || error?.message || 'Operation failed');
   } finally {
     drawerLoading.value = false;
   }
 }
 
-function handleDelete(record) {
+function handleDelete(record: any) {
   Modal.confirm({
     title: 'Delete Dashboard Widget',
     content: `Are you sure you want to delete "${record.name}"?`,
@@ -255,18 +267,18 @@ function handleDelete(record) {
         await deleteDashboardWidget(record.id);
         message.success('Dashboard widget deleted');
         await loadData();
-      } catch (error) {
+      } catch (error: any) {
         message.error(error?.response?.data?.message || error?.message || 'Failed to delete');
       }
     },
   });
 }
 
-function getWidgetTypeIcon(type) {
+function getWidgetTypeIcon(type: string) {
   return widgetTypeConfig[type]?.icon || Code2;
 }
 
-function getSizeLabel(size) {
+function getSizeLabel(size: string) {
   const found = widgetSizes.find((s) => s.value === size);
   return found ? found.label : size || 'Medium';
 }
@@ -370,7 +382,7 @@ onMounted(() => {
         :columns="columns"
         :data-source="filteredWidgets"
         :loading="loading"
-        :pagination="{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `${total} widgets` }"
+        :pagination="{ pageSize: 20, showSizeChanger: true, showTotal: (total: number) => `${total} widgets` }"
         row-key="id"
         size="middle"
         :scroll="{ x: 900 }"
@@ -462,7 +474,7 @@ onMounted(() => {
                 :options="modelOptions"
                 allow-clear
                 show-search
-                :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())"
+                :filter-option="(input: string, option: any) => option.label.toLowerCase().includes(input.toLowerCase())"
               />
             </a-form-item>
           </a-col>

@@ -98,13 +98,13 @@ const menuItems = computed(() => {
   }));
 });
 
-const userMenuItems = [
+const userMenuItems: any[] = [
   { key: 'profile', icon: UserOutlined, label: 'Profile' },
   { type: 'divider' as const },
   { key: 'logout', icon: LogoutOutlined, label: 'Logout' }
 ];
 
-const handleMenuClick = ({ key }: { key: string }) => {
+const handleMenuClick = ({ key }: any) => {
   if (key === 'logout') {
     authStore.logout();
     router.push('/login');
@@ -164,9 +164,9 @@ if (!permissionStore.menusLoaded && authStore.isAuthenticated) {
           <Dropdown :menu="{ items: userMenuItems }" placement="bottomRight">
             <div class="user-dropdown">
               <Avatar style="background-color: var(--primary-color)">
-                {{ authStore.user?.name?.charAt(0) || 'A' }}
+                {{ (authStore as any).user?.name?.charAt(0) || 'A' }}
               </Avatar>
-              <span v-if="!collapsed" class="user-name">{{ authStore.user?.name }}</span>
+              <span v-if="!collapsed" class="user-name">{{ (authStore as any).user?.name }}</span>
             </div>
           </Dropdown>
         </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Card, Statistic, Row, Col, Table, Tag } from 'ant-design-vue';
+import { Card, Statistic, Row, Col } from 'ant-design-vue';
 
 interface Stats {
   totalProgrammes: number;
@@ -14,7 +14,6 @@ interface Stats {
 }
 
 const stats = ref<Stats | null>(null);
-const loading = ref(true);
 
 const statCards = computed(() => [
   { title: 'Total Programmes', value: stats.value?.totalProgrammes || 0, icon: '📋', color: '#2E7D32' },
@@ -23,12 +22,6 @@ const statCards = computed(() => [
   { title: 'Total Beneficiaries', value: stats.value?.totalBeneficiaries || 0, icon: '❤️', color: '#EB2F96' }
 ]);
 
-const columns = [
-  { title: 'Donor', dataIndex: ['donor', 'name'], key: 'donor' },
-  { title: 'Amount', dataIndex: 'amount', key: 'amount' },
-  { title: 'Date', dataIndex: 'donated_at', key: 'date' },
-  { title: 'Status', dataIndex: 'status', key: 'status' }
-];
 </script>
 
 <template>

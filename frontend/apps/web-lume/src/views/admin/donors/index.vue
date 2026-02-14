@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Card, Table, Tag, Button } from 'ant-design-vue';
+import { Card, Table, Button } from 'ant-design-vue';
 import { PlusOutlined } from '@ant-design/icons-vue';
 import api from '@/api';
 
@@ -26,7 +26,7 @@ const columns = [
 
 onMounted(async () => {
   try {
-    const data = await api.get('/admin/donors');
+    const data = await api.get('/admin/donors') as any;
     donors.value = data.donors || [];
   } catch (error) {
     console.error('Failed to fetch donors:', error);

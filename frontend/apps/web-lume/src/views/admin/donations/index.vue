@@ -29,7 +29,7 @@ const columns = [
 
 onMounted(async () => {
   try {
-    const data = await api.get('/admin/donations');
+    const data = await api.get('/admin/donations') as any;
     donations.value = data.donations || [];
     totalAmount.value = data.totalAmount || 0;
   } catch (error) {

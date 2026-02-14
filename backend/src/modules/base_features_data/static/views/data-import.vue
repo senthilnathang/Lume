@@ -32,23 +32,50 @@ import { get, post } from '@/api/request';
 
 const { Step } = Steps;
 
+interface ImportModel {
+  name: string;
+  display_name: string;
+  description?: string;
+  fields: { name: string; display_name: string; field_type: string; required?: boolean }[];
+}
+
+interface ColumnMapping {
+  source_column: string;
+  target_field: string;
+}
+
+interface ValidationResult {
+  is_valid: boolean;
+  valid_rows: number;
+  total_rows: number;
+  error_count: number;
+  errors?: { row_number: number; column: string; value: string; error: string }[];
+}
+
+interface ExecuteResult {
+  status: string;
+  imported_rows: number;
+  updated_rows: number;
+  error_rows?: number;
+}
+
 // === IMPORT STATE ===
 const importStep = ref(0);
 const importLoading = ref(false);
-const importModels = ref([]);
-const selectedImportModel = ref(null);
-const importFile = ref(null);
+const importModels = ref<ImportModel[]>([]);
+const selectedImportModel = ref<string | undefined>(undefined);
+const importFile = ref<any>(null);
 const importFileName = ref('');
 const importFileContent = ref('');
 const importHasHeader = ref(true);
 const importDelimiter = ref(',');
-const importPreviewData = ref([]);
-const importPreviewColumns = ref([]);
+const importPreviewData = ref<any[]>([]);
+const importPreviewColumns = ref<string[]>([]);
 const importTotalRows = ref(0);
-const importSuggestedMappings = ref({});
-const importColumnMappings = ref([]);
-const importValidationResult = ref(null);
-const importExecuteResult = ref(null);
+const importSuggestedMappings = ref<Record<string, string>>({});
+const importColumnMappings = ref<ColumnMapping[]>([]);
+const importValidationResult = ref<ValidationResult | null>(null);
+const importExecuteResult = ref<ExecuteResult | null>(null);
 const importUpdateExisting = ref(false);
 const importSkipErrors = ref(false);
 
@@ -82,7 +109,7 @@ async function fetchImportModels() {
   }
 }
 
-function handleImportFileUpload(info) {
+function handleImportFileUpload(info: any) {
   const file = info.file;
   if (file.status === 'removed') {
     importFile.value = null;
@@ -97,7 +124,7 @@ function handleImportFileUpload(info) {
   // Read file content as base64
   const reader = new FileReader();
   reader.onload = (e) => {
-    const base64 = e.target.result.split(',')[1];
+    const base64 = (e.target?.result as string)?.split(',')[1] || '';
     importFileContent.value = base64;
   };
   reader.readAsDataURL(importFile.value);
@@ -129,7 +156,7 @@ async function previewImport() {
     }));
 
     importStep.value = 1;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to preview import:', err);
     Modal.error({
       title: 'Preview Failed',
@@ -156,7 +183,7 @@ async function validateImport() {
 
     importValidationResult.value = res;
     importStep.value = 2;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to validate import:', err);
     Modal.error({
       title: 'Validation Failed',
@@ -185,7 +212,7 @@ async function executeImport() {
 
     importExecuteResult.value = res;
     importStep.value = 3;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to execute import:', err);
     Modal.error({
       title: 'Import Failed',

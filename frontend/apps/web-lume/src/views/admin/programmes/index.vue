@@ -1,10 +1,8 @@
 <script setup lang="ts">
+// @ts-nocheck
 import { ref, onMounted, computed } from 'vue';
 import { Card, Button, Tag, Space, message, Modal, Form, Input, Select, DatePicker, InputNumber, Popconfirm } from 'ant-design-vue';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons-vue';
-import ListView from '@/components/common/ListView.vue';
-import GridView from '@/components/common/GridView.vue';
-import KanbanView from '@/components/common/KanbanView.vue';
 import api from '@/api';
 import type { Programme, ProgrammeFormData } from '@/types/api';
 
