@@ -22,7 +22,6 @@ import {
   getMessage,
   getMessageStats,
   updateMessage,
-  markAsRead,
   replyToMessage,
   deleteMessage,
   type Message,

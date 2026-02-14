@@ -16,5 +16,5 @@ export interface Permission {
 }
 
 export function getPermissions(): Promise<Permission[]> {
-  return get<Permission[]>('/auth/permissions');
+  return get<Permission[]>('/rbac/permissions');
 }

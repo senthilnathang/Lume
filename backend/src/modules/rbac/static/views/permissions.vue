@@ -62,9 +62,9 @@ async function loadPermissions() {
   try {
     const response = await fetch('/api/rbac/permissions/grouped');
     const result = await response.json();
-    grouped.data;
-    
-    const allPerms = awaitPermissions.value = result fetch('/api/rbac/permissions');
+    groupedPermissions.value = result.data;
+
+    const allPerms = await fetch('/api/rbac/permissions');
     permissions.value = (await allPerms.json()).data;
   } catch (error) {
     message.error('Failed to load permissions');

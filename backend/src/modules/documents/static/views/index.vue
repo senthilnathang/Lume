@@ -5,7 +5,7 @@ import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
   FolderOpen, Plus, RefreshCw, Search, Eye, Edit3, Trash2,
-  AlertTriangle, MoreVertical, Download, File, FileImage,
+  AlertTriangle, MoreVertical, File, FileImage,
   FileVideo, FileAudio, Globe, Lock,
 } from 'lucide-vue-next';
 import {

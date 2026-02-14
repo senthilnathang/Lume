@@ -20,7 +20,6 @@ import {
   getDonation,
   getDonationStats,
   createDonation,
-  updateDonation,
   deleteDonation,
   getDonors,
   getCampaigns,

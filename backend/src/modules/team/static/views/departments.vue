@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref, computed } from 'vue';
-import { Building, RefreshCw, Users, Mail, Crown } from 'lucide-vue-next';
+import { Building, RefreshCw, Crown } from 'lucide-vue-next';
 import { getDepartments, getTeamMembers, type TeamMember } from '@modules/team/static/api/index';
 
 defineOptions({ name: 'TeamDepartmentsView' });

@@ -4,7 +4,7 @@ import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
   Megaphone, Plus, RefreshCw, Search, Eye, Edit3, Trash2,
-  AlertTriangle, MoreVertical, Star, Target,
+  AlertTriangle, MoreVertical, Star,
 } from 'lucide-vue-next';
 import {
   getCampaigns, getCampaign, createCampaign, updateCampaign, deleteCampaign,

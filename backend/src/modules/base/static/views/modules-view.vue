@@ -25,7 +25,6 @@ import {
   uninstallModule,
   upgradeModule,
   type Module,
-  type ModuleActionResult,
 } from '@modules/base/static/api/modules';
 
 defineOptions({

@@ -4,14 +4,14 @@ import { useRoute, useRouter } from 'vue-router';
 import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
-  Shield, Lock, Smartphone, Clock, Key, Plus, RefreshCw,
-  Trash2, AlertTriangle, Copy, CheckCircle, XCircle,
+  Shield, Lock, Smartphone, Plus, RefreshCw,
+  Trash2, AlertTriangle, Copy, XCircle,
 } from 'lucide-vue-next';
 import {
   getApiKeys, createApiKey, revokeApiKey,
   getIpAccessRules, createIpAccessRule, updateIpAccessRule, deleteIpAccessRule,
-  getSessions, revokeSession, getSecurityLogs,
-  type ApiKey, type Session, type IpAccessRule, type SecurityLog,
+  getSessions, revokeSession,
+  type ApiKey, type Session, type IpAccessRule,
 } from '@modules/base_security/static/api/index';
 
 defineOptions({ name: 'SecurityView' });
@@ -39,14 +39,13 @@ const loading = ref(false);
 const ipRules = ref<IpAccessRule[]>([]);
 const sessions_ = ref<Session[]>([]);
 const apiKeys = ref<ApiKey[]>([]);
-const securityLogs = ref<SecurityLog[]>([]);
 
 // IP Access Modal
 const showIpModal = ref(false);
 const ipFormMode = ref<'create' | 'edit'>('create');
 const ipFormLoading = ref(false);
 const editingRule = ref<IpAccessRule | null>(null);
-const ipForm = reactive({ ipAddress: '', description: '', type: 'whitelist' as string });
+const ipForm = reactive({ ipAddress: '', description: '', type: 'whitelist' as IpAccessRule['type'] });
 
 // API Key Modal
 const showKeyModal = ref(false);
@@ -82,14 +81,6 @@ const apiKeyColumns: ColumnsType = [
   { title: 'Last Used', key: 'lastUsed', width: 130 },
   { title: 'Expires', key: 'expires', width: 130 },
   { title: 'Actions', key: 'actions', width: 90, fixed: 'right' },
-];
-
-const logColumns: ColumnsType = [
-  { title: 'Event', dataIndex: 'event', key: 'event', width: 140 },
-  { title: 'IP Address', dataIndex: 'ipAddress', key: 'ipAddress', width: 140 },
-  { title: 'Status', key: 'status', width: 100 },
-  { title: 'Details', key: 'details' },
-  { title: 'Time', key: 'time', width: 140 },
 ];
 
 // Methods

@@ -142,7 +142,7 @@ const showFlowModal = ref(false);
 const flowFormMode = ref<'create' | 'edit'>('create');
 const flowFormLoading = ref(false);
 const editingFlow = ref<Flow | null>(null);
-const flowForm = reactive({ name: '', code: '', description: '', trigger_type: 'manual' as string });
+const flowForm = reactive({ name: '', code: '', description: '', trigger_type: 'manual' as Flow['trigger_type'] });
 
 const triggerColors: Record<string, string> = { record: 'blue', schedule: 'orange', manual: 'green', api: 'purple', subflow: 'cyan' };
 const statusColors: Record<string, string> = { draft: 'default', active: 'green', inactive: 'red' };
@@ -320,7 +320,7 @@ const approvalFormLoading = ref(false);
 const editingApprovalItem = ref<ApprovalChain | null>(null);
 const approvalForm = reactive({
   name: '', description: '', is_active: true,
-  chain_type: 'SEQUENTIAL' as string, steps: [] as any[],
+  chain_type: 'SEQUENTIAL' as ApprovalChain['chain_type'], steps: [] as any[],
 });
 
 const chainTypeColors: Record<string, string> = { SEQUENTIAL: 'blue', PARALLEL: 'orange', ANY_ONE: 'green' };
@@ -396,11 +396,6 @@ async function loadData() {
     else if (sec === 'business-rules') await loadRules();
     else if (sec === 'approvals') await loadApprovals();
   } finally { loading.value = false; }
-}
-
-function formatDate(d?: string) {
-  if (!d) return '-';
-  return new Date(d).toLocaleDateString();
 }
 
 watch(() => route.path, () => { loadData(); });
