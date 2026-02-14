@@ -16,69 +16,69 @@ const DEFAULT_HOME_PATH = '/dashboard';
  * Maps route paths to dedicated Vue components instead of the generic ModuleView
  */
 const customViews: Record<string, () => Promise<any>> = {
-  'settings/modules': () => import('@/views/settings/modules.vue'),
-  'settings/users': () => import('@/views/settings/users.vue'),
-  'settings/roles': () => import('@/views/settings/roles.vue'),
-  'settings/permissions': () => import('@/views/settings/permissions.vue'),
-  'settings/groups': () => import('@/views/settings/groups.vue'),
-  'settings/audit-logs': () => import('@/views/settings/audit-logs.vue'),
-  'activities': () => import('@/views/activities/index.vue'),
-  'team': () => import('@/views/team/index.vue'),
-  'donations': () => import('@/views/donations/index.vue'),
-  'donations/donors': () => import('@/views/donations/donors.vue'),
-  'messages': () => import('@/views/messages/index.vue'),
-  'audit': () => import('@/views/settings/audit-logs.vue'),
-  // Documents
-  'documents': () => import('@/views/documents/index.vue'),
-  'documents/images': () => import('@/views/documents/index.vue'),
-  'documents/videos': () => import('@/views/documents/index.vue'),
-  // Media
-  'media': () => import('@/views/media/index.vue'),
-  'media/upload': () => import('@/views/media/index.vue'),
-  'media/featured': () => import('@/views/media/index.vue'),
-  // Settings (form)
-  'settings/general': () => import('@/views/settings/app-settings.vue'),
-  'settings/contact': () => import('@/views/settings/app-settings.vue'),
-  'settings/localization': () => import('@/views/settings/app-settings.vue'),
-  'settings/social': () => import('@/views/settings/app-settings.vue'),
-  // Security
-  'settings/security/access': () => import('@/views/settings/security/index.vue'),
-  'settings/security/2fa': () => import('@/views/settings/security/index.vue'),
-  'settings/security/sessions': () => import('@/views/settings/security/index.vue'),
-  'settings/security/api-keys': () => import('@/views/settings/security/index.vue'),
-  // Features & Data
-  'settings/features/flags': () => import('@/views/settings/features/index.vue'),
-  'settings/features/import': () => import('@/views/settings/features/index.vue'),
-  'settings/features/export': () => import('@/views/settings/features/index.vue'),
-  'settings/features/backups': () => import('@/views/settings/features/index.vue'),
-  // Campaigns
-  'donations/campaigns': () => import('@/views/donations/campaigns.vue'),
-  // Donation Reports
-  'donations/reports': () => import('@/views/donations/reports.vue'),
-  // Automation
-  'settings/automation/workflows': () => import('@/views/settings/automation/index.vue'),
-  'settings/automation/flows': () => import('@/views/settings/automation/index.vue'),
-  'settings/automation/business-rules': () => import('@/views/settings/automation/index.vue'),
-  'settings/automation/approvals': () => import('@/views/settings/automation/index.vue'),
-  'settings/automation/scheduled': () => import('@/views/settings/automation/index.vue'),
-  // RBAC
-  'settings/rbac/access-rules': () => import('@/views/settings/rbac/index.vue'),
-  'settings/rbac/audit': () => import('@/views/settings/rbac/index.vue'),
-  // Settings children
-  'settings/menus': () => import('@/views/settings/menus.vue'),
-  'settings/record-rules': () => import('@/views/settings/record-rules.vue'),
-  'settings/sequences': () => import('@/views/settings/sequences.vue'),
-  'settings/system': () => import('@/views/settings/system.vue'),
-  // Audit cleanup
-  'audit/cleanup': () => import('@/views/audit/cleanup.vue'),
-  // Team sub-views
-  'team/leadership': () => import('@/views/team/leadership.vue'),
-  'team/departments': () => import('@/views/team/departments.vue'),
-  // Activities sub-views
-  'activities/upcoming': () => import('@/views/activities/upcoming.vue'),
-  'activities/calendar': () => import('@/views/activities/calendar.vue'),
-  // Messages sub-views
-  'messages/sent': () => import('@/views/messages/sent.vue'),
+  // Base module
+  'settings/modules': () => import('@modules/base/static/views/modules-view.vue'),
+  'settings/menus': () => import('@modules/base/static/views/menus-view.vue'),
+  'settings/record-rules': () => import('@modules/base/static/views/record-rules.vue'),
+  'settings/sequences': () => import('@modules/base/static/views/sequences.vue'),
+  'settings/system': () => import('@modules/base/static/views/system.vue'),
+  // User module
+  'settings/users': () => import('@modules/user/static/views/users.vue'),
+  // RBAC module
+  'settings/roles': () => import('@modules/rbac/static/views/roles-view.vue'),
+  'settings/permissions': () => import('@modules/rbac/static/views/permissions-view.vue'),
+  'settings/groups': () => import('@modules/rbac/static/views/groups.vue'),
+  'settings/rbac/access-rules': () => import('@modules/rbac/static/views/rbac-index.vue'),
+  'settings/rbac/audit': () => import('@modules/rbac/static/views/rbac-index.vue'),
+  // Audit module
+  'settings/audit-logs': () => import('@modules/audit/static/views/audit-logs.vue'),
+  'audit': () => import('@modules/audit/static/views/audit-logs.vue'),
+  'audit/cleanup': () => import('@modules/audit/static/views/cleanup.vue'),
+  // Activities module
+  'activities': () => import('@modules/activities/static/views/index.vue'),
+  'activities/upcoming': () => import('@modules/activities/static/views/upcoming.vue'),
+  'activities/calendar': () => import('@modules/activities/static/views/calendar.vue'),
+  // Team module
+  'team': () => import('@modules/team/static/views/index.vue'),
+  'team/leadership': () => import('@modules/team/static/views/leadership.vue'),
+  'team/departments': () => import('@modules/team/static/views/departments.vue'),
+  // Donations module
+  'donations': () => import('@modules/donations/static/views/index.vue'),
+  'donations/donors': () => import('@modules/donations/static/views/donors.vue'),
+  'donations/campaigns': () => import('@modules/donations/static/views/campaigns.vue'),
+  'donations/reports': () => import('@modules/donations/static/views/reports.vue'),
+  // Messages module
+  'messages': () => import('@modules/messages/static/views/index.vue'),
+  'messages/sent': () => import('@modules/messages/static/views/sent.vue'),
+  // Documents module
+  'documents': () => import('@modules/documents/static/views/index.vue'),
+  'documents/images': () => import('@modules/documents/static/views/index.vue'),
+  'documents/videos': () => import('@modules/documents/static/views/index.vue'),
+  // Media module
+  'media': () => import('@modules/media/static/views/index.vue'),
+  'media/upload': () => import('@modules/media/static/views/index.vue'),
+  'media/featured': () => import('@modules/media/static/views/index.vue'),
+  // Settings module
+  'settings/general': () => import('@modules/settings/static/views/app-settings.vue'),
+  'settings/contact': () => import('@modules/settings/static/views/app-settings.vue'),
+  'settings/localization': () => import('@modules/settings/static/views/app-settings.vue'),
+  'settings/social': () => import('@modules/settings/static/views/app-settings.vue'),
+  // Security module
+  'settings/security/access': () => import('@modules/base_security/static/views/security.vue'),
+  'settings/security/2fa': () => import('@modules/base_security/static/views/security.vue'),
+  'settings/security/sessions': () => import('@modules/base_security/static/views/security.vue'),
+  'settings/security/api-keys': () => import('@modules/base_security/static/views/security.vue'),
+  // Features & Data module
+  'settings/features/flags': () => import('@modules/base_features_data/static/views/features.vue'),
+  'settings/features/import': () => import('@modules/base_features_data/static/views/features.vue'),
+  'settings/features/export': () => import('@modules/base_features_data/static/views/features.vue'),
+  'settings/features/backups': () => import('@modules/base_features_data/static/views/features.vue'),
+  // Automation module
+  'settings/automation/workflows': () => import('@modules/base_automation/static/views/automation.vue'),
+  'settings/automation/flows': () => import('@modules/base_automation/static/views/automation.vue'),
+  'settings/automation/business-rules': () => import('@modules/base_automation/static/views/automation.vue'),
+  'settings/automation/approvals': () => import('@modules/base_automation/static/views/automation.vue'),
+  'settings/automation/scheduled': () => import('@modules/base_automation/static/views/automation.vue'),
 };
 
 /**

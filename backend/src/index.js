@@ -14,11 +14,13 @@ import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js
 import { requestLogger } from './core/middleware/requestLogger.js';
 
 // Module loader
-import { 
-  initializeModuleSystem, 
-  getAllModules, 
-  getAllMenus, 
-  getAllPermissions
+import {
+  initializeModuleSystem,
+  getAllModules,
+  getAllMenus,
+  getAllPermissions,
+  runInstallHook,
+  runUninstallHook
 } from './core/modules/__loader__.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -177,15 +179,30 @@ app.use('/modules', express.static(modulesDir, {
 }));
 
 // Module management endpoints
-app.get('/api/modules', (req, res) => {
+app.get('/api/modules', async (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
   const modules = getAllModules();
+  const InstalledModule = app.locals.baseModels?.InstalledModule;
+
+  // Build a map of persisted states from DB
+  let dbStates = {};
+  if (InstalledModule) {
+    try {
+      const records = await InstalledModule.findAll();
+      for (const r of records) {
+        dbStates[r.name] = { state: r.state, installedAt: r.installedAt };
+      }
+    } catch (e) { /* fallback to in-memory */ }
+  }
+
   res.json({
     success: true,
     data: modules.map(m => {
       const manifest = m.manifest || {};
+      const dbRecord = dbStates[m.name];
+      const state = dbRecord ? dbRecord.state : (m.initialized ? 'installed' : 'uninstalled');
       return {
         name: m.name,
         display_name: manifest.name || m.name,
@@ -198,9 +215,9 @@ app.get('/api/modules', (req, res) => {
         license: manifest.license || 'MIT',
         application: manifest.application || false,
         installable: manifest.installable !== false,
-        state: m.initialized ? 'installed' : 'uninstalled',
+        state,
         depends: manifest.depends || [],
-        installed_at: m.initialized ? new Date().toISOString() : null,
+        installed_at: dbRecord?.installedAt || (m.initialized ? new Date().toISOString() : null),
         module_path: `modules/${m.name}`,
         loaded: m.loaded,
         initialized: m.initialized,
@@ -209,12 +226,26 @@ app.get('/api/modules', (req, res) => {
   });
 });
 
-app.get('/api/modules/:name', (req, res) => {
+app.get('/api/modules/:name', async (req, res) => {
   const module = getAllModules().find(m => m.name === req.params.name);
   if (!module) {
     return res.status(404).json(responseUtil.notFound('Module'));
   }
   const manifest = module.manifest || {};
+  const InstalledModule = app.locals.baseModels?.InstalledModule;
+
+  let state = module.initialized ? 'installed' : 'uninstalled';
+  let installedAt = module.initialized ? new Date().toISOString() : null;
+  if (InstalledModule) {
+    try {
+      const record = await InstalledModule.findOne({ where: { name: module.name } });
+      if (record) {
+        state = record.state;
+        installedAt = record.installedAt;
+      }
+    } catch (e) { /* fallback to in-memory */ }
+  }
+
   res.json({
     success: true,
     data: {
@@ -229,9 +260,9 @@ app.get('/api/modules/:name', (req, res) => {
       license: manifest.license || 'MIT',
       application: manifest.application || false,
       installable: manifest.installable !== false,
-      state: module.initialized ? 'installed' : 'uninstalled',
+      state,
       depends: manifest.depends || [],
-      installed_at: module.initialized ? new Date().toISOString() : null,
+      installed_at: installedAt,
       module_path: `modules/${module.name}`,
       loaded: module.loaded,
       initialized: module.initialized,
@@ -247,14 +278,54 @@ app.post('/api/modules/:name/install', async (req, res) => {
     if (!module) {
       return res.status(404).json({ success: false, error: `Module "${moduleName}" not found` });
     }
-    if (module.initialized) {
-      return res.json({ success: true, message: `Module "${moduleName}" is already installed` });
+
+    const InstalledModule = app.locals.baseModels?.InstalledModule;
+    if (!InstalledModule) {
+      // Fallback: in-memory only
+      module.initialized = true;
+      return res.json({ success: true, message: `Module "${moduleName}" installed (in-memory only)` });
     }
-    // Module is already loaded by the loader — just mark as initialized
+
+    // Check dependencies are installed
+    const deps = module.manifest?.depends || [];
+    for (const dep of deps) {
+      if (dep === 'base') continue;
+      const depRecord = await InstalledModule.findOne({ where: { name: dep } });
+      if (!depRecord || depRecord.state !== 'installed') {
+        return res.status(400).json({ success: false, error: `Dependency "${dep}" is not installed` });
+      }
+    }
+
+    // Upsert InstalledModule record
+    const [record, created] = await InstalledModule.findOrCreate({
+      where: { name: moduleName },
+      defaults: {
+        displayName: module.manifest?.name || moduleName,
+        version: module.manifest?.version || '1.0.0',
+        state: 'installed',
+        depends: deps,
+        modulePath: `modules/${moduleName}`,
+        installedAt: new Date(),
+      }
+    });
+    if (!created) {
+      await record.update({
+        state: 'installed',
+        version: module.manifest?.version || record.version,
+        installedAt: record.installedAt || new Date(),
+      });
+    }
+
+    // Update in-memory state
     module.initialized = true;
+
+    // Run install hook if defined
+    await runInstallHook(module, app.locals.moduleContext || {});
+
     res.json({
       success: true,
       message: `Module "${module.manifest?.name || moduleName}" installed successfully`,
+      data: { name: moduleName, state: 'installed' }
     });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
@@ -271,13 +342,45 @@ app.post('/api/modules/:name/uninstall', async (req, res) => {
     if (moduleName === 'base') {
       return res.status(400).json({ success: false, error: 'Cannot uninstall the base module' });
     }
-    if (!module.initialized) {
-      return res.json({ success: true, message: `Module "${moduleName}" is already uninstalled` });
+
+    const InstalledModule = app.locals.baseModels?.InstalledModule;
+    if (!InstalledModule) {
+      module.initialized = false;
+      return res.json({ success: true, message: `Module "${moduleName}" uninstalled (in-memory only)` });
     }
+
+    // Check no installed modules depend on this one
+    const allRecords = await InstalledModule.findAll({ where: { state: 'installed' } });
+    const dependents = [];
+    for (const r of allRecords) {
+      const deps = Array.isArray(r.depends) ? r.depends : (typeof r.depends === 'string' ? JSON.parse(r.depends || '[]') : []);
+      if (deps.includes(moduleName) && r.name !== moduleName) {
+        dependents.push(r.name);
+      }
+    }
+    if (dependents.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot uninstall: required by ${dependents.join(', ')}. Uninstall them first.`
+      });
+    }
+
+    // Run uninstall hook before changing state
+    await runUninstallHook(module, app.locals.moduleContext || {});
+
+    // Update DB state
+    const record = await InstalledModule.findOne({ where: { name: moduleName } });
+    if (record) {
+      await record.update({ state: 'uninstalled' });
+    }
+
+    // Update in-memory state
     module.initialized = false;
+
     res.json({
       success: true,
       message: `Module "${module.manifest?.name || moduleName}" uninstalled`,
+      data: { name: moduleName, state: 'uninstalled' }
     });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
@@ -301,14 +404,32 @@ app.post('/api/modules/:name/upgrade', async (req, res) => {
 });
 
 // Get all menus from modules (merges children when same path declared by multiple modules)
-app.get('/api/menus', (req, res) => {
+// Only returns menus from installed modules
+app.get('/api/menus', async (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
 
+  // Get installed module names from DB (if available)
+  const InstalledModule = app.locals.baseModels?.InstalledModule;
+  let installedModuleNames = null;
+  if (InstalledModule) {
+    try {
+      const installedRecords = await InstalledModule.findAll({ where: { state: 'installed' } });
+      installedModuleNames = new Set(installedRecords.map(r => r.name));
+    } catch (e) { /* fallback to in-memory check */ }
+  }
+
   const menuMap = new Map();
 
   for (const module of getAllModules()) {
+    // Skip modules that are not installed
+    if (installedModuleNames) {
+      if (!installedModuleNames.has(module.name)) continue;
+    } else {
+      if (!module.initialized) continue;
+    }
+
     const menus = module.manifest?.menus || module.manifest?.frontend?.menus || [];
 
     for (const menu of menus) {
@@ -362,12 +483,28 @@ app.get('/api/menus', (req, res) => {
 });
 
 // FastVue-compatible /modules/installed/menus endpoint
-app.get('/modules/installed/menus', (req, res) => {
+// Only returns menus from installed modules
+app.get('/modules/installed/menus', async (req, res) => {
+  const InstalledModule = app.locals.baseModels?.InstalledModule;
+  let installedModuleNames = null;
+  if (InstalledModule) {
+    try {
+      const installedRecords = await InstalledModule.findAll({ where: { state: 'installed' } });
+      installedModuleNames = new Set(installedRecords.map(r => r.name));
+    } catch (e) { /* fallback */ }
+  }
+
   const allMenus = [];
-  
+
   for (const module of getAllModules()) {
+    if (installedModuleNames) {
+      if (!installedModuleNames.has(module.name)) continue;
+    } else {
+      if (!module.initialized) continue;
+    }
+
     const menus = module.manifest?.menus || module.manifest?.frontend?.menus || [];
-    
+
     for (const menu of menus) {
       const enrichedMenu = {
         ...menu,
@@ -375,7 +512,7 @@ app.get('/modules/installed/menus', (req, res) => {
         title: menu.name || menu.title,
         module: module.name,
       };
-      
+
       if (menu.children && menu.children.length > 0) {
         enrichedMenu.children = menu.children.map(child => ({
           ...child,
@@ -384,25 +521,39 @@ app.get('/modules/installed/menus', (req, res) => {
           module: module.name
         }));
       }
-      
+
       allMenus.push(enrichedMenu);
     }
   }
-  
+
   allMenus.sort((a, b) => (a.sequence || 10) - (b.sequence || 10));
-  
+
   res.json(allMenus);
 });
 
-// Get all permissions
-app.get('/api/permissions', (req, res) => {
+// Get all permissions (only from installed modules)
+app.get('/api/permissions', async (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
+
+  // Get installed module names from DB
+  const InstalledModule = app.locals.baseModels?.InstalledModule;
+  let installedModuleNames = null;
+  if (InstalledModule) {
+    try {
+      const installedRecords = await InstalledModule.findAll({ where: { state: 'installed' } });
+      installedModuleNames = new Set(installedRecords.map(r => r.name));
+    } catch (e) { /* fallback */ }
+  }
+
   const permissionsData = getAllPermissions();
   const allPermissions = [];
-  
+
   for (const permGroup of permissionsData) {
+    // Skip permissions from uninstalled modules
+    if (installedModuleNames && !installedModuleNames.has(permGroup.module)) continue;
+
     for (const perm of permGroup.permissions) {
       if (typeof perm === 'string') {
         allPermissions.push(perm);
@@ -411,7 +562,7 @@ app.get('/api/permissions', (req, res) => {
       }
     }
   }
-  
+
   res.json({
     success: true,
     data: allPermissions
@@ -545,16 +696,7 @@ baseFeaturesRouter.get('/exports', (req, res) => res.json({ success: true, data:
 baseFeaturesRouter.get('/backups', (req, res) => res.json({ success: true, data: [] }));
 app.use('/api/base_features_data', baseFeaturesRouter);
 
-// Base routes
-const baseRouter = Router();
-baseRouter.get('/health', (req, res) => res.json({ success: true, message: 'Base module is running' }));
-baseRouter.get('/modules', (req, res) => res.json({ success: true, data: [] }));
-baseRouter.get('/menus', (req, res) => res.json({ success: true, data: [] }));
-baseRouter.get('/permissions', (req, res) => res.json({ success: true, data: [] }));
-baseRouter.get('/roles', (req, res) => res.json({ success: true, data: [] }));
-baseRouter.get('/groups', (req, res) => res.json({ success: true, data: [] }));
-baseRouter.get('/sequences', (req, res) => res.json({ success: true, data: [] }));
-app.use('/api/base', baseRouter);
+// Base module routes are registered by the module system via base/__init__.js
 
 // Base Security routes
 const baseSecurityRouter = Router();
@@ -599,27 +741,58 @@ const startServer = async () => {
     setupModels(sequelize);
     console.log('✅ Legacy models loaded');
     
-    // Temporarily skip base module for now - will add back after server starts
-    console.log('⏭️  Skipping Base Module initialization temporarily');
-    const baseModels = null;
-    const baseServices = null;
-    
     // Sync database - create any missing tables without altering existing ones
     await sequelize.sync({ alter: false });
     console.log('✅ Database synced');
-    
-    // Initialize module system
+
+    // Initialize module system (base module creates models, services, routes via __init__.js)
     const modulesDir = join(__dirname, 'modules');
-    await initializeModuleSystem(modulesDir, {
-      sequelize,
-      database: sequelize,
-      app
-    });
+    const moduleContext = { sequelize, database: sequelize, app };
+    await initializeModuleSystem(modulesDir, moduleContext);
     console.log('✅ Module system initialized');
 
-    // Sync again to create any tables defined by modules
+    // Sync again to create any tables defined by modules (including base models)
     await sequelize.sync({ alter: false });
     console.log('✅ Module tables synced');
+
+    // Store base models globally for install/uninstall endpoints
+    const baseModels = moduleContext.baseModels || {};
+    const InstalledModule = baseModels.InstalledModule;
+
+    // Sync module state to installed_modules table
+    if (InstalledModule) {
+      for (const mod of getAllModules()) {
+        try {
+          const [record, created] = await InstalledModule.findOrCreate({
+            where: { name: mod.name },
+            defaults: {
+              displayName: mod.manifest?.name || mod.name,
+              version: mod.manifest?.version || '1.0.0',
+              state: 'installed',
+              depends: mod.manifest?.depends || [],
+              modulePath: `modules/${mod.name}`,
+              installedAt: new Date(),
+            }
+          });
+          // Respect persisted state on subsequent runs
+          mod.initialized = record.state === 'installed';
+          if (created) {
+            console.log(`📦 Registered module: ${mod.name} (installed)`);
+          } else if (record.state !== 'installed') {
+            console.log(`📦 Module ${mod.name} state: ${record.state}`);
+          }
+        } catch (err) {
+          console.warn(`⚠️  Failed to sync module state for ${mod.name}:`, err.message);
+        }
+      }
+      console.log('✅ Module states synced to database');
+    } else {
+      console.warn('⚠️  InstalledModule model not available — module state not persisted');
+    }
+
+    // Make base models accessible to route handlers
+    app.locals.baseModels = baseModels;
+    app.locals.moduleContext = moduleContext;
 
     // Start listening
     app.listen(PORT, () => {

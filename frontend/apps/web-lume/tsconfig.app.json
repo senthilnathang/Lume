@@ -17,10 +17,11 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./src/*"],
-      "#/*": ["./src/*"]
+      "#/*": ["./src/*"],
+      "@modules/*": ["../../../backend/src/modules/*"]
     },
     "baseUrl": "."
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "../../../backend/src/modules/**/static/**/*.ts", "../../../backend/src/modules/**/static/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
