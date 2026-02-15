@@ -1,21 +1,17 @@
-import { getDatabase } from '../../config.js';
-import { Op } from 'sequelize';
+import prisma from '../../core/db/prisma.js';
 import { responseUtil, fileUtil } from '../../shared/utils/index.js';
 import { MESSAGES, DOCUMENT_TYPES, PAGINATION } from '../../shared/constants/index.js';
 
 export class DocumentService {
-  constructor() {
-    this.db = getDatabase();
-    this.Document = this.db.models.Document;
-  }
+  constructor() {}
 
   async create(documentData) {
-    const document = await this.Document.create(documentData);
+    const document = await prisma.documents.create({ data: documentData });
     return responseUtil.success(document, MESSAGES.CREATED);
   }
 
   async findById(id) {
-    const document = await this.Document.findByPk(id);
+    const document = await prisma.documents.findUnique({ where: { id: Number(id) } });
     if (!document) {
       return responseUtil.notFound('Document');
     }
@@ -41,18 +37,21 @@ export class DocumentService {
     }
 
     if (search) {
-      where[Op.or] = [
-        { title: { [Op.like]: `%${search}%` } },
-        { description: { [Op.like]: `%${search}%` } }
+      where.OR = [
+        { title: { contains: search } },
+        { description: { contains: search } }
       ];
     }
 
-    const { count, rows } = await this.Document.findAndCountAll({
-      where,
-      limit,
-      offset,
-      order: [['created_at', 'DESC']]
-    });
+    const [rows, count] = await Promise.all([
+      prisma.documents.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: { created_at: 'desc' }
+      }),
+      prisma.documents.count({ where })
+    ]);
 
     return responseUtil.paginated(rows, {
       page,
@@ -62,43 +61,48 @@ export class DocumentService {
   }
 
   async update(id, documentData) {
-    const document = await this.Document.findByPk(id);
+    const document = await prisma.documents.findUnique({ where: { id: Number(id) } });
 
     if (!document) {
       return responseUtil.notFound('Document');
     }
 
-    await document.update(documentData);
-    return responseUtil.success(document, MESSAGES.UPDATED);
+    const updated = await prisma.documents.update({ where: { id: Number(id) }, data: documentData });
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async delete(id) {
-    const document = await this.Document.findByPk(id);
+    const document = await prisma.documents.findUnique({ where: { id: Number(id) } });
 
     if (!document) {
       return responseUtil.notFound('Document');
     }
 
-    await document.softDelete();
+    await prisma.documents.delete({ where: { id: Number(id) } });
     return responseUtil.success(null, MESSAGES.DELETED);
   }
 
   async incrementDownloads(id) {
-    const document = await this.Document.findByPk(id);
+    const document = await prisma.documents.findUnique({ where: { id: Number(id) } });
 
     if (!document) {
       return responseUtil.notFound('Document');
     }
 
-    await document.increment('downloads');
-    return responseUtil.success(document);
+    const updated = await prisma.documents.update({
+      where: { id: Number(id) },
+      data: { downloads: { increment: 1 } }
+    });
+    return responseUtil.success(updated);
   }
 
   async getStats() {
-    const total = await this.Document.count();
-    const images = await this.Document.count({ where: { type: 'image' } });
-    const documents = await this.Document.count({ where: { type: 'document' } });
-    const videos = await this.Document.count({ where: { type: 'video' } });
+    const [total, images, documents, videos] = await Promise.all([
+      prisma.documents.count(),
+      prisma.documents.count({ where: { type: 'image' } }),
+      prisma.documents.count({ where: { type: 'document' } }),
+      prisma.documents.count({ where: { type: 'video' } })
+    ]);
 
     return responseUtil.success({
       total,

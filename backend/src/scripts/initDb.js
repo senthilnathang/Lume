@@ -1,51 +1,63 @@
 #!/usr/bin/env node
 /**
  * Lume Database Initialization Script
- * Creates all tables and seeds initial data
+ * Seeds initial data using Prisma
+ *
+ * Usage:
+ *   node src/scripts/initDb.js --seed          # Seed initial data
+ *   node src/scripts/initDb.js --force --seed  # Reset schema (via prisma db push) + seed
  */
 
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { initializeDatabase, closeDatabase } from '../database/config.js';
-import { setupModels } from '../database/models/index.js';
+import prisma from '../core/db/prisma.js';
 
 const seed = process.argv.includes('--seed');
 const force = process.argv.includes('--force');
 
 async function initDb() {
   console.log('🚀 Lume Database Initialization');
-  console.log(`   Database: ${process.env.DB_NAME} (${process.env.DB_TYPE})`);
-  console.log(`   Host: ${process.env.DB_HOST}:${process.env.DB_PORT}`);
-  if (force) console.log('   ⚠️  FORCE mode: dropping existing tables');
+  console.log(`   Database: ${process.env.DB_NAME || 'lume'}`);
+  console.log(`   Host: ${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || '3306'}`);
+  if (force) {
+    console.log('   ⚠️  FORCE mode: schema management is handled by `npx prisma db push --force-reset`');
+    console.log('   Run `npx prisma db push --force-reset` separately to reset the schema.');
+  }
   console.log('');
 
   try {
-    const sequelize = await initializeDatabase(true);
+    await prisma.$connect();
     console.log('✅ Database connected');
-
-    // Setup all models and associations
-    const models = setupModels(sequelize);
-    console.log('✅ Models registered');
-
-    // Sync database
-    await sequelize.sync({ force, alter: !force });
-    console.log('✅ Database schema synchronized');
 
     if (seed) {
       console.log('\n🌱 Seeding initial data...');
 
       // Create default roles
-      const { Role, Permission, RolePermission, User, Setting } = sequelize.models;
-
-      const adminRole = await Role.findOrCreate({
+      const adminRole = await prisma.role.upsert({
         where: { name: 'admin' },
-        defaults: { name: 'admin', display_name: 'Administrator', description: 'System Administrator', is_active: true, is_system: true }
+        create: {
+          name: 'admin',
+          display_name: 'Administrator',
+          description: 'System Administrator',
+          isActive: true,
+          is_system: true,
+          createdAt: new Date(),
+        },
+        update: {},
       });
 
-      const userRole = await Role.findOrCreate({
+      await prisma.role.upsert({
         where: { name: 'user' },
-        defaults: { name: 'user', display_name: 'User', description: 'Standard User', is_active: true }
+        create: {
+          name: 'user',
+          display_name: 'User',
+          description: 'Standard User',
+          isActive: true,
+          is_system: false,
+          createdAt: new Date(),
+        },
+        update: {},
       });
 
       console.log('   ✅ Roles created');
@@ -67,67 +79,76 @@ async function initDb() {
       ];
 
       for (const perm of defaultPermissions) {
-        await Permission.findOrCreate({
+        await prisma.permission.upsert({
           where: { name: perm.name },
-          defaults: perm
+          create: {
+            ...perm,
+            isActive: true,
+            createdAt: new Date(),
+          },
+          update: {},
         });
       }
       console.log('   ✅ Permissions created');
 
-      // Create admin user (password is auto-hashed by model beforeCreate hook)
-      const [admin, created] = await User.findOrCreate({
+      // Create admin user (password is auto-hashed by Prisma middleware)
+      const admin = await prisma.user.upsert({
         where: { email: 'admin@lume.dev' },
-        defaults: {
+        create: {
           email: 'admin@lume.dev',
           password: 'Admin@123',
-          first_name: 'System',
-          last_name: 'Admin',
-          role_id: adminRole[0].id,
-          is_active: true
-        }
+          firstName: 'System',
+          lastName: 'Admin',
+          role_id: adminRole.id,
+          isActive: true,
+          createdAt: new Date(),
+        },
+        update: {},
       });
 
-      if (created) {
+      if (admin) {
         console.log('   ✅ Admin user created (admin@lume.dev / Admin@123)');
-      } else {
-        console.log('   ℹ️  Admin user already exists');
       }
 
       // Create default settings
       const defaultSettings = [
-        { key: 'app_name', value: 'Lume', type: 'string', category: 'general' },
-        { key: 'app_email', value: 'support@lume.dev', type: 'string', category: 'general' },
-        { key: 'timezone', value: 'UTC', type: 'string', category: 'general' },
-        { key: 'date_format', value: 'YYYY-MM-DD', type: 'string', category: 'general' },
-        { key: 'max_upload_size', value: '10485760', type: 'number', category: 'uploads' },
+        { key: 'app_name', value: 'Lume', type: 'string', category: 'general', description: 'Application name' },
+        { key: 'app_email', value: 'support@lume.dev', type: 'string', category: 'general', description: 'Support email' },
+        { key: 'timezone', value: 'UTC', type: 'string', category: 'general', description: 'Default timezone' },
+        { key: 'date_format', value: 'YYYY-MM-DD', type: 'string', category: 'general', description: 'Date format' },
+        { key: 'max_upload_size', value: '10485760', type: 'number', category: 'uploads', description: 'Max upload size in bytes' },
       ];
 
       for (const setting of defaultSettings) {
-        await Setting.findOrCreate({
+        await prisma.setting.upsert({
           where: { key: setting.key },
-          defaults: setting
+          create: {
+            ...setting,
+            isPublic: true,
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+          update: {},
         });
       }
       console.log('   ✅ Default settings created');
     }
 
     // Print summary
-    const tableCount = Object.keys(sequelize.models).length;
     console.log(`\n╔══════════════════════════════════════════╗`);
     console.log(`║     Lume Database Initialized            ║`);
     console.log(`╠══════════════════════════════════════════╣`);
-    console.log(`║  Tables: ${String(tableCount).padEnd(31)}║`);
     console.log(`║  Seeded: ${seed ? 'Yes' : 'No '}${' '.repeat(28)}║`);
     console.log(`╚══════════════════════════════════════════╝`);
 
-    await closeDatabase();
+    await prisma.$disconnect();
     process.exit(0);
   } catch (error) {
     console.error('\n❌ Database initialization failed:', error.message);
-    if (error.original) {
-      console.error('   Cause:', error.original.message);
+    if (error.meta) {
+      console.error('   Meta:', JSON.stringify(error.meta));
     }
-    await closeDatabase().catch(() => {});
+    await prisma.$disconnect().catch(() => {});
     process.exit(1);
   }
 }

@@ -1,21 +1,30 @@
-import Donor from './donor.model.js';
-import Donation from './donation.model.js';
-import Campaign from './campaign.model.js';
 import DonationService from './donation.service.js';
 import donationRoutes from './donation.routes.js';
+import { donations, donors, campaigns } from './models/schema.js';
+import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
+
+const donationAdapter = new DrizzleAdapter(donations);
+const donorAdapter = new DrizzleAdapter(donors);
+const campaignAdapter = new DrizzleAdapter(campaigns);
 
 export {
-  Donor,
-  Donation,
-  Campaign,
   DonationService,
-  donationRoutes
+  donationRoutes,
+  donationAdapter,
+  donorAdapter,
+  campaignAdapter,
+  donations,
+  donors,
+  campaigns
 };
 
 export default {
-  Donor,
-  Donation,
-  Campaign,
   DonationService,
-  donationRoutes
+  donationRoutes,
+  donationAdapter,
+  donorAdapter,
+  campaignAdapter,
+  donations,
+  donors,
+  campaigns
 };

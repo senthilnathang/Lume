@@ -1,15 +1,20 @@
-import TeamMember from './teamMember.model.js';
 import TeamService from './team.service.js';
 import teamRoutes from './team.routes.js';
+import { teamMembers } from './models/schema.js';
+import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
+
+const teamMemberAdapter = new DrizzleAdapter(teamMembers);
 
 export {
-  TeamMember,
   TeamService,
-  teamRoutes
+  teamRoutes,
+  teamMemberAdapter,
+  teamMembers
 };
 
 export default {
-  TeamMember,
   TeamService,
-  teamRoutes
+  teamRoutes,
+  teamMemberAdapter,
+  teamMembers
 };

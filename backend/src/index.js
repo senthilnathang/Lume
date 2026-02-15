@@ -7,11 +7,13 @@ import { config } from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-import { getDatabase, initializeDatabase } from './config.js';
 import { responseUtil, jwtUtil } from './shared/utils/index.js';
-import { setupModels } from './database/models/index.js';
 import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
 import { requestLogger } from './core/middleware/requestLogger.js';
+
+// ORM adapters
+import prisma from './core/db/prisma.js';
+import { initDrizzle } from './core/db/drizzle.js';
 
 // Module loader
 import {
@@ -186,18 +188,15 @@ app.get('/api/modules', async (req, res) => {
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
   const modules = getAllModules();
-  const InstalledModule = app.locals.baseModels?.InstalledModule;
 
   // Build a map of persisted states from DB
   let dbStates = {};
-  if (InstalledModule) {
-    try {
-      const records = await InstalledModule.findAll();
-      for (const r of records) {
-        dbStates[r.name] = { state: r.state, installedAt: r.installedAt };
-      }
-    } catch (e) { /* fallback to in-memory */ }
-  }
+  try {
+    const records = await prisma.installedModule.findMany();
+    for (const r of records) {
+      dbStates[r.name] = { state: r.state, installedAt: r.installedAt };
+    }
+  } catch (e) { /* table may not exist yet */ }
 
   res.json({
     success: true,
@@ -234,19 +233,16 @@ app.get('/api/modules/:name', async (req, res) => {
     return res.status(404).json(responseUtil.notFound('Module'));
   }
   const manifest = module.manifest || {};
-  const InstalledModule = app.locals.baseModels?.InstalledModule;
 
   let state = module.initialized ? 'installed' : 'uninstalled';
   let installedAt = module.initialized ? new Date().toISOString() : null;
-  if (InstalledModule) {
-    try {
-      const record = await InstalledModule.findOne({ where: { name: module.name } });
-      if (record) {
-        state = record.state;
-        installedAt = record.installedAt;
-      }
-    } catch (e) { /* fallback to in-memory */ }
-  }
+  try {
+    const record = await prisma.installedModule.findUnique({ where: { name: module.name } });
+    if (record) {
+      state = record.state;
+      installedAt = record.installedAt;
+    }
+  } catch (e) { /* fallback to in-memory */ }
 
   res.json({
     success: true,
@@ -281,42 +277,33 @@ app.post('/api/modules/:name/install', async (req, res) => {
       return res.status(404).json({ success: false, error: `Module "${moduleName}" not found` });
     }
 
-    const InstalledModule = app.locals.baseModels?.InstalledModule;
-    if (!InstalledModule) {
-      // Fallback: in-memory only
-      module.initialized = true;
-      return res.json({ success: true, message: `Module "${moduleName}" installed (in-memory only)` });
-    }
-
     // Check dependencies are installed
     const deps = module.manifest?.depends || [];
     for (const dep of deps) {
       if (dep === 'base') continue;
-      const depRecord = await InstalledModule.findOne({ where: { name: dep } });
+      const depRecord = await prisma.installedModule.findUnique({ where: { name: dep } });
       if (!depRecord || depRecord.state !== 'installed') {
         return res.status(400).json({ success: false, error: `Dependency "${dep}" is not installed` });
       }
     }
 
     // Upsert InstalledModule record
-    const [record, created] = await InstalledModule.findOrCreate({
+    const record = await prisma.installedModule.upsert({
       where: { name: moduleName },
-      defaults: {
+      create: {
+        name: moduleName,
         displayName: module.manifest?.name || moduleName,
         version: module.manifest?.version || '1.0.0',
         state: 'installed',
-        depends: deps,
+        depends: JSON.stringify(deps),
         modulePath: `modules/${moduleName}`,
         installedAt: new Date(),
-      }
-    });
-    if (!created) {
-      await record.update({
+      },
+      update: {
         state: 'installed',
-        version: module.manifest?.version || record.version,
-        installedAt: record.installedAt || new Date(),
-      });
-    }
+        version: module.manifest?.version || '1.0.0',
+      },
+    });
 
     // Update in-memory state
     module.initialized = true;
@@ -345,17 +332,11 @@ app.post('/api/modules/:name/uninstall', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Cannot uninstall the base module' });
     }
 
-    const InstalledModule = app.locals.baseModels?.InstalledModule;
-    if (!InstalledModule) {
-      module.initialized = false;
-      return res.json({ success: true, message: `Module "${moduleName}" uninstalled (in-memory only)` });
-    }
-
     // Check no installed modules depend on this one
-    const allRecords = await InstalledModule.findAll({ where: { state: 'installed' } });
+    const allRecords = await prisma.installedModule.findMany({ where: { state: 'installed' } });
     const dependents = [];
     for (const r of allRecords) {
-      const deps = Array.isArray(r.depends) ? r.depends : (typeof r.depends === 'string' ? JSON.parse(r.depends || '[]') : []);
+      const deps = typeof r.depends === 'string' ? JSON.parse(r.depends || '[]') : (Array.isArray(r.depends) ? r.depends : []);
       if (deps.includes(moduleName) && r.name !== moduleName) {
         dependents.push(r.name);
       }
@@ -371,10 +352,10 @@ app.post('/api/modules/:name/uninstall', async (req, res) => {
     await runUninstallHook(module, app.locals.moduleContext || {});
 
     // Update DB state
-    const record = await InstalledModule.findOne({ where: { name: moduleName } });
-    if (record) {
-      await record.update({ state: 'uninstalled' });
-    }
+    await prisma.installedModule.update({
+      where: { name: moduleName },
+      data: { state: 'uninstalled' },
+    });
 
     // Update in-memory state
     module.initialized = false;
@@ -412,15 +393,12 @@ app.get('/api/menus', async (req, res) => {
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
 
-  // Get installed module names from DB (if available)
-  const InstalledModule = app.locals.baseModels?.InstalledModule;
+  // Get installed module names from DB
   let installedModuleNames = null;
-  if (InstalledModule) {
-    try {
-      const installedRecords = await InstalledModule.findAll({ where: { state: 'installed' } });
-      installedModuleNames = new Set(installedRecords.map(r => r.name));
-    } catch (e) { /* fallback to in-memory check */ }
-  }
+  try {
+    const installedRecords = await prisma.installedModule.findMany({ where: { state: 'installed' } });
+    installedModuleNames = new Set(installedRecords.map(r => r.name));
+  } catch (e) { /* fallback to in-memory check */ }
 
   const menuMap = new Map();
 
@@ -487,14 +465,11 @@ app.get('/api/menus', async (req, res) => {
 // FastVue-compatible /modules/installed/menus endpoint
 // Only returns menus from installed modules
 app.get('/modules/installed/menus', async (req, res) => {
-  const InstalledModule = app.locals.baseModels?.InstalledModule;
   let installedModuleNames = null;
-  if (InstalledModule) {
-    try {
-      const installedRecords = await InstalledModule.findAll({ where: { state: 'installed' } });
-      installedModuleNames = new Set(installedRecords.map(r => r.name));
-    } catch (e) { /* fallback */ }
-  }
+  try {
+    const installedRecords = await prisma.installedModule.findMany({ where: { state: 'installed' } });
+    installedModuleNames = new Set(installedRecords.map(r => r.name));
+  } catch (e) { /* fallback to in-memory check */ }
 
   const allMenus = [];
 
@@ -540,14 +515,11 @@ app.get('/api/permissions', async (req, res) => {
   res.set('Expires', '0');
 
   // Get installed module names from DB
-  const InstalledModule = app.locals.baseModels?.InstalledModule;
   let installedModuleNames = null;
-  if (InstalledModule) {
-    try {
-      const installedRecords = await InstalledModule.findAll({ where: { state: 'installed' } });
-      installedModuleNames = new Set(installedRecords.map(r => r.name));
-    } catch (e) { /* fallback */ }
-  }
+  try {
+    const installedRecords = await prisma.installedModule.findMany({ where: { state: 'installed' } });
+    installedModuleNames = new Set(installedRecords.map(r => r.name));
+  } catch (e) { /* fallback to in-memory check */ }
 
   const permissionsData = getAllPermissions();
   const allPermissions = [];
@@ -573,88 +545,57 @@ app.get('/api/permissions', async (req, res) => {
 
 // Dashboard Stats Endpoint
 app.get('/api/dashboard/stats', async (req, res) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
   try {
-    const sequelize = getDatabase();
-    
     const [
-      totalUsers,
-      activeUsers,
-      totalActivities,
-      publishedActivities,
-      totalDonations,
-      totalDonors,
-      totalMessages,
-      unreadMessages,
-      totalDocuments,
-      totalTeamMembers
+      totalUsers, activeUsers, totalActivities, publishedActivities,
+      totalDonations, totalDonors, totalMessages, unreadMessages,
+      totalDocuments, totalTeamMembers
     ] = await Promise.all([
-      sequelize.models.User?.count() || 0,
-      sequelize.models.User?.count({ where: { is_active: true } }) || 0,
-      sequelize.models.Activity?.count() || 0,
-      sequelize.models.Activity?.count({ where: { status: 'published' } }) || 0,
-      sequelize.models.Donation?.count({ where: { status: 'completed' } }) || 0,
-      sequelize.models.Donor?.count() || 0,
-      sequelize.models.Message?.count() || 0,
-      sequelize.models.Message?.count({ where: { status: 'new' } }) || 0,
-      sequelize.models.Document?.count() || 0,
-      sequelize.models.TeamMember?.count() || 0
+      prisma.user.count(),
+      prisma.user.count({ where: { isActive: true } }),
+      prisma.activities.count(),
+      prisma.activities.count({ where: { status: 'published' } }),
+      prisma.donations.count({ where: { status: 'completed' } }),
+      prisma.donors.count(),
+      prisma.messages.count(),
+      prisma.messages.count({ where: { status: 'new' } }),
+      prisma.documents.count(),
+      prisma.team_members.count()
     ]);
 
-    const totalDonationAmount = await sequelize.models.Donation?.sum('amount', { 
-      where: { status: 'completed' } 
-    }) || 0;
+    const donationAgg = await prisma.donations.aggregate({
+      _sum: { amount: true },
+      where: { status: 'completed' }
+    });
+    const totalDonationAmount = Number(donationAgg._sum.amount) || 0;
 
-    // Get recent activities
-    let recentActivities = [];
-    if (sequelize.models.Activity) {
-      recentActivities = await sequelize.models.Activity.findAll({
-        where: { status: 'published' },
-        order: [['start_date', 'ASC']],
-        limit: 5
-      });
-    }
+    const recentActivities = await prisma.activities.findMany({
+      where: { status: 'published' },
+      orderBy: { start_date: 'asc' },
+      take: 5
+    });
 
-    // Get recent donations
-    let recentDonations = [];
-    if (sequelize.models.Donation) {
-      recentDonations = await sequelize.models.Donation.findAll({
-        where: { status: 'completed' },
-        include: [{ model: sequelize.models.Donor }],
-        order: [['created_at', 'DESC']],
-        limit: 5
-      });
-    }
+    const recentDonations = await prisma.donations.findMany({
+      where: { status: 'completed' },
+      include: { donors: true },
+      orderBy: { created_at: 'desc' },
+      take: 5
+    });
 
     res.json({
       success: true,
       data: {
         overview: {
-          totalUsers,
-          activeUsers,
-          totalActivities,
-          publishedActivities,
-          totalDonations,
-          totalDonationAmount,
-          totalDonors,
-          totalMessages,
-          unreadMessages,
-          totalDocuments,
-          totalTeamMembers
+          totalUsers, activeUsers, totalActivities, publishedActivities,
+          totalDonations, totalDonationAmount, totalDonors,
+          totalMessages, unreadMessages, totalDocuments, totalTeamMembers
         },
         recentActivities: recentActivities.map(a => ({
-          id: a.id,
-          title: a.title,
-          slug: a.slug,
-          start_date: a.start_date,
-          status: a.status
+          id: a.id, title: a.title, slug: a.slug, start_date: a.start_date, status: a.status
         })),
         recentDonations: recentDonations.map(d => ({
-          id: d.id,
-          amount: d.amount,
-          donor: d.Donor ? `${d.Donor.first_name} ${d.Donor.last_name}` : 'Anonymous',
+          id: d.id, amount: Number(d.amount),
+          donor: d.donors ? `${d.donors.first_name} ${d.donors.last_name}` : 'Anonymous',
           created_at: d.created_at
         }))
       }
@@ -706,65 +647,52 @@ app.use('/api/rbac', (await import('./modules/rbac/api/index.js')).default);
 const startServer = async () => {
   try {
     console.log('🚀 Starting Lume Modular Backend...');
-    
-    // Initialize database (skip initial sync - will sync after all models loaded)
-    const sequelize = await initializeDatabase(true);
-    console.log('✅ Database connected');
-    
-    // Setup existing models
-    setupModels(sequelize);
-    console.log('✅ Legacy models loaded');
-    
-    // Sync database - create any missing tables without altering existing ones
-    await sequelize.sync({ alter: false });
-    console.log('✅ Database synced');
+
+    // Initialize Prisma (core tables)
+    await prisma.$connect();
+    console.log('✅ Prisma connected (core tables)');
+
+    // Initialize Drizzle (module tables)
+    await initDrizzle();
+    console.log('✅ Drizzle connected (module tables)');
 
     // Initialize module system (base module creates models, services, routes via __init__.js)
     const modulesDir = join(__dirname, 'modules');
-    const moduleContext = { sequelize, database: sequelize, app };
+    const moduleContext = { app };
     await initializeModuleSystem(modulesDir, moduleContext);
     console.log('✅ Module system initialized');
 
-    // Sync again to create any tables defined by modules (including base models)
-    await sequelize.sync({ alter: false });
-    console.log('✅ Module tables synced');
-
-    // Store base models globally for install/uninstall endpoints
-    const baseModels = moduleContext.baseModels || {};
-    const InstalledModule = baseModels.InstalledModule;
-
-    // Sync module state to installed_modules table
-    if (InstalledModule) {
-      for (const mod of getAllModules()) {
-        try {
-          const [record, created] = await InstalledModule.findOrCreate({
-            where: { name: mod.name },
-            defaults: {
-              displayName: mod.manifest?.name || mod.name,
-              version: mod.manifest?.version || '1.0.0',
-              state: 'installed',
-              depends: mod.manifest?.depends || [],
-              modulePath: `modules/${mod.name}`,
-              installedAt: new Date(),
-            }
-          });
-          // Respect persisted state on subsequent runs
-          mod.initialized = record.state === 'installed';
-          if (created) {
-            console.log(`📦 Registered module: ${mod.name} (installed)`);
-          } else if (record.state !== 'installed') {
-            console.log(`📦 Module ${mod.name} state: ${record.state}`);
-          }
-        } catch (err) {
-          console.warn(`⚠️  Failed to sync module state for ${mod.name}:`, err.message);
+    // Sync module state to installed_modules table via Prisma
+    for (const mod of getAllModules()) {
+      try {
+        const record = await prisma.installedModule.upsert({
+          where: { name: mod.name },
+          create: {
+            name: mod.name,
+            displayName: mod.manifest?.name || mod.name,
+            version: mod.manifest?.version || '1.0.0',
+            state: 'installed',
+            depends: JSON.stringify(mod.manifest?.depends || []),
+            modulePath: `modules/${mod.name}`,
+            installedAt: new Date(),
+          },
+          update: {},  // Don't update existing records
+        });
+        // Respect persisted state on subsequent runs
+        mod.initialized = record.state === 'installed';
+        if (record.createdAt.getTime() > Date.now() - 5000) {
+          console.log(`📦 Registered module: ${mod.name} (installed)`);
+        } else if (record.state !== 'installed') {
+          console.log(`📦 Module ${mod.name} state: ${record.state}`);
         }
+      } catch (err) {
+        console.warn(`⚠️  Failed to sync module state for ${mod.name}:`, err.message);
       }
-      console.log('✅ Module states synced to database');
-    } else {
-      console.warn('⚠️  InstalledModule model not available — module state not persisted');
     }
+    console.log('✅ Module states synced to database');
 
-    // Make base models accessible to route handlers
+    // Make base models and module context accessible to route handlers
+    const baseModels = moduleContext.baseModels || {};
     app.locals.baseModels = baseModels;
     app.locals.moduleContext = moduleContext;
 

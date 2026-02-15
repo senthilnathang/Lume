@@ -3,7 +3,7 @@
  */
 
 const initializeCore = async (context) => {
-  const { sequelize, database } = context;
+  // context may contain { app } and other framework references
   
   console.log('🔧 Initializing Core Module...');
   

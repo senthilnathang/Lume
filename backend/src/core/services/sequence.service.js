@@ -1,35 +1,31 @@
-import { Op } from 'sequelize';
+import prisma from '../db/prisma.js';
 
 export class SequenceService {
-    constructor(db) {
-        this._db = db;
-    }
-
     async get_next_code(sequence_name, context = {}) {
-        const { Sequence } = this._db.models;
-
-        let sequence = await Sequence.findOne({
+        let sequence = await prisma.sequence.findFirst({
             where: { name: sequence_name }
         });
 
         if (!sequence) {
-            sequence = await Sequence.create({
-                name: sequence_name,
-                prefix: '',
-                suffix: '',
-                padding: 4,
-                sequence_next: 1,
-                step: 1
+            sequence = await prisma.sequence.create({
+                data: {
+                    name: sequence_name,
+                    prefix: '',
+                    suffix: '',
+                    padding: 4,
+                    sequenceNext: 1,
+                    step: 1
+                }
             });
         }
 
-        const next_number = sequence.sequence_next;
+        const next_number = sequence.sequenceNext;
         const code = this._format_code(sequence, next_number, context);
 
-        await Sequence.update(
-            { sequence_next: sequence.sequence_next + sequence.step },
-            { where: { id: sequence.id } }
-        );
+        await prisma.sequence.update({
+            where: { id: sequence.id },
+            data: { sequenceNext: sequence.sequenceNext + sequence.step }
+        });
 
         return code;
     }
@@ -58,25 +54,26 @@ export class SequenceService {
     }
 
     async create_sequence(data) {
-        const { Sequence } = this._db.models;
-        return await Sequence.create(data);
+        return await prisma.sequence.create({ data });
     }
 
     async update_sequence(id, data) {
-        const { Sequence } = this._db.models;
-        await Sequence.update(data, { where: { id } });
-        return await Sequence.findByPk(id);
+        return await prisma.sequence.update({
+            where: { id },
+            data
+        });
     }
 
     async get_sequence(name) {
-        const { Sequence } = this._db.models;
-        return await Sequence.findOne({ where: { name } });
+        return await prisma.sequence.findFirst({ where: { name } });
     }
 
     async reset_sequence(name, start = 1) {
-        const { Sequence } = this._db.models;
-        await Sequence.update({ sequence_next: start }, { where: { name } });
-        return await Sequence.findOne({ where: { name } });
+        await prisma.sequence.updateMany({
+            where: { name },
+            data: { sequenceNext: start }
+        });
+        return await prisma.sequence.findFirst({ where: { name } });
     }
 }
 

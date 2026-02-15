@@ -1,17 +1,8 @@
-import { getDatabase } from '../../config.js';
-import { Op } from 'sequelize';
+import prisma from '../../core/db/prisma.js';
 import { jwtUtil, responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES } from '../../shared/constants/index.js';
 
 export class AuthService {
-  constructor() {
-    this.db = getDatabase();
-    this.Role = this.db.models.Role;
-    this.Permission = this.db.models.Permission;
-    this.RolePermission = this.db.models.RolePermission;
-    this.User = this.db.models.User;
-  }
-
   async seedRoles() {
     const roles = [
       { name: 'super_admin', display_name: 'Super Admin', description: 'Full system access', is_system: true },
@@ -23,9 +14,10 @@ export class AuthService {
     ];
 
     for (const role of roles) {
-      await this.Role.findOrCreate({
+      await prisma.role.upsert({
         where: { name: role.name },
-        defaults: role
+        create: role,
+        update: {}
       });
     }
   }
@@ -60,23 +52,27 @@ export class AuthService {
     ];
 
     for (const perm of permissions) {
-      await this.Permission.findOrCreate({
+      await prisma.permission.upsert({
         where: { name: perm.name },
-        defaults: perm
+        create: perm,
+        update: {}
       });
     }
   }
 
   async assignPermissionsToRole(roleName, permissions) {
-    const role = await this.Role.findOne({ where: { name: roleName } });
+    const role = await prisma.role.findFirst({ where: { name: roleName } });
     if (!role) return null;
 
     for (const perm of permissions) {
-      const permission = await this.Permission.findOne({ where: { name: perm.name } });
+      const permission = await prisma.permission.findFirst({ where: { name: perm.name } });
       if (permission) {
-        await this.RolePermission.findOrCreate({
-          where: { role_id: role.id, permission_id: permission.id },
-          defaults: { action: perm.action || 'read' }
+        await prisma.rolePermission.upsert({
+          where: {
+            roleId_permissionId: { roleId: role.id, permissionId: permission.id }
+          },
+          create: { roleId: role.id, permissionId: permission.id, action: perm.action || 'read' },
+          update: {}
         });
       }
     }
@@ -84,69 +80,78 @@ export class AuthService {
   }
 
   async getRolePermissions(roleId) {
-    return this.RolePermission.findAll({
-      where: { role_id: roleId },
-      include: [{ model: this.Permission }]
+    return prisma.rolePermission.findMany({
+      where: { roleId },
+      include: { permissions: true }
     });
   }
 
   async hasPermission(userId, permission) {
-    const user = await this.User.findByPk(userId, {
-      include: [{
-        model: this.Role,
-        include: [{
-          model: this.Permission,
-          through: { attributes: ['action'] }
-        }]
-      }]
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        roles: {
+          include: {
+            rolePermissions: {
+              include: { permissions: true }
+            }
+          }
+        }
+      }
     });
 
-    if (!user || !user.Role) return false;
+    if (!user || !user.roles) return false;
 
-    const hasAccess = user.Role.Permissions.some(p => p.name === permission);
-    return { hasAccess, role: user.Role };
+    const hasAccess = user.roles.rolePermissions?.some(rp => rp.permissions?.name === permission) || false;
+    return { hasAccess, role: user.roles };
   }
 
   async createRole(roleData) {
-    const role = await this.Role.create(roleData);
+    const role = await prisma.role.create({ data: roleData });
     return responseUtil.success(role, MESSAGES.CREATED);
   }
 
   async getAllRoles(options = {}) {
-    const roles = await this.Role.findAll({
-      where: { is_active: true },
-      order: [['id', 'ASC']]
+    const roles = await prisma.role.findMany({
+      where: { isActive: true },
+      orderBy: { id: 'asc' }
     });
     return responseUtil.success(roles);
   }
 
   async getRoleById(id) {
-    const role = await this.Role.findByPk(id);
+    const role = await prisma.role.findUnique({ where: { id: Number(id) } });
     if (!role) {
       return responseUtil.notFound('Role');
     }
     const permissions = await this.getRolePermissions(id);
-    return responseUtil.success({ ...role.toJSON(), permissions });
+    return responseUtil.success({ ...role, permissions });
   }
 
   async updateRole(id, roleData) {
-    const role = await this.Role.findByPk(id);
+    const role = await prisma.role.findUnique({ where: { id: Number(id) } });
     if (!role) {
       return responseUtil.notFound('Role');
     }
-    await role.update(roleData);
-    return responseUtil.success(role, MESSAGES.UPDATED);
+    const updated = await prisma.role.update({
+      where: { id: Number(id) },
+      data: roleData
+    });
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async deleteRole(id) {
-    const role = await this.Role.findByPk(id);
+    const role = await prisma.role.findUnique({ where: { id: Number(id) } });
     if (!role) {
       return responseUtil.notFound('Role');
     }
     if (role.is_system) {
       return responseUtil.error('Cannot delete system role', null, 'FORBIDDEN');
     }
-    await role.update({ is_active: false });
+    await prisma.role.update({
+      where: { id: Number(id) },
+      data: { isActive: false }
+    });
     return responseUtil.success(null, MESSAGES.DELETED);
   }
 
@@ -157,7 +162,7 @@ export class AuthService {
         return responseUtil.error(MESSAGES.INVALID_TOKEN, null, 'UNAUTHORIZED');
       }
 
-      const user = await this.User.findByPk(decoded.userId);
+      const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
       if (!user || user.refresh_token !== refreshToken) {
         return responseUtil.error(MESSAGES.INVALID_TOKEN, null, 'UNAUTHORIZED');
       }
@@ -169,8 +174,10 @@ export class AuthService {
       });
 
       const newRefreshToken = jwtUtil.generateRefreshToken(user.id);
-      user.refresh_token = newRefreshToken;
-      await user.save();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { refresh_token: newRefreshToken }
+      });
 
       return responseUtil.success({ token, refreshToken: newRefreshToken });
     } catch (error) {

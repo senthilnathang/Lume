@@ -1,21 +1,17 @@
-import { getDatabase } from '../../config.js';
-import { Op } from 'sequelize';
+import prisma from '../../core/db/prisma.js';
 import { responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES, MESSAGE_STATUS, PAGINATION } from '../../shared/constants/index.js';
 
 export class MessageService {
-  constructor() {
-    this.db = getDatabase();
-    this.Message = this.db.models.Message;
-  }
+  constructor() {}
 
   async create(messageData) {
-    const message = await this.Message.create(messageData);
+    const message = await prisma.messages.create({ data: messageData });
     return responseUtil.success(message, MESSAGES.CREATED);
   }
 
   async findById(id) {
-    const message = await this.Message.findByPk(id);
+    const message = await prisma.messages.findUnique({ where: { id: Number(id) } });
     if (!message) {
       return responseUtil.notFound('Message');
     }
@@ -45,19 +41,22 @@ export class MessageService {
     }
 
     if (search) {
-      where[Op.or] = [
-        { subject: { [Op.like]: `%${search}%` } },
-        { content: { [Op.like]: `%${search}%` } },
-        { sender_email: { [Op.like]: `%${search}%` } }
+      where.OR = [
+        { subject: { contains: search } },
+        { content: { contains: search } },
+        { sender_email: { contains: search } }
       ];
     }
 
-    const { count, rows } = await this.Message.findAndCountAll({
-      where,
-      limit,
-      offset,
-      order: [['created_at', 'DESC']]
-    });
+    const [rows, count] = await Promise.all([
+      prisma.messages.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: { created_at: 'desc' }
+      }),
+      prisma.messages.count({ where })
+    ]);
 
     return responseUtil.paginated(rows, {
       page,
@@ -67,60 +66,68 @@ export class MessageService {
   }
 
   async update(id, messageData) {
-    const message = await this.Message.findByPk(id);
+    const message = await prisma.messages.findUnique({ where: { id: Number(id) } });
 
     if (!message) {
       return responseUtil.notFound('Message');
     }
 
-    await message.update(messageData);
-    return responseUtil.success(message, MESSAGES.UPDATED);
+    const updated = await prisma.messages.update({ where: { id: Number(id) }, data: messageData });
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async markAsRead(id) {
-    const message = await this.Message.findByPk(id);
+    const message = await prisma.messages.findUnique({ where: { id: Number(id) } });
 
     if (!message) {
       return responseUtil.notFound('Message');
     }
 
-    await message.update({
-      status: 'read',
-      read_at: new Date()
+    const updated = await prisma.messages.update({
+      where: { id: Number(id) },
+      data: {
+        status: 'read',
+        read_at: new Date()
+      }
     });
-    return responseUtil.success(message);
+    return responseUtil.success(updated);
   }
 
   async reply(id, replyData) {
-    const message = await this.Message.findByPk(id);
+    const message = await prisma.messages.findUnique({ where: { id: Number(id) } });
 
     if (!message) {
       return responseUtil.notFound('Message');
     }
 
-    await message.update({
-      status: 'replied',
-      replied_at: new Date()
+    const updated = await prisma.messages.update({
+      where: { id: Number(id) },
+      data: {
+        status: 'replied',
+        replied_at: new Date()
+      }
     });
-    return responseUtil.success(message, MESSAGES.UPDATED);
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async delete(id) {
-    const message = await this.Message.findByPk(id);
+    const message = await prisma.messages.findUnique({ where: { id: Number(id) } });
 
     if (!message) {
       return responseUtil.notFound('Message');
     }
 
-    await message.softDelete();
+    await prisma.messages.delete({ where: { id: Number(id) } });
     return responseUtil.success(null, MESSAGES.DELETED);
   }
 
   async getStats() {
-    const total = await this.Message.count();
-    const unread = await this.Message.count({ where: { status: 'new' } });
-    const replied = await this.Message.count({ where: { status: 'replied' } });
-    const archived = await this.Message.count({ where: { status: 'archived' } });
+    const [total, unread, replied, archived] = await Promise.all([
+      prisma.messages.count(),
+      prisma.messages.count({ where: { status: 'new' } }),
+      prisma.messages.count({ where: { status: 'replied' } }),
+      prisma.messages.count({ where: { status: 'archived' } })
+    ]);
 
     return responseUtil.success({
       total,
@@ -132,9 +139,9 @@ export class MessageService {
   }
 
   async getByEmail(email) {
-    const messages = await this.Message.findAll({
+    const messages = await prisma.messages.findMany({
       where: { sender_email: email },
-      order: [['created_at', 'DESC']]
+      orderBy: { created_at: 'desc' }
     });
     return responseUtil.success(messages);
   }

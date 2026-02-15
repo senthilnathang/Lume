@@ -1,52 +1,65 @@
-import { getDatabase, initializeDatabase } from '../config.js';
-import { setupModels } from '../database/models/index.js';
-import bcrypt from 'bcryptjs';
+#!/usr/bin/env node
+/**
+ * Lume Create Admin User Script
+ * Creates or updates the admin user with super_admin role
+ */
+
+import dotenv from 'dotenv';
+dotenv.config();
+
+import prisma from '../core/db/prisma.js';
 
 const createAdminUser = async () => {
   try {
-    const sequelize = await initializeDatabase();
-    setupModels(sequelize);
-    const db = getDatabase();
-    const User = db.models.User;
-    const Role = db.models.Role;
+    await prisma.$connect();
 
     // Find super_admin role or create it
-    let superAdminRole = await Role.findOne({ where: { name: 'super_admin' } });
+    let superAdminRole = await prisma.role.findFirst({ where: { name: 'super_admin' } });
     if (!superAdminRole) {
-      superAdminRole = await Role.create({
-        name: 'super_admin',
-        display_name: 'Super Admin',
-        description: 'Full system access'
+      superAdminRole = await prisma.role.create({
+        data: {
+          name: 'super_admin',
+          display_name: 'Super Admin',
+          description: 'Full system access',
+          isActive: true,
+          is_system: true,
+          createdAt: new Date(),
+        },
       });
       console.log('Created super_admin role');
     }
 
     // Check if admin user exists
-    const existingAdmin = await User.findOne({ where: { email: 'admin@gawdesy.org' } });
+    const existingAdmin = await prisma.user.findFirst({ where: { email: 'admin@gawdesy.org' } });
     if (existingAdmin) {
       console.log('Admin user already exists:', existingAdmin.email);
-      // Update password anyway
-      existingAdmin.password = await bcrypt.hash('admin123', 12);
-      existingAdmin.role_id = superAdminRole.id;
-      await existingAdmin.save();
+      // Update password and role (Prisma middleware hashes password on update)
+      await prisma.user.update({
+        where: { id: existingAdmin.id },
+        data: {
+          password: 'admin123',
+          role_id: superAdminRole.id,
+        },
+      });
       console.log('Admin password updated');
-      return existingAdmin;
+      return;
     }
 
-    // Create admin user
-    const hashedPassword = await bcrypt.hash('admin123', 12);
-    const admin = await User.create({
-      email: 'admin@gawdesy.org',
-      password: hashedPassword,
-      first_name: 'Super',
-      last_name: 'Admin',
-      role_id: superAdminRole.id,
-      is_email_verified: true,
-      is_active: true
+    // Create admin user (password is auto-hashed by Prisma middleware)
+    const admin = await prisma.user.create({
+      data: {
+        email: 'admin@gawdesy.org',
+        password: 'admin123',
+        firstName: 'Super',
+        lastName: 'Admin',
+        role_id: superAdminRole.id,
+        is_email_verified: true,
+        isActive: true,
+        createdAt: new Date(),
+      },
     });
 
     console.log('Admin user created successfully:', admin.email);
-    return admin;
   } catch (error) {
     console.error('Error creating admin user:', error);
     throw error;
@@ -54,11 +67,13 @@ const createAdminUser = async () => {
 };
 
 createAdminUser()
-  .then(() => {
+  .then(async () => {
     console.log('Admin user setup complete.');
+    await prisma.$disconnect();
     process.exit(0);
   })
-  .catch((error) => {
+  .catch(async (error) => {
     console.error('Failed to create admin user:', error);
+    await prisma.$disconnect().catch(() => {});
     process.exit(1);
   });

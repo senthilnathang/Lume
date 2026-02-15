@@ -1,12 +1,12 @@
 /**
  * Auto CRUD Router Generator
- * Creates standard REST endpoints for any Sequelize model.
- * Eliminates boilerplate — get a full CRUD API with one line.
+ * Creates standard REST endpoints for any ORM adapter.
  *
  * Usage:
  *   import { createCrudRouter } from '../../core/router/crud-router.js';
- *   const router = createCrudRouter(Activity, { softDelete: true });
- *   app.use('/api/activities', router);
+ *   import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
+ *   import { activities } from './models/schema.js';
+ *   const router = createCrudRouter(new DrizzleAdapter(activities), { softDelete: true });
  *
  * Generated endpoints:
  *   GET    /          → Search with pagination, domain filtering
@@ -22,9 +22,9 @@
 import { Router } from 'express';
 import { BaseService } from '../services/base.service.js';
 
-export function createCrudRouter(model, options = {}) {
+export function createCrudRouter(modelOrAdapter, options = {}) {
   const router = Router();
-  const service = new BaseService(model, options);
+  const service = new BaseService(modelOrAdapter, options);
 
   // GET / — Search with pagination
   router.get('/', async (req, res) => {

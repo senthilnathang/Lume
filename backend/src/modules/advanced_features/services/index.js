@@ -1,28 +1,29 @@
 /**
  * Advanced Features Services
+ * Uses DrizzleAdapter pattern for all model operations.
  */
 
 export class AdvancedFeaturesService {
-  constructor(models, sequelize) {
+  constructor(models) {
     this.models = models;
-    this.sequelize = sequelize;
   }
 
   // ── Webhooks ──────────────────────────────────────────────────
 
   async getWebhooks(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.Webhook.findAll({
+    const result = await this.models.Webhook.findAll({
       where,
       order: [['createdAt', 'DESC']]
     });
+    return result.rows;
   }
 
   async getWebhook(id) {
-    return this.models.Webhook.findByPk(id);
+    return this.models.Webhook.findById(id);
   }
 
   async createWebhook(data) {
@@ -30,44 +31,44 @@ export class AdvancedFeaturesService {
   }
 
   async updateWebhook(id, data) {
-    const webhook = await this.models.Webhook.findByPk(id);
+    const webhook = await this.models.Webhook.findById(id);
     if (!webhook) return null;
-    await webhook.update(data);
-    return webhook;
+    return this.models.Webhook.update(id, data);
   }
 
   async deleteWebhook(id) {
-    const webhook = await this.models.Webhook.findByPk(id);
-    if (webhook) await webhook.destroy();
+    const webhook = await this.models.Webhook.findById(id);
+    if (!webhook) return null;
+    await this.models.Webhook.destroy(id);
     return webhook;
   }
 
   async getWebhookLogs(webhookId, limit = 50) {
-    return this.models.WebhookLog.findAll({
-      where: { webhookId },
+    const result = await this.models.WebhookLog.findAll({
+      where: [['webhookId', '=', webhookId]],
       order: [['createdAt', 'DESC']],
       limit
     });
+    return result.rows;
   }
 
   // ── Notifications ─────────────────────────────────────────────
 
   async getNotifications(userId, filters = {}) {
-    const where = { userId };
-    if (filters.status) where.status = filters.status;
-    if (filters.type) where.type = filters.type;
+    const where = [['userId', '=', userId]];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.type) where.push(['type', '=', filters.type]);
 
-    return this.models.Notification.findAll({
+    const result = await this.models.Notification.findAll({
       where,
       order: [['createdAt', 'DESC']],
       limit: filters.limit || 50
     });
+    return result.rows;
   }
 
   async getUnreadCount(userId) {
-    return this.models.Notification.count({
-      where: { userId, status: 'unread' }
-    });
+    return this.models.Notification.count([['userId', '=', userId], ['status', '=', 'unread']]);
   }
 
   async createNotification(data) {
@@ -75,44 +76,49 @@ export class AdvancedFeaturesService {
   }
 
   async markAsRead(id, userId) {
-    const notification = await this.models.Notification.findOne({
-      where: { id, userId }
+    const result = await this.models.Notification.findAll({
+      where: [['id', '=', id], ['userId', '=', userId]],
+      limit: 1
     });
+    const notification = result.rows[0];
     if (!notification) return null;
-    await notification.update({ status: 'read', readAt: new Date() });
-    return notification;
+    return this.models.Notification.update(id, { status: 'read', readAt: new Date() });
   }
 
   async markAllAsRead(userId) {
-    await this.models.Notification.update(
-      { status: 'read', readAt: new Date() },
-      { where: { userId, status: 'unread' } }
-    );
+    const unread = await this.models.Notification.findAll({
+      where: [['userId', '=', userId], ['status', '=', 'unread']]
+    });
+    for (const n of unread.rows) {
+      await this.models.Notification.update(n.id, { status: 'read', readAt: new Date() });
+    }
   }
 
   async dismissNotification(id, userId) {
-    const notification = await this.models.Notification.findOne({
-      where: { id, userId }
+    const result = await this.models.Notification.findAll({
+      where: [['id', '=', id], ['userId', '=', userId]],
+      limit: 1
     });
+    const notification = result.rows[0];
     if (!notification) return null;
-    await notification.update({ status: 'dismissed' });
-    return notification;
+    return this.models.Notification.update(id, { status: 'dismissed' });
   }
 
   // ── Notification Channels ─────────────────────────────────────
 
   async getNotificationChannels(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
 
-    return this.models.NotificationChannel.findAll({
+    const result = await this.models.NotificationChannel.findAll({
       where,
       order: [['name', 'ASC']]
     });
+    return result.rows;
   }
 
   async getNotificationChannel(id) {
-    return this.models.NotificationChannel.findByPk(id);
+    return this.models.NotificationChannel.findById(id);
   }
 
   async createNotificationChannel(data) {
@@ -120,32 +126,33 @@ export class AdvancedFeaturesService {
   }
 
   async updateNotificationChannel(id, data) {
-    const channel = await this.models.NotificationChannel.findByPk(id);
+    const channel = await this.models.NotificationChannel.findById(id);
     if (!channel) return null;
-    await channel.update(data);
-    return channel;
+    return this.models.NotificationChannel.update(id, data);
   }
 
   async deleteNotificationChannel(id) {
-    const channel = await this.models.NotificationChannel.findByPk(id);
-    if (channel) await channel.destroy();
+    const channel = await this.models.NotificationChannel.findById(id);
+    if (!channel) return null;
+    await this.models.NotificationChannel.destroy(id);
     return channel;
   }
 
   // ── Tags ──────────────────────────────────────────────────────
 
   async getTags(filters = {}) {
-    const where = {};
-    if (filters.category) where.category = filters.category;
+    const where = [];
+    if (filters.category) where.push(['category', '=', filters.category]);
 
-    return this.models.Tag.findAll({
+    const result = await this.models.Tag.findAll({
       where,
       order: [['name', 'ASC']]
     });
+    return result.rows;
   }
 
   async getTag(id) {
-    return this.models.Tag.findByPk(id);
+    return this.models.Tag.findById(id);
   }
 
   async createTag(data) {
@@ -153,53 +160,65 @@ export class AdvancedFeaturesService {
   }
 
   async updateTag(id, data) {
-    const tag = await this.models.Tag.findByPk(id);
+    const tag = await this.models.Tag.findById(id);
     if (!tag) return null;
-    await tag.update(data);
-    return tag;
+    return this.models.Tag.update(id, data);
   }
 
   async deleteTag(id) {
-    const tag = await this.models.Tag.findByPk(id);
-    if (tag) {
-      await this.models.Tagging.destroy({ where: { tagId: id } });
-      await tag.destroy();
+    const tag = await this.models.Tag.findById(id);
+    if (!tag) return null;
+    // Remove all taggings for this tag first
+    const taggingResults = await this.models.Tagging.findAll({ where: [['tagId', '=', id]] });
+    for (const t of taggingResults.rows) {
+      await this.models.Tagging.destroy(t.id);
     }
+    await this.models.Tag.destroy(id);
     return tag;
   }
 
   async getTagsForRecord(taggableType, taggableId) {
-    const taggings = await this.models.Tagging.findAll({
-      where: { taggableType, taggableId }
+    const taggingResult = await this.models.Tagging.findAll({
+      where: [['taggableType', '=', taggableType], ['taggableId', '=', taggableId]]
     });
-    const tagIds = taggings.map(t => t.tagId);
+    const tagIds = taggingResult.rows.map(t => t.tagId);
     if (tagIds.length === 0) return [];
 
-    const { Op } = (await import('sequelize')).default || await import('sequelize');
-    return this.models.Tag.findAll({
-      where: { id: { [Op.in]: tagIds } }
+    const result = await this.models.Tag.findAll({
+      where: [['id', 'in', tagIds]]
     });
+    return result.rows;
   }
 
   async tagRecord(tagId, taggableType, taggableId) {
-    return this.models.Tagging.findOrCreate({
-      where: { tagId, taggableType, taggableId }
+    // Check if tagging already exists
+    const existing = await this.models.Tagging.findAll({
+      where: [['tagId', '=', tagId], ['taggableType', '=', taggableType], ['taggableId', '=', taggableId]],
+      limit: 1
     });
+    if (existing.rows.length > 0) return existing.rows[0];
+    return this.models.Tagging.create({ tagId, taggableType, taggableId });
   }
 
   async untagRecord(tagId, taggableType, taggableId) {
-    return this.models.Tagging.destroy({
-      where: { tagId, taggableType, taggableId }
+    const existing = await this.models.Tagging.findAll({
+      where: [['tagId', '=', tagId], ['taggableType', '=', taggableType], ['taggableId', '=', taggableId]],
+      limit: 1
     });
+    if (existing.rows.length > 0) {
+      return this.models.Tagging.destroy(existing.rows[0].id);
+    }
+    return false;
   }
 
   // ── Comments ──────────────────────────────────────────────────
 
   async getComments(commentableType, commentableId) {
-    return this.models.Comment.findAll({
-      where: { commentableType, commentableId },
+    const result = await this.models.Comment.findAll({
+      where: [['commentableType', '=', commentableType], ['commentableId', '=', commentableId]],
       order: [['createdAt', 'ASC']]
     });
+    return result.rows;
   }
 
   async createComment(data) {
@@ -207,29 +226,34 @@ export class AdvancedFeaturesService {
   }
 
   async updateComment(id, userId, data) {
-    const comment = await this.models.Comment.findOne({
-      where: { id, userId }
+    const result = await this.models.Comment.findAll({
+      where: [['id', '=', id], ['userId', '=', userId]],
+      limit: 1
     });
+    const comment = result.rows[0];
     if (!comment) return null;
-    await comment.update({ body: data.body });
-    return comment;
+    return this.models.Comment.update(id, { body: data.body });
   }
 
   async deleteComment(id, userId) {
-    const comment = await this.models.Comment.findOne({
-      where: { id, userId }
+    const result = await this.models.Comment.findAll({
+      where: [['id', '=', id], ['userId', '=', userId]],
+      limit: 1
     });
-    if (comment) await comment.destroy();
+    const comment = result.rows[0];
+    if (!comment) return null;
+    await this.models.Comment.destroy(id);
     return comment;
   }
 
   // ── Attachments ───────────────────────────────────────────────
 
   async getAttachments(attachableType, attachableId) {
-    return this.models.Attachment.findAll({
-      where: { attachableType, attachableId },
+    const result = await this.models.Attachment.findAll({
+      where: [['attachableType', '=', attachableType], ['attachableId', '=', attachableId]],
       order: [['createdAt', 'DESC']]
     });
+    return result.rows;
   }
 
   async createAttachment(data) {
@@ -237,8 +261,9 @@ export class AdvancedFeaturesService {
   }
 
   async deleteAttachment(id) {
-    const attachment = await this.models.Attachment.findByPk(id);
-    if (attachment) await attachment.destroy();
+    const attachment = await this.models.Attachment.findById(id);
+    if (!attachment) return null;
+    await this.models.Attachment.destroy(id);
     return attachment;
   }
 }

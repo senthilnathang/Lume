@@ -4,7 +4,7 @@ import { validateRequest } from '../../api/validators/validateRequest.js';
 import { AuthService } from './auth.service.js';
 import { authenticate, authorize } from '../../core/middleware/auth.js';
 import { responseUtil } from '../../shared/utils/index.js';
-import { getDatabase } from '../../config.js';
+import prisma from '../../core/db/prisma.js';
 
 const router = Router();
 
@@ -81,8 +81,7 @@ router.post('/refresh-token', [body('refresh_token').notEmpty().withMessage('Ref
 
 router.get('/permissions', authenticate, authorize('role_management', 'read'), async (req, res) => {
   try {
-    const db = getDatabase();
-    const permissions = await db.models.Permission.findAll({ where: { is_active: true } });
+    const permissions = await prisma.permission.findMany({ where: { isActive: true } });
     res.json(responseUtil.success(permissions));
   } catch (error) {
     console.error('Get permissions error:', error);

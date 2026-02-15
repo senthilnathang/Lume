@@ -1,5 +1,5 @@
 import { jwtUtil, responseUtil } from '../../shared/utils/index.js';
-import { getDatabase } from '../../config.js';
+import prisma from '../db/prisma.js';
 import { MESSAGES } from '../../shared/constants/index.js';
 
 export const authenticate = async (req, res, next) => {
@@ -17,23 +17,23 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json(responseUtil.unauthorized(MESSAGES.TOKEN_EXPIRED));
     }
 
-    const db = getDatabase();
-    const User = db.models.User;
-
-    const user = await User.findByPk(decoded.id);
+    const user = await prisma.user.findUnique({ where: { id: decoded.id } });
 
     if (!user) {
       return res.status(401).json(responseUtil.unauthorized('User not found'));
     }
 
-    if (!user.is_active) {
+    if (!user.isActive) {
       return res.status(403).json(responseUtil.forbidden(MESSAGES.ACCOUNT_DEACTIVATED));
     }
 
+    // Look up role name from roles table via FK
+    const role = await prisma.role.findUnique({ where: { id: user.role_id } });
     req.user = {
       id: user.id,
       email: user.email,
-      role_id: user.role_id
+      role: role?.name || 'viewer',
+      role_id: user.role_id,
     };
 
     next();
@@ -54,37 +54,46 @@ export const authorize = (resource = null, action = null) => {
         return next();
       }
 
-      const db = getDatabase();
-      const Role = db.models.Role;
-      const Permission = db.models.Permission;
-      const RolePermission = db.models.RolePermission;
+      const userRole = req.user.role;
 
-      const role = await Role.findByPk(req.user.role_id);
-
-      if (!role) {
-        return res.status(403).json(responseUtil.forbidden('Role not found'));
-      }
-
-      if (role.name === 'admin' || role.name === 'super_admin') {
+      // Admin and super_admin bypass all permission checks
+      if (userRole === 'admin' || userRole === 'super_admin') {
         return next();
       }
 
+      // For non-admin users, check role-based permissions via the roles/permissions tables
       const permissionName = resource && action ? `${resource}.${action}` : resource;
 
-      const rolePermission = await RolePermission.findOne({
-        where: { role_id: role.id },
-        include: [{ model: Permission, where: { name: permissionName } }]
+      const roleRecord = await prisma.role.findFirst({
+        where: { name: userRole, isActive: true },
       });
 
-      if (!rolePermission) {
+      if (!roleRecord) {
+        return res.status(403).json(responseUtil.forbidden('Role not found'));
+      }
+
+      const rolePermission = await prisma.rolePermission.findFirst({
+        where: { roleId: roleRecord.id },
+        include: {
+          permission: {
+            select: { name: true },
+          },
+        },
+      });
+
+      // Check if the role has the required permission
+      const hasPermission = await prisma.rolePermission.findFirst({
+        where: {
+          roleId: roleRecord.id,
+          permission: { name: permissionName },
+        },
+      });
+
+      if (!hasPermission) {
         return res.status(403).json(responseUtil.forbidden(`Access denied. Missing permission: ${permissionName}`));
       }
 
-      if (action && rolePermission.action !== action && rolePermission.action !== 'admin') {
-        return res.status(403).json(responseUtil.forbidden(`Access denied. Insufficient permission: ${rolePermission.action}`));
-      }
-
-      req.user.role = role;
+      req.user.roleRecord = roleRecord;
       next();
     } catch (error) {
       console.error('Authorization error:', error);
@@ -105,15 +114,15 @@ export const optionalAuth = async (req, res, next) => {
     const decoded = jwtUtil.verifyToken(token);
 
     if (decoded) {
-      const db = getDatabase();
-      const User = db.models.User;
-      const user = await User.findByPk(decoded.id);
+      const user = await prisma.user.findUnique({ where: { id: decoded.id } });
 
-      if (user && user.is_active) {
+      if (user && user.isActive) {
+        const role = await prisma.role.findUnique({ where: { id: user.role_id } });
         req.user = {
           id: user.id,
           email: user.email,
-          role_id: user.role_id
+          role: role?.name || 'viewer',
+          role_id: user.role_id,
         };
       }
     }

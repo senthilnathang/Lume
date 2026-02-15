@@ -130,7 +130,8 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
-import lucideIcons, { ChevronDown, ChevronsLeft, ChevronsRight, LayoutDashboard } from 'lucide-vue-next';
+import * as lucideIcons from 'lucide-vue-next';
+const { ChevronDown, ChevronsLeft, ChevronsRight, LayoutDashboard } = lucideIcons;
 
 export interface MenuItem {
   name: string;
@@ -171,10 +172,10 @@ const isCollapsed = computed(() => props.collapsed && !hovering.value);
  * Converts to PascalCase and looks up in lucide-vue-next icons object.
  */
 function resolveIcon(name?: string) {
-  if (!name) return lucideIcons.Circle;
+  if (!name) return (lucideIcons as Record<string, any>)['Circle'] || LayoutDashboard;
   const key = name.replace('lucide:', '');
   const pascal = key.replace(/(^|[-_])(\w)/g, (_: string, __: string, c: string) => c.toUpperCase());
-  return (lucideIcons as Record<string, any>)[pascal] || lucideIcons.Circle;
+  return (lucideIcons as Record<string, any>)[pascal] || (lucideIcons as Record<string, any>)['Circle'] || LayoutDashboard;
 }
 
 // --- Phase 3: Menu grouping by category ---
