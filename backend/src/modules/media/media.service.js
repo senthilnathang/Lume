@@ -1,5 +1,4 @@
-import { getDatabase } from '../../config.js';
-import { Op } from 'sequelize';
+import prisma from '../../core/db/prisma.js';
 import { responseUtil, fileUtil } from '../../shared/utils/index.js';
 import { MESSAGES, PAGINATION } from '../../shared/constants/index.js';
 import { mkdirSync, existsSync } from 'fs';
@@ -7,10 +6,8 @@ import { join, extname } from 'path';
 
 export class MediaService {
   constructor() {
-    this.db = getDatabase();
-    this.MediaLibrary = this.db.models.MediaLibrary;
     this.uploadDir = process.env.UPLOAD_DIR || './uploads';
-    
+
     // Ensure upload directory exists
     if (!existsSync(this.uploadDir)) {
       mkdirSync(this.uploadDir, { recursive: true });
@@ -18,18 +15,21 @@ export class MediaService {
   }
 
   async create(mediaData) {
-    const media = await this.MediaLibrary.create(mediaData);
+    const media = await prisma.media_library.create({ data: mediaData });
     return responseUtil.success(media, MESSAGES.CREATED);
   }
 
   async findById(id) {
-    const media = await this.MediaLibrary.findByPk(id);
+    const media = await prisma.media_library.findUnique({ where: { id: Number(id) } });
     if (!media) {
       return responseUtil.notFound('Media');
     }
-    
+
     // Increment views
-    await media.increment('views');
+    await prisma.media_library.update({
+      where: { id: Number(id) },
+      data: { views: { increment: 1 } }
+    });
     return responseUtil.success(media);
   }
 
@@ -56,18 +56,21 @@ export class MediaService {
     }
 
     if (search) {
-      where[Op.or] = [
-        { title: { [Op.like]: `%${search}%` } },
-        { description: { [Op.like]: `%${search}%` } }
+      where.OR = [
+        { title: { contains: search } },
+        { description: { contains: search } }
       ];
     }
 
-    const { count, rows } = await this.MediaLibrary.findAndCountAll({
-      where,
-      limit,
-      offset,
-      order: [['created_at', 'DESC']]
-    });
+    const [rows, count] = await Promise.all([
+      prisma.media_library.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: { created_at: 'desc' }
+      }),
+      prisma.media_library.count({ where })
+    ]);
 
     return responseUtil.paginated(rows, {
       page,
@@ -77,45 +80,52 @@ export class MediaService {
   }
 
   async update(id, mediaData) {
-    const media = await this.MediaLibrary.findByPk(id);
+    const media = await prisma.media_library.findUnique({ where: { id: Number(id) } });
 
     if (!media) {
       return responseUtil.notFound('Media');
     }
 
-    await media.update(mediaData);
-    return responseUtil.success(media, MESSAGES.UPDATED);
+    const updated = await prisma.media_library.update({ where: { id: Number(id) }, data: mediaData });
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async delete(id) {
-    const media = await this.MediaLibrary.findByPk(id);
+    const media = await prisma.media_library.findUnique({ where: { id: Number(id) } });
 
     if (!media) {
       return responseUtil.notFound('Media');
     }
 
-    await media.softDelete();
+    await prisma.media_library.delete({ where: { id: Number(id) } });
     return responseUtil.success(null, MESSAGES.DELETED);
   }
 
   async incrementDownloads(id) {
-    const media = await this.MediaLibrary.findByPk(id);
+    const media = await prisma.media_library.findUnique({ where: { id: Number(id) } });
 
     if (!media) {
       return responseUtil.notFound('Media');
     }
 
-    await media.increment('downloads');
-    return responseUtil.success(media);
+    const updated = await prisma.media_library.update({
+      where: { id: Number(id) },
+      data: { downloads: { increment: 1 } }
+    });
+    return responseUtil.success(updated);
   }
 
   async getStats() {
-    const total = await this.MediaLibrary.count();
-    const images = await this.MediaLibrary.count({ where: { type: 'image' } });
-    const documents = await this.MediaLibrary.count({ where: { type: 'document' } });
-    const videos = await this.MediaLibrary.count({ where: { type: 'video' } });
-    const audio = await this.MediaLibrary.count({ where: { type: 'audio' } });
-    const totalSize = await this.MediaLibrary.sum('size') || 0;
+    const [total, images, documents, videos, audio, sizeResult] = await Promise.all([
+      prisma.media_library.count(),
+      prisma.media_library.count({ where: { type: 'image' } }),
+      prisma.media_library.count({ where: { type: 'document' } }),
+      prisma.media_library.count({ where: { type: 'video' } }),
+      prisma.media_library.count({ where: { type: 'audio' } }),
+      prisma.media_library.aggregate({ _sum: { size: true } })
+    ]);
+
+    const totalSize = sizeResult._sum.size || 0;
 
     return responseUtil.success({
       total,
@@ -130,18 +140,18 @@ export class MediaService {
   }
 
   async getFeatured() {
-    const media = await this.MediaLibrary.findAll({
+    const media = await prisma.media_library.findMany({
       where: { is_featured: true, is_public: true },
-      order: [['created_at', 'DESC']],
-      limit: 10
+      orderBy: { created_at: 'desc' },
+      take: 10
     });
     return responseUtil.success(media);
   }
 
   async getByCategory(category) {
-    const media = await this.MediaLibrary.findAll({
+    const media = await prisma.media_library.findMany({
       where: { category, is_public: true },
-      order: [['created_at', 'DESC']]
+      orderBy: { created_at: 'desc' }
     });
     return responseUtil.success(media);
   }

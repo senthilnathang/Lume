@@ -1,21 +1,17 @@
-import { getDatabase } from '../../config.js';
-import { Op } from 'sequelize';
+import prisma from '../../core/db/prisma.js';
 import { responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES, PAGINATION } from '../../shared/constants/index.js';
 
 export class TeamService {
-  constructor() {
-    this.db = getDatabase();
-    this.TeamMember = this.db.models.TeamMember;
-  }
+  constructor() {}
 
   async create(memberData) {
-    const member = await this.TeamMember.create(memberData);
+    const member = await prisma.team_members.create({ data: memberData });
     return responseUtil.success(member, MESSAGES.CREATED);
   }
 
   async findById(id) {
-    const member = await this.TeamMember.findByPk(id);
+    const member = await prisma.team_members.findUnique({ where: { id: Number(id) } });
     if (!member) {
       return responseUtil.notFound('Team Member');
     }
@@ -41,19 +37,22 @@ export class TeamService {
     }
 
     if (search) {
-      where[Op.or] = [
-        { first_name: { [Op.like]: `%${search}%` } },
-        { last_name: { [Op.like]: `%${search}%` } },
-        { position: { [Op.like]: `%${search}%` } }
+      where.OR = [
+        { first_name: { contains: search } },
+        { last_name: { contains: search } },
+        { position: { contains: search } }
       ];
     }
 
-    const { count, rows } = await this.TeamMember.findAndCountAll({
-      where,
-      limit,
-      offset,
-      order: [['order', 'ASC'], ['created_at', 'DESC']]
-    });
+    const [rows, count] = await Promise.all([
+      prisma.team_members.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: [{ order: 'asc' }, { created_at: 'desc' }]
+      }),
+      prisma.team_members.count({ where })
+    ]);
 
     return responseUtil.paginated(rows, {
       page,
@@ -63,65 +62,65 @@ export class TeamService {
   }
 
   async getActive() {
-    const members = await this.TeamMember.findAll({
+    const members = await prisma.team_members.findMany({
       where: { is_active: true },
-      order: [['order', 'ASC'], ['created_at', 'DESC']]
+      orderBy: [{ order: 'asc' }, { created_at: 'desc' }]
     });
     return responseUtil.success(members);
   }
 
   async getLeaders() {
-    const members = await this.TeamMember.findAll({
+    const members = await prisma.team_members.findMany({
       where: { is_active: true, is_leader: true },
-      order: [['order', 'ASC']]
+      orderBy: { order: 'asc' }
     });
     return responseUtil.success(members);
   }
 
   async getByDepartment(department) {
-    const members = await this.TeamMember.findAll({
+    const members = await prisma.team_members.findMany({
       where: { department, is_active: true },
-      order: [['order', 'ASC']]
+      orderBy: { order: 'asc' }
     });
     return responseUtil.success(members);
   }
 
   async update(id, memberData) {
-    const member = await this.TeamMember.findByPk(id);
+    const member = await prisma.team_members.findUnique({ where: { id: Number(id) } });
 
     if (!member) {
       return responseUtil.notFound('Team Member');
     }
 
-    await member.update(memberData);
-    return responseUtil.success(member, MESSAGES.UPDATED);
+    const updated = await prisma.team_members.update({ where: { id: Number(id) }, data: memberData });
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async delete(id) {
-    const member = await this.TeamMember.findByPk(id);
+    const member = await prisma.team_members.findUnique({ where: { id: Number(id) } });
 
     if (!member) {
       return responseUtil.notFound('Team Member');
     }
 
-    await member.softDelete();
+    await prisma.team_members.delete({ where: { id: Number(id) } });
     return responseUtil.success(null, MESSAGES.DELETED);
   }
 
   async reorder(members) {
     for (const { id, order } of members) {
-      await this.TeamMember.update({ order }, { where: { id } });
+      await prisma.team_members.update({ where: { id: Number(id) }, data: { order } });
     }
     return responseUtil.success(null, MESSAGES.UPDATED);
   }
 
   async getDepartments() {
-    const departments = await this.TeamMember.findAll({
-      attributes: ['department'],
-      where: { department: { [Op.ne]: null }, is_active: true },
-      group: ['department']
+    const results = await prisma.team_members.findMany({
+      where: { department: { not: null }, is_active: true },
+      select: { department: true },
+      distinct: ['department']
     });
-    return responseUtil.success(departments.map(d => d.department));
+    return responseUtil.success(results.map(d => d.department));
   }
 }
 

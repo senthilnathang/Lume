@@ -1,23 +1,15 @@
-import { getDatabase } from '../../config.js';
-import { Op } from 'sequelize';
+import prisma from '../../core/db/prisma.js';
 import { stringUtil, responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES, DONATION_STATUS, PAGINATION } from '../../shared/constants/index.js';
 
 export class DonationService {
-  constructor() {
-    this.db = getDatabase();
-    this.Donation = this.db.models.Donation;
-    this.Donor = this.db.models.Donor;
-    this.Campaign = this.db.models.Campaign;
-  }
-
   async createDonor(donorData) {
-    const donor = await this.Donor.create(donorData);
+    const donor = await prisma.donors.create({ data: donorData });
     return responseUtil.success(donor, MESSAGES.CREATED);
   }
 
   async findDonorById(id) {
-    const donor = await this.Donor.findByPk(id);
+    const donor = await prisma.donors.findUnique({ where: { id: Number(id) } });
     if (!donor) {
       return responseUtil.notFound('Donor');
     }
@@ -31,19 +23,22 @@ export class DonationService {
     const where = {};
 
     if (search) {
-      where[Op.or] = [
-        { first_name: { [Op.like]: `%${search}%` } },
-        { last_name: { [Op.like]: `%${search}%` } },
-        { email: { [Op.like]: `%${search}%` } }
+      where.OR = [
+        { first_name: { contains: search } },
+        { last_name: { contains: search } },
+        { email: { contains: search } }
       ];
     }
 
-    const { count, rows } = await this.Donor.findAndCountAll({
-      where,
-      limit,
-      offset,
-      order: [['created_at', 'DESC']]
-    });
+    const [rows, count] = await Promise.all([
+      prisma.donors.findMany({
+        where,
+        take: limit,
+        skip: offset,
+        orderBy: { created_at: 'desc' }
+      }),
+      prisma.donors.count({ where })
+    ]);
 
     return responseUtil.paginated(rows, {
       page,
@@ -53,13 +48,14 @@ export class DonationService {
   }
 
   async create(donationData) {
-    const donation = await this.Donation.create(donationData);
+    const donation = await prisma.donations.create({ data: donationData });
     return responseUtil.success(donation, MESSAGES.CREATED);
   }
 
   async findById(id) {
-    const donation = await this.Donation.findByPk(id, {
-      include: [{ model: this.Donor }]
+    const donation = await prisma.donations.findUnique({
+      where: { id: Number(id) },
+      include: { donors: true }
     });
     if (!donation) {
       return responseUtil.notFound('Donation');
@@ -87,17 +83,20 @@ export class DonationService {
 
     if (start_date || end_date) {
       where.created_at = {};
-      if (start_date) where.created_at[Op.gte] = start_date;
-      if (end_date) where.created_at[Op.lte] = end_date;
+      if (start_date) where.created_at.gte = start_date;
+      if (end_date) where.created_at.lte = end_date;
     }
 
-    const { count, rows } = await this.Donation.findAndCountAll({
-      where,
-      limit,
-      offset,
-      include: [{ model: this.Donor }],
-      order: [['created_at', 'DESC']]
-    });
+    const [rows, count] = await Promise.all([
+      prisma.donations.findMany({
+        where,
+        take: limit,
+        skip: offset,
+        include: { donors: true },
+        orderBy: { created_at: 'desc' }
+      }),
+      prisma.donations.count({ where })
+    ]);
 
     return responseUtil.paginated(rows, {
       page,
@@ -107,64 +106,92 @@ export class DonationService {
   }
 
   async update(id, donationData) {
-    const donation = await this.Donation.findByPk(id);
+    const donation = await prisma.donations.findUnique({ where: { id: Number(id) } });
 
     if (!donation) {
       return responseUtil.notFound('Donation');
     }
 
-    await donation.update(donationData);
-    return responseUtil.success(donation, MESSAGES.UPDATED);
+    const updated = await prisma.donations.update({
+      where: { id: Number(id) },
+      data: donationData
+    });
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async updateStatus(id, status) {
-    const donation = await this.Donation.findByPk(id);
+    const donation = await prisma.donations.findUnique({ where: { id: Number(id) } });
 
     if (!donation) {
       return responseUtil.notFound('Donation');
     }
 
-    await donation.update({ status });
+    const updated = await prisma.donations.update({
+      where: { id: Number(id) },
+      data: { status }
+    });
 
     if (status === 'completed' && donation.campaign_id) {
       await this.updateCampaignProgress(donation.campaign_id);
     }
 
-    return responseUtil.success(donation, MESSAGES.UPDATED);
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async updateCampaignProgress(campaignId) {
-    const campaign = await this.Campaign.findByPk(campaignId);
+    const campaign = await prisma.campaigns.findUnique({ where: { id: Number(campaignId) } });
     if (!campaign) return;
 
-    const total = await this.Donation.sum('amount', {
+    const result = await prisma.donations.aggregate({
+      _sum: { amount: true },
       where: { campaign_id: campaignId, status: 'completed' }
     });
 
-    await campaign.update({ raised_amount: total || 0 });
+    const total = Number(result._sum.amount) || 0;
+
+    await prisma.campaigns.update({
+      where: { id: Number(campaignId) },
+      data: { raised_amount: total }
+    });
   }
 
   async createCampaign(campaignData) {
     if (campaignData.name) {
       campaignData.slug = stringUtil.slugify(campaignData.name) + '-' + stringUtil.randomString(6);
     }
-    const campaign = await this.Campaign.create(campaignData);
+    const campaign = await prisma.campaigns.create({ data: campaignData });
     return responseUtil.success(campaign, MESSAGES.CREATED);
   }
 
   async findAllCampaigns(options = {}) {
-    const campaigns = await this.Campaign.findAll({
+    const campaigns = await prisma.campaigns.findMany({
       where: { status: 'active' },
-      order: [['created_at', 'DESC']]
+      orderBy: { created_at: 'desc' }
     });
     return responseUtil.success(campaigns);
   }
 
   async getStats() {
-    const totalDonations = await this.Donation.count({ where: { status: 'completed' } });
-    const totalAmount = await this.Donation.sum('amount', { where: { status: 'completed' } }) || 0;
-    const pendingAmount = await this.Donation.sum('amount', { where: { status: 'pending' } }) || 0;
-    const uniqueDonors = await this.Donation.count({ distinct: true, col: 'donor_id', where: { status: 'completed' } });
+    const totalDonations = await prisma.donations.count({ where: { status: 'completed' } });
+
+    const totalAmountResult = await prisma.donations.aggregate({
+      _sum: { amount: true },
+      where: { status: 'completed' }
+    });
+    const totalAmount = Number(totalAmountResult._sum.amount) || 0;
+
+    const pendingAmountResult = await prisma.donations.aggregate({
+      _sum: { amount: true },
+      where: { status: 'pending' }
+    });
+    const pendingAmount = Number(pendingAmountResult._sum.amount) || 0;
+
+    const uniqueDonorRows = await prisma.donations.findMany({
+      where: { status: 'completed' },
+      select: { donor_id: true },
+      distinct: ['donor_id']
+    });
+    const uniqueDonors = uniqueDonorRows.length;
 
     return responseUtil.success({
       totalDonations,
@@ -176,16 +203,21 @@ export class DonationService {
   }
 
   async getDonorStats(donorId) {
-    const donor = await this.Donor.findByPk(donorId);
+    const donor = await prisma.donors.findUnique({ where: { id: Number(donorId) } });
     if (!donor) {
       return responseUtil.notFound('Donor');
     }
 
-    const totalDonations = await this.Donation.count({ where: { donor_id: donorId, status: 'completed' } });
-    const totalAmount = await this.Donation.sum('amount', { where: { donor_id: donorId, status: 'completed' } }) || 0;
+    const totalDonations = await prisma.donations.count({ where: { donor_id: donorId, status: 'completed' } });
+
+    const totalAmountResult = await prisma.donations.aggregate({
+      _sum: { amount: true },
+      where: { donor_id: donorId, status: 'completed' }
+    });
+    const totalAmount = Number(totalAmountResult._sum.amount) || 0;
 
     return responseUtil.success({
-      donor: donor.toJSON(),
+      donor,
       totalDonations,
       totalAmount,
       averageDonation: totalDonations > 0 ? (totalAmount / totalDonations).toFixed(2) : 0

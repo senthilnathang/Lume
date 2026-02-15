@@ -2,35 +2,41 @@
  * Base Features Data Module Initialization
  */
 
-import { FeatureFlagModel, DataImportModel, DataExportModel, BackupModel } from './models/index.js';
+import {
+  featureFlags,
+  dataImports,
+  dataExports,
+  backups
+} from './models/schema.js';
+import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
 import { FeaturesDataService } from './services/index.js';
 import createRoutes from './api/index.js';
 
 const initializeBaseFeaturesData = async (context) => {
-  const { sequelize, app } = context;
-  
+  const { app } = context;
+
   console.log('🔧 Initializing Base Features Data Module...');
-  
-  const models = {
-    FeatureFlag: FeatureFlagModel(sequelize),
-    DataImport: DataImportModel(sequelize),
-    DataExport: DataExportModel(sequelize),
-    Backup: BackupModel(sequelize)
+
+  const adapters = {
+    FeatureFlag: new DrizzleAdapter(featureFlags),
+    DataImport: new DrizzleAdapter(dataImports),
+    DataExport: new DrizzleAdapter(dataExports),
+    Backup: new DrizzleAdapter(backups)
   };
-  console.log(`✅ Base Features Data models created: ${Object.keys(models).join(', ')}`);
-  
+  console.log(`✅ Base Features Data adapters created: ${Object.keys(adapters).join(', ')}`);
+
   const services = {
-    featuresDataService: new FeaturesDataService(models, sequelize)
+    featuresDataService: new FeaturesDataService(adapters)
   };
   console.log('✅ Base Features Data services created');
-  
-  const routes = createRoutes(models, services);
+
+  const routes = createRoutes(adapters, services);
   app.use('/api/base_features_data', routes);
   console.log('✅ Base Features Data API routes registered: /api/base_features_data');
-  
+
   console.log('✅ Base Features Data Module initialized');
-  
-  return { models, services };
+
+  return { models: adapters, services };
 };
 
 export default initializeBaseFeaturesData;

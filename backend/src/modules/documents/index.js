@@ -1,15 +1,20 @@
-import Document from './document.model.js';
 import DocumentService from './document.service.js';
 import documentRoutes from './document.routes.js';
+import { documents } from './models/schema.js';
+import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
+
+const documentAdapter = new DrizzleAdapter(documents);
 
 export {
-  Document,
   DocumentService,
-  documentRoutes
+  documentRoutes,
+  documentAdapter,
+  documents
 };
 
 export default {
-  Document,
   DocumentService,
-  documentRoutes
+  documentRoutes,
+  documentAdapter,
+  documents
 };

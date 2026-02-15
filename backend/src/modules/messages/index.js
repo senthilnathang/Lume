@@ -1,15 +1,20 @@
-import Message from './message.model.js';
 import MessageService from './message.service.js';
 import messageRoutes from './message.routes.js';
+import { messages } from './models/schema.js';
+import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
+
+const messageAdapter = new DrizzleAdapter(messages);
 
 export {
-  Message,
   MessageService,
-  messageRoutes
+  messageRoutes,
+  messageAdapter,
+  messages
 };
 
 export default {
-  Message,
   MessageService,
-  messageRoutes
+  messageRoutes,
+  messageAdapter,
+  messages
 };

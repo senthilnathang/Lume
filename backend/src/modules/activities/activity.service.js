@@ -1,25 +1,21 @@
-import { getDatabase } from '../../config.js';
-import { Op } from 'sequelize';
+import prisma from '../../core/db/prisma.js';
 import { stringUtil, responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES, ACTIVITY_STATUS, PAGINATION } from '../../shared/constants/index.js';
 
 export class ActivityService {
-  constructor() {
-    this.db = getDatabase();
-    this.Activity = this.db.models.Activity;
-  }
+  constructor() {}
 
   async create(activityData) {
     if (activityData.title) {
       activityData.slug = stringUtil.slugify(activityData.title) + '-' + stringUtil.randomString(6);
     }
 
-    const activity = await this.Activity.create(activityData);
+    const activity = await prisma.activities.create({ data: activityData });
     return responseUtil.success(activity, MESSAGES.CREATED);
   }
 
   async findById(id) {
-    const activity = await this.Activity.findByPk(id);
+    const activity = await prisma.activities.findUnique({ where: { id: Number(id) } });
     if (!activity) {
       return responseUtil.notFound('Activity');
     }
@@ -27,7 +23,7 @@ export class ActivityService {
   }
 
   async findBySlug(slug) {
-    const activity = await this.Activity.findOne({ where: { slug } });
+    const activity = await prisma.activities.findFirst({ where: { slug } });
     if (!activity) {
       return responseUtil.notFound('Activity');
     }
@@ -53,18 +49,21 @@ export class ActivityService {
     }
 
     if (search) {
-      where[Op.or] = [
-        { title: { [Op.like]: `%${search}%` } },
-        { description: { [Op.like]: `%${search}%` } }
+      where.OR = [
+        { title: { contains: search } },
+        { description: { contains: search } }
       ];
     }
 
-    const { count, rows } = await this.Activity.findAndCountAll({
-      where,
-      limit,
-      offset,
-      order: [['created_at', 'DESC']]
-    });
+    const [rows, count] = await Promise.all([
+      prisma.activities.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: { created_at: 'desc' }
+      }),
+      prisma.activities.count({ where })
+    ]);
 
     return responseUtil.paginated(rows, {
       page,
@@ -74,7 +73,7 @@ export class ActivityService {
   }
 
   async update(id, activityData) {
-    const activity = await this.Activity.findByPk(id);
+    const activity = await prisma.activities.findUnique({ where: { id: Number(id) } });
 
     if (!activity) {
       return responseUtil.notFound('Activity');
@@ -84,71 +83,79 @@ export class ActivityService {
       activityData.slug = stringUtil.slugify(activityData.title) + '-' + stringUtil.randomString(6);
     }
 
-    await activity.update(activityData);
-    return responseUtil.success(activity, MESSAGES.UPDATED);
+    const updated = await prisma.activities.update({ where: { id: Number(id) }, data: activityData });
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async delete(id) {
-    const activity = await this.Activity.findByPk(id);
+    const activity = await prisma.activities.findUnique({ where: { id: Number(id) } });
 
     if (!activity) {
       return responseUtil.notFound('Activity');
     }
 
-    await activity.softDelete();
+    await prisma.activities.delete({ where: { id: Number(id) } });
     return responseUtil.success(null, MESSAGES.DELETED);
   }
 
   async publish(id) {
-    const activity = await this.Activity.findByPk(id);
+    const activity = await prisma.activities.findUnique({ where: { id: Number(id) } });
 
     if (!activity) {
       return responseUtil.notFound('Activity');
     }
 
-    await activity.update({
-      status: 'published',
-      published_at: new Date()
+    const updated = await prisma.activities.update({
+      where: { id: Number(id) },
+      data: {
+        status: 'published',
+        published_at: new Date()
+      }
     });
-    return responseUtil.success(activity, MESSAGES.UPDATED);
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async cancel(id) {
-    const activity = await this.Activity.findByPk(id);
+    const activity = await prisma.activities.findUnique({ where: { id: Number(id) } });
 
     if (!activity) {
       return responseUtil.notFound('Activity');
     }
 
-    await activity.update({ status: 'cancelled' });
-    return responseUtil.success(activity, MESSAGES.UPDATED);
+    const updated = await prisma.activities.update({
+      where: { id: Number(id) },
+      data: { status: 'cancelled' }
+    });
+    return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
   async getUpcoming(options = {}) {
     const { limit = PAGINATION.DEFAULT_LIMIT } = options;
 
-    const activities = await this.Activity.findAll({
+    const activities = await prisma.activities.findMany({
       where: {
         status: 'published',
-        start_date: { [Op.gte]: new Date() }
+        start_date: { gte: new Date() }
       },
-      limit,
-      order: [['start_date', 'ASC']]
+      take: limit,
+      orderBy: { start_date: 'asc' }
     });
 
     return responseUtil.success(activities);
   }
 
   async getStats() {
-    const total = await this.Activity.count();
-    const published = await this.Activity.count({ where: { status: 'published' } });
-    const completed = await this.Activity.count({ where: { status: 'completed' } });
-    const upcoming = await this.Activity.count({
-      where: {
-        status: 'published',
-        start_date: { [Op.gte]: new Date() }
-      }
-    });
+    const [total, published, completed, upcoming] = await Promise.all([
+      prisma.activities.count(),
+      prisma.activities.count({ where: { status: 'published' } }),
+      prisma.activities.count({ where: { status: 'completed' } }),
+      prisma.activities.count({
+        where: {
+          status: 'published',
+          start_date: { gte: new Date() }
+        }
+      })
+    ]);
 
     return responseUtil.success({
       total,

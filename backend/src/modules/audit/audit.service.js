@@ -1,18 +1,25 @@
-import { getDatabase } from '../../config.js';
-import { Op } from 'sequelize';
+import prisma from '../../core/db/prisma.js';
 import { responseUtil } from '../../shared/utils/index.js';
 import { PAGINATION } from '../../shared/constants/index.js';
 
 export class AuditService {
-  constructor() {
-    this.db = getDatabase();
-    this.AuditLog = this.db.models.AuditLog;
-    this.sequelize = this.db.models.sequelize || this.db.sequelize;
-  }
-
   async log(logData) {
     try {
-      const log = await this.AuditLog.create(logData);
+      const data = {
+        action: logData.action,
+        model: logData.resource_type || logData.model,
+        recordId: logData.record_id || logData.recordId,
+        oldValues: logData.old_values || logData.oldValues,
+        newValues: logData.new_values || logData.newValues,
+        userId: logData.user_id || logData.userId,
+        ipAddress: logData.ip_address || logData.ipAddress,
+        userAgent: logData.user_agent || logData.userAgent
+      };
+
+      // Remove undefined keys
+      Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
+
+      const log = await prisma.auditLog.create({ data });
       return log;
     } catch (error) {
       console.error('Error creating audit log:', error);
@@ -27,7 +34,7 @@ export class AuditService {
     const where = {};
 
     if (user_id) {
-      where.user_id = user_id;
+      where.userId = user_id;
     }
 
     if (action) {
@@ -35,21 +42,24 @@ export class AuditService {
     }
 
     if (resource_type) {
-      where.resource_type = resource_type;
+      where.model = resource_type;
     }
 
     if (start_date || end_date) {
-      where.created_at = {};
-      if (start_date) where.created_at[Op.gte] = new Date(start_date);
-      if (end_date) where.created_at[Op.lte] = new Date(end_date);
+      where.createdAt = {};
+      if (start_date) where.createdAt.gte = new Date(start_date);
+      if (end_date) where.createdAt.lte = new Date(end_date);
     }
 
-    const { count, rows } = await this.AuditLog.findAndCountAll({
-      where,
-      limit,
-      offset,
-      order: [['created_at', 'DESC']]
-    });
+    const [rows, count] = await Promise.all([
+      prisma.auditLog.findMany({
+        where,
+        take: limit,
+        skip: offset,
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.auditLog.count({ where })
+    ]);
 
     return responseUtil.paginated(rows, {
       page,
@@ -59,7 +69,7 @@ export class AuditService {
   }
 
   async findById(id) {
-    const log = await this.AuditLog.findByPk(id);
+    const log = await prisma.auditLog.findUnique({ where: { id: Number(id) } });
     if (!log) {
       return responseUtil.notFound('Audit Log');
     }
@@ -68,14 +78,14 @@ export class AuditService {
 
   async cleanup(daysToKeep = 90) {
     const cutoffDate = new Date(Date.now() - daysToKeep * 24 * 60 * 60 * 1000);
-    const deleted = await this.AuditLog.destroy({
+    const result = await prisma.auditLog.deleteMany({
       where: {
-        created_at: {
-          [Op.lt]: cutoffDate
+        createdAt: {
+          lt: cutoffDate
         }
       }
     });
-    return responseUtil.success({ deleted_count: deleted }, `Cleaned up ${deleted} old audit logs`);
+    return responseUtil.success({ deleted_count: result.count }, `Cleaned up ${result.count} old audit logs`);
   }
 }
 

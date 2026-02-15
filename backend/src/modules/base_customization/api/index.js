@@ -292,19 +292,18 @@ const createRoutes = (models, services) => {
 
   router.get('/models', (req, res) => {
     try {
-      const allModels = svc.sequelize.models;
-      const models = Object.keys(allModels)
-        .filter(name => !['SequelizeMeta'].includes(name))
-        .map(name => ({
+      const models = Object.entries(svc.models).map(([name, adapter]) => {
+        const fields = adapter.getFields();
+        return {
           name,
-          tableName: allModels[name].tableName,
-          fields: Object.entries(allModels[name].rawAttributes || {}).map(([fieldName, attr]) => ({
-            name: attr.field || fieldName,
-            type: attr.type?.constructor?.name || 'STRING',
-            required: attr.allowNull === false,
+          tableName: name,
+          fields: Object.entries(fields).map(([fieldName, info]) => ({
+            name: info.field || fieldName,
+            type: info.type || 'string',
+            required: !info.allowNull,
           }))
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name));
+        };
+      }).sort((a, b) => a.name.localeCompare(b.name));
 
       res.json({ success: true, data: models });
     } catch (error) {

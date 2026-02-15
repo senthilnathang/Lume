@@ -1,16 +1,10 @@
-import { getDatabase } from '../../config.js';
-import { Op } from 'sequelize';
+import prisma from '../../core/db/prisma.js';
 import { responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES } from '../../shared/constants/index.js';
 
 export class SettingService {
-  constructor() {
-    this.db = getDatabase();
-    this.Setting = this.db.models.Setting;
-  }
-
   async get(key) {
-    const setting = await this.Setting.findOne({ where: { key } });
+    const setting = await prisma.setting.findFirst({ where: { key } });
     if (!setting) return null;
 
     let value = setting.value;
@@ -39,33 +33,35 @@ export class SettingService {
       stringValue = String(value);
     }
 
-    const [setting, created] = await this.Setting.findOrCreate({
+    const setting = await prisma.setting.upsert({
       where: { key },
-      defaults: {
+      create: {
+        key,
         value: stringValue,
         type,
         category: options.category || 'general',
         description: options.description,
-        is_public: options.is_public || false,
-        is_encrypted: options.is_encrypted || false
+        isPublic: options.is_public || false,
+        isEncrypted: options.is_encrypted || false
+      },
+      update: {
+        value: stringValue,
+        type,
+        ...(options.category !== undefined && { category: options.category }),
+        ...(options.description !== undefined && { description: options.description }),
+        ...(options.is_public !== undefined && { isPublic: options.is_public }),
+        ...(options.is_encrypted !== undefined && { isEncrypted: options.is_encrypted })
       }
     });
 
-    if (!created) {
-      await setting.update({
-        value: stringValue,
-        type,
-        ...options
-      });
-    }
-
+    const created = setting.created_at?.getTime() === setting.updated_at?.getTime();
     return responseUtil.success({ key, value }, created ? MESSAGES.CREATED : MESSAGES.UPDATED);
   }
 
   async getByCategory(category) {
-    const settings = await this.Setting.findAll({
+    const settings = await prisma.setting.findMany({
       where: { category },
-      order: [['key', 'ASC']]
+      orderBy: { key: 'asc' }
     });
 
     const result = {};
@@ -77,9 +73,9 @@ export class SettingService {
   }
 
   async getPublic() {
-    const settings = await this.Setting.findAll({
-      where: { is_public: true },
-      order: [['category', 'ASC'], ['key', 'ASC']]
+    const settings = await prisma.setting.findMany({
+      where: { isPublic: true },
+      orderBy: [{ category: 'asc' }, { key: 'asc' }]
     });
 
     const result = {};
@@ -107,20 +103,20 @@ export class SettingService {
   }
 
   async getAll() {
-    const settings = await this.Setting.findAll({
-      order: [['category', 'ASC'], ['key', 'ASC']]
+    const settings = await prisma.setting.findMany({
+      orderBy: [{ category: 'asc' }, { key: 'asc' }]
     });
     return responseUtil.success(settings);
   }
 
   async delete(key) {
-    const setting = await this.Setting.findOne({ where: { key } });
+    const setting = await prisma.setting.findFirst({ where: { key } });
 
     if (!setting) {
       return responseUtil.notFound('Setting');
     }
 
-    await setting.destroy();
+    await prisma.setting.delete({ where: { key } });
     return responseUtil.success(null, MESSAGES.DELETED);
   }
 
@@ -148,9 +144,10 @@ export class SettingService {
     ];
 
     for (const setting of defaults) {
-      await this.Setting.findOrCreate({
+      await prisma.setting.upsert({
         where: { key: setting.key },
-        defaults: setting
+        create: setting,
+        update: {}
       });
     }
 

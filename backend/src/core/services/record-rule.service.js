@@ -1,10 +1,6 @@
-import { Op } from 'sequelize';
+import prisma from '../db/prisma.js';
 
 export class RecordRuleService {
-    constructor(db) {
-        this._db = db;
-    }
-
     async apply_rules(user_id, model_name, operation = 'read') {
         const rules = await this._get_applicable_rules(user_id, model_name);
 
@@ -16,14 +12,14 @@ export class RecordRuleService {
         let scope = 'all';
 
         for (const rule of rules) {
-            const rule_domain = typeof rule.domain === 'string' 
-                ? JSON.parse(rule.domain) 
+            const rule_domain = typeof rule.domain === 'string'
+                ? JSON.parse(rule.domain)
                 : rule.domain || [];
 
-            if (rule.apply_read && operation === 'read') {
+            if (rule.applyRead && operation === 'read') {
                 domain = this._combine_domains(domain, rule_domain, 'or');
             }
-            if (rule.apply_write && operation === 'write') {
+            if (rule.applyWrite && operation === 'write') {
                 domain = this._combine_domains(domain, rule_domain, 'or');
             }
         }
@@ -32,29 +28,36 @@ export class RecordRuleService {
     }
 
     async _get_applicable_rules(user_id, model_name) {
-        const { RecordRule, User, Profile, ProfilePermission } = this._db.models;
-
-        const user = await User.findByPk(user_id, {
-            include: [{ model: Profile, include: [ProfilePermission] }]
+        const user = await prisma.user.findUnique({
+            where: { id: user_id },
+            include: {
+                role: {
+                    include: {
+                        rolePermissions: {
+                            include: { permission: true }
+                        }
+                    }
+                }
+            }
         });
 
         if (!user) return [];
 
-        const profilePermissions = user.Profile?.ProfilePermissions || [];
-        const hasAdmin = profilePermissions.some(p => 
-            p.object === model_name && p.permission === 'admin'
+        const permissions = user.role?.rolePermissions || [];
+        const hasAdmin = permissions.some(rp =>
+            rp.permission.category === model_name && rp.permission.name === 'admin'
         );
 
         if (hasAdmin) return [];
 
-        return await RecordRule.findAll({
+        return await prisma.recordRule.findMany({
             where: {
-                model_name,
+                modelName: model_name,
                 active: true,
-                [Op.or]: [
+                OR: [
                     { scope: 'all' },
-                    { user_id },
-                    { role_id: user.role_id }
+                    { userId: user_id },
+                    { roleId: user.roleId }
                 ]
             }
         });
@@ -71,17 +74,17 @@ export class RecordRuleService {
     }
 
     parse_domain(domain, model) {
-        if (!domain || domain.length === 0) return {};
+        if (!domain || domain.length === 0) return [];
 
-        const conditions = {};
+        const conditions = [];
 
         for (const clause of domain) {
             if (Array.isArray(clause) && clause.length >= 3) {
                 const [field, operator, value] = clause;
-                conditions[field] = this._parse_operator(operator, value);
+                conditions.push({ field, operator, value });
             } else if (Array.isArray(clause) && clause.length === 2 && clause[0] === '!') {
                 const not_domain = clause[1];
-                Object.assign(conditions, { [Symbol.for('not')]: this.parse_domain(not_domain, model) });
+                conditions.push({ not: this.parse_domain(not_domain, model) });
             }
         }
 
@@ -89,20 +92,7 @@ export class RecordRuleService {
     }
 
     _parse_operator(operator, value) {
-        const operators = {
-            '=': Op.eq,
-            '!=': Op.ne,
-            '>': Op.gt,
-            '>=': Op.gte,
-            '<': Op.lt,
-            '<=': Op.lte,
-            'like': Op.like,
-            'ilike': Op.like,
-            'in': Op.in,
-            'not in': Op.notIn,
-            'contains': Op.contains
-        };
-        return operators[operator] || Op.eq;
+        return { operator, value };
     }
 }
 

@@ -1,18 +1,20 @@
-import { getDatabase, initializeDatabase } from '../config.js';
-import { setupModels } from '../database/models/index.js';
+#!/usr/bin/env node
+/**
+ * Lume Seed Sample Data Script
+ * Seeds activities, team members, messages, and settings
+ */
+
+import dotenv from 'dotenv';
+dotenv.config();
+
+import prisma from '../core/db/prisma.js';
 
 const seedSampleData = async () => {
   try {
-    const sequelize = await initializeDatabase();
-    setupModels(sequelize);
-    const db = getDatabase();
-    const Activity = db.models.Activity;
-    const TeamMember = db.models.TeamMember;
-    const Message = db.models.Message;
-    const Setting = db.models.Setting;
+    await prisma.$connect();
 
     // Seed Activities
-    const activities = [
+    const activitiesData = [
       {
         title: 'Annual Charity Gala 2026',
         slug: 'annual-charity-gala-2026',
@@ -24,7 +26,7 @@ const seedSampleData = async () => {
         end_date: new Date('2026-03-15T23:00:00Z'),
         location: 'Grand Ballroom, Downtown Hotel',
         capacity: 200,
-        is_featured: true
+        is_featured: true,
       },
       {
         title: 'Community Clean-up Drive',
@@ -37,7 +39,7 @@ const seedSampleData = async () => {
         end_date: new Date('2026-02-20T14:00:00Z'),
         location: 'Central Park Meeting Point',
         capacity: 100,
-        is_featured: true
+        is_featured: true,
       },
       {
         title: 'Youth Leadership Workshop',
@@ -50,7 +52,7 @@ const seedSampleData = async () => {
         end_date: new Date('2026-02-28T17:00:00Z'),
         location: 'Community Center',
         capacity: 50,
-        is_featured: false
+        is_featured: false,
       },
       {
         title: 'Food Distribution Program',
@@ -63,7 +65,7 @@ const seedSampleData = async () => {
         end_date: new Date('2026-02-15T15:00:00Z'),
         location: 'Distribution Center',
         capacity: 150,
-        is_featured: true
+        is_featured: true,
       },
       {
         title: 'Health Awareness Camp',
@@ -76,17 +78,22 @@ const seedSampleData = async () => {
         end_date: new Date('2026-03-01T16:00:00Z'),
         location: 'Medical Camp Ground',
         capacity: 200,
-        is_featured: false
-      }
+        is_featured: false,
+      },
     ];
 
-    for (const activity of activities) {
-      await Activity.findOrCreate({
+    for (const activity of activitiesData) {
+      await prisma.activities.upsert({
         where: { slug: activity.slug },
-        defaults: activity
+        create: {
+          ...activity,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+        update: {},
       });
     }
-    console.log(`✅ Seeded ${activities.length} activities`);
+    console.log(`✅ Seeded ${activitiesData.length} activities`);
 
     // Seed Team Members
     const teamMembers = [
@@ -100,7 +107,7 @@ const seedSampleData = async () => {
         bio: 'John has over 20 years of experience in non-profit management.',
         is_leader: true,
         is_active: true,
-        order: 1
+        order: 1,
       },
       {
         first_name: 'Sarah',
@@ -112,7 +119,7 @@ const seedSampleData = async () => {
         bio: 'Sarah leads our community outreach and program development.',
         is_leader: true,
         is_active: true,
-        order: 2
+        order: 2,
       },
       {
         first_name: 'Michael',
@@ -124,7 +131,7 @@ const seedSampleData = async () => {
         bio: 'Michael oversees all fundraising initiatives and donor relations.',
         is_leader: false,
         is_active: true,
-        order: 3
+        order: 3,
       },
       {
         first_name: 'Emily',
@@ -136,7 +143,7 @@ const seedSampleData = async () => {
         bio: 'Emily manages our volunteer program and community engagement.',
         is_leader: false,
         is_active: true,
-        order: 4
+        order: 4,
       },
       {
         first_name: 'David',
@@ -148,7 +155,7 @@ const seedSampleData = async () => {
         bio: 'David ensures transparent and efficient financial management.',
         is_leader: false,
         is_active: true,
-        order: 5
+        order: 5,
       },
       {
         first_name: 'Jennifer',
@@ -160,20 +167,25 @@ const seedSampleData = async () => {
         bio: 'Jennifer handles all media relations and public communications.',
         is_leader: false,
         is_active: true,
-        order: 6
-      }
+        order: 6,
+      },
     ];
 
     for (const member of teamMembers) {
-      await TeamMember.findOrCreate({
+      await prisma.team_members.upsert({
         where: { email: member.email },
-        defaults: member
+        create: {
+          ...member,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+        update: {},
       });
     }
     console.log(`✅ Seeded ${teamMembers.length} team members`);
 
     // Seed Sample Messages
-    const messages = [
+    const messagesData = [
       {
         subject: 'Inquiry about Volunteer Opportunities',
         content: 'Hi, I would like to know more about volunteer opportunities with your organization. I have experience in event management and community service.',
@@ -181,7 +193,7 @@ const seedSampleData = async () => {
         sender_email: 'alex.thompson@email.com',
         type: 'inquiry',
         status: 'new',
-        priority: 'normal'
+        priority: 'normal',
       },
       {
         subject: 'Donation Query',
@@ -190,7 +202,7 @@ const seedSampleData = async () => {
         sender_email: 'maria.garcia@email.com',
         type: 'support',
         status: 'new',
-        priority: 'normal'
+        priority: 'normal',
       },
       {
         subject: 'Partnership Proposal',
@@ -199,14 +211,20 @@ const seedSampleData = async () => {
         sender_email: 'robert.chen@corporate.com',
         type: 'feedback',
         status: 'read',
-        priority: 'high'
-      }
+        priority: 'high',
+      },
     ];
 
-    for (const message of messages) {
-      await Message.create(message);
+    for (const message of messagesData) {
+      await prisma.messages.create({
+        data: {
+          ...message,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      });
     }
-    console.log(`✅ Seeded ${messages.length} messages`);
+    console.log(`✅ Seeded ${messagesData.length} messages`);
 
     // Seed Settings
     const settings = [
@@ -219,13 +237,19 @@ const seedSampleData = async () => {
       { key: 'twitter_url', value: 'https://twitter.com/gawdesy', type: 'string', category: 'social', description: 'Twitter profile URL' },
       { key: 'linkedin_url', value: 'https://linkedin.com/company/gawdesy', type: 'string', category: 'social', description: 'LinkedIn profile URL' },
       { key: 'currency', value: 'USD', type: 'string', category: 'localization', description: 'Default currency' },
-      { key: 'timezone', value: 'America/New_York', type: 'string', category: 'localization', description: 'Default timezone' }
+      { key: 'timezone', value: 'America/New_York', type: 'string', category: 'localization', description: 'Default timezone' },
     ];
 
     for (const setting of settings) {
-      await Setting.findOrCreate({
+      await prisma.setting.upsert({
         where: { key: setting.key },
-        defaults: setting
+        create: {
+          ...setting,
+          isPublic: true,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+        update: {},
       });
     }
     console.log(`✅ Seeded ${settings.length} settings`);
@@ -238,11 +262,13 @@ const seedSampleData = async () => {
 };
 
 seedSampleData()
-  .then(() => {
+  .then(async () => {
     console.log('Seeding complete.');
+    await prisma.$disconnect();
     process.exit(0);
   })
-  .catch((error) => {
+  .catch(async (error) => {
     console.error('Seeding failed:', error);
+    await prisma.$disconnect().catch(() => {});
     process.exit(1);
   });

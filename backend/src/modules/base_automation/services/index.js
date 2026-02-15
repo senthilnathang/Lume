@@ -3,26 +3,26 @@
  */
 
 export class AutomationService {
-  constructor(models, sequelize) {
+  constructor(models) {
     this.models = models;
-    this.sequelize = sequelize;
   }
 
   // ── Workflows ─────────────────────────────────────────────────
 
   async getWorkflows(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.Workflow.findAll({
+    const result = await this.models.Workflow.findAll({
       where,
       order: [['createdAt', 'DESC']]
     });
+    return result.rows;
   }
 
   async getWorkflow(id) {
-    return this.models.Workflow.findByPk(id);
+    return this.models.Workflow.findById(id);
   }
 
   async createWorkflow(data) {
@@ -30,33 +30,34 @@ export class AutomationService {
   }
 
   async updateWorkflow(id, data) {
-    const workflow = await this.models.Workflow.findByPk(id);
-    if (!workflow) return null;
-    await workflow.update(data);
-    return workflow;
+    const existing = await this.models.Workflow.findById(id);
+    if (!existing) return null;
+    return this.models.Workflow.update(id, data);
   }
 
   async deleteWorkflow(id) {
-    const workflow = await this.models.Workflow.findByPk(id);
-    if (workflow) await workflow.destroy();
-    return workflow;
+    const existing = await this.models.Workflow.findById(id);
+    if (!existing) return null;
+    await this.models.Workflow.destroy(id);
+    return existing;
   }
 
   // ── Flows ─────────────────────────────────────────────────────
 
   async getFlows(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.Flow.findAll({
+    const result = await this.models.Flow.findAll({
       where,
       order: [['createdAt', 'DESC']]
     });
+    return result.rows;
   }
 
   async getFlow(id) {
-    return this.models.Flow.findByPk(id);
+    return this.models.Flow.findById(id);
   }
 
   async createFlow(data) {
@@ -64,33 +65,34 @@ export class AutomationService {
   }
 
   async updateFlow(id, data) {
-    const flow = await this.models.Flow.findByPk(id);
-    if (!flow) return null;
-    await flow.update(data);
-    return flow;
+    const existing = await this.models.Flow.findById(id);
+    if (!existing) return null;
+    return this.models.Flow.update(id, data);
   }
 
   async deleteFlow(id) {
-    const flow = await this.models.Flow.findByPk(id);
-    if (flow) await flow.destroy();
-    return flow;
+    const existing = await this.models.Flow.findById(id);
+    if (!existing) return null;
+    await this.models.Flow.destroy(id);
+    return existing;
   }
 
   // ── Business Rules ────────────────────────────────────────────
 
   async getBusinessRules(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.BusinessRule.findAll({
+    const result = await this.models.BusinessRule.findAll({
       where,
       order: [['priority', 'ASC'], ['createdAt', 'DESC']]
     });
+    return result.rows;
   }
 
   async getBusinessRule(id) {
-    return this.models.BusinessRule.findByPk(id);
+    return this.models.BusinessRule.findById(id);
   }
 
   async createBusinessRule(data) {
@@ -98,33 +100,34 @@ export class AutomationService {
   }
 
   async updateBusinessRule(id, data) {
-    const rule = await this.models.BusinessRule.findByPk(id);
-    if (!rule) return null;
-    await rule.update(data);
-    return rule;
+    const existing = await this.models.BusinessRule.findById(id);
+    if (!existing) return null;
+    return this.models.BusinessRule.update(id, data);
   }
 
   async deleteBusinessRule(id) {
-    const rule = await this.models.BusinessRule.findByPk(id);
-    if (rule) await rule.destroy();
-    return rule;
+    const existing = await this.models.BusinessRule.findById(id);
+    if (!existing) return null;
+    await this.models.BusinessRule.destroy(id);
+    return existing;
   }
 
   // ── Approval Chains ───────────────────────────────────────────
 
   async getApprovalChains(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.ApprovalChain.findAll({
+    const result = await this.models.ApprovalChain.findAll({
       where,
       order: [['createdAt', 'DESC']]
     });
+    return result.rows;
   }
 
   async getApprovalChain(id) {
-    return this.models.ApprovalChain.findByPk(id);
+    return this.models.ApprovalChain.findById(id);
   }
 
   async createApprovalChain(data) {
@@ -132,32 +135,33 @@ export class AutomationService {
   }
 
   async updateApprovalChain(id, data) {
-    const chain = await this.models.ApprovalChain.findByPk(id);
-    if (!chain) return null;
-    await chain.update(data);
-    return chain;
+    const existing = await this.models.ApprovalChain.findById(id);
+    if (!existing) return null;
+    return this.models.ApprovalChain.update(id, data);
   }
 
   async deleteApprovalChain(id) {
-    const chain = await this.models.ApprovalChain.findByPk(id);
-    if (chain) await chain.destroy();
-    return chain;
+    const existing = await this.models.ApprovalChain.findById(id);
+    if (!existing) return null;
+    await this.models.ApprovalChain.destroy(id);
+    return existing;
   }
 
   // ── Scheduled Actions ─────────────────────────────────────────
 
   async getScheduledActions(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
 
-    return this.models.ScheduledAction.findAll({
+    const result = await this.models.ScheduledAction.findAll({
       where,
       order: [['nextRunAt', 'ASC']]
     });
+    return result.rows;
   }
 
   async getScheduledAction(id) {
-    return this.models.ScheduledAction.findByPk(id);
+    return this.models.ScheduledAction.findById(id);
   }
 
   async createScheduledAction(data) {
@@ -165,33 +169,34 @@ export class AutomationService {
   }
 
   async updateScheduledAction(id, data) {
-    const action = await this.models.ScheduledAction.findByPk(id);
-    if (!action) return null;
-    await action.update(data);
-    return action;
+    const existing = await this.models.ScheduledAction.findById(id);
+    if (!existing) return null;
+    return this.models.ScheduledAction.update(id, data);
   }
 
   async deleteScheduledAction(id) {
-    const action = await this.models.ScheduledAction.findByPk(id);
-    if (action) await action.destroy();
-    return action;
+    const existing = await this.models.ScheduledAction.findById(id);
+    if (!existing) return null;
+    await this.models.ScheduledAction.destroy(id);
+    return existing;
   }
 
   // ── Validation Rules ──────────────────────────────────────────
 
   async getValidationRules(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.ValidationRule.findAll({
+    const result = await this.models.ValidationRule.findAll({
       where,
       order: [['priority', 'ASC'], ['createdAt', 'DESC']]
     });
+    return result.rows;
   }
 
   async getValidationRule(id) {
-    return this.models.ValidationRule.findByPk(id);
+    return this.models.ValidationRule.findById(id);
   }
 
   async createValidationRule(data) {
@@ -199,33 +204,34 @@ export class AutomationService {
   }
 
   async updateValidationRule(id, data) {
-    const rule = await this.models.ValidationRule.findByPk(id);
-    if (!rule) return null;
-    await rule.update(data);
-    return rule;
+    const existing = await this.models.ValidationRule.findById(id);
+    if (!existing) return null;
+    return this.models.ValidationRule.update(id, data);
   }
 
   async deleteValidationRule(id) {
-    const rule = await this.models.ValidationRule.findByPk(id);
-    if (rule) await rule.destroy();
-    return rule;
+    const existing = await this.models.ValidationRule.findById(id);
+    if (!existing) return null;
+    await this.models.ValidationRule.destroy(id);
+    return existing;
   }
 
   // ── Assignment Rules ──────────────────────────────────────────
 
   async getAssignmentRules(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.AssignmentRule.findAll({
+    const result = await this.models.AssignmentRule.findAll({
       where,
       order: [['priority', 'ASC'], ['createdAt', 'DESC']]
     });
+    return result.rows;
   }
 
   async getAssignmentRule(id) {
-    return this.models.AssignmentRule.findByPk(id);
+    return this.models.AssignmentRule.findById(id);
   }
 
   async createAssignmentRule(data) {
@@ -233,33 +239,34 @@ export class AutomationService {
   }
 
   async updateAssignmentRule(id, data) {
-    const rule = await this.models.AssignmentRule.findByPk(id);
-    if (!rule) return null;
-    await rule.update(data);
-    return rule;
+    const existing = await this.models.AssignmentRule.findById(id);
+    if (!existing) return null;
+    return this.models.AssignmentRule.update(id, data);
   }
 
   async deleteAssignmentRule(id) {
-    const rule = await this.models.AssignmentRule.findByPk(id);
-    if (rule) await rule.destroy();
-    return rule;
+    const existing = await this.models.AssignmentRule.findById(id);
+    if (!existing) return null;
+    await this.models.AssignmentRule.destroy(id);
+    return existing;
   }
 
   // ── Rollup Fields ─────────────────────────────────────────────
 
   async getRollupFields(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.parentModel) where.parentModel = filters.parentModel;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.parentModel) where.push(['parentModel', '=', filters.parentModel]);
 
-    return this.models.RollupField.findAll({
+    const result = await this.models.RollupField.findAll({
       where,
       order: [['createdAt', 'DESC']]
     });
+    return result.rows;
   }
 
   async getRollupField(id) {
-    return this.models.RollupField.findByPk(id);
+    return this.models.RollupField.findById(id);
   }
 
   async createRollupField(data) {
@@ -267,16 +274,16 @@ export class AutomationService {
   }
 
   async updateRollupField(id, data) {
-    const field = await this.models.RollupField.findByPk(id);
-    if (!field) return null;
-    await field.update(data);
-    return field;
+    const existing = await this.models.RollupField.findById(id);
+    if (!existing) return null;
+    return this.models.RollupField.update(id, data);
   }
 
   async deleteRollupField(id) {
-    const field = await this.models.RollupField.findByPk(id);
-    if (field) await field.destroy();
-    return field;
+    const existing = await this.models.RollupField.findById(id);
+    if (!existing) return null;
+    await this.models.RollupField.destroy(id);
+    return existing;
   }
 }
 

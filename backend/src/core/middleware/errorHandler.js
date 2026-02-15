@@ -12,20 +12,20 @@ export const errorHandler = (err, req, res, next) => {
     return res.status(HTTP_STATUS.BAD_REQUEST).json(responseUtil.validationError(errors));
   }
 
-  if (err.name === 'SequelizeUniqueConstraintError') {
-    const errors = Object.values(err.errors).map(e => ({
-      field: e.path,
-      message: `${e.value} already exists`
-    }));
-    return res.status(HTTP_STATUS.CONFLICT).json(responseUtil.error('Resource already exists', errors, 'CONFLICT'));
+  // Prisma unique constraint violation
+  if (err.code === 'P2002') {
+    const fields = err.meta?.target || [];
+    return res.status(HTTP_STATUS.CONFLICT).json(responseUtil.error('Resource already exists', [{ field: fields.join(', '), message: 'Already exists' }], 'CONFLICT'));
   }
 
-  if (err.name === 'SequelizeValidationError') {
-    const errors = Object.values(err.errors).map(e => ({
-      field: e.path,
-      message: e.message
-    }));
-    return res.status(HTTP_STATUS.BAD_REQUEST).json(responseUtil.validationError(errors));
+  // Prisma record not found
+  if (err.code === 'P2025') {
+    return res.status(HTTP_STATUS.NOT_FOUND).json(responseUtil.notFound('Record'));
+  }
+
+  // Prisma validation error
+  if (err.code === 'P2000') {
+    return res.status(HTTP_STATUS.BAD_REQUEST).json(responseUtil.validationError([{ field: err.meta?.column_name, message: 'Value too long for column' }]));
   }
 
   if (err.name === 'JsonWebTokenError') {

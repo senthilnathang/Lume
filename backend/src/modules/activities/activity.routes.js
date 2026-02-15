@@ -3,6 +3,7 @@ import { body, param, query } from 'express-validator';
 import { validateRequest } from '../../api/validators/validateRequest.js';
 import { ActivityService } from './activity.service.js';
 import { authenticate, authorize } from '../../core/middleware/auth.js';
+import { responseUtil } from '../../shared/utils/index.js';
 
 const router = Router();
 

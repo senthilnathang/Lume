@@ -3,26 +3,26 @@
  */
 
 export class CustomizationService {
-  constructor(models, sequelize) {
+  constructor(models) {
     this.models = models;
-    this.sequelize = sequelize;
   }
 
   // ── Custom Fields ─────────────────────────────────────────────
 
   async getCustomFields(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.CustomField.findAll({
+    const result = await this.models.CustomField.findAll({
       where,
       order: [['model', 'ASC'], ['sequence', 'ASC']]
     });
+    return result.rows;
   }
 
   async getCustomField(id) {
-    return this.models.CustomField.findByPk(id);
+    return this.models.CustomField.findById(id);
   }
 
   async createCustomField(data) {
@@ -30,41 +30,43 @@ export class CustomizationService {
   }
 
   async updateCustomField(id, data) {
-    const field = await this.models.CustomField.findByPk(id);
-    if (!field) return null;
-    await field.update(data);
-    return field;
+    const existing = await this.models.CustomField.findById(id);
+    if (!existing) return null;
+    return this.models.CustomField.update(id, data);
   }
 
   async deleteCustomField(id) {
-    const field = await this.models.CustomField.findByPk(id);
-    if (field) await field.destroy();
-    return field;
+    const existing = await this.models.CustomField.findById(id);
+    if (!existing) return null;
+    await this.models.CustomField.destroy(id);
+    return existing;
   }
 
   async getFieldsByModel(model) {
-    return this.models.CustomField.findAll({
-      where: { model, status: 'active' },
+    const result = await this.models.CustomField.findAll({
+      where: [['model', '=', model], ['status', '=', 'active']],
       order: [['sequence', 'ASC']]
     });
+    return result.rows;
   }
 
   // ── Custom Views ──────────────────────────────────────────────
 
   async getCustomViews(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
-    if (filters.viewType) where.viewType = filters.viewType;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
+    if (filters.viewType) where.push(['viewType', '=', filters.viewType]);
 
-    return this.models.CustomView.findAll({
+    const result = await this.models.CustomView.findAll({
       where,
       order: [['model', 'ASC'], ['name', 'ASC']]
     });
+    return result.rows;
   }
 
   async getCustomView(id) {
-    return this.models.CustomView.findByPk(id);
+    return this.models.CustomView.findById(id);
   }
 
   async createCustomView(data) {
@@ -72,33 +74,34 @@ export class CustomizationService {
   }
 
   async updateCustomView(id, data) {
-    const view = await this.models.CustomView.findByPk(id);
-    if (!view) return null;
-    await view.update(data);
-    return view;
+    const existing = await this.models.CustomView.findById(id);
+    if (!existing) return null;
+    return this.models.CustomView.update(id, data);
   }
 
   async deleteCustomView(id) {
-    const view = await this.models.CustomView.findByPk(id);
-    if (view) await view.destroy();
-    return view;
+    const existing = await this.models.CustomView.findById(id);
+    if (!existing) return null;
+    await this.models.CustomView.destroy(id);
+    return existing;
   }
 
   // ── Form Layouts ──────────────────────────────────────────────
 
   async getFormLayouts(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.FormLayout.findAll({
+    const result = await this.models.FormLayout.findAll({
       where,
       order: [['model', 'ASC'], ['name', 'ASC']]
     });
+    return result.rows;
   }
 
   async getFormLayout(id) {
-    return this.models.FormLayout.findByPk(id);
+    return this.models.FormLayout.findById(id);
   }
 
   async createFormLayout(data) {
@@ -106,33 +109,34 @@ export class CustomizationService {
   }
 
   async updateFormLayout(id, data) {
-    const layout = await this.models.FormLayout.findByPk(id);
-    if (!layout) return null;
-    await layout.update(data);
-    return layout;
+    const existing = await this.models.FormLayout.findById(id);
+    if (!existing) return null;
+    return this.models.FormLayout.update(id, data);
   }
 
   async deleteFormLayout(id) {
-    const layout = await this.models.FormLayout.findByPk(id);
-    if (layout) await layout.destroy();
-    return layout;
+    const existing = await this.models.FormLayout.findById(id);
+    if (!existing) return null;
+    await this.models.FormLayout.destroy(id);
+    return existing;
   }
 
   // ── List Configurations ───────────────────────────────────────
 
   async getListConfigs(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
-    if (filters.model) where.model = filters.model;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
+    if (filters.model) where.push(['model', '=', filters.model]);
 
-    return this.models.ListConfig.findAll({
+    const result = await this.models.ListConfig.findAll({
       where,
       order: [['model', 'ASC'], ['name', 'ASC']]
     });
+    return result.rows;
   }
 
   async getListConfig(id) {
-    return this.models.ListConfig.findByPk(id);
+    return this.models.ListConfig.findById(id);
   }
 
   async createListConfig(data) {
@@ -140,32 +144,33 @@ export class CustomizationService {
   }
 
   async updateListConfig(id, data) {
-    const config = await this.models.ListConfig.findByPk(id);
-    if (!config) return null;
-    await config.update(data);
-    return config;
+    const existing = await this.models.ListConfig.findById(id);
+    if (!existing) return null;
+    return this.models.ListConfig.update(id, data);
   }
 
   async deleteListConfig(id) {
-    const config = await this.models.ListConfig.findByPk(id);
-    if (config) await config.destroy();
-    return config;
+    const existing = await this.models.ListConfig.findById(id);
+    if (!existing) return null;
+    await this.models.ListConfig.destroy(id);
+    return existing;
   }
 
   // ── Dashboard Widgets ─────────────────────────────────────────
 
   async getDashboardWidgets(filters = {}) {
-    const where = {};
-    if (filters.status) where.status = filters.status;
+    const where = [];
+    if (filters.status) where.push(['status', '=', filters.status]);
 
-    return this.models.DashboardWidget.findAll({
+    const result = await this.models.DashboardWidget.findAll({
       where,
       order: [['name', 'ASC']]
     });
+    return result.rows;
   }
 
   async getDashboardWidget(id) {
-    return this.models.DashboardWidget.findByPk(id);
+    return this.models.DashboardWidget.findById(id);
   }
 
   async createDashboardWidget(data) {
@@ -173,16 +178,16 @@ export class CustomizationService {
   }
 
   async updateDashboardWidget(id, data) {
-    const widget = await this.models.DashboardWidget.findByPk(id);
-    if (!widget) return null;
-    await widget.update(data);
-    return widget;
+    const existing = await this.models.DashboardWidget.findById(id);
+    if (!existing) return null;
+    return this.models.DashboardWidget.update(id, data);
   }
 
   async deleteDashboardWidget(id) {
-    const widget = await this.models.DashboardWidget.findByPk(id);
-    if (widget) await widget.destroy();
-    return widget;
+    const existing = await this.models.DashboardWidget.findById(id);
+    if (!existing) return null;
+    await this.models.DashboardWidget.destroy(id);
+    return existing;
   }
 }
 
