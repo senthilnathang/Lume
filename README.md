@@ -1,303 +1,337 @@
-# Lume - Modular Light Framework
+# Lume Framework
 
-<p align="center">
-  <strong>Lume</strong> - A modular, lightweight framework for building enterprise applications with Vue.js and Express.js
-</p>
+**A modular, enterprise-grade web application framework built with Node.js, Express, Vue 3, and a Hybrid ORM (Prisma + Drizzle).**
 
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#modules">Modules</a> •
-  <a href="#api">API</a>
-</p>
+Lume provides a complete foundation for building business applications with a pluggable module system, advanced RBAC, automation engine, real-time features, and a polished admin UI out of the box.
 
 ---
-
-## About Lume
-
-**Lume** (Modular Light Framework) is an enterprise-grade modular framework inspired by FastVue and Odoo architectures. It provides a complete foundation for building scalable applications with dynamic module loading, RBAC, hooks, sequences, and record rules.
-
-## Features
-
-### Core Features
-- **Dynamic Module Loading** - Load/unload modules at runtime
-- **Event-Driven Hooks** - Decorator-based lifecycle hooks
-- **CRUD Mixin** - Reusable CRUD operations
-- **Sequences** - Auto-numbering with patterns
-- **Record Rules** - Row-level security
-
-### Security
-- **JWT Authentication** - With refresh tokens
-- **RBAC** - Role-based access control
-- **Profile Permissions** - Granular permissions
-- **Rate Limiting** - API protection
-- **Audit Logging** - Track all changes
-
-### Database
-- **Sequelize ORM** - MySQL/PostgreSQL support
-- **Soft Deletes** - With `deleted_at`
-- **Audit Fields** - `created_by`, `updated_by`
-- **Company Scoping** - Multi-tenant support
-
-## Quick Start
-
-### Installation
-
-```bash
-# Backend
-cd backend
-npm install
-npm run dev
-
-# Frontend
-cd frontend/apps/web-lume
-npm install
-npm run dev
-```
-
-### Environment Variables
-
-```env
-# Backend (.env)
-PORT=3000
-DB_TYPE=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=lume
-DB_USER=root
-DB_PASSWORD=password
-JWT_SECRET=your-secret-key
-
-# Frontend (.env)
-VITE_API_URL=http://localhost:3000/api
-```
-
-### Default Admin
-- Email: admin@lume.dev
-- Password: Admin@123
-
-## Architecture
-
-```
-┌────────────────────────────────────────────────────┐
-│                LUME FRAMEWORK                     │
-├────────────────────────────────────────────────────┤
-│  FRONTEND (Vue.js 3)                              │
-│  ├── Dynamic Router                               │
-│  ├── Modular Components                           │
-│  └── API Composables                              │
-├────────────────────────────────────────────────────┤
-│  BACKEND (Express.js)                             │
-│  ├── Module Loader                                │
-│  ├── Core Services (CRUD, Hooks, Security)        │
-│  └── Database (Sequelize)                         │
-├────────────────────────────────────────────────────┤
-│  MODULES                                         │
-│  ├── lume (Core)                                 │
-│  ├── user, auth, donations, activities            │
-│  └── documents, team, messages, settings, audit   │
-└────────────────────────────────────────────────────┘
-```
-
-## Module Structure
-
-```
-module_name/
-├── __manifest__.js    # Module metadata
-├── index.js          # Lifecycle hooks
-├── {name}.model.js   # Sequelize model
-├── {name}.service.js # Business logic
-├── {name}.routes.js  # API routes
-└── hooks/
-    └── index.js      # Module hooks
-```
-
-### Manifest Example
-
-```javascript
-module.exports = {
-    name: "my_module",
-    version: "1.0.0",
-    permissions: [
-        { name: "my_module.read" },
-        { name: "my_module.write" }
-    ],
-    menus: [
-        { title: "My Module", path: "/my-module", icon: "cog" }
-    ],
-    hooks: {
-        post_init_hook: "postInit"
-    },
-    auto_install: true
-};
-```
-
-## API Endpoints
-
-### Core APIs
-```bash
-GET  /health              # Health check
-GET  /api/modules         # List modules
-GET  /api/menus          # List menus
-GET  /api/permissions   # List permissions
-```
-
-### Lume APIs
-```bash
-GET  /api/lume/info         # Framework info
-GET  /api/lume/statistics   # System statistics
-GET  /api/lume/settings     # Get settings
-POST /api/sequences/generate?name=XXX  # Generate sequence
-```
-
-### Module APIs
-```bash
-# Users
-GET    /api/users          # List users
-POST   /api/users          # Create user
-GET    /api/users/:id     # Get user
-PUT    /api/users/:id     # Update user
-DELETE /api/users/:id     # Delete user
-
-# Donations
-GET    /api/donations     # List donations
-POST   /api/donations     # Create donation
-```
-
-## Using Core Services
-
-### CRUDMixin
-```javascript
-const { CRUDMixin } = require('./core/services');
-
-class UserService extends CRUDMixin {
-    constructor(db, context) {
-        super(User, db, context);
-    }
-}
-
-const service = new UserService(db, { user_id: 1 });
-const users = await service.search({
-    domain: [['status', '=', 'active']],
-    page: 1,
-    limit: 20
-});
-```
-
-### Hooks
-```javascript
-const { before_create } = require('./core/hooks');
-
-class User extends Model {
-    @before_create('user')
-    setDefaults(record, context) {
-        record.status = 'pending';
-    }
-}
-```
-
-### Sequences
-```javascript
-const receipt = await sequenceService.getNextCode('receipt', {
-    company_code: 'LUME'
-});
-// Returns: "LUME-2024-0001"
-```
-
-## Frontend Integration
-
-### Using Modules
-```javascript
-import { useModules } from '@/composables/useModules';
-
-const { modules, menus, loadModules } = useModules();
-
-onMounted(async () => {
-    await loadModules();
-});
-```
-
-### API Client
-```javascript
-import { useApi } from '@/composables/useApi';
-
-const api = useApi();
-const users = await api.get('/users');
-```
-
-## Available Modules
-
-| Module | Description |
-|--------|-------------|
-| lume | Core framework module |
-| user | User management |
-| auth | Authentication & roles |
-| donations | Donation tracking |
-| activities | Activity logging |
-| documents | Document management |
-| team | Team members |
-| messages | Messaging system |
-| settings | System settings |
-| audit | Audit logging |
-| media | Media library |
-
-## Security
-
-### Roles
-- **Admin** - Full access
-- **Manager** - Management access
-- **User** - Standard access
-- **Viewer** - Read-only access
-
-### Features
-- Password hashing (bcrypt, 12 rounds)
-- JWT tokens (24h expiry)
-- Refresh tokens (7d expiry)
-- Account lockout (5 failed attempts)
-- Rate limiting
-
-## Performance
-
-- Pagination: 20 records/page
-- Compression: Gzip enabled
-- Rate limiting: 100 req/15min
-- Redis support for sessions
 
 ## Tech Stack
 
-### Frontend
-- Vue.js 3 with Composition API
-- Vue Router
-- Pinia State Management
-- TypeScript
-- Tailwind CSS
-
-### Backend
-- Node.js with Express.js
-- Sequelize ORM
-- JWT Authentication
-- Winston Logger
-
-### Database
-- MySQL 8.0
-- PostgreSQL (optional)
-- Proper indexing for performance
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-MIT License - see LICENSE file for details.
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Node.js 18+, Express.js, ES Modules |
+| **Frontend** | Vue 3, TypeScript, Vite, Ant Design Vue, Tailwind CSS |
+| **Database** | MySQL (primary), PostgreSQL (supported) |
+| **ORM** | Prisma (core tables) + Drizzle (module tables) — Hybrid ORM |
+| **Auth** | JWT with refresh tokens, 2FA/TOTP, API keys |
+| **Real-time** | WebSocket (ws) with JWT auth |
+| **Email** | Nodemailer with HTML templates |
+| **Scheduling** | node-cron for background tasks |
+| **Cache** | Redis (planned) |
+| **Testing** | Jest (backend), Vitest + Playwright (frontend) |
 
 ---
 
-<p align="center">
-  Built with ❤️ using Vue.js, Express.js, and Sequelize
-</p>
+## Features
+
+### Core Framework
+- **Hybrid ORM** — Prisma for core tables, Drizzle for module tables, unified adapter pattern
+- **Module System** — 21 pluggable modules with dependency resolution, install/uninstall lifecycle
+- **Auto CRUD** — `BaseService` + `createCrudRouter` generate full REST APIs from any ORM adapter
+- **Real-time** — WebSocket server with JWT auth, per-user messaging, broadcast
+
+### Security
+- JWT authentication with refresh tokens
+- Two-factor authentication (TOTP with QR codes and backup codes)
+- Role-based access control (6 system roles, 100+ permissions)
+- Record-level access rules
+- IP whitelist/blacklist enforcement
+- API key management with scoping
+- Session tracking and management
+- Configurable password policies
+- Rate limiting, Helmet security headers, CORS
+
+### Automation & Business Logic
+- State machine workflows
+- Visual flow designer
+- Business rule engine with condition groups
+- Multi-step approval chains
+- Scheduled actions (cron expressions)
+- Validation and assignment rules
+- Rollup field aggregation
+- Webhook dispatch with HMAC-SHA256 signatures and retry
+
+### Data Management
+- CSV/JSON import with column mapping and validation
+- Export with field selection and templates
+- Feature flag management
+- System backup tracking
+- Audit logging with field-level diffs (old/new values)
+
+### Admin UI
+- 50+ custom Vue views — zero fallback to generic views
+- Command palette (Ctrl+K) with global search
+- Sidebar navigation from module manifests
+- Column visibility/ordering with persistence
+- CSV/JSON export from any table
+- Responsive design with collapsible sidebar
+
+### Application Modules
+- **Activities** — Event management with publishing, calendar, registration
+- **Donations** — Donation/donor/campaign tracking with reports
+- **Team** — Directory, departments, leadership hierarchy
+- **Documents** — File storage with categories and access control
+- **Media** — Media library with statistics and featured items
+- **Messages** — Contact form management with status tracking
+- **Audit** — Comprehensive activity logging with cleanup
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- **Node.js** 18+ and npm
+- **MySQL** 8.0+ (or PostgreSQL 14+)
+- **Git**
+
+### 1. Clone & Install
+
+```bash
+git clone <repo-url> /opt/Lume
+cd /opt/Lume
+
+# Backend
+cd backend
+npm install
+npx prisma generate
+
+# Frontend
+cd ../frontend/apps/web-lume
+npm install
+```
+
+### 2. Configure Environment
+
+```bash
+# backend/.env
+cp .env.example .env
+
+# Required settings:
+DATABASE_URL="mysql://user:password@localhost:3306/lume"
+JWT_SECRET="your-secure-secret-here"
+JWT_REFRESH_SECRET="your-refresh-secret-here"
+PORT=3000
+NODE_ENV=development
+```
+
+### 3. Initialize Database
+
+```bash
+cd /opt/Lume/backend
+
+# Create tables and seed data
+npx prisma db push
+npm run db:init
+```
+
+### 4. Start Development
+
+```bash
+# Terminal 1 - Backend
+cd /opt/Lume/backend
+npm run dev
+
+# Terminal 2 - Frontend
+cd /opt/Lume/frontend/apps/web-lume
+npm run dev
+```
+
+### 5. Access
+
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3000/api
+- **Login**: `admin@lume.dev` / `admin123`
+
+---
+
+## Project Structure
+
+```
+/opt/Lume/
+├── README.md
+├── docs/                           # Project-level documentation
+│   ├── ARCHITECTURE.md
+│   ├── INSTALLATION.md
+│   └── MIGRATION_GUIDE.md
+│
+├── backend/
+│   ├── src/
+│   │   ├── index.js                # Express server + WebSocket + module init
+│   │   ├── core/
+│   │   │   ├── db/                 # Prisma, Drizzle, adapters
+│   │   │   ├── middleware/         # Auth, error handler, IP access, logger
+│   │   │   ├── modules/           # Module loader (__loader__.js)
+│   │   │   ├── router/            # CRUD router generator
+│   │   │   ├── services/          # 12 core services
+│   │   │   ├── api/               # Global search endpoint
+│   │   │   └── templates/         # Email HTML templates
+│   │   ├── modules/               # 21 pluggable modules
+│   │   │   ├── base/              # Core: models, permissions, menus
+│   │   │   ├── auth/              # JWT authentication
+│   │   │   ├── user/              # User management
+│   │   │   ├── rbac/              # Role-based access control
+│   │   │   ├── base_security/     # 2FA, sessions, API keys, IP access
+│   │   │   ├── base_automation/   # Workflows, rules, scheduler
+│   │   │   ├── base_customization/# Custom fields, forms, views
+│   │   │   ├── base_features_data/# Import/export, feature flags
+│   │   │   ├── advanced_features/ # Webhooks, notifications, tags
+│   │   │   ├── activities/        # Event management
+│   │   │   ├── donations/         # Financial tracking
+│   │   │   ├── team/              # Team directory
+│   │   │   ├── documents/         # File management
+│   │   │   ├── media/             # Media library
+│   │   │   ├── messages/          # Contact forms
+│   │   │   ├── audit/             # Audit logging
+│   │   │   ├── settings/          # App configuration
+│   │   │   └── common/            # Shared components/utils
+│   │   ├── shared/
+│   │   │   ├── utils/             # Password, JWT, date, string, file utils
+│   │   │   └── constants/         # Status codes, roles, messages
+│   │   └── scripts/               # DB init, seed, admin creation
+│   ├── prisma/
+│   │   └── schema.prisma          # 48 Prisma models
+│   ├── tests/                     # Jest test suites
+│   ├── uploads/                   # File storage
+│   └── docs/                      # Backend-specific docs
+│
+└── frontend/
+    ├── apps/
+    │   └── web-lume/
+    │       ├── src/
+    │       │   ├── router/        # Dynamic routing + customViews
+    │       │   ├── store/         # Pinia stores (auth, permission)
+    │       │   ├── composables/   # 15+ Vue composables
+    │       │   ├── components/    # Layout: Sidebar, Header
+    │       │   ├── layouts/       # BasicLayout
+    │       │   ├── api/           # Axios client with interceptor
+    │       │   └── views/         # Login, Dashboard, 404
+    │       ├── tailwind.config.js
+    │       └── vite.config.ts
+    └── docs/                      # Frontend-specific docs
+```
+
+---
+
+## Module System
+
+Every module follows a standard structure:
+
+```
+modules/{name}/
+├── __manifest__.js     # Metadata, dependencies, menus, permissions
+├── __init__.js         # Initialization: create adapters, services, routes
+├── models/
+│   ├── index.js        # Drizzle table exports
+│   └── schema.js       # Drizzle schema definitions
+├── services/
+│   └── index.js        # Business logic (extends BaseService or custom)
+├── api/
+│   └── index.js        # Express router factory
+└── static/             # Frontend assets (served to Vue app)
+    ├── views/          # Vue SFC components
+    ├── api/            # TypeScript API clients
+    └── components/     # Module-specific components
+```
+
+Modules are loaded dynamically on startup. Install/uninstall persists to the database. Dependencies are checked before uninstall.
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture reference.
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/ARCHITECTURE.md) | System design, hybrid ORM, module lifecycle, data flow |
+| [Installation](docs/INSTALLATION.md) | Prerequisites, setup, database configuration |
+| [Backend Development](backend/docs/DEVELOPMENT.md) | API patterns, services, middleware, utilities |
+| [Module System](backend/docs/MODULE_SYSTEM.md) | Creating modules, manifests, adapters, hooks |
+| [Security](backend/docs/SECURITY.md) | Auth, 2FA, RBAC, IP access, API keys, audit |
+| [Testing](backend/docs/TESTING.md) | Jest setup, test patterns, running tests |
+| [Deployment](backend/docs/DEPLOYMENT.md) | Production setup, Docker, environment |
+| [Frontend Development](frontend/docs/DEVELOPMENT.md) | Vue patterns, composables, module views |
+| [Frontend Architecture](frontend/docs/ARCHITECTURE.md) | Router, stores, component organization |
+
+---
+
+## API Overview
+
+All endpoints return a consistent response format:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Operation completed"
+}
+```
+
+Paginated responses include metadata:
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [...],
+    "total": 100,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 5
+  }
+}
+```
+
+### Key Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/users/login` | JWT authentication |
+| `POST` | `/api/auth/refresh-token` | Refresh JWT |
+| `GET` | `/api/modules` | List installed modules |
+| `GET` | `/api/menus` | Sidebar menu tree |
+| `GET` | `/api/permissions` | All permissions |
+| `GET` | `/api/search?q=term` | Global search |
+| `GET` | `/api/dashboard/stats` | Dashboard statistics |
+| `GET` | `/health` | Health check |
+
+Each module registers its own routes under `/api/{module_name}/`. The CRUD router auto-generates standard endpoints for every model.
+
+---
+
+## Default Credentials
+
+| Field | Value |
+|-------|-------|
+| Admin Email | `admin@lume.dev` |
+| Admin Password | `admin123` |
+| Database User | `gawdesy` |
+| Database Password | `gawdesy` |
+| Database Name | `lume` |
+
+---
+
+## Roadmap
+
+- [ ] Redis caching layer with TTL and invalidation
+- [ ] PostgreSQL full support with migration tooling
+- [ ] Nuxt.js SSR frontend option
+- [ ] Multi-tenancy (tenant_id scoping)
+- [ ] S3/cloud storage adapter
+- [ ] Elasticsearch full-text search
+- [ ] Docker Compose production setup
+- [ ] Plugin marketplace
+- [ ] REST API documentation (Swagger/OpenAPI)
+- [ ] GraphQL API layer
+
+---
+
+## License
+
+MIT
+
+---
+
+Built with Lume Framework v1.0.0
