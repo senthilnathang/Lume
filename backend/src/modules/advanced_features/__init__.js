@@ -14,6 +14,8 @@ import {
 } from './models/schema.js';
 import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
 import { AdvancedFeaturesService } from './services/index.js';
+import { WebhookService } from '../../core/services/webhook.service.js';
+import { NotificationService } from '../../core/services/notification.service.js';
 import createRoutes from './api/index.js';
 
 const initializeAdvancedFeatures = async (context) => {
@@ -33,10 +35,15 @@ const initializeAdvancedFeatures = async (context) => {
   };
   console.log(`✅ Advanced Features adapters created: ${Object.keys(adapters).join(', ')}`);
 
+  const webhookService = new WebhookService(adapters.Webhook, adapters.WebhookLog);
+  const notificationService = new NotificationService(adapters.Notification, adapters.NotificationChannel);
+
   const services = {
-    advancedFeaturesService: new AdvancedFeaturesService(adapters)
+    advancedFeaturesService: new AdvancedFeaturesService(adapters),
+    webhookService,
+    notificationService
   };
-  console.log('✅ Advanced Features services created');
+  console.log('✅ Advanced Features services created (including webhook trigger + notification dispatch)');
 
   const routes = createRoutes(adapters, services);
   app.use('/api/advanced_features', routes);

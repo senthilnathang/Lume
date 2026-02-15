@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -639,6 +640,7 @@ const lumeRouter = Router();
 lumeRouter.get('/health', (req, res) => res.json({ success: true, status: 'healthy', module: 'lume' }));
 app.use('/api/lume', lumeRouter);
 app.use('/api/rbac', (await import('./modules/rbac/api/index.js')).default);
+app.use('/api/search', (await import('./core/api/search.js')).default);
 
 // Error handling — registered after module system init in startServer()
 // (moved to end of startServer so module-registered routes aren't shadowed)
@@ -700,13 +702,24 @@ const startServer = async () => {
     app.use(notFoundHandler);
     app.use(errorHandler);
 
+    // Create HTTP server and initialize WebSocket
+    const server = createServer(app);
+
+    try {
+      const { wsService } = await import('./core/services/websocket.service.js');
+      wsService.initialize(server);
+    } catch (wsErr) {
+      console.warn('⚠️ WebSocket initialization skipped:', wsErr.message);
+    }
+
     // Start listening
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`\n╔════════════════════════════════════════════════════════════╗`);
       console.log(`║              Lume Framework v1.0.0                        ║`);
       console.log(`╠════════════════════════════════════════════════════════════╣`);
       console.log(`║  Server:        http://localhost:${PORT}                  ║`);
       console.log(`║  API Base:      http://localhost:${PORT}/api               ║`);
+      console.log(`║  WebSocket:     ws://localhost:${PORT}/ws                  ║`);
       console.log(`║  Modules:       ${String(getAllModules().length).padEnd(28)}║`);
       console.log(`╚════════════════════════════════════════════════════════════╝\n`);
     });

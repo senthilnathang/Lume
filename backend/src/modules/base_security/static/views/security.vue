@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, h, onMounted, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
@@ -17,7 +17,6 @@ import {
 defineOptions({ name: 'SecurityView' });
 
 const route = useRoute();
-const router = useRouter();
 
 const sections = [
   { label: 'Access Control', value: 'access' },
@@ -117,10 +116,6 @@ async function loadApiKeys() {
     const res = await getApiKeys();
     apiKeys.value = Array.isArray(res) ? res : (res as any)?.data || [];
   } catch { apiKeys.value = []; }
-}
-
-function handleSectionChange(val: string) {
-  router.push(`/settings/security/${val}`);
 }
 
 // IP Access
@@ -281,9 +276,6 @@ onMounted(() => { loadData(); });
         Refresh
       </a-button>
     </div>
-
-    <!-- Section Navigation -->
-    <a-segmented :value="activeSection" :options="sections" class="mb-6" @change="handleSectionChange" />
 
     <!-- Access Control -->
     <div v-if="activeSection === 'access'">

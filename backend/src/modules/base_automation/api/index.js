@@ -254,6 +254,9 @@ const createRoutes = (models, services) => {
         return res.status(400).json({ success: false, error: 'Name is required' });
       }
       const action = await svc.createScheduledAction(req.body);
+      if (services.schedulerService && action?.id) {
+        await services.schedulerService.registerAction(action.id);
+      }
       res.json({ success: true, data: action });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -264,6 +267,9 @@ const createRoutes = (models, services) => {
     try {
       const action = await svc.updateScheduledAction(req.params.id, req.body);
       if (!action) return res.status(404).json({ success: false, error: 'Scheduled action not found' });
+      if (services.schedulerService) {
+        await services.schedulerService.registerAction(req.params.id);
+      }
       res.json({ success: true, data: action });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -272,10 +278,22 @@ const createRoutes = (models, services) => {
 
   router.delete('/scheduled/:id', async (req, res) => {
     try {
+      if (services.schedulerService) {
+        services.schedulerService.unregisterAction(Number(req.params.id));
+      }
       await svc.deleteScheduledAction(req.params.id);
       res.json({ success: true, message: 'Scheduled action deleted' });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/scheduled/status', async (req, res) => {
+    try {
+      const status = services.schedulerService ? services.schedulerService.getStatus() : { activeJobs: 0 };
+      res.json({ success: true, data: status });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
     }
   });
 

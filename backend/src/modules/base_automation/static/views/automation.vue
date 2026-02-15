@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
@@ -18,7 +18,6 @@ import {
 defineOptions({ name: 'AutomationView' });
 
 const route = useRoute();
-const router = useRouter();
 
 const sections = [
   { label: 'Workflows', value: 'workflows' },
@@ -35,10 +34,6 @@ const activeSection = computed({
   },
   set: () => {},
 });
-
-function handleSectionChange(val: string) {
-  router.push(`/settings/automation/${val}`);
-}
 
 // ---- Shared state ----
 const loading = ref(false);
@@ -417,9 +412,6 @@ onMounted(() => { loadData(); });
         Refresh
       </a-button>
     </div>
-
-    <!-- Section Tabs -->
-    <a-segmented v-model:value="activeSection" :options="sections" class="mb-6" @change="handleSectionChange" />
 
     <!-- WORKFLOWS SECTION -->
     <div v-if="activeSection === 'workflows'">

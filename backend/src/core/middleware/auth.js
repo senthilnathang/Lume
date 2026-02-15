@@ -1,5 +1,5 @@
 import { jwtUtil, responseUtil } from '../../shared/utils/index.js';
-import prisma from '../db/prisma.js';
+import prisma, { setAuditContext } from '../db/prisma.js';
 import { MESSAGES } from '../../shared/constants/index.js';
 
 export const authenticate = async (req, res, next) => {
@@ -35,6 +35,13 @@ export const authenticate = async (req, res, next) => {
       role: role?.name || 'viewer',
       role_id: user.role_id,
     };
+
+    // Set audit context for Prisma middleware
+    setAuditContext({
+      userId: user.id,
+      ipAddress: req.ip || req.connection?.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
 
     next();
   } catch (error) {

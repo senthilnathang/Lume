@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import { Shield, Plus, RefreshCw, Edit3, Trash2, FileText } from 'lucide-vue-next';
@@ -13,7 +13,6 @@ import { getAuditLogs, type AuditLog } from '@modules/audit/static/api/index';
 defineOptions({ name: 'RbacView' });
 
 const route = useRoute();
-const router = useRouter();
 
 const sections = [
   { label: 'Access Rules', value: 'access-rules' },
@@ -27,10 +26,6 @@ const activeSection = computed({
   },
   set: () => {},
 });
-
-function handleSectionChange(val: string) {
-  router.push(`/settings/rbac/${val}`);
-}
 
 const loading = ref(false);
 
@@ -203,8 +198,6 @@ onMounted(() => { loadData(); });
         <template #icon><RefreshCw :size="14" /></template>Refresh
       </a-button>
     </div>
-
-    <a-segmented v-model:value="activeSection" :options="sections" class="mb-6" @change="handleSectionChange" />
 
     <!-- ACCESS RULES -->
     <div v-if="activeSection === 'access-rules'">

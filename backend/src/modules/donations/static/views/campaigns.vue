@@ -13,6 +13,9 @@ import {
 
 defineOptions({ name: 'CampaignsView' });
 
+/** Convert ISO-8601 timestamp to YYYY-MM-DD for native date inputs */
+const toDateInput = (v: string | null | undefined) => v ? v.substring(0, 10) : '';
+
 // State
 const loading = ref(false);
 const campaigns = ref<Campaign[]>([]);
@@ -119,8 +122,8 @@ function openEdit(campaign: Campaign) {
   editingCampaign.value = campaign;
   Object.assign(formState, {
     name: campaign.name, description: campaign.description || '',
-    goal_amount: campaign.goal_amount, start_date: campaign.start_date || '',
-    end_date: campaign.end_date || '', is_featured: campaign.is_featured,
+    goal_amount: campaign.goal_amount, start_date: toDateInput(campaign.start_date),
+    end_date: toDateInput(campaign.end_date), is_featured: campaign.is_featured,
   });
   showFormModal.value = true;
 }
