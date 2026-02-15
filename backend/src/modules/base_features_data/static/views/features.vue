@@ -5,7 +5,7 @@ import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
   ToggleLeft, Plus, RefreshCw, Edit3, Trash2, AlertTriangle,
-  MoreVertical, Flag, Upload, Download, Database,
+  Flag, Upload, Download, Database,
 } from 'lucide-vue-next';
 import {
   getFeatureFlags, createFeatureFlag, updateFeatureFlag, deleteFeatureFlag, toggleFeatureFlag,
@@ -69,7 +69,7 @@ const flagColumns: ColumnsType = [
   { title: 'Description', key: 'description' },
   { title: 'Enabled', key: 'enabled', width: 90, align: 'center' },
   { title: 'Expires', key: 'expires', width: 130 },
-  { title: 'Actions', key: 'actions', width: 80, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 100, fixed: 'right' },
 ];
 
 const importColumns: ColumnsType = [
@@ -339,16 +339,20 @@ onMounted(() => { loadData(); });
               {{ formatDate((record as FeatureFlag).expiresAt) }}
             </template>
             <template v-else-if="column.key === 'actions'">
-              <a-dropdown>
-                <a-button type="text" size="small"><MoreVertical :size="16" /></a-button>
-                <template #overlay>
-                  <a-menu>
-                    <a-menu-item key="edit" @click="openEditFlag(record as FeatureFlag)"><Edit3 :size="14" class="mr-2" /> Edit</a-menu-item>
-                    <a-menu-divider />
-                    <a-menu-item key="delete" danger @click="handleDeleteFlag(record as FeatureFlag)"><Trash2 :size="14" class="mr-2" /> Delete</a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
+              <div class="actions-cell flex items-center gap-1">
+                <a-tooltip title="Edit">
+                  <a-button type="text" size="small" @click="openEditFlag(record as FeatureFlag)">
+                    <template #icon><Edit3 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+                <a-popconfirm title="Delete this item?" ok-text="Delete" ok-type="danger" @confirm="handleDeleteFlag(record as FeatureFlag)">
+                  <a-tooltip title="Delete">
+                    <a-button type="text" size="small" danger>
+                      <template #icon><Trash2 :size="15" /></template>
+                    </a-button>
+                  </a-tooltip>
+                </a-popconfirm>
+              </div>
             </template>
           </template>
         </a-table>
@@ -534,4 +538,12 @@ onMounted(() => { loadData(); });
 
 <style scoped>
 .features-page { min-height: 100%; }
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
 </style>

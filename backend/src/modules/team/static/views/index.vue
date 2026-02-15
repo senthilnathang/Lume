@@ -11,7 +11,7 @@ import {
   Edit3,
   Trash2,
   AlertTriangle,
-  MoreVertical,
+
   Crown,
   Mail,
   Phone,
@@ -96,7 +96,7 @@ const columns: ColumnsType = [
   { title: 'Role', key: 'role', width: 110 },
   { title: 'Status', key: 'status', width: 100 },
   { title: 'Contact', key: 'contact', width: 200 },
-  { title: 'Actions', key: 'actions', width: 100, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 130, fixed: 'right' },
 ];
 
 const avatarColors = ['#1890ff', '#52c41a', '#722ed1', '#eb2f96', '#fa8c16', '#13c2c2', '#2f54eb', '#fa541c'];
@@ -379,25 +379,25 @@ onMounted(() => {
 
           <!-- Actions -->
           <template v-else-if="column.key === 'actions'">
-            <a-dropdown>
-              <a-button type="text" size="small">
-                <MoreVertical :size="16" />
-              </a-button>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="view" @click="openView(record as TeamMember)">
-                    <Eye :size="14" class="mr-2" /> View
-                  </a-menu-item>
-                  <a-menu-item key="edit" @click="openEdit(record as TeamMember)">
-                    <Edit3 :size="14" class="mr-2" /> Edit
-                  </a-menu-item>
-                  <a-menu-divider />
-                  <a-menu-item key="delete" danger @click="handleDelete(record as TeamMember)">
-                    <Trash2 :size="14" class="mr-2" /> Remove
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="View">
+                <a-button type="text" size="small" @click="openView(record as TeamMember)">
+                  <template #icon><Eye :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openEdit(record as TeamMember)">
+                  <template #icon><Edit3 :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm title="Remove this team member?" ok-text="Remove" ok-type="danger" @confirm="handleDelete(record as TeamMember)">
+                <a-tooltip title="Remove">
+                  <a-button type="text" size="small" danger>
+                    <template #icon><Trash2 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -556,5 +556,13 @@ onMounted(() => {
 :deep(.ant-descriptions-item-label) {
   font-weight: 500;
   color: #6b7280;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

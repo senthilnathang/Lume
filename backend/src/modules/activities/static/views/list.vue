@@ -18,6 +18,8 @@ import {
   Input as AntInput,
   DatePicker,
   Switch,
+  Tooltip,
+  Popconfirm,
   message,
   Spin,
   Row,
@@ -27,10 +29,9 @@ import {
 import {
   PlusOutlined,
   SearchOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  MoreOutlined,
 } from '@ant-design/icons-vue';
+
+import { Eye, Edit3, Trash2 } from 'lucide-vue-next';
 
 defineOptions({
   name: 'ActivitiesList',
@@ -50,7 +51,7 @@ const columns = [
   { title: 'Start Date', dataIndex: 'start_date', key: 'start_date', width: 150 },
   { title: 'Location', dataIndex: 'location', key: 'location' },
   { title: 'Status', dataIndex: 'status', key: 'status', width: 100 },
-  { title: 'Actions', key: 'actions', width: 80 },
+  { title: 'Actions', key: 'actions', width: 130 },
 ];
 
 const activityCategories = ['Meeting', 'Event', 'Workshop', 'Training', 'Conference'];
@@ -272,14 +273,25 @@ onMounted(() => {
               <Tag :color="getStatusColor(record.status)">{{ record.status }}</Tag>
             </template>
             <template v-else-if="column.key === 'actions'">
-              <Space>
-                <Button type="text" size="small" @click="openModal(record)">
-                  <EditOutlined />
-                </Button>
-                <Button type="text" size="small" danger @click="handleDelete(record)">
-                  <DeleteOutlined />
-                </Button>
-              </Space>
+              <div class="actions-cell flex items-center gap-1">
+                <Tooltip title="View">
+                  <Button type="text" size="small" @click="openModal(record)">
+                    <template #icon><Eye :size="15" /></template>
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Edit">
+                  <Button type="text" size="small" @click="openModal(record)">
+                    <template #icon><Edit3 :size="15" /></template>
+                  </Button>
+                </Tooltip>
+                <Popconfirm title="Delete this activity?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record)">
+                  <Tooltip title="Delete">
+                    <Button type="text" size="small" danger>
+                      <template #icon><Trash2 :size="15" /></template>
+                    </Button>
+                  </Tooltip>
+                </Popconfirm>
+              </div>
             </template>
           </template>
         </Table>
@@ -350,5 +362,14 @@ onMounted(() => {
 <style scoped>
 .mb-4 {
   margin-bottom: 16px;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

@@ -96,11 +96,13 @@ onMounted(() => { loadSequences(); });
           <a-tag :color="record.isActive ? 'green' : 'default'">{{ record.isActive ? 'Yes' : 'No' }}</a-tag>
         </template>
         <template v-else-if="column.key === 'actions'">
-          <a-tooltip :title="`Preview: ${formatPreview(record)}`">
-            <a-button size="small" type="primary" ghost @click="handleGetNext(record)">
-              <Play :size="14" />
-            </a-button>
-          </a-tooltip>
+          <div class="actions-cell flex items-center gap-1">
+            <a-tooltip :title="`Preview: ${formatPreview(record)}`">
+              <a-button type="text" size="small" @click="handleGetNext(record)">
+                <template #icon><Play :size="15" /></template>
+              </a-button>
+            </a-tooltip>
+          </div>
         </template>
       </template>
     </a-table>
@@ -132,4 +134,12 @@ onMounted(() => { loadSequences(); });
 
 <style scoped>
 .sequences-page { min-height: 100%; }
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
 </style>

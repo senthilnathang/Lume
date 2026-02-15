@@ -71,3 +71,140 @@ Are they installed?
     at async file:///opt/Lume/frontend/apps/web-lume/node_modules/.pnpm/vite@5.4.21_@types+node@22.19.11_terser@5.46.0/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:50174:26
 6:33:26 PM [vite] vite.config.ts changed, restarting server...
 6:33:26 PM [vite] server restarted.
+6:55:09 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/activities/static/views/index.vue, /src/style.css
+6:55:10 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/activities/static/views/index.vue, /src/style.css
+6:55:11 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/team/static/views/index.vue, /src/style.css
+6:55:12 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/team/static/views/index.vue, /src/style.css
+6:55:13 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/index.vue
+6:55:23 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/donors.vue
+6:55:24 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/donors.vue
+6:55:25 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/donations/static/views/campaigns.vue, /src/style.css
+6:55:26 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/donations/static/views/campaigns.vue, /src/style.css
+6:55:29 PM [vite] page reload /opt/Lume/backend/src/modules/documents/static/views/index.vue
+6:55:33 PM [vite] page reload /opt/Lume/backend/src/modules/documents/static/views/index.vue
+6:55:37 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/activities/static/views/index.vue, /src/style.css
+6:55:42 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/team/static/views/index.vue, /src/style.css
+6:55:44 PM [vite] page reload /opt/Lume/backend/src/modules/documents/static/views/index.vue
+6:55:46 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/index.vue
+6:55:49 PM [vite] page reload /opt/Lume/backend/src/modules/documents/static/views/index.vue
+6:55:51 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/donors.vue
+6:55:53 PM [vite] page reload /opt/Lume/backend/src/modules/media/static/views/index.vue
+6:55:55 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/donations/static/views/campaigns.vue, /src/style.css
+6:55:56 PM [vite] page reload /opt/Lume/backend/src/modules/media/static/views/index.vue
+6:56:01 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/activities/static/views/index.vue?vue&type=style&index=0&scoped=dfb29341&lang.css
+6:56:03 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/team/static/views/index.vue?vue&type=style&index=0&scoped=3d1bf11c&lang.css
+6:56:03 PM [vite] page reload /opt/Lume/backend/src/modules/media/static/views/index.vue
+6:56:04 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/index.vue
+6:56:06 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/donors.vue
+6:56:07 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/roles.vue
+6:56:07 PM [vite] page reload /opt/Lume/backend/src/modules/media/static/views/index.vue
+6:56:08 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/donations/static/views/campaigns.vue?vue&type=style&index=0&scoped=0d0e806c&lang.css
+6:56:11 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/messages/static/views/index.vue, /src/style.css
+6:56:12 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/roles.vue
+6:56:14 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/messages/static/views/index.vue, /src/style.css
+6:56:20 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/rbac-index.vue
+6:56:23 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/messages/static/views/index.vue, /src/style.css
+6:56:24 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/rbac-index.vue
+6:56:27 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/messages/static/views/index.vue?vue&type=style&index=0&scoped=7175300c&lang.css
+6:56:29 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/rbac-index.vue
+6:56:32 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/users.vue
+6:56:33 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/roles-view.vue
+6:56:35 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/users.vue
+6:56:44 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/roles-view.vue
+6:56:44 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/users.vue
+6:56:48 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/users.vue
+6:56:49 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/roles-view.vue
+6:56:53 PM [vite] page reload /opt/Lume/backend/src/modules/audit/static/views/audit-logs.vue
+6:56:56 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/groups.vue
+6:56:57 PM [vite] page reload /opt/Lume/backend/src/modules/audit/static/views/audit-logs.vue
+6:57:00 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/groups.vue
+6:57:01 PM [vite] page reload /opt/Lume/backend/src/modules/audit/static/views/audit-logs.vue
+6:57:07 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/access-rules.vue
+6:57:13 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/access-rules.vue
+6:57:20 PM [vite] page reload /opt/Lume/backend/src/modules/base/static/views/menus-view.vue
+6:57:24 PM [vite] page reload /opt/Lume/backend/src/modules/base/static/views/menus-view.vue
+6:57:30 PM [vite] page reload /opt/Lume/backend/src/modules/base/static/views/sequences.vue
+6:57:34 PM [vite] page reload /opt/Lume/backend/src/modules/base/static/views/sequences.vue
+6:57:42 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/custom-fields.vue
+6:57:47 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/custom-fields.vue
+6:57:53 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/custom-views.vue
+6:57:59 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/custom-views.vue
+6:58:05 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/form-builder.vue
+6:58:13 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/form-builder.vue
+6:58:19 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/form-builder.vue
+6:58:26 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/dashboard-widgets.vue
+6:58:31 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/dashboard-widgets.vue
+6:58:37 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/list-configs.vue
+6:58:41 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/list-configs.vue
+6:58:47 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+6:58:53 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+6:58:59 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+6:59:07 PM [vite] page reload /opt/Lume/backend/src/modules/advanced_features/static/views/tags.vue
+6:59:12 PM [vite] page reload /opt/Lume/backend/src/modules/advanced_features/static/views/tags.vue
+6:59:22 PM [vite] page reload /opt/Lume/backend/src/modules/advanced_features/static/views/webhooks.vue
+6:59:27 PM [vite] page reload /opt/Lume/backend/src/modules/advanced_features/static/views/webhooks.vue
+6:59:34 PM [vite] page reload /opt/Lume/backend/src/modules/advanced_features/static/views/notification-channels.vue
+6:59:38 PM [vite] page reload /opt/Lume/backend/src/modules/advanced_features/static/views/notification-channels.vue
+6:59:47 PM [vite] page reload /opt/Lume/backend/src/modules/advanced_features/static/views/notifications.vue
+6:59:53 PM [vite] page reload /opt/Lume/backend/src/modules/advanced_features/static/views/notifications.vue
+7:00:04 PM [vite] page reload /opt/Lume/backend/src/modules/messages/static/views/sent.vue
+7:00:08 PM [vite] page reload /opt/Lume/backend/src/modules/messages/static/views/sent.vue
+7:00:53 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/custom-fields.vue
+7:00:57 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/custom-views.vue
+7:01:01 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/form-builder.vue
+7:01:05 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/dashboard-widgets.vue
+7:01:10 PM [vite] page reload /opt/Lume/backend/src/modules/base_customization/static/views/list-configs.vue
+7:01:14 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+7:01:18 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/groups.vue
+7:01:21 PM [vite] page reload /opt/Lume/backend/src/modules/rbac/static/views/roles-view.vue
+7:02:38 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/users.vue
+7:02:39 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/users.vue
+7:03:18 PM [vite] page reload /opt/Lume/backend/src/modules/activities/static/views/list.vue
+7:03:21 PM [vite] page reload /opt/Lume/backend/src/modules/activities/static/views/list.vue
+7:03:24 PM [vite] page reload /opt/Lume/backend/src/modules/activities/static/views/list.vue
+7:03:29 PM [vite] page reload /opt/Lume/backend/src/modules/activities/static/views/list.vue
+7:03:31 PM [vite] page reload /opt/Lume/backend/src/modules/activities/static/views/list.vue
+7:03:33 PM [vite] page reload /opt/Lume/backend/src/modules/team/static/views/list.vue
+7:03:36 PM [vite] page reload /opt/Lume/backend/src/modules/team/static/views/list.vue
+7:03:38 PM [vite] page reload /opt/Lume/backend/src/modules/team/static/views/list.vue
+7:03:43 PM [vite] page reload /opt/Lume/backend/src/modules/team/static/views/list.vue
+7:03:45 PM [vite] page reload /opt/Lume/backend/src/modules/team/static/views/list.vue
+7:03:46 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/automation.vue
+7:03:47 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/list.vue
+7:03:51 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/list.vue
+7:03:52 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/automation.vue
+7:03:53 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/list.vue
+7:03:55 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/automation.vue
+7:03:56 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/list.vue
+7:03:58 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/automation.vue
+7:03:59 PM [vite] page reload /opt/Lume/backend/src/modules/donations/static/views/list.vue
+7:04:00 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/automation.vue
+7:04:02 PM [vite] page reload /opt/Lume/backend/src/modules/documents/static/views/list.vue
+7:04:05 PM [vite] page reload /opt/Lume/backend/src/modules/documents/static/views/list.vue
+7:04:07 PM [vite] page reload /opt/Lume/backend/src/modules/documents/static/views/list.vue
+7:04:11 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/workflows.vue
+7:04:11 PM [vite] page reload /opt/Lume/backend/src/modules/documents/static/views/list.vue
+7:04:13 PM [vite] page reload /opt/Lume/backend/src/modules/documents/static/views/list.vue
+7:04:14 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/workflows.vue
+7:04:15 PM [vite] page reload /opt/Lume/backend/src/modules/media/static/views/list.vue
+7:04:17 PM [vite] page reload /opt/Lume/backend/src/modules/media/static/views/list.vue
+7:04:20 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/workflows.vue
+7:04:25 PM [vite] page reload /opt/Lume/backend/src/modules/media/static/views/list.vue
+7:04:27 PM [vite] page reload /opt/Lume/backend/src/modules/media/static/views/list.vue
+7:04:29 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/list.vue
+7:04:31 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/business-rules.vue
+7:04:33 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/list.vue
+7:04:36 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/list.vue
+7:04:41 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/list.vue
+7:04:42 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/business-rules.vue
+7:04:43 PM [vite] page reload /opt/Lume/backend/src/modules/user/static/views/list.vue
+7:04:52 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/approval-chains.vue
+7:04:54 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/approval-chains.vue
+7:04:56 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/approval-chains.vue
+7:05:04 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/assignment-rules.vue
+7:05:09 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/assignment-rules.vue
+7:05:15 PM [vite] page reload /opt/Lume/backend/src/modules/base_automation/static/views/assignment-rules.vue
+7:05:23 PM [vite] page reload /opt/Lume/backend/src/modules/base_security/static/views/security.vue
+7:05:26 PM [vite] page reload /opt/Lume/backend/src/modules/base_security/static/views/security.vue
+7:05:29 PM [vite] page reload /opt/Lume/backend/src/modules/base_security/static/views/security.vue
+7:05:31 PM [vite] page reload /opt/Lume/backend/src/modules/base_security/static/views/security.vue

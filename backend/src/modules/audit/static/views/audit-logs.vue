@@ -79,7 +79,7 @@ const columns: ColumnsType = [
   { title: 'Action', key: 'action', width: 110 },
   { title: 'Resource', key: 'resource', width: 200 },
   { title: 'IP Address', key: 'ip', width: 130 },
-  { title: 'Actions', key: 'actions', width: 80, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 80, fixed: 'right', align: 'center' },
 ];
 
 const actionColors: Record<string, string> = {
@@ -342,9 +342,13 @@ onMounted(() => {
 
           <!-- Actions -->
           <template v-else-if="column.key === 'actions'">
-            <a-button type="text" size="small" @click="openView(record as AuditLog)">
-              <Eye :size="16" />
-            </a-button>
+            <div class="actions-cell">
+              <a-tooltip title="View Details">
+                <a-button type="text" size="small" @click="openView(record as AuditLog)">
+                  <template #icon><Eye :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+            </div>
           </template>
         </template>
       </a-table>
@@ -496,5 +500,13 @@ onMounted(() => {
 :deep(.ant-descriptions-item-label) {
   font-weight: 500;
   color: #6b7280;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

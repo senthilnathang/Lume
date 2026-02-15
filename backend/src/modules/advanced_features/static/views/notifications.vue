@@ -295,17 +295,19 @@ onMounted(() => {
           </template>
 
           <template v-else-if="column.key === 'actions'">
-            <div class="flex items-center gap-1">
+            <div class="actions-cell flex items-center gap-1">
               <a-tooltip v-if="record.status === 'unread'" title="Mark as Read">
                 <a-button type="text" size="small" @click="handleMarkRead(record)">
-                  <Check :size="16" class="text-green-500" />
+                  <template #icon><Check :size="15" class="text-green-500" /></template>
                 </a-button>
               </a-tooltip>
-              <a-tooltip v-if="record.status !== 'dismissed'" title="Dismiss">
-                <a-button type="text" size="small" @click="handleDismiss(record)">
-                  <X :size="16" class="text-gray-400" />
-                </a-button>
-              </a-tooltip>
+              <a-popconfirm v-if="record.status !== 'dismissed'" title="Dismiss this notification?" ok-text="Dismiss" @confirm="handleDismiss(record)">
+                <a-tooltip title="Dismiss">
+                  <a-button type="text" size="small">
+                    <template #icon><X :size="15" class="text-gray-400" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
             </div>
           </template>
         </template>
@@ -330,5 +332,13 @@ onMounted(() => {
 
 :deep(.unread-row) {
   background-color: #fafbff;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

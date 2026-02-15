@@ -5,7 +5,7 @@ import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
   FolderOpen, Plus, RefreshCw, Search, Eye, Edit3, Trash2,
-  AlertTriangle, MoreVertical, File, FileImage,
+  AlertTriangle, File, FileImage,
   FileVideo, FileAudio, Globe, Lock,
 } from 'lucide-vue-next';
 import {
@@ -80,7 +80,7 @@ const columns: ColumnsType = [
   { title: 'Public', key: 'public', width: 70, align: 'center' },
   { title: 'Downloads', key: 'downloads', width: 90, align: 'center' },
   { title: 'Date', key: 'date', width: 120 },
-  { title: 'Actions', key: 'actions', width: 80, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 130, fixed: 'right' },
 ];
 
 const typeColors: Record<string, string> = {
@@ -338,17 +338,25 @@ onMounted(() => { loadData(); });
             <span class="text-sm">{{ formatDate((record as DocType).created_at) }}</span>
           </template>
           <template v-else-if="column.key === 'actions'">
-            <a-dropdown>
-              <a-button type="text" size="small"><MoreVertical :size="16" /></a-button>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="view" @click="openView(record as DocType)"><Eye :size="14" class="mr-2" /> View</a-menu-item>
-                  <a-menu-item key="edit" @click="openEdit(record as DocType)"><Edit3 :size="14" class="mr-2" /> Edit</a-menu-item>
-                  <a-menu-divider />
-                  <a-menu-item key="delete" danger @click="handleDelete(record as DocType)"><Trash2 :size="14" class="mr-2" /> Delete</a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="View">
+                <a-button type="text" size="small" @click="openView(record as DocType)">
+                  <template #icon><Eye :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openEdit(record as DocType)">
+                  <template #icon><Edit3 :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete this document?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record as DocType)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger>
+                    <template #icon><Trash2 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -455,4 +463,11 @@ onMounted(() => { loadData(); });
 .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 :deep(.ant-descriptions-item-label) { font-weight: 500; color: #6b7280; }
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
 </style>

@@ -9,7 +9,6 @@ import {
   Eye,
   Trash2,
   AlertTriangle,
-  MoreVertical,
   Mail,
   MailOpen,
   Reply,
@@ -83,7 +82,7 @@ const columns: ColumnsType = [
   { title: 'Priority', key: 'priority', width: 100 },
   { title: 'Status', key: 'status', width: 100 },
   { title: 'Date', key: 'date', width: 140 },
-  { title: 'Actions', key: 'actions', width: 100, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 130, fixed: 'right' },
 ];
 
 const typeColors: Record<string, string> = {
@@ -395,32 +394,25 @@ onMounted(() => {
 
           <!-- Actions -->
           <template v-else-if="column.key === 'actions'">
-            <a-dropdown>
-              <a-button type="text" size="small">
-                <MoreVertical :size="16" />
-              </a-button>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="view" @click="openView(record as Message)">
-                    <Eye :size="14" class="mr-2" /> View
-                  </a-menu-item>
-                  <a-menu-item key="reply" @click="openReply(record as Message)">
-                    <Reply :size="14" class="mr-2" /> Reply
-                  </a-menu-item>
-                  <a-menu-item
-                    v-if="(record as Message).status !== 'archived'"
-                    key="archive"
-                    @click="handleArchive(record as Message)"
-                  >
-                    <Archive :size="14" class="mr-2" /> Archive
-                  </a-menu-item>
-                  <a-menu-divider />
-                  <a-menu-item key="delete" danger @click="handleDelete(record as Message)">
-                    <Trash2 :size="14" class="mr-2" /> Delete
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="View">
+                <a-button type="text" size="small" @click="openView(record as Message)">
+                  <template #icon><Eye :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Reply">
+                <a-button type="text" size="small" @click="openReply(record as Message)">
+                  <template #icon><Reply :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete this message?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record as Message)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger>
+                    <template #icon><Trash2 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -546,5 +538,13 @@ onMounted(() => {
 :deep(.ant-descriptions-item-label) {
   font-weight: 500;
   color: #6b7280;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

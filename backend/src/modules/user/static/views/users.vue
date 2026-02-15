@@ -12,7 +12,6 @@ import {
   Trash2,
   Key,
   AlertTriangle,
-  MoreVertical,
 } from 'lucide-vue-next';
 
 import {
@@ -114,7 +113,7 @@ const columns: ColumnsType = [
   { title: 'Phone', dataIndex: 'phone', key: 'phone', width: 140 },
   { title: 'Last Login', key: 'last_login', width: 160 },
   { title: 'Created', key: 'created', width: 140 },
-  { title: 'Actions', key: 'actions', width: 120, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 160, fixed: 'right' },
 ];
 
 // Methods
@@ -488,28 +487,30 @@ onMounted(() => {
 
           <!-- Actions -->
           <template v-else-if="column.key === 'actions'">
-            <a-dropdown>
-              <a-button type="text" size="small">
-                <MoreVertical :size="16" />
-              </a-button>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="view" @click="openView(record as User)">
-                    <Eye :size="14" class="mr-2" /> View
-                  </a-menu-item>
-                  <a-menu-item key="edit" @click="openEdit(record as User)">
-                    <Edit3 :size="14" class="mr-2" /> Edit
-                  </a-menu-item>
-                  <a-menu-item key="password" @click="openChangePassword(record as User)">
-                    <Key :size="14" class="mr-2" /> Change Password
-                  </a-menu-item>
-                  <a-menu-divider />
-                  <a-menu-item key="delete" danger @click="handleDelete(record as User)">
-                    <Trash2 :size="14" class="mr-2" /> Delete
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="View Profile">
+                <a-button type="text" size="small" @click="openView(record as User)">
+                  <template #icon><Eye :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openEdit(record as User)">
+                  <template #icon><Edit3 :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Change Password">
+                <a-button type="text" size="small" @click="openChangePassword(record as User)">
+                  <template #icon><Key :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete this user?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record as User)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger>
+                    <template #icon><Trash2 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -694,5 +695,13 @@ onMounted(() => {
 :deep(.ant-descriptions-item-label) {
   font-weight: 500;
   color: #6b7280;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

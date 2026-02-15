@@ -277,17 +277,19 @@ onMounted(() => {
           </template>
 
           <template v-else-if="column.key === 'actions'">
-            <div class="flex items-center gap-1">
+            <div class="actions-cell flex items-center gap-1">
               <a-tooltip title="Edit">
                 <a-button type="text" size="small" @click="openEdit(record)">
-                  <Edit3 :size="16" />
+                  <template #icon><Edit3 :size="15" /></template>
                 </a-button>
               </a-tooltip>
-              <a-tooltip title="Delete">
-                <a-button type="text" size="small" danger @click="confirmDelete(record)">
-                  <Trash2 :size="16" />
-                </a-button>
-              </a-tooltip>
+              <a-popconfirm title="Delete this item?" ok-text="Delete" ok-type="danger" @confirm="confirmDelete(record)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger>
+                    <template #icon><Trash2 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
             </div>
           </template>
         </template>
@@ -376,5 +378,13 @@ onMounted(() => {
 .color-picker-input::-webkit-color-swatch {
   border: none;
   border-radius: 4px;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>
