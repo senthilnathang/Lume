@@ -90,7 +90,13 @@ onMounted(() => { loadMessages(); });
           <span class="text-sm text-gray-500">{{ formatRelativeTime(record.replied_at) }}</span>
         </template>
         <template v-else-if="column.key === 'actions'">
-          <a-button size="small" @click="viewMessage(record)"><Eye :size="14" /></a-button>
+          <div class="actions-cell flex items-center gap-1">
+            <a-tooltip title="View">
+              <a-button type="text" size="small" @click="viewMessage(record)">
+                <template #icon><Eye :size="15" /></template>
+              </a-button>
+            </a-tooltip>
+          </div>
         </template>
       </template>
     </a-table>
@@ -118,4 +124,12 @@ onMounted(() => { loadMessages(); });
 
 <style scoped>
 .sent-page { min-height: 100%; }
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
 </style>

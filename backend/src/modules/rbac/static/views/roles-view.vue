@@ -11,7 +11,6 @@ import {
   Edit3,
   Trash2,
   AlertTriangle,
-  MoreVertical,
   Lock,
 } from 'lucide-vue-next';
 
@@ -80,7 +79,7 @@ const columns: ColumnsType = [
   { title: 'Description', dataIndex: 'description', key: 'description', ellipsis: true },
   { title: 'Type', key: 'type', width: 110 },
   { title: 'Status', key: 'status', width: 100 },
-  { title: 'Actions', key: 'actions', width: 100, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 130, fixed: 'right' },
 ];
 
 // Methods
@@ -318,34 +317,25 @@ onMounted(() => {
 
           <!-- Actions -->
           <template v-else-if="column.key === 'actions'">
-            <a-dropdown>
-              <a-button type="text" size="small">
-                <MoreVertical :size="16" />
-              </a-button>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="view" @click="openView(record as Role)">
-                    <Eye :size="14" class="mr-2" /> View
-                  </a-menu-item>
-                  <a-menu-item
-                    key="edit"
-                    :disabled="(record as Role).is_system"
-                    @click="openEdit(record as Role)"
-                  >
-                    <Edit3 :size="14" class="mr-2" /> Edit
-                  </a-menu-item>
-                  <a-menu-divider />
-                  <a-menu-item
-                    key="delete"
-                    danger
-                    :disabled="(record as Role).is_system"
-                    @click="handleDelete(record as Role)"
-                  >
-                    <Trash2 :size="14" class="mr-2" /> Delete
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="View">
+                <a-button type="text" size="small" @click="openView(record as Role)">
+                  <template #icon><Eye :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" :disabled="(record as Role).is_system" @click="openEdit(record as Role)">
+                  <template #icon><Edit3 :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm v-if="!(record as Role).is_system" title="Delete this item?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record as Role)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger>
+                    <template #icon><Trash2 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -491,5 +481,13 @@ onMounted(() => {
 :deep(.ant-descriptions-item-label) {
   font-weight: 500;
   color: #6b7280;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

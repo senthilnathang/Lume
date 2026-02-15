@@ -435,10 +435,16 @@ onMounted(() => { loadData(); });
           <template v-else-if="column.key === 'states'"><a-badge :count="record.states?.length || 0" :number-style="{ backgroundColor: '#1890ff' }" /></template>
           <template v-else-if="column.key === 'active'"><a-tag :color="record.is_active ? 'green' : 'default'">{{ record.is_active ? 'Yes' : 'No' }}</a-tag></template>
           <template v-else-if="column.key === 'actions'">
-            <a-space>
-              <a-button size="small" @click="openWorkflowModal('edit', record)"><Edit3 :size="14" /></a-button>
-              <a-button size="small" danger @click="handleDeleteWorkflow(record)"><Trash2 :size="14" /></a-button>
-            </a-space>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openWorkflowModal('edit', record)"><Edit3 :size="14" /></a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete?" ok-text="Delete" ok-type="danger" @confirm="handleDeleteWorkflow(record)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger><Trash2 :size="14" /></a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -458,13 +464,25 @@ onMounted(() => { loadData(); });
           <template v-else-if="column.key === 'trigger'"><a-tag :color="triggerColors[record.trigger_type] || 'default'">{{ record.trigger_type }}</a-tag></template>
           <template v-else-if="column.key === 'status'"><a-tag :color="statusColors[record.status] || 'default'">{{ record.status }}</a-tag></template>
           <template v-else-if="column.key === 'actions'">
-            <a-space>
-              <a-button v-if="record.status !== 'active'" size="small" @click="handleActivateFlow(record)" title="Activate"><Play :size="14" /></a-button>
-              <a-button v-else size="small" @click="handleDeactivateFlow(record)" title="Deactivate"><Pause :size="14" /></a-button>
-              <a-button size="small" @click="handleCloneFlow(record)" title="Clone"><Copy :size="14" /></a-button>
-              <a-button size="small" @click="openFlowModal('edit', record)"><Edit3 :size="14" /></a-button>
-              <a-button size="small" danger @click="handleDeleteFlow(record)"><Trash2 :size="14" /></a-button>
-            </a-space>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip v-if="record.status !== 'active'" title="Activate">
+                <a-button type="text" size="small" @click="handleActivateFlow(record)"><Play :size="14" /></a-button>
+              </a-tooltip>
+              <a-tooltip v-else title="Deactivate">
+                <a-button type="text" size="small" @click="handleDeactivateFlow(record)"><Pause :size="14" /></a-button>
+              </a-tooltip>
+              <a-tooltip title="Clone">
+                <a-button type="text" size="small" @click="handleCloneFlow(record)"><Copy :size="14" /></a-button>
+              </a-tooltip>
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openFlowModal('edit', record)"><Edit3 :size="14" /></a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete?" ok-text="Delete" ok-type="danger" @confirm="handleDeleteFlow(record)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger><Trash2 :size="14" /></a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -485,10 +503,16 @@ onMounted(() => { loadData(); });
             <a-switch :checked="record.is_active" size="small" @change="handleToggleRule(record)" />
           </template>
           <template v-else-if="column.key === 'actions'">
-            <a-space>
-              <a-button size="small" @click="openRuleModal('edit', record)"><Edit3 :size="14" /></a-button>
-              <a-button size="small" danger @click="handleDeleteRule(record)"><Trash2 :size="14" /></a-button>
-            </a-space>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openRuleModal('edit', record)"><Edit3 :size="14" /></a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete?" ok-text="Delete" ok-type="danger" @confirm="handleDeleteRule(record)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger><Trash2 :size="14" /></a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -508,10 +532,16 @@ onMounted(() => { loadData(); });
           <template v-else-if="column.key === 'steps'"><a-badge :count="record.steps?.length || 0" :number-style="{ backgroundColor: '#1890ff' }" /></template>
           <template v-else-if="column.key === 'active'"><a-tag :color="record.is_active ? 'green' : 'default'">{{ record.is_active ? 'Yes' : 'No' }}</a-tag></template>
           <template v-else-if="column.key === 'actions'">
-            <a-space>
-              <a-button size="small" @click="openApprovalModal('edit', record)"><Edit3 :size="14" /></a-button>
-              <a-button size="small" danger @click="handleDeleteApproval(record)"><Trash2 :size="14" /></a-button>
-            </a-space>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openApprovalModal('edit', record)"><Edit3 :size="14" /></a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete?" ok-text="Delete" ok-type="danger" @confirm="handleDeleteApproval(record)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger><Trash2 :size="14" /></a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -693,4 +723,12 @@ onMounted(() => { loadData(); });
 
 <style scoped>
 .automation-page { min-height: 100%; }
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
 </style>

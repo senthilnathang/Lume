@@ -5,7 +5,7 @@ import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
   Image, Plus, RefreshCw, Search, Eye, Edit3, Trash2,
-  AlertTriangle, MoreVertical, Star, Grid, List,
+  AlertTriangle, Star, Grid, List,
   FileImage, FileVideo, FileAudio, File, Globe, Lock,
 } from 'lucide-vue-next';
 import {
@@ -76,7 +76,7 @@ const columns: ColumnsType = [
   { title: 'Views', key: 'views', width: 70, align: 'center' },
   { title: 'Downloads', key: 'downloads', width: 90, align: 'center' },
   { title: 'Featured', key: 'featured', width: 70, align: 'center' },
-  { title: 'Actions', key: 'actions', width: 80, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 130, fixed: 'right' },
 ];
 
 const typeColors: Record<string, string> = {
@@ -372,17 +372,25 @@ onMounted(() => { loadData(); });
             <Star v-else :size="16" class="text-gray-300" />
           </template>
           <template v-else-if="column.key === 'actions'">
-            <a-dropdown>
-              <a-button type="text" size="small"><MoreVertical :size="16" /></a-button>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="view" @click="openView(record as MediaItem)"><Eye :size="14" class="mr-2" /> View</a-menu-item>
-                  <a-menu-item key="edit" @click="openEdit(record as MediaItem)"><Edit3 :size="14" class="mr-2" /> Edit</a-menu-item>
-                  <a-menu-divider />
-                  <a-menu-item key="delete" danger @click="handleDelete(record as MediaItem)"><Trash2 :size="14" class="mr-2" /> Delete</a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="View">
+                <a-button type="text" size="small" @click="openView(record as MediaItem)">
+                  <template #icon><Eye :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openEdit(record as MediaItem)">
+                  <template #icon><Edit3 :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete this media item?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record as MediaItem)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger>
+                    <template #icon><Trash2 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -528,4 +536,11 @@ onMounted(() => { loadData(); });
 .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .media-grid-card :deep(.ant-card-body) { padding: 0; }
 :deep(.ant-descriptions-item-label) { font-weight: 500; color: #6b7280; }
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
 </style>

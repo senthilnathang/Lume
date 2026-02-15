@@ -5,10 +5,20 @@ import { MESSAGES, ACTIVITY_STATUS, PAGINATION } from '../../shared/constants/in
 export class ActivityService {
   constructor() {}
 
+  _normalizeDates(data) {
+    for (const field of ['start_date', 'end_date', 'published_at']) {
+      if (data[field] && typeof data[field] === 'string' && !data[field].includes('T')) {
+        data[field] = new Date(data[field]).toISOString();
+      }
+    }
+    return data;
+  }
+
   async create(activityData) {
     if (activityData.title) {
       activityData.slug = stringUtil.slugify(activityData.title) + '-' + stringUtil.randomString(6);
     }
+    this._normalizeDates(activityData);
 
     const activity = await prisma.activities.create({ data: activityData });
     return responseUtil.success(activity, MESSAGES.CREATED);
@@ -82,6 +92,7 @@ export class ActivityService {
     if (activityData.title && !activityData.slug) {
       activityData.slug = stringUtil.slugify(activityData.title) + '-' + stringUtil.randomString(6);
     }
+    this._normalizeDates(activityData);
 
     const updated = await prisma.activities.update({ where: { id: Number(id) }, data: activityData });
     return responseUtil.success(updated, MESSAGES.UPDATED);

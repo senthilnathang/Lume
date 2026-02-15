@@ -11,7 +11,7 @@ import {
   Edit3,
   Trash2,
   AlertTriangle,
-  MoreVertical,
+
   Star,
   Send,
   XCircle,
@@ -99,7 +99,7 @@ const columns: ColumnsType = [
   { title: 'Status', key: 'status', width: 110 },
   { title: 'Dates', key: 'dates', width: 180 },
   { title: 'Capacity', key: 'capacity', width: 120 },
-  { title: 'Actions', key: 'actions', width: 100, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 160, fixed: 'right' },
 ];
 
 const statusColors: Record<string, string> = {
@@ -447,39 +447,35 @@ onMounted(() => {
 
           <!-- Actions -->
           <template v-else-if="column.key === 'actions'">
-            <a-dropdown>
-              <a-button type="text" size="small">
-                <MoreVertical :size="16" />
-              </a-button>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="view" @click="openView(record as Activity)">
-                    <Eye :size="14" class="mr-2" /> View
-                  </a-menu-item>
-                  <a-menu-item key="edit" @click="openEdit(record as Activity)">
-                    <Edit3 :size="14" class="mr-2" /> Edit
-                  </a-menu-item>
-                  <a-menu-item
-                    v-if="(record as Activity).status === 'draft'"
-                    key="publish"
-                    @click="handlePublish(record as Activity)"
-                  >
-                    <Send :size="14" class="mr-2" /> Publish
-                  </a-menu-item>
-                  <a-menu-item
-                    v-if="(record as Activity).status === 'published'"
-                    key="cancel"
-                    @click="handleCancel(record as Activity)"
-                  >
-                    <XCircle :size="14" class="mr-2" /> Cancel
-                  </a-menu-item>
-                  <a-menu-divider />
-                  <a-menu-item key="delete" danger @click="handleDelete(record as Activity)">
-                    <Trash2 :size="14" class="mr-2" /> Delete
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="View">
+                <a-button type="text" size="small" @click="openView(record as Activity)">
+                  <template #icon><Eye :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openEdit(record as Activity)">
+                  <template #icon><Edit3 :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip v-if="(record as Activity).status === 'draft'" title="Publish">
+                <a-button type="text" size="small" @click="handlePublish(record as Activity)">
+                  <template #icon><Send :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-tooltip v-if="(record as Activity).status === 'published'" title="Cancel">
+                <a-button type="text" size="small" @click="handleCancel(record as Activity)">
+                  <template #icon><XCircle :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete this activity?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record as Activity)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger>
+                    <template #icon><Trash2 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -649,5 +645,13 @@ onMounted(() => {
 :deep(.ant-descriptions-item-label) {
   font-weight: 500;
   color: #6b7280;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

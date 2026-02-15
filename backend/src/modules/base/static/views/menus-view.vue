@@ -128,10 +128,20 @@ onMounted(() => { loadMenus(); });
           <a-tag :color="record.isActive ? 'green' : 'default'">{{ record.isActive ? 'Yes' : 'No' }}</a-tag>
         </template>
         <template v-else-if="column.key === 'actions'">
-          <a-space>
-            <a-button size="small" @click="openModal('edit', record)"><Edit3 :size="14" /></a-button>
-            <a-button size="small" danger @click="handleDelete(record)"><Trash2 :size="14" /></a-button>
-          </a-space>
+          <div class="actions-cell flex items-center gap-1">
+            <a-tooltip title="Edit">
+              <a-button type="text" size="small" @click="openModal('edit', record)">
+                <template #icon><Edit3 :size="15" /></template>
+              </a-button>
+            </a-tooltip>
+            <a-popconfirm title="Delete this item?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record)">
+              <a-tooltip title="Delete">
+                <a-button type="text" size="small" danger>
+                  <template #icon><Trash2 :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+            </a-popconfirm>
+          </div>
         </template>
       </template>
     </a-table>
@@ -172,4 +182,12 @@ onMounted(() => { loadMenus(); });
 
 <style scoped>
 .menus-page { min-height: 100%; }
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
 </style>

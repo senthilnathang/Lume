@@ -16,6 +16,8 @@ import {
   Input,
   Select,
   SelectOption,
+  Tooltip,
+  Popconfirm,
   message,
   Spin,
 } from 'ant-design-vue';
@@ -23,13 +25,12 @@ import {
 import {
   PlusOutlined,
   SearchOutlined,
-  DeleteOutlined,
-  DownloadOutlined,
-  EyeOutlined,
   InboxOutlined,
   PictureOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons-vue';
+
+import { Eye, Download, Trash2 } from 'lucide-vue-next';
 
 defineOptions({
   name: 'MediaLibrary',
@@ -184,7 +185,7 @@ onMounted(() => {
               <div class="media-preview" @click="handlePreview(item)">
                 <Image :src="item.url" :preview="false" style="width: 100%; height: 150px; object-fit: cover" />
                 <div class="media-overlay">
-                  <EyeOutlined />
+                  <Eye :size="24" />
                 </div>
               </div>
               <div class="media-info">
@@ -194,15 +195,23 @@ onMounted(() => {
                   <span class="text-xs">{{ item.size }}</span>
                 </div>
                 <div class="media-actions">
-                  <Button type="text" size="small" @click="handlePreview(item)">
-                    <EyeOutlined />
-                  </Button>
-                  <Button type="text" size="small" @click="handleDownload(item)">
-                    <DownloadOutlined />
-                  </Button>
-                  <Button type="text" size="small" danger @click="handleDelete(item)">
-                    <DeleteOutlined />
-                  </Button>
+                  <Tooltip title="View">
+                    <Button type="text" size="small" @click="handlePreview(item)">
+                      <template #icon><Eye :size="15" /></template>
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="Download">
+                    <Button type="text" size="small" @click="handleDownload(item)">
+                      <template #icon><Download :size="15" /></template>
+                    </Button>
+                  </Tooltip>
+                  <Popconfirm title="Delete this media?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(item)">
+                    <Tooltip title="Delete">
+                      <Button type="text" size="small" danger>
+                        <template #icon><Trash2 :size="15" /></template>
+                      </Button>
+                    </Tooltip>
+                  </Popconfirm>
                 </div>
               </div>
             </div>
@@ -282,6 +291,15 @@ onMounted(() => {
 .media-actions {
   display: flex;
   gap: 4px;
+}
+
+.media-actions .ant-btn {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+
+.media-item:hover .media-actions .ant-btn {
+  opacity: 1;
 }
 
 .text-xs {

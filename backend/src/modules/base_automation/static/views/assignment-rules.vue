@@ -459,7 +459,7 @@ onMounted(() => {
 
                 <!-- Actions -->
                 <template v-else-if="column.key === 'actions'">
-                  <Space>
+                  <div class="actions-cell flex items-center gap-1">
                     <Tooltip title="Edit">
                       <Button type="text" size="small" @click="openEditForm(record)">
                         <template #icon><EditOutlined /></template>
@@ -467,8 +467,9 @@ onMounted(() => {
                     </Tooltip>
                     <Popconfirm
                       title="Delete this rule?"
+                      ok-text="Delete"
+                      ok-type="danger"
                       @confirm="deleteRule(record)"
-                      okType="danger"
                     >
                       <Tooltip title="Delete">
                         <Button type="text" size="small" danger>
@@ -476,7 +477,7 @@ onMounted(() => {
                         </Button>
                       </Tooltip>
                     </Popconfirm>
-                  </Space>
+                  </div>
                 </template>
               </template>
             </Table>
@@ -526,7 +527,7 @@ onMounted(() => {
                   </Space>
                 </template>
                 <template v-else-if="column.key === 'actions'">
-                  <Space>
+                  <div class="actions-cell flex items-center gap-1">
                     <Tooltip title="Edit">
                       <Button type="text" size="small" @click="openEditRRGroupModal(record)">
                         <template #icon><EditOutlined /></template>
@@ -534,8 +535,9 @@ onMounted(() => {
                     </Tooltip>
                     <Popconfirm
                       title="Delete this group?"
+                      ok-text="Delete"
+                      ok-type="danger"
                       @confirm="deleteRRGroup(record)"
-                      okType="danger"
                     >
                       <Tooltip title="Delete">
                         <Button type="text" size="small" danger>
@@ -543,7 +545,7 @@ onMounted(() => {
                         </Button>
                       </Tooltip>
                     </Popconfirm>
-                  </Space>
+                  </div>
                 </template>
               </template>
             </Table>
@@ -633,3 +635,13 @@ onMounted(() => {
     </Modal>
   </Page>
 </template>
+
+<style scoped>
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
+</style>

@@ -9,6 +9,7 @@ import {
   Menu,
   message,
   Modal,
+  Popconfirm,
   Radio,
   Select,
   Space,
@@ -477,7 +478,7 @@ onMounted(() => {
             </template>
 
             <template v-else-if="column.key === 'actions'">
-              <Space>
+              <div class="actions-cell flex items-center gap-1">
                 <Tooltip title="View Details">
                   <Button type="text" size="small" @click="viewWorkflow(record)">
                     <template #icon><EyeOutlined /></template>
@@ -501,12 +502,14 @@ onMounted(() => {
                     </template>
                   </Button>
                 </Tooltip>
-                <Tooltip title="Delete">
-                  <Button type="text" size="small" danger @click="deleteWorkflow(record)">
-                    <template #icon><DeleteOutlined /></template>
-                  </Button>
-                </Tooltip>
-              </Space>
+                <Popconfirm title="Delete?" ok-text="Delete" ok-type="danger" @confirm="deleteWorkflow(record)">
+                  <Tooltip title="Delete">
+                    <Button type="text" size="small" danger>
+                      <template #icon><DeleteOutlined /></template>
+                    </Button>
+                  </Tooltip>
+                </Popconfirm>
+              </div>
             </template>
           </template>
         </Table>
@@ -617,3 +620,13 @@ export default {
   name: 'WorkflowsList',
 }
 </script>
+
+<style scoped>
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
+</style>

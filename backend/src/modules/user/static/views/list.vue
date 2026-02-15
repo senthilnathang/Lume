@@ -13,13 +13,13 @@ import {
   Select,
   SelectOption,
   Avatar,
-  Dropdown,
-  Menu,
-  MenuItem,
   Modal,
   Form,
   FormItem,
   Input as AntInput,
+  Switch,
+  Tooltip,
+  Popconfirm,
   message,
   Spin,
   Row,
@@ -29,12 +29,10 @@ import {
 import {
   PlusOutlined,
   SearchOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  MoreOutlined,
   UserOutlined,
-  LockOutlined,
 } from '@ant-design/icons-vue';
+
+import { Eye, Edit3, Key, Trash2 } from 'lucide-vue-next';
 
 defineOptions({
   name: 'UsersList',
@@ -54,7 +52,7 @@ const columns = [
   { title: 'Role', dataIndex: 'role_id', key: 'role_id', width: 120 },
   { title: 'Status', dataIndex: 'is_active', key: 'is_active', width: 100 },
   { title: 'Last Login', dataIndex: 'last_login', key: 'last_login', width: 150 },
-  { title: 'Actions', key: 'actions', width: 80 },
+  { title: 'Actions', key: 'actions', width: 160 },
 ];
 
 const formState = ref({
@@ -300,27 +298,30 @@ onMounted(() => {
               </Tag>
             </template>
             <template v-else-if="column.key === 'actions'">
-              <Dropdown>
-                <template #overlay>
-                  <Menu>
-                    <MenuItem key="view" @click="handleViewProfile(record)">
-                      <UserOutlined /> View Profile
-                    </MenuItem>
-                    <MenuItem key="edit" @click="openModal(record)">
-                      <EditOutlined /> Edit
-                    </MenuItem>
-                    <MenuItem key="reset" @click="handleResetPassword(record)">
-                      <LockOutlined /> Reset Password
-                    </MenuItem>
-                    <MenuItem key="delete" danger @click="handleDelete(record)">
-                      <DeleteOutlined /> Delete
-                    </MenuItem>
-                  </Menu>
-                </template>
-                <Button type="text">
-                  <MoreOutlined />
-                </Button>
-              </Dropdown>
+              <div class="actions-cell flex items-center gap-1">
+                <Tooltip title="View">
+                  <Button type="text" size="small" @click="handleViewProfile(record)">
+                    <template #icon><Eye :size="15" /></template>
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Edit">
+                  <Button type="text" size="small" @click="openModal(record)">
+                    <template #icon><Edit3 :size="15" /></template>
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Reset Password">
+                  <Button type="text" size="small" @click="handleResetPassword(record)">
+                    <template #icon><Key :size="15" /></template>
+                  </Button>
+                </Tooltip>
+                <Popconfirm title="Delete this user?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record)">
+                  <Tooltip title="Delete">
+                    <Button type="text" size="small" danger>
+                      <template #icon><Trash2 :size="15" /></template>
+                    </Button>
+                  </Tooltip>
+                </Popconfirm>
+              </div>
             </template>
           </template>
         </Table>
@@ -384,5 +385,14 @@ onMounted(() => {
 
 .font-medium {
   font-weight: 500;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

@@ -13,14 +13,13 @@ import {
   Select,
   SelectOption,
   Avatar,
-  Dropdown,
-  Menu,
-  MenuItem,
   Modal,
   Form,
   FormItem,
   Input as AntInput,
   Switch,
+  Tooltip,
+  Popconfirm,
   message,
   Spin,
   Row,
@@ -30,10 +29,9 @@ import {
 import {
   PlusOutlined,
   SearchOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  MoreOutlined,
 } from '@ant-design/icons-vue';
+
+import { Eye, Edit3, Trash2 } from 'lucide-vue-next';
 
 defineOptions({
   name: 'TeamList',
@@ -53,7 +51,7 @@ const columns = [
   { title: 'Department', dataIndex: 'department', key: 'department' },
   { title: 'Position', dataIndex: 'position', key: 'position' },
   { title: 'Status', dataIndex: 'is_active', key: 'is_active', width: 100 },
-  { title: 'Actions', key: 'actions', width: 80 },
+  { title: 'Actions', key: 'actions', width: 130 },
 ];
 
 const departments = ['Leadership', 'Programs', 'Operations', 'Fundraising', 'Finance', 'HR'];
@@ -279,21 +277,25 @@ onMounted(() => {
               </Tag>
             </template>
             <template v-else-if="column.key === 'actions'">
-              <Dropdown>
-                <template #overlay>
-                  <Menu>
-                    <MenuItem key="edit" @click="openModal(record)">
-                      <EditOutlined /> Edit
-                    </MenuItem>
-                    <MenuItem key="delete" danger @click="handleDelete(record)">
-                      <DeleteOutlined /> Delete
-                    </MenuItem>
-                  </Menu>
-                </template>
-                <Button type="text">
-                  <MoreOutlined />
-                </Button>
-              </Dropdown>
+              <div class="actions-cell flex items-center gap-1">
+                <Tooltip title="View">
+                  <Button type="text" size="small" @click="openModal(record)">
+                    <template #icon><Eye :size="15" /></template>
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Edit">
+                  <Button type="text" size="small" @click="openModal(record)">
+                    <template #icon><Edit3 :size="15" /></template>
+                  </Button>
+                </Tooltip>
+                <Popconfirm title="Delete this member?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record)">
+                  <Tooltip title="Delete">
+                    <Button type="text" size="small" danger>
+                      <template #icon><Trash2 :size="15" /></template>
+                    </Button>
+                  </Tooltip>
+                </Popconfirm>
+              </div>
             </template>
           </template>
         </Table>
@@ -357,5 +359,14 @@ onMounted(() => {
 
 .font-medium {
   font-weight: 500;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

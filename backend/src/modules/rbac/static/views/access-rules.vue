@@ -268,14 +268,20 @@ onMounted(() => {
             </template>
 
             <template v-else-if="column.key === 'actions'">
-              <Space>
-                <Button type="text" size="small" @click="openModal(record)">
-                  <EditOutlined />
-                </Button>
-                <Button type="text" size="small" danger @click="handleDelete(record)">
-                  <DeleteOutlined />
-                </Button>
-              </Space>
+              <div class="actions-cell flex items-center gap-1">
+                <a-tooltip title="Edit">
+                  <a-button type="text" size="small" @click="openModal(record)">
+                    <template #icon><EditOutlined /></template>
+                  </a-button>
+                </a-tooltip>
+                <a-popconfirm title="Delete this item?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record)">
+                  <a-tooltip title="Delete">
+                    <a-button type="text" size="small" danger>
+                      <template #icon><DeleteOutlined /></template>
+                    </a-button>
+                  </a-tooltip>
+                </a-popconfirm>
+              </div>
             </template>
           </template>
         </Table>
@@ -376,5 +382,13 @@ import { Row, Col } from 'ant-design-vue';
 
 .text-xs {
   font-size: 12px;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

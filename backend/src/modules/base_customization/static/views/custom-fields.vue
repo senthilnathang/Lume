@@ -9,7 +9,6 @@ import {
   Edit3,
   Trash2,
   AlertTriangle,
-  MoreVertical,
 } from 'lucide-vue-next';
 
 import {
@@ -395,22 +394,20 @@ onMounted(() => {
 
           <!-- Actions -->
           <template v-else-if="column.key === 'actions'">
-            <a-dropdown>
-              <a-button type="text" size="small">
-                <MoreVertical :size="16" />
-              </a-button>
-              <template #overlay>
-                <a-menu>
-                  <a-menu-item key="edit" @click="openEdit(record)">
-                    <Edit3 :size="14" class="mr-2" /> Edit
-                  </a-menu-item>
-                  <a-menu-divider />
-                  <a-menu-item key="delete" danger @click="handleDelete(record)">
-                    <Trash2 :size="14" class="mr-2" /> Delete
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
+            <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="Edit">
+                <a-button type="text" size="small" @click="openEdit(record)">
+                  <template #icon><Edit3 :size="15" /></template>
+                </a-button>
+              </a-tooltip>
+              <a-popconfirm title="Delete this item?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record)">
+                <a-tooltip title="Delete">
+                  <a-button type="text" size="small" danger>
+                    <template #icon><Trash2 :size="15" /></template>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
           </template>
         </template>
       </a-table>
@@ -509,5 +506,13 @@ onMounted(() => {
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

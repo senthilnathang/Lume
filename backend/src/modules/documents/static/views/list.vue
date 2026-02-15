@@ -12,9 +12,8 @@ import {
   Input,
   Select,
   SelectOption,
-  Dropdown,
-  Menu,
-  MenuItem,
+  Tooltip,
+  Popconfirm,
   message,
   Spin,
 } from 'ant-design-vue';
@@ -28,12 +27,9 @@ import {
   FileWordOutlined,
   FileExcelOutlined,
   FileImageOutlined,
-  MoreOutlined,
-  DownloadOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ShareAltOutlined,
 } from '@ant-design/icons-vue';
+
+import { Download, Share2, Trash2 } from 'lucide-vue-next';
 
 defineOptions({
   name: 'DocumentsList',
@@ -69,7 +65,7 @@ const columns = [
   {
     title: 'Actions',
     key: 'actions',
-    width: 80,
+    width: 130,
   },
 ];
 
@@ -230,24 +226,25 @@ onMounted(() => {
             </template>
 
             <template v-else-if="column.key === 'actions'">
-              <Dropdown>
-                <template #overlay>
-                  <Menu>
-                    <MenuItem key="download" @click="handleDownload(record)">
-                      <DownloadOutlined /> Download
-                    </MenuItem>
-                    <MenuItem key="share" @click="handleShare(record)">
-                      <ShareAltOutlined /> Share
-                    </MenuItem>
-                    <MenuItem key="delete" danger @click="handleDelete(record)">
-                      <DeleteOutlined /> Delete
-                    </MenuItem>
-                  </Menu>
-                </template>
-                <Button type="text">
-                  <MoreOutlined />
-                </Button>
-              </Dropdown>
+              <div class="actions-cell flex items-center gap-1">
+                <Tooltip title="Download">
+                  <Button type="text" size="small" @click="handleDownload(record)">
+                    <template #icon><Download :size="15" /></template>
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Share">
+                  <Button type="text" size="small" @click="handleShare(record)">
+                    <template #icon><Share2 :size="15" /></template>
+                  </Button>
+                </Tooltip>
+                <Popconfirm title="Delete this document?" ok-text="Delete" ok-type="danger" @confirm="handleDelete(record)">
+                  <Tooltip title="Delete">
+                    <Button type="text" size="small" danger>
+                      <template #icon><Trash2 :size="15" /></template>
+                    </Button>
+                  </Tooltip>
+                </Popconfirm>
+              </div>
             </template>
           </template>
         </Table>
@@ -263,5 +260,14 @@ onMounted(() => {
 
 .font-medium {
   font-weight: 500;
+}
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
 }
 </style>

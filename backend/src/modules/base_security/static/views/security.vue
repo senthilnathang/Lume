@@ -309,13 +309,19 @@ onMounted(() => { loadData(); });
               {{ formatDate((record as IpAccessRule).createdAt) }}
             </template>
             <template v-else-if="column.key === 'actions'">
-              <div class="flex gap-1">
-                <a-button type="text" size="small" @click="openEditIp(record as IpAccessRule)">
-                  <Lock :size="14" />
-                </a-button>
-                <a-button type="text" size="small" danger @click="handleDeleteIp(record as IpAccessRule)">
-                  <Trash2 :size="14" />
-                </a-button>
+              <div class="actions-cell flex items-center gap-1">
+                <a-tooltip title="Edit">
+                  <a-button type="text" size="small" @click="openEditIp(record as IpAccessRule)">
+                    <Lock :size="14" />
+                  </a-button>
+                </a-tooltip>
+                <a-popconfirm title="Delete?" ok-text="Delete" ok-type="danger" @confirm="handleDeleteIp(record as IpAccessRule)">
+                  <a-tooltip title="Delete">
+                    <a-button type="text" size="small" danger>
+                      <Trash2 :size="14" />
+                    </a-button>
+                  </a-tooltip>
+                </a-popconfirm>
               </div>
             </template>
           </template>
@@ -363,13 +369,21 @@ onMounted(() => { loadData(); });
               {{ formatDate((record as Session).createdAt) }}
             </template>
             <template v-else-if="column.key === 'actions'">
-              <a-button
-                v-if="(record as Session).status === 'active'"
-                type="text" size="small" danger
-                @click="handleRevokeSession(record as Session)"
-              >
-                <XCircle :size="14" />
-              </a-button>
+              <div class="actions-cell flex items-center gap-1">
+                <a-popconfirm
+                  v-if="(record as Session).status === 'active'"
+                  title="Revoke session?"
+                  ok-text="Revoke"
+                  ok-type="danger"
+                  @confirm="handleRevokeSession(record as Session)"
+                >
+                  <a-tooltip title="Revoke">
+                    <a-button type="text" size="small" danger>
+                      <XCircle :size="14" />
+                    </a-button>
+                  </a-tooltip>
+                </a-popconfirm>
+              </div>
             </template>
           </template>
         </a-table>
@@ -410,13 +424,21 @@ onMounted(() => { loadData(); });
               {{ formatDate((record as ApiKey).expiresAt) }}
             </template>
             <template v-else-if="column.key === 'actions'">
-              <a-button
-                v-if="(record as ApiKey).status === 'active'"
-                type="text" size="small" danger
-                @click="handleRevokeKey(record as ApiKey)"
-              >
-                <Trash2 :size="14" />
-              </a-button>
+              <div class="actions-cell flex items-center gap-1">
+                <a-popconfirm
+                  v-if="(record as ApiKey).status === 'active'"
+                  title="Revoke key?"
+                  ok-text="Revoke"
+                  ok-type="danger"
+                  @confirm="handleRevokeKey(record as ApiKey)"
+                >
+                  <a-tooltip title="Revoke">
+                    <a-button type="text" size="small" danger>
+                      <Trash2 :size="14" />
+                    </a-button>
+                  </a-tooltip>
+                </a-popconfirm>
+              </div>
             </template>
           </template>
         </a-table>
@@ -480,4 +502,12 @@ onMounted(() => { loadData(); });
 
 <style scoped>
 .security-page { min-height: 100%; }
+
+:deep(.actions-cell .ant-btn) {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+:deep(.ant-table-row:hover .actions-cell .ant-btn) {
+  opacity: 1;
+}
 </style>
