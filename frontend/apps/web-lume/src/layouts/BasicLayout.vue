@@ -13,22 +13,32 @@
         <RouterView />
       </div>
     </div>
+    <CommandPalette v-if="isAuthenticated" :visible="commandPaletteOpen" @close="commandPaletteOpen = false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/auth';
 import { usePermissionStore } from '@/store/permission';
 import Sidebar from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
+import CommandPalette from '@modules/common/static/components/CommandPalette.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
 
 const sidebarCollapsed = ref(false);
+const commandPaletteOpen = ref(false);
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    commandPaletteOpen.value = !commandPaletteOpen.value;
+  }
+};
 
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.userInfo);
@@ -40,6 +50,11 @@ onMounted(async () => {
     await permissionStore.fetchPermissions();
     await permissionStore.fetchMenus();
   }
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
 });
 
 const toggleSidebar = () => {

@@ -208,3 +208,30 @@ Are they installed?
 7:05:26 PM [vite] page reload /opt/Lume/backend/src/modules/base_security/static/views/security.vue
 7:05:29 PM [vite] page reload /opt/Lume/backend/src/modules/base_security/static/views/security.vue
 7:05:31 PM [vite] page reload /opt/Lume/backend/src/modules/base_security/static/views/security.vue
+7:47:25 PM [vite] hmr update /src/layouts/BasicLayout.vue, /src/style.css
+7:47:31 PM [vite] hmr update /src/layouts/BasicLayout.vue, /src/style.css
+7:47:36 PM [vite] hmr update /src/layouts/BasicLayout.vue, /src/style.css
+7:47:41 PM [vite] hmr update /src/layouts/BasicLayout.vue, /src/style.css
+11:25:43 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/activities/static/views/index.vue, /src/style.css
+11:25:47 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/activities/static/views/index.vue, /src/style.css
+11:25:55 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/donations/static/views/campaigns.vue, /src/style.css
+11:26:02 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/donations/static/views/campaigns.vue, /src/style.css
+11:26:10 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+11:26:17 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+11:29:50 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/base_automation/static/views/automation.vue, /src/style.css
+11:29:54 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/base_automation/static/views/automation.vue, /src/style.css
+11:29:58 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/base_security/static/views/security.vue, /src/style.css
+11:30:02 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/base_security/static/views/security.vue, /src/style.css
+11:30:06 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+11:30:11 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+11:30:15 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/rbac/static/views/rbac-index.vue, /src/style.css
+11:30:19 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/rbac/static/views/rbac-index.vue, /src/style.css
+11:31:40 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/base_automation/static/views/automation.vue, /src/style.css
+11:31:47 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/base_automation/static/views/automation.vue, /src/style.css
+11:31:51 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/base_security/static/views/security.vue, /src/style.css
+11:31:58 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/base_security/static/views/security.vue, /src/style.css
+11:32:02 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+11:32:09 PM [vite] page reload /opt/Lume/backend/src/modules/base_features_data/static/views/features.vue
+11:32:16 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/rbac/static/views/rbac-index.vue, /src/style.css
+11:32:23 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/rbac/static/views/rbac-index.vue, /src/style.css
+11:39:14 PM [vite] page reload src/router/index.ts

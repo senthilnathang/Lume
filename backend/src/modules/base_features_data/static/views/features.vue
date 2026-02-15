@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, h, onMounted, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { message, Modal } from 'ant-design-vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
@@ -15,8 +15,10 @@ import {
 
 defineOptions({ name: 'FeaturesDataView' });
 
+/** Convert ISO-8601 timestamp to YYYY-MM-DD for native date inputs */
+const toDateInput = (v: string | null | undefined) => v ? v.substring(0, 10) : '';
+
 const route = useRoute();
-const router = useRouter();
 
 const sections = [
   { label: 'Feature Flags', value: 'flags' },
@@ -150,10 +152,6 @@ async function loadBackups() {
   } catch { backups.value = []; }
 }
 
-function handleSectionChange(val: string) {
-  router.push(`/settings/features/${val}`);
-}
-
 // Flag actions
 function openCreateFlag() {
   flagFormMode.value = 'create';
@@ -167,7 +165,7 @@ function openEditFlag(flag: FeatureFlag) {
   editingFlag.value = flag;
   Object.assign(flagForm, {
     name: flag.name, key: flag.key, description: flag.description || '',
-    enabled: flag.enabled, expiresAt: flag.expiresAt || '',
+    enabled: flag.enabled, expiresAt: toDateInput(flag.expiresAt),
   });
   showFlagModal.value = true;
 }
@@ -306,9 +304,6 @@ onMounted(() => { loadData(); });
         Refresh
       </a-button>
     </div>
-
-    <!-- Section Navigation -->
-    <a-segmented :value="activeSection" :options="sections" class="mb-6" @change="handleSectionChange" />
 
     <!-- Feature Flags -->
     <div v-if="activeSection === 'flags'">

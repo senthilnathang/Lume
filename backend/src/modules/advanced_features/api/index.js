@@ -76,6 +76,21 @@ const createRoutes = (models, services) => {
     }
   });
 
+  router.post('/webhooks/:id/test', async (req, res) => {
+    try {
+      if (!services.webhookService) {
+        return res.status(400).json({ success: false, error: 'Webhook service not initialized' });
+      }
+      const result = await services.webhookService.testWebhook(req.params.id);
+      if (result.error) {
+        return res.status(400).json({ success: false, error: result.error });
+      }
+      res.json({ success: true, data: result });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // ── Notifications ─────────────────────────────────────────────
 
   router.get('/notifications', async (req, res) => {

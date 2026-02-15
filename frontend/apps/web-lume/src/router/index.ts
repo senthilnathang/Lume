@@ -25,11 +25,11 @@ const customViews: Record<string, () => Promise<any>> = {
   // User module
   'settings/users': () => import('@modules/user/static/views/users.vue'),
   // RBAC module
-  'settings/roles': () => import('@modules/rbac/static/views/roles-view.vue'),
-  'settings/permissions': () => import('@modules/rbac/static/views/permissions-view.vue'),
-  'settings/groups': () => import('@modules/rbac/static/views/groups.vue'),
+  'settings/rbac/roles': () => import('@modules/rbac/static/views/roles-view.vue'),
+  'settings/rbac/permissions': () => import('@modules/rbac/static/views/permissions-view.vue'),
   'settings/rbac/access-rules': () => import('@modules/rbac/static/views/rbac-index.vue'),
   'settings/rbac/audit': () => import('@modules/rbac/static/views/rbac-index.vue'),
+  'settings/groups': () => import('@modules/rbac/static/views/groups.vue'),
   // Audit module
   'settings/audit-logs': () => import('@modules/audit/static/views/audit-logs.vue'),
   'audit': () => import('@modules/audit/static/views/audit-logs.vue'),

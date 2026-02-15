@@ -35,6 +35,9 @@ import {
 
 defineOptions({ name: 'ActivitiesView' });
 
+/** Convert ISO-8601 timestamp to YYYY-MM-DD for native date inputs */
+const toDateInput = (v: string | null | undefined) => v ? v.substring(0, 10) : '';
+
 // State
 const loading = ref(false);
 const activities = ref<Activity[]>([]);
@@ -165,8 +168,8 @@ function openEdit(activity: Activity) {
     description: activity.description || '',
     category: activity.category || '',
     location: activity.location || '',
-    start_date: activity.start_date || '',
-    end_date: activity.end_date || '',
+    start_date: toDateInput(activity.start_date),
+    end_date: toDateInput(activity.end_date),
     capacity: activity.capacity,
     is_featured: activity.is_featured,
   });

@@ -60,6 +60,22 @@ export class DrizzleAdapter extends BaseAdapter {
   }
 
   /**
+   * Find the first record matching domain conditions.
+   * @param {Array} where - Domain tuples e.g. [['userId', '=', 5]]
+   * @returns {Object|null}
+   */
+  async findOne(where = []) {
+    const db = this._db();
+    const conditions = this._parseDomain(where);
+    let query = db.select().from(this.table);
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    const rows = await query.limit(1);
+    return rows[0] || null;
+  }
+
+  /**
    * Normalize date-only strings (YYYY-MM-DD) to full ISO-8601 DateTime
    * for any timestamp columns in the table.
    */
