@@ -59,8 +59,25 @@ export class DrizzleAdapter extends BaseAdapter {
     return rows[0] || null;
   }
 
+  /**
+   * Normalize date-only strings (YYYY-MM-DD) to full ISO-8601 DateTime
+   * for any timestamp columns in the table.
+   */
+  _normalizeDates(data) {
+    const columns = this.table[Symbol.for('drizzle:Columns')] || {};
+    for (const key of Object.keys(data)) {
+      if (data[key] && typeof data[key] === 'string' && columns[key]?.dataType === 'date') {
+        if (!data[key].includes('T')) {
+          data[key] = new Date(data[key]).toISOString();
+        }
+      }
+    }
+    return data;
+  }
+
   async create(data) {
     const db = this._db();
+    this._normalizeDates(data);
     const result = await db.insert(this.table).values(data);
     const insertId = result[0]?.insertId;
     if (insertId) {
@@ -71,6 +88,7 @@ export class DrizzleAdapter extends BaseAdapter {
 
   async update(id, data) {
     const db = this._db();
+    this._normalizeDates(data);
     await db.update(this.table).set(data).where(eq(this.table.id, Number(id)));
     return this.findById(id);
   }
