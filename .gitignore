@@ -57,3 +57,14 @@ uploads/
 # Database
 *.sqlite
 *.sqlite3
+
+# FastVue leftovers (not used by Lume)
+packages/
+frontend/fastvue/
+frontend/fastvue-backend/
+internal/
+
+# Development artifacts
+*.png
+!frontend/apps/web-lume/public/**
+!frontend/apps/web-lume/src/assets/**
