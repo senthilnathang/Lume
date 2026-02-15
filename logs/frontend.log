@@ -235,3 +235,4 @@ Are they installed?
 11:32:16 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/rbac/static/views/rbac-index.vue, /src/style.css
 11:32:23 PM [vite] hmr update /@fs/opt/Lume/backend/src/modules/rbac/static/views/rbac-index.vue, /src/style.css
 11:39:14 PM [vite] page reload src/router/index.ts
+12:08:53 AM [vite] page reload playwright-report/index.html
