@@ -3,6 +3,15 @@ import { stringUtil, responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES, DONATION_STATUS, PAGINATION } from '../../shared/constants/index.js';
 
 export class DonationService {
+  _normalizeDates(data, fields) {
+    for (const field of fields) {
+      if (data[field] && typeof data[field] === 'string' && !data[field].includes('T')) {
+        data[field] = new Date(data[field]).toISOString();
+      }
+    }
+    return data;
+  }
+
   async createDonor(donorData) {
     const donor = await prisma.donors.create({ data: donorData });
     return responseUtil.success(donor, MESSAGES.CREATED);
@@ -48,6 +57,7 @@ export class DonationService {
   }
 
   async create(donationData) {
+    this._normalizeDates(donationData, ['receipt_sent_at']);
     const donation = await prisma.donations.create({ data: donationData });
     return responseUtil.success(donation, MESSAGES.CREATED);
   }
@@ -83,8 +93,8 @@ export class DonationService {
 
     if (start_date || end_date) {
       where.created_at = {};
-      if (start_date) where.created_at.gte = start_date;
-      if (end_date) where.created_at.lte = end_date;
+      if (start_date) where.created_at.gte = start_date.includes('T') ? start_date : new Date(start_date).toISOString();
+      if (end_date) where.created_at.lte = end_date.includes('T') ? end_date : new Date(end_date).toISOString();
     }
 
     const [rows, count] = await Promise.all([
@@ -112,6 +122,7 @@ export class DonationService {
       return responseUtil.notFound('Donation');
     }
 
+    this._normalizeDates(donationData, ['receipt_sent_at']);
     const updated = await prisma.donations.update({
       where: { id: Number(id) },
       data: donationData
@@ -159,6 +170,7 @@ export class DonationService {
     if (campaignData.name) {
       campaignData.slug = stringUtil.slugify(campaignData.name) + '-' + stringUtil.randomString(6);
     }
+    this._normalizeDates(campaignData, ['start_date', 'end_date']);
     const campaign = await prisma.campaigns.create({ data: campaignData });
     return responseUtil.success(campaign, MESSAGES.CREATED);
   }
