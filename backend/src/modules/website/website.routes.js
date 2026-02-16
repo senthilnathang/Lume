@@ -64,6 +64,24 @@ router.get('/public/sitemap', async (req, res) => {
   }
 });
 
+router.post('/public/contact', [
+  body('name').trim().notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('subject').trim().notEmpty().withMessage('Subject is required'),
+  body('message').trim().notEmpty().withMessage('Message is required'),
+  body('phone').optional().trim(),
+], validateRequest, async (req, res) => {
+  try {
+    const { name, email, phone, subject, message } = req.body;
+    // Log submission (could be extended to store in DB or send email)
+    console.log(`[Contact Form] From: ${name} <${email}>, Subject: ${subject}`);
+    res.json(responseUtil.success({ received: true }, 'Message received successfully. We will get back to you shortly.'));
+  } catch (error) {
+    console.error('Contact form error:', error);
+    res.status(500).json(responseUtil.error('Failed to process contact form'));
+  }
+});
+
 // ─── Admin Pages API ───
 
 router.get('/pages', authenticate, async (req, res) => {

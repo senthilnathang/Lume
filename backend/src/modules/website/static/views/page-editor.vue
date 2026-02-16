@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
 import { Globe, ArrowLeft, Save, Check, Settings } from 'lucide-vue-next';
 import { get, put, post } from '@/api/request';
+import { RichEditor } from '@modules/editor/static/components/index';
 
 defineOptions({ name: 'WebsitePageEditor' });
 
@@ -100,6 +101,7 @@ async function handleSave() {
     const payload = { ...page };
     delete (payload as any).id;
     delete (payload as any).isPublished;
+    payload.contentHtml = payload.content;
 
     if (page.id) {
       await put(`/website/pages/${page.id}`, payload);
@@ -192,11 +194,11 @@ onMounted(() => {
         <!-- Editor Panel -->
         <div class="flex-1 p-6 overflow-auto">
           <a-card title="Content" class="mb-4">
-            <a-textarea
-              v-model:value="page.content"
-              placeholder="Write your page content here... HTML is supported."
-              :rows="20"
-              style="font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 14px;"
+            <RichEditor
+              v-model="page.content"
+              placeholder="Write your page content here..."
+              min-height="400px"
+              max-height="700px"
             />
           </a-card>
 

@@ -45,15 +45,7 @@
             <p class="text-sm font-semibold text-primary-600 uppercase tracking-wider mb-3">Our Story</p>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-6">Building the Future of Farming</h2>
             <div class="space-y-4 text-gray-600 leading-relaxed">
-              <p>
-                Founded in 2009, RIAGRI began as a small family-owned equipment dealership with a simple mission: to provide farmers with access to reliable, high-quality agricultural machinery at fair prices.
-              </p>
-              <p>
-                Over the past 15 years, we have grown into one of the region's most trusted agricultural equipment providers, serving over 500 farming operations across the country. Our growth has been driven by a commitment to understanding the unique challenges that modern farmers face.
-              </p>
-              <p>
-                Today, RIAGRI offers a comprehensive range of products and services, from heavy-duty tractors and harvesters to precision irrigation systems and genuine spare parts. We are not just an equipment dealer, we are a partner in your farming success.
-              </p>
+              <p v-for="(paragraph, i) in story" :key="i">{{ paragraph }}</p>
             </div>
           </div>
         </div>
@@ -124,16 +116,42 @@
 </template>
 
 <script setup lang="ts">
+import { usePageContent } from '~/composables/useWebsiteData'
+
+interface MvvItem {
+  title: string; description: string; icon: string; bgColor: string; iconColor: string
+}
+interface TeamMember {
+  name: string; role: string; initials: string; bio: string
+}
+interface StatItem {
+  value: string; label: string
+}
+interface AboutContent {
+  story: string[]
+  mvv: MvvItem[]
+  teamMembers: TeamMember[]
+  stats: StatItem[]
+}
+
+const { content, seo } = usePageContent<AboutContent>('about')
+
 useHead({
-  title: 'About Us - RIAGRI Agricultural Equipment',
+  title: () => seo.value.title || 'About Us - RIAGRI Agricultural Equipment',
   meta: [
-    { name: 'description', content: 'Learn about RIAGRI\'s 15+ year journey in providing premium agricultural equipment, transport solutions, and expert service to farming communities.' },
-    { property: 'og:title', content: 'About Us - RIAGRI Agricultural Equipment' },
-    { property: 'og:description', content: 'Dedicated to advancing agriculture through reliable equipment and unwavering commitment to our farming community.' },
+    { name: 'description', content: () => seo.value.description || 'Learn about RIAGRI\'s 15+ year journey in providing premium agricultural equipment, transport solutions, and expert service to farming communities.' },
+    { property: 'og:title', content: () => seo.value.ogTitle || 'About Us - RIAGRI Agricultural Equipment' },
+    { property: 'og:description', content: () => seo.value.ogDescription || 'Dedicated to advancing agriculture through reliable equipment and unwavering commitment to our farming community.' },
   ],
 })
 
-const mvv = [
+const story = computed(() => content.value?.story || [
+  'Founded in 2009, RIAGRI began as a small family-owned equipment dealership with a simple mission: to provide farmers with access to reliable, high-quality agricultural machinery at fair prices.',
+  'Over the past 15 years, we have grown into one of the region\'s most trusted agricultural equipment providers, serving over 500 farming operations across the country. Our growth has been driven by a commitment to understanding the unique challenges that modern farmers face.',
+  'Today, RIAGRI offers a comprehensive range of products and services, from heavy-duty tractors and harvesters to precision irrigation systems and genuine spare parts. We are not just an equipment dealer, we are a partner in your farming success.',
+])
+
+const mvv = computed(() => content.value?.mvv || [
   {
     title: 'Our Mission',
     description: 'To empower farmers and agricultural businesses with access to reliable, high-performance equipment and exceptional service that drives productivity, profitability, and sustainable growth.',
@@ -155,39 +173,19 @@ const mvv = [
     bgColor: 'bg-red-50',
     iconColor: 'text-red-500',
   },
-]
+])
 
-const teamMembers = [
-  {
-    name: 'David Kariuki',
-    role: 'Founder & CEO',
-    initials: 'DK',
-    bio: '20+ years in agricultural engineering with a passion for modernizing farming across Africa.',
-  },
-  {
-    name: 'Grace Wanjiru',
-    role: 'Head of Operations',
-    initials: 'GW',
-    bio: 'Supply chain expert ensuring seamless equipment delivery and inventory management nationwide.',
-  },
-  {
-    name: 'Michael Omondi',
-    role: 'Chief Technical Officer',
-    initials: 'MO',
-    bio: 'Certified agricultural mechanic leading our service team with 15 years of hands-on experience.',
-  },
-  {
-    name: 'Amina Hassan',
-    role: 'Sales Director',
-    initials: 'AH',
-    bio: 'Agricultural economics graduate driving strategic growth and building lasting client relationships.',
-  },
-]
+const teamMembers = computed(() => content.value?.teamMembers || [
+  { name: 'David Kariuki', role: 'Founder & CEO', initials: 'DK', bio: '20+ years in agricultural engineering with a passion for modernizing farming across Africa.' },
+  { name: 'Grace Wanjiru', role: 'Head of Operations', initials: 'GW', bio: 'Supply chain expert ensuring seamless equipment delivery and inventory management nationwide.' },
+  { name: 'Michael Omondi', role: 'Chief Technical Officer', initials: 'MO', bio: 'Certified agricultural mechanic leading our service team with 15 years of hands-on experience.' },
+  { name: 'Amina Hassan', role: 'Sales Director', initials: 'AH', bio: 'Agricultural economics graduate driving strategic growth and building lasting client relationships.' },
+])
 
-const stats = [
+const stats = computed(() => content.value?.stats || [
   { value: '15+', label: 'Years in Business' },
   { value: '500+', label: 'Happy Clients' },
   { value: '3,000+', label: 'Machines Serviced' },
   { value: '8', label: 'Service Centers' },
-]
+])
 </script>

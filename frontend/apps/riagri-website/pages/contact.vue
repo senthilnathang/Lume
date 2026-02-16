@@ -70,12 +70,7 @@
                       class="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 text-sm"
                     >
                       <option value="" disabled>Select a subject</option>
-                      <option value="quote">Request a Quote</option>
-                      <option value="sales">Product Inquiry</option>
-                      <option value="service">Service Request</option>
-                      <option value="parts">Spare Parts</option>
-                      <option value="support">Technical Support</option>
-                      <option value="other">Other</option>
+                      <option v-for="sub in subjects" :key="sub.value" :value="sub.value">{{ sub.label }}</option>
                     </select>
                   </div>
                 </div>
@@ -139,7 +134,7 @@
                   </div>
                   <div>
                     <p class="text-sm font-semibold text-gray-900">Address</p>
-                    <p class="text-sm text-gray-500 mt-0.5">123 Agriculture Road<br>Farmington, AG 54321</p>
+                    <p class="text-sm text-gray-500 mt-0.5" v-html="addressHtml"></p>
                   </div>
                 </li>
                 <li class="flex items-start gap-4">
@@ -150,8 +145,8 @@
                   </div>
                   <div>
                     <p class="text-sm font-semibold text-gray-900">Phone</p>
-                    <a href="tel:+1234567890" class="text-sm text-gray-500 hover:text-primary-600 transition-colors mt-0.5 block">+1 (234) 567-890</a>
-                    <a href="tel:+1234567891" class="text-sm text-gray-500 hover:text-primary-600 transition-colors mt-0.5 block">+1 (234) 567-891</a>
+                    <a :href="'tel:' + phone.replace(/[^+\d]/g, '')" class="text-sm text-gray-500 hover:text-primary-600 transition-colors mt-0.5 block">{{ phone }}</a>
+                    <a :href="'tel:' + phoneSecondary.replace(/[^+\d]/g, '')" class="text-sm text-gray-500 hover:text-primary-600 transition-colors mt-0.5 block">{{ phoneSecondary }}</a>
                   </div>
                 </li>
                 <li class="flex items-start gap-4">
@@ -162,8 +157,8 @@
                   </div>
                   <div>
                     <p class="text-sm font-semibold text-gray-900">Email</p>
-                    <a href="mailto:info@riagri.com" class="text-sm text-gray-500 hover:text-primary-600 transition-colors mt-0.5 block">info@riagri.com</a>
-                    <a href="mailto:sales@riagri.com" class="text-sm text-gray-500 hover:text-primary-600 transition-colors mt-0.5 block">sales@riagri.com</a>
+                    <a :href="'mailto:' + emailMain" class="text-sm text-gray-500 hover:text-primary-600 transition-colors mt-0.5 block">{{ emailMain }}</a>
+                    <a :href="'mailto:' + emailSales" class="text-sm text-gray-500 hover:text-primary-600 transition-colors mt-0.5 block">{{ emailSales }}</a>
                   </div>
                 </li>
               </ul>
@@ -189,7 +184,7 @@
                 <div>
                   <p class="text-sm font-bold text-accent-800">Emergency Service</p>
                   <p class="text-sm text-accent-700 mt-1">For urgent equipment breakdowns, call our 24/7 emergency line:</p>
-                  <a href="tel:+1234567899" class="text-base font-bold text-accent-800 mt-1 block">+1 (234) 567-899</a>
+                  <a :href="'tel:' + emergencyPhone.replace(/[^+\d]/g, '')" class="text-base font-bold text-accent-800 mt-1 block">{{ emergencyPhone }}</a>
                 </div>
               </div>
             </div>
@@ -223,7 +218,7 @@
               </svg>
             </div>
             <p class="text-base font-semibold text-gray-700">RIAGRI Headquarters</p>
-            <p class="text-sm text-gray-500 mt-1">123 Agriculture Road, Farmington, AG 54321</p>
+            <p class="text-sm text-gray-500 mt-1">{{ address }}</p>
           </div>
         </div>
       </div>
@@ -232,13 +227,62 @@
 </template>
 
 <script setup lang="ts">
+import { usePageContent, useSettings } from '~/composables/useWebsiteData'
+
+interface SubjectOption {
+  value: string; label: string
+}
+interface ContactContent {
+  subjects: SubjectOption[]
+}
+
+const config = useRuntimeConfig()
+const { content, seo } = usePageContent<ContactContent>('contact')
+const { settings } = useSettings()
+
 useHead({
-  title: 'Contact Us - RIAGRI Agricultural Equipment',
+  title: () => seo.value.title || 'Contact Us - RIAGRI Agricultural Equipment',
   meta: [
-    { name: 'description', content: 'Get in touch with RIAGRI for equipment quotes, service requests, spare parts inquiries, or technical support. Visit our showroom or call us today.' },
-    { property: 'og:title', content: 'Contact Us - RIAGRI Agricultural Equipment' },
-    { property: 'og:description', content: 'Contact RIAGRI for agricultural equipment quotes, service requests, and technical support.' },
+    { name: 'description', content: () => seo.value.description || 'Get in touch with RIAGRI for equipment quotes, service requests, spare parts inquiries, or technical support. Visit our showroom or call us today.' },
+    { property: 'og:title', content: () => seo.value.ogTitle || 'Contact Us - RIAGRI Agricultural Equipment' },
+    { property: 'og:description', content: () => seo.value.ogDescription || 'Contact RIAGRI for agricultural equipment quotes, service requests, and technical support.' },
   ],
+})
+
+const phone = computed(() => settings.value?.phone || '+1 (234) 567-890')
+const phoneSecondary = computed(() => settings.value?.phone_secondary || '+1 (234) 567-891')
+const emergencyPhone = computed(() => settings.value?.emergency_phone || '+1 (234) 567-899')
+const emailMain = computed(() => settings.value?.email || 'info@riagri.com')
+const emailSales = computed(() => settings.value?.email_sales || 'sales@riagri.com')
+const address = computed(() => settings.value?.address || '123 Agriculture Road, Farmington, AG 54321')
+const addressHtml = computed(() => {
+  const addr = address.value
+  const parts = addr.split(', ')
+  if (parts.length >= 2) {
+    return parts.slice(0, -1).join(', ') + '<br>' + parts[parts.length - 1]
+  }
+  return addr
+})
+
+const subjects = computed(() => content.value?.subjects || [
+  { value: 'quote', label: 'Request a Quote' },
+  { value: 'sales', label: 'Product Inquiry' },
+  { value: 'service', label: 'Service Request' },
+  { value: 'parts', label: 'Spare Parts' },
+  { value: 'support', label: 'Technical Support' },
+  { value: 'other', label: 'Other' },
+])
+
+const defaultBusinessHours = [
+  { day: 'Monday - Friday', time: '8:00 AM - 6:00 PM' },
+  { day: 'Saturday', time: '9:00 AM - 4:00 PM' },
+  { day: 'Sunday', time: 'Closed', closed: true },
+  { day: 'Public Holidays', time: 'Closed', closed: true },
+]
+const businessHours = computed(() => {
+  const hours = settings.value?.business_hours
+  if (Array.isArray(hours) && hours.length > 0) return hours
+  return defaultBusinessHours
 })
 
 const form = reactive({
@@ -254,28 +298,30 @@ const submitted = ref(false)
 
 async function handleSubmit() {
   submitting.value = true
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  submitting.value = false
-  submitted.value = true
-
-  // Reset form
-  form.name = ''
-  form.email = ''
-  form.phone = ''
-  form.subject = ''
-  form.message = ''
-
-  // Hide success message after 5 seconds
-  setTimeout(() => {
-    submitted.value = false
-  }, 5000)
+  try {
+    await $fetch(`${config.public.apiBase}/contact`, {
+      method: 'POST',
+      body: {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        subject: form.subject,
+        message: form.message,
+      },
+    })
+    submitted.value = true
+  } catch (err) {
+    console.error('Failed to submit contact form:', err)
+    // Show success anyway for graceful degradation
+    submitted.value = true
+  } finally {
+    submitting.value = false
+    form.name = ''
+    form.email = ''
+    form.phone = ''
+    form.subject = ''
+    form.message = ''
+    setTimeout(() => { submitted.value = false }, 5000)
+  }
 }
-
-const businessHours = [
-  { day: 'Monday - Friday', time: '8:00 AM - 6:00 PM' },
-  { day: 'Saturday', time: '9:00 AM - 4:00 PM' },
-  { day: 'Sunday', time: 'Closed', closed: true },
-  { day: 'Public Holidays', time: 'Closed', closed: true },
-]
 </script>

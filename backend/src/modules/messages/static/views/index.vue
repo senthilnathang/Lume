@@ -26,6 +26,7 @@ import {
   type Message,
   type MessageStats,
 } from '@modules/messages/static/api/index';
+import { CompactEditor } from '@modules/editor/static/components/index';
 
 defineOptions({ name: 'MessagesView' });
 
@@ -510,12 +511,7 @@ onMounted(() => {
           <div class="font-medium mb-1">{{ replyingTo.subject || '(No subject)' }}</div>
           <div class="text-xs text-gray-400 truncate">{{ replyingTo.content?.substring(0, 150) }}...</div>
         </div>
-        <a-textarea
-          v-model:value="replyContent"
-          placeholder="Type your reply..."
-          :rows="6"
-          autofocus
-        />
+        <CompactEditor v-model="replyContent" placeholder="Type your reply..." min-height="150px" />
       </div>
     </a-modal>
   </div>

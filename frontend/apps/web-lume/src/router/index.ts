@@ -107,8 +107,11 @@ const customViews: Record<string, () => Promise<any>> = {
   'settings/advanced/notifications': () => import('@modules/advanced_features/static/views/notifications.vue'),
   'settings/advanced/notification-channels': () => import('@modules/advanced_features/static/views/notification-channels.vue'),
   'settings/advanced/tags': () => import('@modules/advanced_features/static/views/tags.vue'),
+  // Editor module
+  'settings/editor/templates': () => import('@modules/editor/static/views/templates.vue'),
   // Website module
   'website/pages': () => import('@modules/website/static/views/pages.vue'),
+  'website/pages/editor': () => import('@modules/website/static/views/page-editor.vue'),
   'website/menus': () => import('@modules/website/static/views/menus.vue'),
   'website/media': () => import('@modules/website/static/views/media.vue'),
   'website/settings': () => import('@modules/website/static/views/settings.vue'),
@@ -192,6 +195,14 @@ const routes: RouteRecordRaw[] = [
         name: 'Dashboard',
         component: () => import('@/views/dashboard/index.vue'),
         meta: { title: 'Dashboard', requiresAuth: true },
+      },
+      // Page editor (not a menu item — navigated to from pages list)
+      {
+        path: 'website/pages/editor',
+        name: 'website-pages-editor',
+        component: () => import('@modules/website/static/views/page-editor.vue'),
+        props: { moduleName: 'website' },
+        meta: { title: 'Page Editor', requiresAuth: true, module: 'website' },
       },
     ],
   },

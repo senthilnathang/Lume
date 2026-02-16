@@ -13,15 +13,15 @@
                 <path d="M8 11c1.5.4 3 .8 4 1.5m0 0c1-.7 2.5-1.1 4-1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
               </svg>
             </div>
-            <span class="text-2xl font-extrabold tracking-tight text-gray-900">RI<span class="text-primary-600">AGRI</span></span>
+            <span class="text-2xl font-extrabold tracking-tight text-gray-900">{{ siteName.split(/(?=[A-Z])/).length > 1 ? siteName : 'RI' }}<span class="text-primary-600">{{ siteName.split(/(?=[A-Z])/).length > 1 ? '' : 'AGRI' }}</span></span>
           </NuxtLink>
 
           <!-- Desktop Navigation -->
           <nav class="hidden lg:flex items-center gap-1">
             <NuxtLink
               v-for="link in navLinks"
-              :key="link.to"
-              :to="link.to"
+              :key="link.url"
+              :to="link.url"
               class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-primary-700 hover:bg-primary-50 transition-all duration-200"
               active-class="!text-primary-700 !bg-primary-50"
             >
@@ -67,8 +67,8 @@
             <nav class="flex flex-col gap-1">
               <NuxtLink
                 v-for="link in navLinks"
-                :key="link.to"
-                :to="link.to"
+                :key="link.url"
+                :to="link.url"
                 class="px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-primary-700 hover:bg-primary-50 transition-all"
                 active-class="!text-primary-700 !bg-primary-50"
                 @click="mobileMenuOpen = false"
@@ -125,7 +125,7 @@
           <div>
             <h3 class="text-white font-semibold text-sm uppercase tracking-wider mb-5">Products</h3>
             <ul class="space-y-3">
-              <li v-for="item in footerProducts" :key="item">
+              <li v-for="item in footerProductsList" :key="item">
                 <NuxtLink to="/products" class="text-sm text-gray-400 hover:text-primary-400 transition-colors">{{ item }}</NuxtLink>
               </li>
             </ul>
@@ -135,7 +135,7 @@
           <div>
             <h3 class="text-white font-semibold text-sm uppercase tracking-wider mb-5">Services</h3>
             <ul class="space-y-3">
-              <li v-for="item in footerServices" :key="item">
+              <li v-for="item in footerServicesList" :key="item">
                 <NuxtLink to="/services" class="text-sm text-gray-400 hover:text-primary-400 transition-colors">{{ item }}</NuxtLink>
               </li>
             </ul>
@@ -150,19 +150,19 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
-                <span class="text-sm text-gray-400">123 Agriculture Road,<br>Farmington, AG 54321</span>
+                <span class="text-sm text-gray-400" v-html="addressHtml"></span>
               </li>
               <li class="flex items-center gap-3">
                 <svg class="w-5 h-5 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                 </svg>
-                <a href="tel:+1234567890" class="text-sm text-gray-400 hover:text-primary-400 transition-colors">+1 (234) 567-890</a>
+                <a :href="`tel:${phoneClean}`" class="text-sm text-gray-400 hover:text-primary-400 transition-colors">{{ phone }}</a>
               </li>
               <li class="flex items-center gap-3">
                 <svg class="w-5 h-5 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
-                <a href="mailto:info@riagri.com" class="text-sm text-gray-400 hover:text-primary-400 transition-colors">info@riagri.com</a>
+                <a :href="`mailto:${email}`" class="text-sm text-gray-400 hover:text-primary-400 transition-colors">{{ email }}</a>
               </li>
             </ul>
           </div>
@@ -172,7 +172,7 @@
       <!-- Bottom Bar -->
       <div class="border-t border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p class="text-xs text-gray-500">&copy; {{ new Date().getFullYear() }} RIAGRI. All rights reserved.</p>
+          <p class="text-xs text-gray-500">&copy; {{ new Date().getFullYear() }} {{ siteName }}. All rights reserved.</p>
           <div class="flex items-center gap-6">
             <NuxtLink to="/privacy" class="text-xs text-gray-500 hover:text-gray-300 transition-colors">Privacy Policy</NuxtLink>
             <NuxtLink to="/terms" class="text-xs text-gray-500 hover:text-gray-300 transition-colors">Terms of Service</NuxtLink>
@@ -186,31 +186,43 @@
 <script setup lang="ts">
 const mobileMenuOpen = ref(false)
 
-const navLinks = [
-  { label: 'Home', to: '/' },
-  { label: 'Products', to: '/products' },
-  { label: 'Services', to: '/services' },
-  { label: 'About', to: '/about' },
-  { label: 'Contact', to: '/contact' },
-]
+// Fetch dynamic data from CMS
+const { settings } = useSettings()
+const { items: headerMenuItems } = useMenu('header')
 
-const footerProducts = [
-  'Tractors & Machinery',
-  'Transport Equipment',
-  'Harvesters',
-  'Irrigation Systems',
-  'Spare Parts',
-  'Accessories',
-]
+// Derived values with fallbacks
+const siteName = computed(() => settings.value.site_name || 'RIAGRI')
+const phone = computed(() => settings.value.phone || '+1 (234) 567-890')
+const phoneClean = computed(() => phone.value.replace(/[^+\d]/g, ''))
+const email = computed(() => settings.value.email || 'info@riagri.com')
+const address = computed(() => settings.value.address || '123 Agriculture Road, Farmington, AG 54321')
+const addressHtml = computed(() => address.value.replace(', ', ',<br>'))
 
-const footerServices = [
-  'Equipment Sales',
-  'Maintenance & Repair',
-  'Parts Supply',
-  'Training & Support',
-  'Consultation',
-  'Financing Options',
-]
+const navLinks = computed(() => {
+  if (headerMenuItems.value.length > 0) {
+    return headerMenuItems.value.map(item => ({ label: item.label, url: item.url || '/' }))
+  }
+  // Fallback
+  return [
+    { label: 'Home', url: '/' },
+    { label: 'Products', url: '/products' },
+    { label: 'Services', url: '/services' },
+    { label: 'About', url: '/about' },
+    { label: 'Contact', url: '/contact' },
+  ]
+})
+
+const footerProductsList = computed(() => {
+  const v = settings.value.footer_products
+  if (Array.isArray(v)) return v
+  return ['Tractors & Machinery', 'Transport Equipment', 'Harvesters', 'Irrigation Systems', 'Spare Parts', 'Accessories']
+})
+
+const footerServicesList = computed(() => {
+  const v = settings.value.footer_services
+  if (Array.isArray(v)) return v
+  return ['Equipment Sales', 'Maintenance & Repair', 'Parts Supply', 'Training & Support', 'Consultation', 'Financing Options']
+})
 
 const socials = [
   { label: 'Facebook', href: '#', icon: '<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>' },

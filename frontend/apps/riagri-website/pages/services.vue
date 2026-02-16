@@ -108,16 +108,35 @@
 </template>
 
 <script setup lang="ts">
+import { usePageContent } from '~/composables/useWebsiteData'
+
+interface Service {
+  title: string; description: string; icon: string; features: string[]
+}
+interface ProcessStep {
+  title: string; description: string
+}
+interface Guarantee {
+  title: string; description: string; icon: string
+}
+interface ServicesContent {
+  services: Service[]
+  processSteps: ProcessStep[]
+  guarantees: Guarantee[]
+}
+
+const { content, seo } = usePageContent<ServicesContent>('services')
+
 useHead({
-  title: 'Services - RIAGRI Agricultural Solutions',
+  title: () => seo.value.title || 'Services - RIAGRI Agricultural Solutions',
   meta: [
-    { name: 'description', content: 'RIAGRI offers equipment sales consultation, maintenance and repair, spare parts supply, and technical training for agricultural businesses.' },
-    { property: 'og:title', content: 'Services - RIAGRI Agricultural Solutions' },
-    { property: 'og:description', content: 'Complete agricultural equipment services: sales, maintenance, repairs, parts supply, and training.' },
+    { name: 'description', content: () => seo.value.description || 'RIAGRI offers equipment sales consultation, maintenance and repair, spare parts supply, and technical training for agricultural businesses.' },
+    { property: 'og:title', content: () => seo.value.ogTitle || 'Services - RIAGRI Agricultural Solutions' },
+    { property: 'og:description', content: () => seo.value.ogDescription || 'Complete agricultural equipment services: sales, maintenance, repairs, parts supply, and training.' },
   ],
 })
 
-const services = [
+const services = computed(() => content.value?.services || [
   {
     title: 'Equipment Sales & Consultation',
     description: 'Our experienced sales team helps you choose the right equipment for your specific farming needs, terrain, and budget. We provide detailed comparisons, demo sessions, and financing guidance.',
@@ -162,28 +181,16 @@ const services = [
       '24/7 phone and on-site technical support',
     ],
   },
-]
+])
 
-const processSteps = [
-  {
-    title: 'Consultation',
-    description: 'Tell us about your farming operation, challenges, and goals. We listen and assess your needs thoroughly.',
-  },
-  {
-    title: 'Selection',
-    description: 'We recommend the best equipment and service packages tailored to your specific requirements and budget.',
-  },
-  {
-    title: 'Delivery',
-    description: 'Professional delivery, installation, and setup with hands-on operator training at your farm.',
-  },
-  {
-    title: 'After-Sales',
-    description: 'Ongoing maintenance plans, parts supply, and dedicated support to keep everything running smoothly.',
-  },
-]
+const processSteps = computed(() => content.value?.processSteps || [
+  { title: 'Consultation', description: 'Tell us about your farming operation, challenges, and goals. We listen and assess your needs thoroughly.' },
+  { title: 'Selection', description: 'We recommend the best equipment and service packages tailored to your specific requirements and budget.' },
+  { title: 'Delivery', description: 'Professional delivery, installation, and setup with hands-on operator training at your farm.' },
+  { title: 'After-Sales', description: 'Ongoing maintenance plans, parts supply, and dedicated support to keep everything running smoothly.' },
+])
 
-const guarantees = [
+const guarantees = computed(() => content.value?.guarantees || [
   {
     title: '12-Month Warranty',
     description: 'All new equipment comes with a comprehensive 12-month manufacturer warranty covering parts and labor.',
@@ -199,5 +206,5 @@ const guarantees = [
     description: 'If you are not completely satisfied with our service, we will make it right at no additional cost to you.',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/></svg>',
   },
-]
+])
 </script>
