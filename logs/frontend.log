@@ -257,3 +257,11 @@ failed to load config from /opt/Lume/frontend/apps/web-lume/vite.config.ts
 12:40:18 PM [vite] shallowRef is not a function
 12:40:18 PM [vite] server restart failed
 12:45:31 PM [vite] page reload src/router/index.ts
+12:59:52 PM [vite] vite.config.ts changed, restarting server...
+failed to load config from /opt/Lume/frontend/apps/web-lume/vite.config.ts
+12:59:52 PM [vite] shallowRef is not a function
+12:59:52 PM [vite] server restart failed
+1:08:45 PM [vite] vite.config.ts changed, restarting server...
+failed to load config from /opt/Lume/frontend/apps/web-lume/vite.config.ts
+1:08:45 PM [vite] shallowRef is not a function
+1:08:45 PM [vite] server restart failed
