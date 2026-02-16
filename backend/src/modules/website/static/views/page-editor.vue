@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
 import { Globe, ArrowLeft, Save, Check, Settings } from 'lucide-vue-next';
 import { get, put, post } from '@/api/request';
-import { RichEditor } from '@modules/editor/static/components/index';
+import { PageBuilder } from '@modules/editor/static/components/index';
 
 defineOptions({ name: 'WebsitePageEditor' });
 
@@ -193,12 +193,11 @@ onMounted(() => {
       <div class="flex h-full" style="min-height: calc(100vh - 120px);">
         <!-- Editor Panel -->
         <div class="flex-1 p-6 overflow-auto">
-          <a-card title="Content" class="mb-4">
-            <RichEditor
+          <a-card title="Content" class="mb-4" :body-style="{ padding: 0 }">
+            <PageBuilder
               v-model="page.content"
-              placeholder="Write your page content here..."
-              min-height="400px"
-              max-height="700px"
+              placeholder="Start building your page..."
+              min-height="500px"
             />
           </a-card>
 

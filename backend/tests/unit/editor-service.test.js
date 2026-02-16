@@ -115,6 +115,69 @@ describe('Editor Module File Structure', () => {
   test('static/views/templates.vue exists', () => {
     expect(existsSync(join(editorDir, 'static', 'views', 'templates.vue'))).toBe(true);
   });
+
+  // Page Builder components
+  test('static/components/PageBuilder.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'components', 'PageBuilder.vue'))).toBe(true);
+  });
+
+  test('static/components/BlockPalette.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'components', 'BlockPalette.vue'))).toBe(true);
+  });
+
+  test('static/components/BlockSettings.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'components', 'BlockSettings.vue'))).toBe(true);
+  });
+
+  test('static/components/SlashCommandList.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'components', 'SlashCommandList.vue'))).toBe(true);
+  });
+});
+
+// ─── Page Builder Block Extensions ───
+
+describe('Page Builder Block Extensions', () => {
+  const extDir = join(modulesDir, 'editor', 'static', 'extensions');
+
+  const extensions = [
+    'SectionBlock.ts',
+    'ColumnsBlock.ts',
+    'ColumnBlock.ts',
+    'ImageBlock.ts',
+    'ButtonBlock.ts',
+    'SpacerBlock.ts',
+    'VideoBlock.ts',
+    'CalloutBlock.ts',
+    'HtmlBlock.ts',
+    'SlashCommand.ts',
+    'index.ts',
+  ];
+
+  test.each(extensions)('extension %s exists', (file) => {
+    expect(existsSync(join(extDir, file))).toBe(true);
+  });
+});
+
+// ─── Page Builder Block View Components ───
+
+describe('Page Builder Block Views', () => {
+  const blocksDir = join(modulesDir, 'editor', 'static', 'components', 'blocks');
+
+  const views = [
+    'SectionBlockView.vue',
+    'ColumnsBlockView.vue',
+    'ColumnBlockView.vue',
+    'ImageBlockView.vue',
+    'ButtonBlockView.vue',
+    'SpacerBlockView.vue',
+    'VideoBlockView.vue',
+    'CalloutBlockView.vue',
+    'HtmlBlockView.vue',
+  ];
+
+  test.each(views)('block view %s exists', (file) => {
+    expect(existsSync(join(blocksDir, file))).toBe(true);
+  });
 });
 
 // ─── Editor Schema Tests ───

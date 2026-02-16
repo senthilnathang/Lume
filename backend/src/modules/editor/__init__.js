@@ -36,6 +36,27 @@ const initializeEditor = async (context) => {
           category: 'landing',
           isDefault: false,
         },
+        {
+          name: 'Hero Landing',
+          description: 'Hero section with features grid and CTA',
+          content: '<div data-type="sectionBlock" style="padding-top:60px;padding-bottom:60px"><h1 style="text-align:center">Your Headline Here</h1><p style="text-align:center">A compelling subtitle that explains your value proposition.</p><div data-type="buttonBlock" style="text-align:center"><a href="#">Get Started</a></div></div><div data-type="sectionBlock" style="padding-top:40px;padding-bottom:40px"><h2 style="text-align:center">Features</h2><div data-type="columnsBlock"><div data-type="columnBlock"><h3>Feature One</h3><p>Describe the first key feature.</p></div><div data-type="columnBlock"><h3>Feature Two</h3><p>Describe the second key feature.</p></div><div data-type="columnBlock"><h3>Feature Three</h3><p>Describe the third key feature.</p></div></div></div>',
+          category: 'landing',
+          isDefault: false,
+        },
+        {
+          name: 'About Page',
+          description: 'Company intro with team section',
+          content: '<div data-type="sectionBlock"><h1>About Us</h1><p>Tell your company story here. Share your mission, vision, and values.</p></div><div data-type="sectionBlock"><h2>Our Team</h2><div data-type="columnsBlock"><div data-type="columnBlock"><p><strong>Team Member</strong></p><p>Role / Title</p></div><div data-type="columnBlock"><p><strong>Team Member</strong></p><p>Role / Title</p></div></div></div>',
+          category: 'page',
+          isDefault: false,
+        },
+        {
+          name: 'Contact Page',
+          description: 'Contact information layout',
+          content: '<div data-type="sectionBlock"><h1>Contact Us</h1><p>We\'d love to hear from you. Get in touch using the information below.</p><div data-type="columnsBlock"><div data-type="columnBlock"><h3>Address</h3><p>123 Street Name<br>City, State 12345</p><h3>Email</h3><p>info@example.com</p></div><div data-type="columnBlock"><h3>Phone</h3><p>+1 (555) 123-4567</p><h3>Hours</h3><p>Mon-Fri: 9am - 5pm</p></div></div></div>',
+          category: 'page',
+          isDefault: false,
+        },
       ]);
       console.log('📝 Default editor templates seeded');
     }
