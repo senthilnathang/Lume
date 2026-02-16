@@ -1,8 +1,17 @@
-import { int, timestamp, boolean } from 'drizzle-orm/mysql-core';
+/**
+ * Drizzle Schema Helpers
+ * Database-agnostic column helpers — works with MySQL and PostgreSQL.
+ * Import types from dialect.js which resolves the correct dialect at runtime.
+ */
+
+import { int, integer, timestamp, boolean } from './dialect.js';
+
+// Use int for MySQL, integer for PostgreSQL
+const idCol = int || integer;
 
 export function baseColumns() {
   return {
-    id: int('id').primaryKey().autoincrement(),
+    id: idCol('id').primaryKey().autoincrement(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull().$onUpdate(() => new Date()),
   };
@@ -15,7 +24,7 @@ export function withSoftDelete() {
 }
 
 export function withStatus(values, defaultVal) {
-  // Helper — import mysqlEnum from drizzle-orm/mysql-core and use directly
+  // Helper — import mysqlEnum/pgEnum from dialect.js and use directly
   // This is just a documentation helper
 }
 

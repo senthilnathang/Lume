@@ -88,6 +88,11 @@ const customViews: Record<string, () => Promise<any>> = {
   'settings/advanced/notifications': () => import('@modules/advanced_features/static/views/notifications.vue'),
   'settings/advanced/notification-channels': () => import('@modules/advanced_features/static/views/notification-channels.vue'),
   'settings/advanced/tags': () => import('@modules/advanced_features/static/views/tags.vue'),
+  // Website module
+  'website/pages': () => import('@modules/website/static/views/pages.vue'),
+  'website/menus': () => import('@modules/website/static/views/menus.vue'),
+  'website/media': () => import('@modules/website/static/views/media.vue'),
+  'website/settings': () => import('@modules/website/static/views/settings.vue'),
 };
 
 /**

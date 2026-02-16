@@ -1,7 +1,9 @@
-import { mysqlTable, int, varchar, boolean, json, timestamp, mysqlEnum } from 'drizzle-orm/mysql-core';
+import { table, int, integer, varchar, boolean, json, timestamp } from '../../../core/db/dialect.js';
 import { baseColumns } from '../../../core/db/drizzle-helpers.js';
 
-export const rbacRoles = mysqlTable('rbac_roles', {
+const idCol = int || integer;
+
+export const rbacRoles = table('rbac_roles', {
   ...baseColumns(),
   name: varchar('name', { length: 100 }).notNull().unique(),
   description: varchar('description', { length: 255 }),
@@ -10,8 +12,8 @@ export const rbacRoles = mysqlTable('rbac_roles', {
   isActive: boolean('is_active').default(true),
 });
 
-export const rbacPermissions = mysqlTable('rbac_permissions', {
-  id: int('id').primaryKey().autoincrement(),
+export const rbacPermissions = table('rbac_permissions', {
+  id: idCol('id').primaryKey().autoincrement(),
   name: varchar('name', { length: 100 }).notNull().unique(),
   code: varchar('code', { length: 150 }).notNull().unique(),
   description: varchar('description', { length: 255 }),
@@ -21,14 +23,14 @@ export const rbacPermissions = mysqlTable('rbac_permissions', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const rbacAccessRules = mysqlTable('rbac_access_rules', {
+export const rbacAccessRules = table('rbac_access_rules', {
   ...baseColumns(),
   name: varchar('name', { length: 100 }).notNull(),
   model: varchar('model', { length: 100 }).notNull(),
-  roleId: int('role_id'),
+  roleId: idCol('role_id'),
   permission: varchar('permission', { length: 50 }).notNull(),
   field: varchar('field', { length: 100 }),
   filter: json('filter'),
   isActive: boolean('is_active').default(true),
-  priority: int('priority').default(0),
+  priority: idCol('priority').default(0),
 });
