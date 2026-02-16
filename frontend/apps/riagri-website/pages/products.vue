@@ -112,19 +112,37 @@
 </template>
 
 <script setup lang="ts">
+import { usePageContent } from '~/composables/useWebsiteData'
+
+interface ProductCategory {
+  title: string; description: string; count: string; gradient: string; tags: string[]; icon: string
+}
+interface TopProduct {
+  name: string; category: string; description: string; price: string; icon: string
+}
+interface ProductsContent {
+  filters: string[]
+  categories: ProductCategory[]
+  topProducts: TopProduct[]
+}
+
+const { content, seo } = usePageContent<ProductsContent>('products')
+
 useHead({
-  title: 'Products - RIAGRI Agricultural Equipment',
+  title: () => seo.value.title || 'Products - RIAGRI Agricultural Equipment',
   meta: [
-    { name: 'description', content: 'Browse RIAGRI\'s complete range of agricultural equipment including tractors, harvesters, irrigation systems, transport trailers, and genuine spare parts.' },
-    { property: 'og:title', content: 'Products - RIAGRI Agricultural Equipment' },
-    { property: 'og:description', content: 'Complete range of agricultural equipment, transport solutions, and spare parts.' },
+    { name: 'description', content: () => seo.value.description || 'Browse RIAGRI\'s complete range of agricultural equipment including tractors, harvesters, irrigation systems, transport trailers, and genuine spare parts.' },
+    { property: 'og:title', content: () => seo.value.ogTitle || 'Products - RIAGRI Agricultural Equipment' },
+    { property: 'og:description', content: () => seo.value.ogDescription || 'Complete range of agricultural equipment, transport solutions, and spare parts.' },
   ],
 })
 
-const filters = ['All Products', 'Tractors', 'Harvesters', 'Irrigation', 'Transport', 'Parts']
+const defaultFilters = ['All Products', 'Tractors', 'Harvesters', 'Irrigation', 'Transport', 'Parts']
 const activeFilter = ref('All Products')
 
-const categories = [
+const filters = computed(() => content.value?.filters || defaultFilters)
+
+const categories = computed(() => content.value?.categories || [
   {
     title: 'Tractors',
     description: 'From compact utility tractors to high-horsepower row-crop models, our tractor lineup delivers power, comfort, and efficiency for any farm size.',
@@ -173,9 +191,9 @@ const categories = [
     tags: ['GPS', 'Safety', 'Lighting'],
     icon: '<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="2"><circle cx="48" cy="40" r="20"/><path d="M48 20v-8m20 28h8M48 60v8m-20-28h-8"/><path d="M62.14 25.86l5.66-5.66M62.14 54.14l5.66 5.66M33.86 54.14l-5.66 5.66M33.86 25.86l-5.66-5.66"/><circle cx="48" cy="40" r="8"/></svg>',
   },
-]
+])
 
-const topProducts = [
+const topProducts = computed(() => content.value?.topProducts || [
   {
     name: 'PowerTrac 5500',
     category: 'Tractor',
@@ -204,5 +222,5 @@ const topProducts = [
     price: '$2,100',
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>',
   },
-]
+])
 </script>

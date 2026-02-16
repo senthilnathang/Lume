@@ -13,6 +13,7 @@ import {
   updateDocument, deleteDocument,
   type Document as DocType, type DocumentStats, type CreateDocumentData,
 } from '@modules/documents/static/api/index';
+import { CompactEditor } from '@modules/editor/static/components/index';
 
 defineOptions({ name: 'DocumentsView' });
 
@@ -402,7 +403,7 @@ onMounted(() => { loadData(); });
           </a-col>
         </a-row>
         <a-form-item label="Description">
-          <a-textarea v-model:value="formState.description" placeholder="Document description" :rows="3" />
+          <CompactEditor v-model="formState.description" placeholder="Document description..." min-height="100px" />
         </a-form-item>
         <a-form-item label="Tags">
           <a-select v-model:value="formState.tags" mode="tags" placeholder="Add tags" style="width: 100%" />

@@ -3,6 +3,7 @@ import { ref, reactive, onMounted, computed } from 'vue';
 import { message } from 'ant-design-vue';
 import { Globe, FileText, Plus, Edit, Trash2, Search, Check, X, RefreshCw } from 'lucide-vue-next';
 import { get, post, put, del } from '@/api/request';
+import { CompactEditor } from '@modules/editor/static/components/index';
 
 defineOptions({ name: 'WebsitePages' });
 
@@ -364,7 +365,7 @@ onMounted(() => {
           </a-input>
         </a-form-item>
         <a-form-item label="Content">
-          <a-textarea v-model:value="formState.content" placeholder="Page content (HTML supported)" :rows="8" />
+          <CompactEditor v-model="formState.content" placeholder="Write page content..." min-height="180px" />
         </a-form-item>
         <a-form-item label="Excerpt">
           <a-textarea v-model:value="formState.excerpt" placeholder="Short description" :rows="2" />

@@ -18,7 +18,7 @@ export default {
   installable: true,
   autoInstall: false,
 
-  depends: ['base'],
+  depends: ['base', 'editor'],
 
   models: ['models/schema.js'],
   api: ['website.routes.js'],
