@@ -3,8 +3,13 @@ import { ref, computed } from 'vue';
 import {
   Layout, Columns3, Type, ImageIcon, MousePointerClick,
   MoveVertical, Minus, Video, Quote, Code2, AlertTriangle,
-  FileCode2, Table2, Heading1, List, ListOrdered, Search
+  FileCode2, Table2, Heading1, List, ListOrdered, Search,
+  Info, HelpCircle, CreditCard, ListChecks, UserCircle,
+  MessageSquareQuote, Timer, ToggleLeft, Zap, Maximize2,
+  MapPin, Mail, Clock, Share2, LayoutGrid, BarChart2,
+  Grid3x3, type LucideIcon,
 } from 'lucide-vue-next';
+import { widgetRegistry, type WidgetDef, type WidgetCategory } from '../widgets/registry';
 
 const props = defineProps<{
   editor: any;
@@ -12,140 +17,186 @@ const props = defineProps<{
 
 const searchQuery = ref('');
 
-const blockCategories = [
+// Map lucide icon names to components
+const iconMap: Record<string, LucideIcon> = {
+  'layout': Layout,
+  'columns-3': Columns3,
+  'image': ImageIcon,
+  'mouse-pointer-click': MousePointerClick,
+  'move-vertical': MoveVertical,
+  'video': Video,
+  'alert-triangle': AlertTriangle,
+  'file-code-2': FileCode2,
+  'heading': Heading1,
+  'type': Type,
+  'info': Info,
+  'help-circle': HelpCircle,
+  'credit-card': CreditCard,
+  'list': List,
+  'list-checks': ListChecks,
+  'user-circle': UserCircle,
+  'quote': MessageSquareQuote,
+  'timer': Timer,
+  'toggle-left': ToggleLeft,
+  'zap': Zap,
+  'maximize-2': Maximize2,
+  'map-pin': MapPin,
+  'mail': Mail,
+  'clock': Clock,
+  'share-2': Share2,
+  'layout-grid': LayoutGrid,
+  'bar-chart-2': BarChart2,
+  'grid-3x3': Grid3x3,
+};
+
+function getIcon(iconName: string): LucideIcon {
+  return iconMap[iconName] || Layout;
+}
+
+// Category display config
+const categoryConfig: Record<WidgetCategory | string, { label: string; order: number }> = {
+  layout: { label: 'Layout', order: 1 },
+  content: { label: 'Content', order: 2 },
+  media: { label: 'Media', order: 3 },
+  interactive: { label: 'Interactive', order: 4 },
+  commercial: { label: 'Commercial', order: 5 },
+  utility: { label: 'Utility', order: 6 },
+  social: { label: 'Social', order: 7 },
+  text: { label: 'Text', order: 0 },
+};
+
+// Built-in text/format blocks that aren't custom widgets
+interface PaletteBlock {
+  name: string;
+  icon: LucideIcon;
+  description: string;
+  action: () => void;
+  category: string;
+}
+
+const textBlocks = computed<PaletteBlock[]>(() => [
   {
-    name: 'Layout',
-    blocks: [
-      {
-        name: 'Section',
-        icon: Layout,
-        description: 'Full-width section wrapper',
-        action: () => insertBlock('sectionBlock', { content: [{ type: 'paragraph' }] }),
-      },
-      {
-        name: '2 Columns',
-        icon: Columns3,
-        description: 'Two column layout',
-        action: () => insertColumns(2),
-      },
-      {
-        name: '3 Columns',
-        icon: Columns3,
-        description: 'Three column layout',
-        action: () => insertColumns(3),
-      },
-      {
-        name: 'Spacer',
-        icon: MoveVertical,
-        description: 'Add vertical space',
-        action: () => insertBlock('spacerBlock'),
-      },
-      {
-        name: 'Divider',
-        icon: Minus,
-        description: 'Horizontal divider line',
-        action: () => props.editor?.chain().focus().setHorizontalRule().run(),
-      },
-    ],
+    name: 'Heading',
+    icon: Heading1,
+    description: 'Section heading',
+    action: () => props.editor?.chain().focus().toggleHeading({ level: 2 }).run(),
+    category: 'text',
   },
   {
-    name: 'Text',
-    blocks: [
-      {
-        name: 'Heading',
-        icon: Heading1,
-        description: 'Section heading',
-        action: () => props.editor?.chain().focus().toggleHeading({ level: 2 }).run(),
-      },
-      {
-        name: 'Paragraph',
-        icon: Type,
-        description: 'Plain text paragraph',
-        action: () => props.editor?.chain().focus().setParagraph().run(),
-      },
-      {
-        name: 'Bullet List',
-        icon: List,
-        description: 'Unordered list',
-        action: () => props.editor?.chain().focus().toggleBulletList().run(),
-      },
-      {
-        name: 'Numbered List',
-        icon: ListOrdered,
-        description: 'Ordered list',
-        action: () => props.editor?.chain().focus().toggleOrderedList().run(),
-      },
-      {
-        name: 'Quote',
-        icon: Quote,
-        description: 'Block quotation',
-        action: () => props.editor?.chain().focus().toggleBlockquote().run(),
-      },
-      {
-        name: 'Code Block',
-        icon: Code2,
-        description: 'Code snippet',
-        action: () => props.editor?.chain().focus().toggleCodeBlock().run(),
-      },
-    ],
+    name: 'Paragraph',
+    icon: Type,
+    description: 'Plain text paragraph',
+    action: () => props.editor?.chain().focus().setParagraph().run(),
+    category: 'text',
   },
   {
-    name: 'Media',
-    blocks: [
-      {
-        name: 'Image',
-        icon: ImageIcon,
-        description: 'Image with caption',
-        action: () => insertBlock('imageBlock'),
-      },
-      {
-        name: 'Video',
-        icon: Video,
-        description: 'YouTube or Vimeo embed',
-        action: () => insertBlock('videoBlock'),
-      },
-    ],
+    name: 'Bullet List',
+    icon: List,
+    description: 'Unordered list',
+    action: () => props.editor?.chain().focus().toggleBulletList().run(),
+    category: 'text',
   },
   {
-    name: 'Interactive',
-    blocks: [
-      {
-        name: 'Button',
-        icon: MousePointerClick,
-        description: 'Call-to-action button',
-        action: () => insertBlock('buttonBlock'),
-      },
-      {
-        name: 'Callout',
-        icon: AlertTriangle,
-        description: 'Info/warning callout box',
-        action: () => insertBlock('calloutBlock', { content: [{ type: 'paragraph' }] }),
-      },
-    ],
+    name: 'Numbered List',
+    icon: ListOrdered,
+    description: 'Ordered list',
+    action: () => props.editor?.chain().focus().toggleOrderedList().run(),
+    category: 'text',
   },
   {
-    name: 'Advanced',
-    blocks: [
-      {
-        name: 'HTML',
-        icon: FileCode2,
-        description: 'Custom HTML code',
-        action: () => insertBlock('htmlBlock'),
-      },
-      {
-        name: 'Table',
-        icon: Table2,
-        description: 'Data table',
-        action: () => props.editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
-      },
-    ],
+    name: 'Quote',
+    icon: Quote,
+    description: 'Block quotation',
+    action: () => props.editor?.chain().focus().toggleBlockquote().run(),
+    category: 'text',
   },
-];
+  {
+    name: 'Code Block',
+    icon: Code2,
+    description: 'Code snippet',
+    action: () => props.editor?.chain().focus().toggleCodeBlock().run(),
+    category: 'text',
+  },
+  {
+    name: 'Divider',
+    icon: Minus,
+    description: 'Horizontal divider line',
+    action: () => props.editor?.chain().focus().setHorizontalRule().run(),
+    category: 'layout',
+  },
+  {
+    name: 'Table',
+    icon: Table2,
+    description: 'Data table',
+    action: () => props.editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+    category: 'utility',
+  },
+]);
+
+// Convert widget registry entries to palette blocks
+function widgetToBlock(widget: WidgetDef): PaletteBlock {
+  return {
+    name: widget.name,
+    icon: getIcon(widget.icon),
+    description: widget.description,
+    action: () => insertWidget(widget),
+    category: widget.category,
+  };
+}
+
+function insertWidget(widget: WidgetDef) {
+  if (!props.editor) return;
+  const node: any = { type: widget.type };
+
+  // Container blocks need default content
+  if (widget.isContainer) {
+    if (widget.type === 'columnsBlock') {
+      const count = widget.defaults.columns || 2;
+      node.attrs = { columns: count };
+      node.content = Array.from({ length: count }, () => ({
+        type: 'columnBlock',
+        content: [{ type: 'paragraph' }],
+      }));
+    } else {
+      node.content = [{ type: 'paragraph' }];
+    }
+  }
+
+  props.editor.chain().focus().insertContent(node).run();
+}
+
+// Combine widget registry + text blocks into categories
+const allCategories = computed(() => {
+  const catMap: Record<string, PaletteBlock[]> = {};
+
+  // Add text blocks
+  textBlocks.value.forEach(b => {
+    if (!catMap[b.category]) catMap[b.category] = [];
+    catMap[b.category].push(b);
+  });
+
+  // Add widget registry blocks
+  widgetRegistry.forEach(widget => {
+    // Skip columnBlock from palette (it's auto-inserted with columns)
+    if (widget.type === 'columnBlock') return;
+    const cat = widget.category;
+    if (!catMap[cat]) catMap[cat] = [];
+    catMap[cat].push(widgetToBlock(widget));
+  });
+
+  // Sort and structure
+  return Object.keys(catMap)
+    .sort((a, b) => (categoryConfig[a]?.order ?? 99) - (categoryConfig[b]?.order ?? 99))
+    .map(cat => ({
+      name: categoryConfig[cat]?.label || cat.charAt(0).toUpperCase() + cat.slice(1),
+      blocks: catMap[cat],
+    }));
+});
 
 const filteredCategories = computed(() => {
-  if (!searchQuery.value) return blockCategories;
+  if (!searchQuery.value) return allCategories.value;
   const q = searchQuery.value.toLowerCase();
-  return blockCategories
+  return allCategories.value
     .map(cat => ({
       ...cat,
       blocks: cat.blocks.filter(b =>
@@ -154,37 +205,17 @@ const filteredCategories = computed(() => {
     }))
     .filter(cat => cat.blocks.length > 0);
 });
-
-function insertBlock(type: string, extra?: Record<string, any>) {
-  if (!props.editor) return;
-  const node: any = { type };
-  if (extra) Object.assign(node, extra);
-  props.editor.chain().focus().insertContent(node).run();
-}
-
-function insertColumns(count: number) {
-  if (!props.editor) return;
-  const columns = Array.from({ length: count }, () => ({
-    type: 'columnBlock',
-    content: [{ type: 'paragraph' }],
-  }));
-  props.editor.chain().focus().insertContent({
-    type: 'columnsBlock',
-    attrs: { columns: count },
-    content: columns,
-  }).run();
-}
 </script>
 
 <template>
   <div class="block-palette">
     <div class="palette-header">
-      <h4>Blocks</h4>
+      <h4>Widgets</h4>
     </div>
     <div class="palette-search">
       <a-input
         v-model:value="searchQuery"
-        placeholder="Search blocks..."
+        placeholder="Search widgets..."
         size="small"
         allow-clear
       >
@@ -199,6 +230,7 @@ function insertColumns(count: number) {
             v-for="block in category.blocks"
             :key="block.name"
             class="block-item"
+            :title="block.description"
             @click="block.action"
           >
             <component :is="block.icon" :size="18" />

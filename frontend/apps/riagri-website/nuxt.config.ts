@@ -1,7 +1,19 @@
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const widgetsDir = resolve(__dirname, '../../../backend/src/modules/editor/static/widgets')
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: true,
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+    resolve(widgetsDir, 'widget-styles.css'),
+  ],
+  alias: {
+    '@widgets': widgetsDir,
+  },
   postcss: {
     plugins: {
       tailwindcss: {},

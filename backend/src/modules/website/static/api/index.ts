@@ -10,6 +10,7 @@ export const updatePage = (id: number, data: Record<string, any>) => put(`${BASE
 export const deletePage = (id: number) => del(`${BASE}/pages/${id}`);
 export const publishPage = (id: number) => post(`${BASE}/pages/${id}/publish`);
 export const unpublishPage = (id: number) => post(`${BASE}/pages/${id}/unpublish`);
+export const getPageBySlug = (slug: string) => get(`${BASE}/public/pages/${slug}`);
 
 // --- Menus ---
 export const getMenus = () => get(`${BASE}/menus`);

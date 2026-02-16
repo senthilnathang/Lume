@@ -21,6 +21,13 @@ import {
   ImageBlock, ButtonBlock, SpacerBlock,
   VideoBlock, CalloutBlock, HtmlBlock,
   SlashCommand,
+  // New 20 widgets
+  AdvancedHeadingBlock, DualHeadingBlock, InfoBoxBlock,
+  ImageGalleryBlock, FaqBlock, PriceTableBlock, PriceListBlock,
+  TeamMemberBlock, TestimonialBlock, CountdownBlock,
+  ContentToggleBlock, MarketingButtonBlock, ModalPopupBlock,
+  GoogleMapBlock, ContactFormBlock, BusinessHoursBlock,
+  SocialShareBlock, PostsGridBlock, IconListBlock, ProgressBarBlock,
 } from '../extensions';
 import EditorToolbar from './EditorToolbar.vue';
 import BlockPalette from './BlockPalette.vue';
@@ -66,12 +73,23 @@ const canvasWidth = computed(() => {
   }
 });
 
+function parseContent(val: string): string | Record<string, any> {
+  if (!val) return '';
+  const trimmed = val.trim();
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try { return JSON.parse(trimmed); } catch { /* not JSON */ }
+  }
+  return val;
+}
+
 const editor = useEditor({
-  content: props.modelValue || '',
+  content: parseContent(props.modelValue),
   extensions: [
     StarterKit.configure({
       dropcursor: false,
       gapcursor: false,
+      link: false,
+      underline: false,
     }),
     ImageExt.configure({ inline: false, allowBase64: true }),
     LinkExt.configure({ openOnClick: false, autolink: true }),
@@ -99,6 +117,27 @@ const editor = useEditor({
     HtmlBlock,
     // Slash command (type / to insert blocks)
     SlashCommand,
+    // New 20 widgets
+    AdvancedHeadingBlock,
+    DualHeadingBlock,
+    InfoBoxBlock,
+    ImageGalleryBlock,
+    FaqBlock,
+    PriceTableBlock,
+    PriceListBlock,
+    TeamMemberBlock,
+    TestimonialBlock,
+    CountdownBlock,
+    ContentToggleBlock,
+    MarketingButtonBlock,
+    ModalPopupBlock,
+    GoogleMapBlock,
+    ContactFormBlock,
+    BusinessHoursBlock,
+    SocialShareBlock,
+    PostsGridBlock,
+    IconListBlock,
+    ProgressBarBlock,
   ],
   onUpdate: ({ editor: ed }) => {
     const html = ed.getHTML();
@@ -110,9 +149,19 @@ const editor = useEditor({
 // Sync external changes
 watch(() => props.modelValue, (newVal) => {
   if (!editor.value) return;
-  const currentHtml = editor.value.getHTML();
-  if (newVal !== currentHtml) {
-    editor.value.commands.setContent(newVal || '', false);
+  const parsed = parseContent(newVal || '');
+  // If it's a JSON object, compare serialized forms
+  if (typeof parsed === 'object') {
+    const currentJson = JSON.stringify(editor.value.getJSON());
+    const newJson = JSON.stringify(parsed);
+    if (newJson !== currentJson) {
+      editor.value.commands.setContent(parsed, false);
+    }
+  } else {
+    const currentHtml = editor.value.getHTML();
+    if (newVal !== currentHtml) {
+      editor.value.commands.setContent(parsed, false);
+    }
   }
 });
 

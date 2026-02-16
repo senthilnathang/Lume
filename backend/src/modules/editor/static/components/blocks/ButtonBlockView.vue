@@ -14,6 +14,13 @@ const buttonClasses = computed(() => {
 const wrapperStyles = computed(() => ({
   textAlign: props.node.attrs.alignment || 'left',
 }));
+
+function selectThisNode() {
+  const pos = props.getPos();
+  if (typeof pos === 'number') {
+    props.editor.commands.setNodeSelection(pos);
+  }
+}
 </script>
 
 <template>
@@ -27,7 +34,7 @@ const wrapperStyles = computed(() => ({
         <Trash2 :size="14" />
       </button>
     </div>
-    <div contenteditable="false" class="button-preview">
+    <div contenteditable="false" class="button-preview" @click="selectThisNode">
       <span :class="buttonClasses" :style="{ display: node.attrs.fullWidth ? 'block' : 'inline-block' }">
         {{ node.attrs.text || 'Button' }}
       </span>

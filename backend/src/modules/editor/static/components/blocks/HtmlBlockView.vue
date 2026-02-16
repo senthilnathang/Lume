@@ -12,6 +12,13 @@ watch(() => props.node.attrs.content, (v) => { localContent.value = v || ''; });
 function updateContent() {
   props.updateAttributes({ content: localContent.value });
 }
+
+function selectThisNode() {
+  const pos = props.getPos();
+  if (typeof pos === 'number') {
+    props.editor.commands.setNodeSelection(pos);
+  }
+}
 </script>
 
 <template>
@@ -29,7 +36,7 @@ function updateContent() {
         <Trash2 :size="14" />
       </button>
     </div>
-    <div contenteditable="false">
+    <div contenteditable="false" @click="selectThisNode">
       <div v-if="showPreview" class="html-preview" v-html="localContent" />
       <textarea
         v-else

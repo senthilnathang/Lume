@@ -19,6 +19,13 @@ function updateSrc() {
   props.updateAttributes({ src: urlInput.value });
   showUrlInput.value = false;
 }
+
+function selectThisNode() {
+  const pos = props.getPos();
+  if (typeof pos === 'number') {
+    props.editor.commands.setNodeSelection(pos);
+  }
+}
 </script>
 
 <template>
@@ -32,11 +39,11 @@ function updateSrc() {
         <Trash2 :size="14" />
       </button>
     </div>
-    <div v-if="node.attrs.src" class="image-container" contenteditable="false">
+    <div v-if="node.attrs.src" class="image-container" contenteditable="false" @click="selectThisNode">
       <img :src="node.attrs.src" :alt="node.attrs.alt" :style="imgStyles" />
       <p v-if="node.attrs.caption" class="image-caption">{{ node.attrs.caption }}</p>
     </div>
-    <div v-else class="image-placeholder" contenteditable="false">
+    <div v-else class="image-placeholder" contenteditable="false" @click="selectThisNode">
       <div v-if="!showUrlInput" class="placeholder-content" @click="showUrlInput = true">
         <Upload :size="32" />
         <p>Click to add an image URL</p>

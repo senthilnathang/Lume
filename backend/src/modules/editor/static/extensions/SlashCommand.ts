@@ -198,6 +198,167 @@ export const SlashCommand = Extension.create({
                 editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
               },
             },
+            // New widgets
+            {
+              title: 'Advanced Heading',
+              description: 'Heading with separator',
+              icon: 'heading',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'advancedHeading' }).run();
+              },
+            },
+            {
+              title: 'Dual Heading',
+              description: 'Two-color heading',
+              icon: 'type',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'dualHeading' }).run();
+              },
+            },
+            {
+              title: 'Info Box',
+              description: 'Icon + title + description card',
+              icon: 'info',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'infoBox' }).run();
+              },
+            },
+            {
+              title: 'Image Gallery',
+              description: 'Grid image gallery',
+              icon: 'grid-3x3',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'imageGallery' }).run();
+              },
+            },
+            {
+              title: 'FAQ',
+              description: 'Accordion Q&A',
+              icon: 'help-circle',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'faq' }).run();
+              },
+            },
+            {
+              title: 'Price Table',
+              description: 'Pricing plan card',
+              icon: 'credit-card',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'priceTable' }).run();
+              },
+            },
+            {
+              title: 'Price List',
+              description: 'Menu/service price list',
+              icon: 'list',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'priceList' }).run();
+              },
+            },
+            {
+              title: 'Team Member',
+              description: 'Profile card',
+              icon: 'user-circle',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'teamMember' }).run();
+              },
+            },
+            {
+              title: 'Testimonial',
+              description: 'Customer review',
+              icon: 'quote',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'testimonial' }).run();
+              },
+            },
+            {
+              title: 'Countdown',
+              description: 'Countdown timer',
+              icon: 'timer',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'countdown' }).run();
+              },
+            },
+            {
+              title: 'Content Toggle',
+              description: 'A/B content switcher',
+              icon: 'toggle-left',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'contentToggle' }).run();
+              },
+            },
+            {
+              title: 'Marketing Button',
+              description: 'Button with subtext',
+              icon: 'zap',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'marketingButton' }).run();
+              },
+            },
+            {
+              title: 'Modal Popup',
+              description: 'Button + modal dialog',
+              icon: 'maximize-2',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'modalPopup' }).run();
+              },
+            },
+            {
+              title: 'Google Map',
+              description: 'Embedded map',
+              icon: 'map-pin',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'googleMap' }).run();
+              },
+            },
+            {
+              title: 'Contact Form',
+              description: 'Customizable form',
+              icon: 'mail',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'contactForm' }).run();
+              },
+            },
+            {
+              title: 'Business Hours',
+              description: 'Schedule display',
+              icon: 'clock',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'businessHours' }).run();
+              },
+            },
+            {
+              title: 'Social Share',
+              description: 'Share buttons',
+              icon: 'share-2',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'socialShare' }).run();
+              },
+            },
+            {
+              title: 'Posts Grid',
+              description: 'Dynamic posts grid',
+              icon: 'layout-grid',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'postsGrid' }).run();
+              },
+            },
+            {
+              title: 'Icon List',
+              description: 'List with icons',
+              icon: 'list-checks',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'iconList' }).run();
+              },
+            },
+            {
+              title: 'Progress Bar',
+              description: 'Progress indicators',
+              icon: 'bar-chart-2',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertContent({ type: 'progressBar' }).run();
+              },
+            },
           ];
 
           if (!query) return items;

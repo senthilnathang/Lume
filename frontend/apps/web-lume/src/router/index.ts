@@ -112,6 +112,7 @@ const customViews: Record<string, () => Promise<any>> = {
   // Website module
   'website/pages': () => import('@modules/website/static/views/pages.vue'),
   'website/pages/editor': () => import('@modules/website/static/views/page-editor.vue'),
+  'website/pages/preview': () => import('@modules/website/static/views/page-preview.vue'),
   'website/menus': () => import('@modules/website/static/views/menus.vue'),
   'website/media': () => import('@modules/website/static/views/media.vue'),
   'website/settings': () => import('@modules/website/static/views/settings.vue'),
@@ -203,6 +204,14 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@modules/website/static/views/page-editor.vue'),
         props: { moduleName: 'website' },
         meta: { title: 'Page Editor', requiresAuth: true, module: 'website' },
+      },
+      // Page preview (rendered output)
+      {
+        path: 'website/pages/preview/:slug?',
+        name: 'website-pages-preview',
+        component: () => import('@modules/website/static/views/page-preview.vue'),
+        props: true,
+        meta: { title: 'Page Preview', requiresAuth: true, module: 'website' },
       },
     ],
   },
