@@ -47,12 +47,10 @@ describe('errorHandler middleware', () => {
     );
   });
 
-  test('handles SequelizeUniqueConstraintError with 409', () => {
+  test('handles Prisma unique constraint error (P2002) with 409', () => {
     const err = {
-      name: 'SequelizeUniqueConstraintError',
-      errors: {
-        email: { path: 'email', value: 'dup@example.com', message: 'must be unique' }
-      }
+      code: 'P2002',
+      meta: { target: ['email'] }
     };
 
     const res = mockRes();
@@ -67,18 +65,28 @@ describe('errorHandler middleware', () => {
     );
   });
 
-  test('handles SequelizeValidationError with 400', () => {
+  test('handles Prisma validation error (P2000) with 400', () => {
     const err = {
-      name: 'SequelizeValidationError',
-      errors: {
-        name: { path: 'name', message: 'cannot be null' }
-      }
+      code: 'P2000',
+      meta: { column_name: 'name' }
     };
 
     const res = mockRes();
     errorHandler(err, mockReq(), res, mockNext);
 
     expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  test('handles Prisma record not found (P2025) with 404', () => {
+    const err = {
+      code: 'P2025',
+      message: 'Record to update not found'
+    };
+
+    const res = mockRes();
+    errorHandler(err, mockReq(), res, mockNext);
+
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 
   test('handles JsonWebTokenError with 401', () => {

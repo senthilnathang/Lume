@@ -5,6 +5,7 @@ export default {
     './pages/**/*.vue',
     './composables/**/*.{js,ts}',
     './app.vue',
+    '../../../backend/src/modules/editor/static/widgets/**/*.{vue,js,ts,css}',
   ],
   theme: {
     extend: {

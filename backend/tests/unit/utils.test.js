@@ -64,7 +64,7 @@ describe('passwordUtil', () => {
   test('validatePassword rejects password without special char', () => {
     const result = passwordUtil.validatePassword('NoSpecial1');
     expect(result.isValid).toBe(false);
-    expect(result.errors).toContain('Password must contain at least one special character (!@#$%^&*)');
+    expect(result.errors).toContain('Password must contain at least one special character');
   });
 
   test('validatePassword returns multiple errors', () => {

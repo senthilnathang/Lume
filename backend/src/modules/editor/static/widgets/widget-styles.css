@@ -1,0 +1,1746 @@
+/* ==========================================================================
+   Lume Widget Styles — Shared visual CSS for page builder & public site
+   Pure visual styling only. No editor chrome (drag handles, delete buttons, etc.)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   CSS Custom Properties
+   -------------------------------------------------------------------------- */
+:root {
+  --lume-primary: #1677ff;
+  --lume-primary-hover: #4096ff;
+  --lume-primary-light: #e6f4ff;
+  --lume-danger: #ef4444;
+  --lume-danger-hover: #dc2626;
+  --lume-success: #22c55e;
+  --lume-success-light: #f0fdf4;
+  --lume-warning: #f59e0b;
+  --lume-warning-light: #fffbeb;
+  --lume-info: #3b82f6;
+  --lume-info-light: #eff6ff;
+  --lume-error: #ef4444;
+  --lume-error-light: #fef2f2;
+  --lume-text: #1f2937;
+  --lume-text-secondary: #6b7280;
+  --lume-text-muted: #9ca3af;
+  --lume-border: #e5e7eb;
+  --lume-bg: #ffffff;
+  --lume-bg-subtle: #f9fafb;
+  --lume-radius: 8px;
+  --lume-radius-sm: 4px;
+  --lume-radius-lg: 12px;
+  --lume-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --lume-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --lume-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --lume-transition: 0.2s ease;
+  --lume-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+
+/* ==========================================================================
+   1. Section
+   ========================================================================== */
+.lume-section {
+  position: relative;
+  padding: 40px 20px;
+  background-color: var(--lume-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.lume-section-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+
+/* ==========================================================================
+   2. Columns
+   ========================================================================== */
+.lume-columns {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .lume-columns {
+    flex-direction: column;
+  }
+}
+
+
+/* ==========================================================================
+   3. Column
+   ========================================================================== */
+.lume-column {
+  flex: 1;
+  min-height: 40px;
+}
+
+
+/* ==========================================================================
+   4. Image
+   ========================================================================== */
+.lume-image {
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+.lume-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--lume-radius);
+  display: inline-block;
+}
+
+.lume-image figcaption {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: var(--lume-text-secondary);
+  line-height: 1.5;
+}
+
+
+/* ==========================================================================
+   5. Button
+   ========================================================================== */
+.lume-button-wrapper {
+  display: flex;
+}
+
+.lume-button-wrapper[data-align="left"] {
+  justify-content: flex-start;
+}
+
+.lume-button-wrapper[data-align="center"] {
+  justify-content: center;
+}
+
+.lume-button-wrapper[data-align="right"] {
+  justify-content: flex-end;
+}
+
+.lume-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--lume-font-family);
+  font-weight: 500;
+  border: 2px solid transparent;
+  border-radius: var(--lume-radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--lume-transition);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+/* Sizes */
+.lume-button--sm {
+  padding: 6px 16px;
+  font-size: 0.8125rem;
+}
+
+.lume-button--md {
+  padding: 8px 24px;
+  font-size: 0.9375rem;
+}
+
+.lume-button--lg {
+  padding: 12px 32px;
+  font-size: 1.0625rem;
+}
+
+/* Variants */
+.lume-button--primary {
+  background-color: var(--lume-primary);
+  color: #ffffff;
+  border-color: var(--lume-primary);
+}
+
+.lume-button--primary:hover {
+  background-color: var(--lume-primary-hover);
+  border-color: var(--lume-primary-hover);
+}
+
+.lume-button--outline {
+  background-color: transparent;
+  color: var(--lume-primary);
+  border-color: var(--lume-primary);
+}
+
+.lume-button--outline:hover {
+  background-color: var(--lume-primary);
+  color: #ffffff;
+}
+
+.lume-button--ghost {
+  background-color: transparent;
+  color: var(--lume-primary);
+  border-color: transparent;
+}
+
+.lume-button--ghost:hover {
+  background-color: var(--lume-primary-light);
+}
+
+.lume-button--danger {
+  background-color: var(--lume-danger);
+  color: #ffffff;
+  border-color: var(--lume-danger);
+}
+
+.lume-button--danger:hover {
+  background-color: var(--lume-danger-hover);
+  border-color: var(--lume-danger-hover);
+}
+
+
+/* ==========================================================================
+   6. Spacer
+   ========================================================================== */
+.lume-spacer {
+  width: 100%;
+}
+
+
+/* ==========================================================================
+   7. Video
+   ========================================================================== */
+.lume-video {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--lume-radius);
+  background-color: #000;
+}
+
+.lume-video--16-9 {
+  padding-bottom: 56.25%;
+}
+
+.lume-video--4-3 {
+  padding-bottom: 75%;
+}
+
+.lume-video--1-1 {
+  padding-bottom: 100%;
+}
+
+.lume-video iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.lume-video-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--lume-bg-subtle);
+  color: var(--lume-text-muted);
+  font-size: 0.875rem;
+}
+
+
+/* ==========================================================================
+   8. Callout
+   ========================================================================== */
+.lume-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: var(--lume-radius);
+  border-left: 4px solid var(--lume-border);
+  background-color: var(--lume-bg-subtle);
+}
+
+.lume-callout--info {
+  background-color: var(--lume-info-light);
+  border-left-color: var(--lume-info);
+}
+
+.lume-callout--warning {
+  background-color: var(--lume-warning-light);
+  border-left-color: var(--lume-warning);
+}
+
+.lume-callout--success {
+  background-color: var(--lume-success-light);
+  border-left-color: var(--lume-success);
+}
+
+.lume-callout--error {
+  background-color: var(--lume-error-light);
+  border-left-color: var(--lume-error);
+}
+
+.lume-callout-icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.lume-callout--info .lume-callout-icon {
+  color: var(--lume-info);
+}
+
+.lume-callout--warning .lume-callout-icon {
+  color: var(--lume-warning);
+}
+
+.lume-callout--success .lume-callout-icon {
+  color: var(--lume-success);
+}
+
+.lume-callout--error .lume-callout-icon {
+  color: var(--lume-error);
+}
+
+.lume-callout-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.lume-callout-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0 0 4px 0;
+  color: var(--lume-text);
+}
+
+.lume-callout-content {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--lume-text-secondary);
+}
+
+.lume-callout-content p {
+  margin: 0;
+}
+
+
+/* ==========================================================================
+   9. HTML
+   ========================================================================== */
+.lume-html {
+  line-height: 1.6;
+  color: var(--lume-text);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+
+/* ==========================================================================
+   10. Advanced Heading
+   ========================================================================== */
+.lume-advanced-heading {
+  margin: 0;
+}
+
+.lume-advanced-heading h1,
+.lume-advanced-heading h2,
+.lume-advanced-heading h3,
+.lume-advanced-heading h4,
+.lume-advanced-heading h5,
+.lume-advanced-heading h6 {
+  margin: 0;
+  line-height: 1.3;
+  color: var(--lume-text);
+}
+
+.lume-heading-separator {
+  margin-top: 12px;
+  border: none;
+  border-bottom: 3px solid var(--lume-primary);
+  width: 60px;
+}
+
+.lume-heading-separator--solid {
+  border-bottom-style: solid;
+}
+
+.lume-heading-separator--dashed {
+  border-bottom-style: dashed;
+}
+
+.lume-heading-separator--dotted {
+  border-bottom-style: dotted;
+}
+
+.lume-heading-separator--full {
+  width: 100%;
+}
+
+
+/* ==========================================================================
+   11. Dual Heading
+   ========================================================================== */
+.lume-dual-heading {
+  margin: 0;
+  line-height: 1.3;
+}
+
+.lume-dual-heading-first {
+  color: var(--lume-text);
+}
+
+.lume-dual-heading-second {
+  color: var(--lume-primary);
+}
+
+
+/* ==========================================================================
+   12. Info Box
+   ========================================================================== */
+.lume-info-box {
+  text-align: center;
+  padding: 24px;
+}
+
+.lume-info-box--icon-top {
+  text-align: center;
+}
+
+.lume-info-box--icon-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  text-align: left;
+}
+
+.lume-info-box--icon-right {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 20px;
+  text-align: right;
+}
+
+.lume-info-box-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--lume-primary-light);
+  color: var(--lume-primary);
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-bottom: 16px;
+}
+
+.lume-info-box--icon-left .lume-info-box-icon,
+.lume-info-box--icon-right .lume-info-box-icon {
+  margin-bottom: 0;
+}
+
+.lume-info-box-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--lume-text);
+  margin: 0 0 8px 0;
+}
+
+.lume-info-box-description {
+  font-size: 0.9375rem;
+  color: var(--lume-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+
+.lume-info-box-link {
+  display: inline-block;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--lume-primary);
+  text-decoration: none;
+  transition: color var(--lume-transition);
+}
+
+.lume-info-box-link:hover {
+  color: var(--lume-primary-hover);
+  text-decoration: underline;
+}
+
+
+/* ==========================================================================
+   13. Image Gallery
+   ========================================================================== */
+.lume-image-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.lume-image-gallery--cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.lume-image-gallery--cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.lume-image-gallery--cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.lume-image-gallery--masonry {
+  display: block;
+  column-count: 3;
+  column-gap: 16px;
+}
+
+.lume-image-gallery--masonry.lume-image-gallery--cols-2 {
+  column-count: 2;
+}
+
+.lume-image-gallery--masonry.lume-image-gallery--cols-4 {
+  column-count: 4;
+}
+
+.lume-image-gallery--masonry .lume-gallery-item {
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+
+.lume-gallery-item {
+  overflow: hidden;
+  border-radius: var(--lume-radius);
+  cursor: pointer;
+  transition: transform var(--lume-transition), box-shadow var(--lume-transition);
+}
+
+.lume-gallery-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lume-shadow-md);
+}
+
+.lume-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lume-gallery-caption {
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  color: var(--lume-text-secondary);
+  background-color: var(--lume-bg-subtle);
+}
+
+@media (max-width: 768px) {
+  .lume-image-gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .lume-image-gallery--masonry {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .lume-image-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .lume-image-gallery--masonry {
+    column-count: 1;
+  }
+}
+
+
+/* ==========================================================================
+   14. FAQ / Accordion
+   ========================================================================== */
+.lume-faq {
+  border: 1px solid var(--lume-border);
+  border-radius: var(--lume-radius);
+  overflow: hidden;
+}
+
+.lume-faq-item {
+  border-bottom: 1px solid var(--lume-border);
+}
+
+.lume-faq-item:last-child {
+  border-bottom: none;
+}
+
+.lume-faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--lume-text);
+  text-align: left;
+  font-family: var(--lume-font-family);
+  transition: background-color var(--lume-transition);
+}
+
+.lume-faq-question:hover {
+  background-color: var(--lume-bg-subtle);
+}
+
+.lume-faq-question::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--lume-text-secondary);
+  border-bottom: 2px solid var(--lume-text-secondary);
+  transform: rotate(45deg);
+  transition: transform var(--lume-transition);
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.lume-faq-item--open .lume-faq-question::after {
+  transform: rotate(-135deg);
+}
+
+.lume-faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.lume-faq-item--open .lume-faq-answer {
+  max-height: 1000px;
+}
+
+.lume-faq-answer-inner {
+  padding: 0 20px 16px;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--lume-text-secondary);
+}
+
+
+/* ==========================================================================
+   15. Price Table
+   ========================================================================== */
+.lume-price-table {
+  position: relative;
+  background-color: var(--lume-bg);
+  border: 1px solid var(--lume-border);
+  border-radius: var(--lume-radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  overflow: hidden;
+  transition: transform var(--lume-transition), box-shadow var(--lume-transition);
+}
+
+.lume-price-table:hover {
+  box-shadow: var(--lume-shadow-lg);
+}
+
+.lume-price-table--highlighted {
+  border-color: var(--lume-primary);
+  border-width: 2px;
+  transform: scale(1.03);
+  box-shadow: var(--lume-shadow-lg);
+}
+
+.lume-price-table-ribbon {
+  position: absolute;
+  top: 16px;
+  right: -32px;
+  background-color: var(--lume-primary);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 40px;
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+.lume-price-table-header {
+  margin-bottom: 24px;
+}
+
+.lume-price-table-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--lume-text);
+  margin: 0 0 8px 0;
+}
+
+.lume-price-table-subtitle {
+  font-size: 0.875rem;
+  color: var(--lume-text-muted);
+  margin: 0;
+}
+
+.lume-price-table-price {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--lume-text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.lume-price-table-price-currency {
+  font-size: 1.5rem;
+  vertical-align: super;
+  font-weight: 500;
+}
+
+.lume-price-table-period {
+  font-size: 0.875rem;
+  color: var(--lume-text-muted);
+  margin-bottom: 24px;
+}
+
+.lume-price-table-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px 0;
+  text-align: left;
+}
+
+.lume-price-table-features li {
+  padding: 10px 0;
+  font-size: 0.9375rem;
+  color: var(--lume-text-secondary);
+  border-bottom: 1px solid var(--lume-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lume-price-table-features li:last-child {
+  border-bottom: none;
+}
+
+.lume-price-table-feature--included::before {
+  content: '\2713';
+  color: var(--lume-success);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.lume-price-table-feature--excluded {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.lume-price-table-feature--excluded::before {
+  content: '\2717';
+  color: var(--lume-text-muted);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.lume-price-table-cta {
+  display: block;
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--lume-primary);
+  border: 2px solid var(--lume-primary);
+  border-radius: var(--lume-radius);
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: all var(--lume-transition);
+  font-family: var(--lume-font-family);
+}
+
+.lume-price-table-cta:hover {
+  background-color: var(--lume-primary-hover);
+  border-color: var(--lume-primary-hover);
+}
+
+
+/* ==========================================================================
+   16. Price List
+   ========================================================================== */
+.lume-price-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.lume-price-list-item {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.lume-price-list-item + .lume-price-list-item {
+  border-top: 1px solid var(--lume-border);
+}
+
+.lume-price-list-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--lume-text);
+}
+
+.lume-price-list-description {
+  font-size: 0.8125rem;
+  color: var(--lume-text-muted);
+}
+
+.lume-price-list-separator {
+  flex: 1;
+  border-bottom: 2px dashed var(--lume-border);
+  min-width: 20px;
+  align-self: center;
+}
+
+.lume-price-list-price {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--lume-text);
+  white-space: nowrap;
+}
+
+
+/* ==========================================================================
+   17. Team Member
+   ========================================================================== */
+.lume-team-member {
+  text-align: center;
+  padding: 24px;
+  border-radius: var(--lume-radius-lg);
+  transition: box-shadow var(--lume-transition);
+}
+
+.lume-team-member:hover {
+  box-shadow: var(--lume-shadow-md);
+}
+
+.lume-team-member-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 16px;
+  display: block;
+  border: 3px solid var(--lume-border);
+}
+
+.lume-team-member-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--lume-text);
+  margin: 0 0 4px 0;
+}
+
+.lume-team-member-role {
+  font-size: 0.875rem;
+  color: var(--lume-primary);
+  font-weight: 500;
+  margin: 0 0 12px 0;
+}
+
+.lume-team-member-bio {
+  font-size: 0.875rem;
+  color: var(--lume-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.lume-team-member-social {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.lume-team-member-social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--lume-text-secondary);
+  background-color: var(--lume-bg-subtle);
+  text-decoration: none;
+  font-size: 1rem;
+  transition: all var(--lume-transition);
+}
+
+.lume-team-member-social a:hover {
+  color: #ffffff;
+  background-color: var(--lume-primary);
+}
+
+
+/* ==========================================================================
+   18. Testimonial
+   ========================================================================== */
+.lume-testimonial {
+  padding: 24px;
+}
+
+.lume-testimonial--card {
+  background-color: var(--lume-bg);
+  border-radius: var(--lume-radius-lg);
+  box-shadow: var(--lume-shadow-md);
+  padding: 32px;
+}
+
+.lume-testimonial--minimal {
+  padding: 24px 0;
+  border-top: 1px solid var(--lume-border);
+  border-bottom: 1px solid var(--lume-border);
+}
+
+.lume-testimonial--bubble {
+  position: relative;
+  background-color: var(--lume-bg-subtle);
+  border-radius: var(--lume-radius-lg);
+  padding: 32px;
+}
+
+.lume-testimonial--bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 32px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 12px solid var(--lume-bg-subtle);
+}
+
+.lume-testimonial-quote {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--lume-text);
+  margin: 0 0 20px 0;
+  font-style: italic;
+  position: relative;
+}
+
+.lume-testimonial-quote::before {
+  content: '\201C';
+  font-size: 3rem;
+  color: var(--lume-primary);
+  line-height: 1;
+  display: block;
+  margin-bottom: 4px;
+  font-style: normal;
+}
+
+.lume-testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lume-testimonial-author img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.lume-testimonial-author-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--lume-text);
+}
+
+.lume-testimonial-author-title {
+  font-size: 0.8125rem;
+  color: var(--lume-text-muted);
+}
+
+.lume-testimonial-rating {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.lume-testimonial-rating-star {
+  color: #facc15;
+  font-size: 1rem;
+}
+
+.lume-testimonial-rating-star--empty {
+  color: var(--lume-border);
+}
+
+
+/* ==========================================================================
+   19. Countdown
+   ========================================================================== */
+.lume-countdown {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* Simple variant */
+.lume-countdown--simple .lume-countdown-unit {
+  text-align: center;
+  padding: 16px 20px;
+  background-color: var(--lume-bg-subtle);
+  border-radius: var(--lume-radius);
+  min-width: 80px;
+}
+
+.lume-countdown--simple .lume-countdown-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--lume-text);
+  line-height: 1;
+}
+
+.lume-countdown--simple .lume-countdown-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--lume-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/* Flip variant */
+.lume-countdown--flip .lume-countdown-unit {
+  text-align: center;
+  perspective: 400px;
+}
+
+.lume-countdown--flip .lume-countdown-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--lume-text);
+  border-radius: var(--lume-radius);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.lume-countdown--flip .lume-countdown-value::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.lume-countdown--flip .lume-countdown-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--lume-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 8px;
+}
+
+/* Circle variant */
+.lume-countdown--circle .lume-countdown-unit {
+  text-align: center;
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--lume-primary);
+  border-radius: 50%;
+}
+
+.lume-countdown--circle .lume-countdown-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--lume-text);
+  line-height: 1;
+}
+
+.lume-countdown--circle .lume-countdown-label {
+  font-size: 0.625rem;
+  color: var(--lume-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+  .lume-countdown {
+    gap: 8px;
+  }
+
+  .lume-countdown--simple .lume-countdown-unit {
+    min-width: 60px;
+    padding: 12px;
+  }
+
+  .lume-countdown--simple .lume-countdown-value,
+  .lume-countdown--flip .lume-countdown-value {
+    font-size: 1.75rem;
+  }
+
+  .lume-countdown--flip .lume-countdown-value {
+    width: 60px;
+    height: 60px;
+  }
+
+  .lume-countdown--circle .lume-countdown-unit {
+    width: 72px;
+    height: 72px;
+  }
+
+  .lume-countdown--circle .lume-countdown-value {
+    font-size: 1.5rem;
+  }
+}
+
+
+/* ==========================================================================
+   20. Content Toggle
+   ========================================================================== */
+.lume-content-toggle {
+  text-align: center;
+}
+
+.lume-toggle-switch {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--lume-bg-subtle);
+  border-radius: 999px;
+  padding: 4px;
+  border: 1px solid var(--lume-border);
+  margin-bottom: 24px;
+}
+
+.lume-toggle-option {
+  padding: 8px 24px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--lume-text-secondary);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--lume-transition);
+  font-family: var(--lume-font-family);
+}
+
+.lume-toggle-option--active {
+  background-color: var(--lume-primary);
+  color: #ffffff;
+  box-shadow: var(--lume-shadow);
+}
+
+.lume-toggle-content {
+  animation: lume-fade-in 0.3s ease;
+}
+
+
+/* ==========================================================================
+   21. Marketing Button
+   ========================================================================== */
+.lume-marketing-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--lume-primary);
+  border: none;
+  border-radius: var(--lume-radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-family: var(--lume-font-family);
+}
+
+.lume-marketing-button--gradient {
+  background: linear-gradient(135deg, var(--lume-primary), #7c3aed);
+}
+
+.lume-marketing-button-subtext {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.lume-marketing-button-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.lume-marketing-button--hover-grow:hover {
+  transform: scale(1.05);
+}
+
+.lume-marketing-button--hover-shadow:hover {
+  box-shadow: 0 8px 25px rgba(22, 119, 255, 0.4);
+}
+
+.lume-marketing-button--hover-glow:hover {
+  box-shadow: 0 0 20px rgba(22, 119, 255, 0.6), 0 0 40px rgba(22, 119, 255, 0.3);
+}
+
+
+/* ==========================================================================
+   22. Modal Popup (trigger button only)
+   ========================================================================== */
+.lume-modal-popup-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: var(--lume-primary);
+  border: 2px solid var(--lume-primary);
+  border-radius: var(--lume-radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--lume-transition);
+  font-family: var(--lume-font-family);
+}
+
+.lume-modal-popup-trigger:hover {
+  background-color: var(--lume-primary-hover);
+  border-color: var(--lume-primary-hover);
+}
+
+
+/* ==========================================================================
+   23. Google Map
+   ========================================================================== */
+.lume-google-map {
+  width: 100%;
+}
+
+.lume-map-container {
+  position: relative;
+  width: 100%;
+  border-radius: var(--lume-radius);
+  overflow: hidden;
+  background-color: var(--lume-bg-subtle);
+}
+
+.lume-map-container iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  min-height: 300px;
+}
+
+
+/* ==========================================================================
+   24. Contact Form
+   ========================================================================== */
+.lume-contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+}
+
+.lume-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lume-form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--lume-text);
+}
+
+.lume-form-label--required::after {
+  content: ' *';
+  color: var(--lume-danger);
+}
+
+.lume-form-input,
+.lume-form-textarea,
+.lume-form-select {
+  padding: 10px 14px;
+  font-size: 0.9375rem;
+  color: var(--lume-text);
+  background-color: var(--lume-bg);
+  border: 1px solid var(--lume-border);
+  border-radius: var(--lume-radius-sm);
+  outline: none;
+  transition: border-color var(--lume-transition), box-shadow var(--lume-transition);
+  font-family: var(--lume-font-family);
+}
+
+.lume-form-input:focus,
+.lume-form-textarea:focus,
+.lume-form-select:focus {
+  border-color: var(--lume-primary);
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1);
+}
+
+.lume-form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.lume-form-submit {
+  align-self: flex-start;
+  padding: 10px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--lume-primary);
+  border: 2px solid var(--lume-primary);
+  border-radius: var(--lume-radius);
+  cursor: pointer;
+  transition: all var(--lume-transition);
+  font-family: var(--lume-font-family);
+}
+
+.lume-form-submit:hover {
+  background-color: var(--lume-primary-hover);
+  border-color: var(--lume-primary-hover);
+}
+
+.lume-form-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* ==========================================================================
+   25. Business Hours
+   ========================================================================== */
+.lume-business-hours {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.lume-hours-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--lume-border);
+  transition: background-color var(--lume-transition);
+}
+
+.lume-hours-row:last-child {
+  border-bottom: none;
+}
+
+.lume-hours-row--today {
+  background-color: var(--lume-primary-light);
+  font-weight: 600;
+  border-radius: var(--lume-radius-sm);
+}
+
+.lume-hours-row--closed {
+  opacity: 0.5;
+}
+
+.lume-hours-day {
+  font-size: 0.9375rem;
+  color: var(--lume-text);
+  font-weight: 500;
+}
+
+.lume-hours-time {
+  font-size: 0.9375rem;
+  color: var(--lume-text-secondary);
+}
+
+.lume-hours-row--closed .lume-hours-time {
+  color: var(--lume-text-muted);
+  font-style: italic;
+}
+
+
+/* ==========================================================================
+   26. Social Share
+   ========================================================================== */
+.lume-social-share {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lume-social-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--lume-radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity var(--lume-transition), transform var(--lume-transition);
+  font-family: var(--lume-font-family);
+}
+
+.lume-social-share-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Size variants */
+.lume-social-share--sm .lume-social-share-btn {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+}
+
+.lume-social-share--lg .lume-social-share-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+}
+
+.lume-social-share--icon-only .lume-social-share-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* Platform colors */
+.lume-social-share-btn--facebook  { background-color: #1877f2; }
+.lume-social-share-btn--twitter   { background-color: #000000; }
+.lume-social-share-btn--linkedin  { background-color: #0a66c2; }
+.lume-social-share-btn--pinterest { background-color: #e60023; }
+.lume-social-share-btn--reddit    { background-color: #ff4500; }
+.lume-social-share-btn--whatsapp  { background-color: #25d366; }
+.lume-social-share-btn--telegram  { background-color: #0088cc; }
+.lume-social-share-btn--email     { background-color: #6b7280; }
+
+
+/* ==========================================================================
+   27. Posts Grid
+   ========================================================================== */
+.lume-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.lume-posts-grid--cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.lume-posts-grid--cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.lume-post-card {
+  background-color: var(--lume-bg);
+  border: 1px solid var(--lume-border);
+  border-radius: var(--lume-radius-lg);
+  overflow: hidden;
+  transition: transform var(--lume-transition), box-shadow var(--lume-transition);
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+.lume-post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--lume-shadow-lg);
+}
+
+.lume-post-card-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+
+.lume-post-card-body {
+  padding: 16px 20px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.lume-post-card-date {
+  font-size: 0.75rem;
+  color: var(--lume-text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.lume-post-card-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--lume-text);
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.lume-post-card-excerpt {
+  font-size: 0.875rem;
+  color: var(--lume-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .lume-posts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .lume-posts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==========================================================================
+   28. Icon List
+   ========================================================================== */
+.lume-icon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lume-icon-list--horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.lume-icon-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9375rem;
+  color: var(--lume-text);
+  line-height: 1.5;
+  position: relative;
+}
+
+.lume-icon-list-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--lume-primary);
+  font-size: 1.125rem;
+}
+
+.lume-icon-list-item-text {
+  flex: 1;
+}
+
+.lume-icon-list-connector {
+  position: absolute;
+  left: 9px;
+  top: 100%;
+  width: 2px;
+  height: 12px;
+  background-color: var(--lume-border);
+}
+
+.lume-icon-list-item:last-child .lume-icon-list-connector {
+  display: none;
+}
+
+
+/* ==========================================================================
+   29. Progress Bar
+   ========================================================================== */
+.lume-progress-bar {
+  width: 100%;
+}
+
+.lume-progress-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.lume-progress-bar-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--lume-text);
+}
+
+.lume-progress-bar-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--lume-text-secondary);
+}
+
+.lume-progress-bar-track {
+  width: 100%;
+  height: 12px;
+  background-color: var(--lume-bg-subtle);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--lume-border);
+}
+
+.lume-progress-bar-fill {
+  height: 100%;
+  background-color: var(--lume-primary);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+  animation: lume-progress-fill 1s ease-out;
+}
+
+/* Striped variant */
+.lume-progress-bar-fill--striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+}
+
+.lume-progress-bar-fill--animated {
+  animation: lume-progress-fill 1s ease-out, lume-progress-stripes 1s linear infinite;
+}
+
+/* Circle variant */
+.lume-progress-bar--circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.lume-progress-bar--circle svg {
+  transform: rotate(-90deg);
+}
+
+.lume-progress-bar--circle .lume-progress-bar-circle-bg {
+  fill: none;
+  stroke: var(--lume-border);
+}
+
+.lume-progress-bar--circle .lume-progress-bar-circle-fill {
+  fill: none;
+  stroke: var(--lume-primary);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.lume-progress-bar--circle .lume-progress-bar-circle-text {
+  position: absolute;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--lume-text);
+}
+
+
+/* ==========================================================================
+   Keyframe Animations
+   ========================================================================== */
+@keyframes lume-progress-fill {
+  from {
+    width: 0;
+  }
+}
+
+@keyframes lume-progress-stripes {
+  from {
+    background-position: 1rem 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes lume-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ==========================================================================
+   Responsive Utilities
+   ========================================================================== */
+@media (max-width: 768px) {
+  .lume-section {
+    padding: 24px 16px;
+  }
+
+  .lume-info-box--icon-left,
+  .lume-info-box--icon-right {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .lume-price-table--highlighted {
+    transform: scale(1);
+  }
+
+  .lume-countdown {
+    flex-wrap: wrap;
+  }
+}

@@ -132,6 +132,27 @@ describe('Editor Module File Structure', () => {
   test('static/components/SlashCommandList.vue exists', () => {
     expect(existsSync(join(editorDir, 'static', 'components', 'SlashCommandList.vue'))).toBe(true);
   });
+
+  // Widget system files
+  test('static/widgets/registry.ts exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'widgets', 'registry.ts'))).toBe(true);
+  });
+
+  test('static/widgets/SettingsRenderer.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'widgets', 'SettingsRenderer.vue'))).toBe(true);
+  });
+
+  test('static/widgets/widget-styles.css exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'widgets', 'widget-styles.css'))).toBe(true);
+  });
+
+  test('static/widgets/index.ts exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'widgets', 'index.ts'))).toBe(true);
+  });
+
+  test('static/widgets/renders/index.ts exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'widgets', 'renders', 'index.ts'))).toBe(true);
+  });
 });
 
 // ─── Page Builder Block Extensions ───
@@ -151,6 +172,27 @@ describe('Page Builder Block Extensions', () => {
     'HtmlBlock.ts',
     'SlashCommand.ts',
     'index.ts',
+    // New 20 widgets
+    'AdvancedHeadingBlock.ts',
+    'DualHeadingBlock.ts',
+    'InfoBoxBlock.ts',
+    'ImageGalleryBlock.ts',
+    'FaqBlock.ts',
+    'PriceTableBlock.ts',
+    'PriceListBlock.ts',
+    'TeamMemberBlock.ts',
+    'TestimonialBlock.ts',
+    'CountdownBlock.ts',
+    'ContentToggleBlock.ts',
+    'MarketingButtonBlock.ts',
+    'ModalPopupBlock.ts',
+    'GoogleMapBlock.ts',
+    'ContactFormBlock.ts',
+    'BusinessHoursBlock.ts',
+    'SocialShareBlock.ts',
+    'PostsGridBlock.ts',
+    'IconListBlock.ts',
+    'ProgressBarBlock.ts',
   ];
 
   test.each(extensions)('extension %s exists', (file) => {
@@ -173,6 +215,27 @@ describe('Page Builder Block Views', () => {
     'VideoBlockView.vue',
     'CalloutBlockView.vue',
     'HtmlBlockView.vue',
+    // New 20 widgets
+    'AdvancedHeadingBlockView.vue',
+    'DualHeadingBlockView.vue',
+    'InfoBoxBlockView.vue',
+    'ImageGalleryBlockView.vue',
+    'FaqBlockView.vue',
+    'PriceTableBlockView.vue',
+    'PriceListBlockView.vue',
+    'TeamMemberBlockView.vue',
+    'TestimonialBlockView.vue',
+    'CountdownBlockView.vue',
+    'ContentToggleBlockView.vue',
+    'MarketingButtonBlockView.vue',
+    'ModalPopupBlockView.vue',
+    'GoogleMapBlockView.vue',
+    'ContactFormBlockView.vue',
+    'BusinessHoursBlockView.vue',
+    'SocialShareBlockView.vue',
+    'PostsGridBlockView.vue',
+    'IconListBlockView.vue',
+    'ProgressBarBlockView.vue',
   ];
 
   test.each(views)('block view %s exists', (file) => {

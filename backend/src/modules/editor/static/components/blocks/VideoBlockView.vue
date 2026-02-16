@@ -29,6 +29,13 @@ function updateSrc() {
   props.updateAttributes({ src: urlInput.value });
   showUrlInput.value = false;
 }
+
+function selectThisNode() {
+  const pos = props.getPos();
+  if (typeof pos === 'number') {
+    props.editor.commands.setNodeSelection(pos);
+  }
+}
 </script>
 
 <template>
@@ -42,10 +49,10 @@ function updateSrc() {
         <Trash2 :size="14" />
       </button>
     </div>
-    <div v-if="embedUrl && node.attrs.src" :class="['video-container', aspectClass]" contenteditable="false">
+    <div v-if="embedUrl && node.attrs.src" :class="['video-container', aspectClass]" contenteditable="false" @click="selectThisNode">
       <iframe :src="embedUrl" frameborder="0" allowfullscreen />
     </div>
-    <div v-else class="video-placeholder" contenteditable="false">
+    <div v-else class="video-placeholder" contenteditable="false" @click="selectThisNode">
       <div v-if="!showUrlInput" class="placeholder-content" @click="showUrlInput = true">
         <Play :size="32" />
         <p>Click to add a video URL (YouTube or Vimeo)</p>

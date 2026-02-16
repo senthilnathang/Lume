@@ -2,7 +2,7 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
-import { Globe, FileText, Plus, Edit, Trash2, Search, Check, X, RefreshCw } from 'lucide-vue-next';
+import { Globe, FileText, Plus, Edit, Trash2, Search, Check, X, RefreshCw, Eye } from 'lucide-vue-next';
 import { get, post, put, del } from '@/api/request';
 import { CompactEditor } from '@modules/editor/static/components/index';
 
@@ -299,6 +299,11 @@ onMounted(() => {
           </template>
           <template v-else-if="column.key === 'actions'">
             <div class="actions-cell flex items-center gap-1">
+              <a-tooltip title="Preview">
+                <a-button type="text" size="small" @click="router.push(`/website/pages/preview/${record.slug}?id=${record.id}`)">
+                  <template #icon><Eye :size="15" /></template>
+                </a-button>
+              </a-tooltip>
               <a-tooltip title="Edit">
                 <a-button type="text" size="small" @click="editPage(record)">
                   <template #icon><Edit :size="15" /></template>

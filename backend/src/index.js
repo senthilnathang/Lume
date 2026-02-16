@@ -82,7 +82,11 @@ app.use(helmet({
 }));
 
 // ─── Security: CORS ──────────────────────────────────────────────────────────
-const corsOrigin = process.env.CORS_ORIGIN || (isProduction ? false : '*');
+const corsEnv = process.env.CORS_ORIGIN || (isProduction ? '' : '*');
+// Support comma-separated origins (e.g. "http://localhost:5173,http://localhost:3100")
+const corsOrigin = corsEnv === '*' ? true : corsEnv.includes(',')
+  ? corsEnv.split(',').map(o => o.trim())
+  : corsEnv || false;
 app.use(cors({
   origin: corsOrigin,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

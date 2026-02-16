@@ -32,6 +32,13 @@ function stopResize() {
   document.removeEventListener('mousemove', onResize);
   document.removeEventListener('mouseup', stopResize);
 }
+
+function selectThisNode() {
+  const pos = props.getPos();
+  if (typeof pos === 'number') {
+    props.editor.commands.setNodeSelection(pos);
+  }
+}
 </script>
 
 <template>
@@ -45,7 +52,7 @@ function stopResize() {
         <Trash2 :size="14" />
       </button>
     </div>
-    <div class="spacer-area" :style="spacerStyles" contenteditable="false">
+    <div class="spacer-area" :style="spacerStyles" contenteditable="false" @click="selectThisNode">
       <div class="spacer-line" />
       <div class="spacer-resize-handle" @mousedown.prevent="startResize" />
     </div>

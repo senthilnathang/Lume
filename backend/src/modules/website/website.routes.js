@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import { validateRequest } from '../../api/validators/validateRequest.js';
-import { authenticate, authorize } from '../../core/middleware/auth.js';
+import { authenticate, authorize, optionalAuth } from '../../core/middleware/auth.js';
 import { responseUtil } from '../../shared/utils/index.js';
 import { PageService, MenuService, MediaService, SettingsService } from './services/page.service.js';
 
@@ -62,6 +62,17 @@ router.get('/public/sitemap', async (req, res) => {
   } catch (error) {
     res.status(500).json(responseUtil.error('Failed to generate sitemap'));
   }
+});
+
+// Auth check for frontend live editing — returns user info if authenticated
+router.get('/public/auth/check', optionalAuth, (req, res) => {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
+    return res.json(responseUtil.success({
+      authenticated: true,
+      user: { id: req.user.id, email: req.user.email, role: req.user.role },
+    }));
+  }
+  res.json(responseUtil.success({ authenticated: false }));
 });
 
 router.post('/public/contact', [
