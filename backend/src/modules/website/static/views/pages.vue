@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
 import { Globe, FileText, Plus, Edit, Trash2, Search, Check, X, RefreshCw } from 'lucide-vue-next';
 import { get, post, put, del } from '@/api/request';
@@ -7,6 +8,7 @@ import { CompactEditor } from '@modules/editor/static/components/index';
 
 defineOptions({ name: 'WebsitePages' });
 
+const router = useRouter();
 const loading = ref(false);
 const saving = ref(false);
 const drawerVisible = ref(false);
@@ -118,29 +120,13 @@ function resetForm() {
   });
 }
 
+function editPage(page: any) {
+  router.push(`/website/pages/editor?id=${page.id}`);
+}
+
 function openDrawer(page: any = null) {
-  editingPage.value = page;
-  if (page) {
-    Object.assign(formState, {
-      title: page.title || '',
-      slug: page.slug || '',
-      content: page.content || '',
-      excerpt: page.excerpt || '',
-      pageType: page.pageType || 'page',
-      template: page.template || 'default',
-      featuredImage: page.featuredImage || '',
-      metaTitle: page.metaTitle || '',
-      metaDescription: page.metaDescription || '',
-      metaKeywords: page.metaKeywords || '',
-      ogTitle: page.ogTitle || '',
-      ogDescription: page.ogDescription || '',
-      ogImage: page.ogImage || '',
-      noIndex: page.noIndex || false,
-      noFollow: page.noFollow || false,
-    });
-  } else {
-    resetForm();
-  }
+  editingPage.value = null;
+  resetForm();
   drawerVisible.value = true;
 }
 
@@ -162,15 +148,10 @@ async function handleSave() {
   saving.value = true;
   try {
     const payload = { ...formState };
-    if (editingPage.value) {
-      await put(`/website/pages/${editingPage.value.id}`, payload);
-      message.success('Page updated successfully');
-    } else {
-      await post('/website/pages', payload);
-      message.success('Page created successfully');
-    }
+    const data = await post('/website/pages', payload);
+    message.success('Page created — opening editor');
     closeDrawer();
-    await loadPages();
+    router.push(`/website/pages/editor?id=${data.id}`);
   } catch (err: any) {
     message.error(err?.message || 'Failed to save page');
   } finally {
@@ -306,7 +287,7 @@ onMounted(() => {
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'title'">
-            <div class="font-medium">{{ record.title }}</div>
+            <a class="font-medium text-blue-600 hover:text-blue-800 cursor-pointer" @click="editPage(record)">{{ record.title }}</a>
           </template>
           <template v-else-if="column.key === 'status'">
             <a-tag :color="record.isPublished ? 'green' : 'orange'">
@@ -319,7 +300,7 @@ onMounted(() => {
           <template v-else-if="column.key === 'actions'">
             <div class="actions-cell flex items-center gap-1">
               <a-tooltip title="Edit">
-                <a-button type="text" size="small" @click="openDrawer(record)">
+                <a-button type="text" size="small" @click="editPage(record)">
                   <template #icon><Edit :size="15" /></template>
                 </a-button>
               </a-tooltip>
@@ -348,11 +329,11 @@ onMounted(() => {
       </a-table>
     </a-card>
 
-    <!-- Create/Edit Drawer -->
+    <!-- Create New Page Drawer -->
     <a-drawer
       :open="drawerVisible"
-      :title="editingPage ? 'Edit Page' : 'New Page'"
-      width="640"
+      title="New Page"
+      width="480"
       @close="closeDrawer"
     >
       <a-form layout="vertical">
@@ -363,12 +344,6 @@ onMounted(() => {
           <a-input v-model:value="formState.slug" placeholder="page-slug">
             <template #addonBefore>/</template>
           </a-input>
-        </a-form-item>
-        <a-form-item label="Content">
-          <CompactEditor v-model="formState.content" placeholder="Write page content..." min-height="180px" />
-        </a-form-item>
-        <a-form-item label="Excerpt">
-          <a-textarea v-model:value="formState.excerpt" placeholder="Short description" :rows="2" />
         </a-form-item>
 
         <div class="grid grid-cols-2 gap-4">
@@ -387,47 +362,13 @@ onMounted(() => {
             </a-select>
           </a-form-item>
         </div>
-
-        <a-form-item label="Featured Image URL">
-          <a-input v-model:value="formState.featuredImage" placeholder="https://..." />
-        </a-form-item>
-
-        <!-- SEO Section -->
-        <a-card title="SEO Settings" size="small" class="mb-4">
-          <a-form-item label="Meta Title">
-            <a-input v-model:value="formState.metaTitle" placeholder="Meta title" />
-          </a-form-item>
-          <a-form-item label="Meta Description">
-            <a-textarea v-model:value="formState.metaDescription" placeholder="Meta description" :rows="2" />
-          </a-form-item>
-          <a-form-item label="Meta Keywords">
-            <a-input v-model:value="formState.metaKeywords" placeholder="keyword1, keyword2, ..." />
-          </a-form-item>
-          <a-form-item label="OG Title">
-            <a-input v-model:value="formState.ogTitle" placeholder="Open Graph title" />
-          </a-form-item>
-          <a-form-item label="OG Description">
-            <a-textarea v-model:value="formState.ogDescription" placeholder="Open Graph description" :rows="2" />
-          </a-form-item>
-          <a-form-item label="OG Image">
-            <a-input v-model:value="formState.ogImage" placeholder="https://..." />
-          </a-form-item>
-          <div class="flex gap-6">
-            <a-form-item label="No Index">
-              <a-switch v-model:checked="formState.noIndex" />
-            </a-form-item>
-            <a-form-item label="No Follow">
-              <a-switch v-model:checked="formState.noFollow" />
-            </a-form-item>
-          </div>
-        </a-card>
       </a-form>
 
       <template #footer>
         <div class="flex justify-end gap-2">
           <a-button @click="closeDrawer">Cancel</a-button>
           <a-button type="primary" :loading="saving" @click="handleSave">
-            {{ editingPage ? 'Update' : 'Create' }}
+            Create
           </a-button>
         </div>
       </template>
