@@ -7276,10 +7276,13 @@ RBAC module initialized
 ║  Modules:       21                          ║
 ╚════════════════════════════════════════════════════════════╝
 
-ed (core tables)
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+🚀 Starting Lume Modular Backend...
+✅ Prisma connected (core tables)
 ✅ Drizzle connected (module tables)
 🚀 Initializing Gawdesy Module System...
-📦 Found 20 modules to load
+📦 Found 21 modules to load
 ✅ Module loaded: Activities (v1.0.0)
 ✅ Module loaded: Advanced Features (v1.0.0)
 ✅ Module loaded: Audit (v1.0.0)
@@ -7288,7 +7291,7 @@ ed (core tables)
 ✅ Module loaded: Base Automation (v1.0.0)
 ✅ Module loaded: Base Customization (v1.0.0)
 ✅ Module loaded: Data Management (v1.0.0)
-❌ Error loading module base_security: The requested module 'otplib' does not provide an export named 'authenticator'
+✅ Module loaded: Base Security (v1.0.0)
 ✅ Module loaded: Common Utilities (v1.0.0)
 ✅ Module loaded: Documents (v1.0.0)
 ✅ Module loaded: Donations (v1.0.0)
@@ -7300,7 +7303,8 @@ ed (core tables)
 ✅ Module loaded: Settings (v1.0.0)
 ✅ Module loaded: Team (v1.0.0)
 ✅ Module loaded: User Management (v1.0.0)
-📋 Module load order: base -> activities -> advanced_features -> audit -> auth -> base_automation -> base_customization -> base_features_data -> common -> documents -> donations -> gawdesy -> lume -> media -> messages -> rbac -> settings -> team -> user
+✅ Module loaded: Website (v1.0.0)
+📋 Module load order: base -> activities -> advanced_features -> audit -> auth -> base_automation -> base_customization -> base_features_data -> base_security -> common -> documents -> donations -> gawdesy -> lume -> media -> messages -> rbac -> settings -> team -> user -> website
 🔧 Initializing Base Module...
 ✅ Base Prisma adapters created: InstalledModule, Menu, Permission, Role, Group, RecordRule, Sequence, AuditLog, Setting, RolePermission
 ✅ Base services created
@@ -7340,6 +7344,13 @@ ed (core tables)
 ✅ Base Features Data Module initialized
 ✅ Module initialized: Data Management
 ⚠️  Invalid router for base_features_data: function
+🔧 Initializing Base Security Module...
+✅ Base Security adapters created: ApiKey, Session, IpAccess, TwoFactor, SecurityLog
+✅ Base Security services created
+✅ Base Security API routes registered: /api/base_security
+✅ Base Security Module initialized
+✅ Module initialized: Base Security
+⚠️  Invalid router for base_security: function
 🔧 Initializing Common Module...
 ✅ Common Module initialized (frontend-only)
 ✅ Module initialized: Common Utilities
@@ -7358,9 +7369,10 @@ RBAC module initialized
 ✅ Module initialized: Settings
 ✅ Module initialized: Team
 ✅ Module initialized: User Management
-✅ Module system initialized with 19 modules
-📋 Registered 15 menu groups
-🔐 Registered 119 permissions
+✅ Module initialized: Website
+✅ Module system initialized with 21 modules
+📋 Registered 17 menu groups
+🔐 Registered 139 permissions
 ✅ Module system initialized
 📦 Module activities state: uninstalled
 📦 Module documents state: uninstalled
@@ -7369,7 +7381,127 @@ RBAC module initialized
 📦 Module media state: uninstalled
 📦 Module messages state: uninstalled
 📦 Module team state: uninstalled
+⚠️  Failed to sync module state for website: Cannot read properties of null (reading 'getTime')
 ✅ Module states synced to database
+✅ WebSocket server initialized on /ws
+
+╔════════════════════════════════════════════════════════════╗
+║              Lume Framework v1.0.0                        ║
+╠════════════════════════════════════════════════════════════╣
+║  Server:        http://localhost:3000                  ║
+║  API Base:      http://localhost:3000/api               ║
+║  WebSocket:     ws://localhost:3000/ws                  ║
+║  Modules:       21                          ║
+╚════════════════════════════════════════════════════════════╝
+
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+🚀 Starting Lume Modular Backend...
+✅ Prisma connected (core tables)
+✅ Drizzle connected (module tables)
+🚀 Initializing Gawdesy Module System...
+📦 Found 21 modules to load
+✅ Module loaded: Activities (v1.0.0)
+✅ Module loaded: Advanced Features (v1.0.0)
+✅ Module loaded: Audit (v1.0.0)
+✅ Module loaded: Authentication (v1.0.0)
+✅ Module loaded: Base (v1.0.0)
+✅ Module loaded: Base Automation (v1.0.0)
+✅ Module loaded: Base Customization (v1.0.0)
+✅ Module loaded: Data Management (v1.0.0)
+✅ Module loaded: Base Security (v1.0.0)
+✅ Module loaded: Common Utilities (v1.0.0)
+✅ Module loaded: Documents (v1.0.0)
+✅ Module loaded: Donations (v1.0.0)
+✅ Module loaded: Gawdesy (v1.0.0)
+✅ Module loaded: Lume (v1.0.0)
+✅ Module loaded: Media Library (v1.0.0)
+✅ Module loaded: Messages (v1.0.0)
+✅ Module loaded: RBAC (v1.0.0)
+✅ Module loaded: Settings (v1.0.0)
+✅ Module loaded: Team (v1.0.0)
+✅ Module loaded: User Management (v1.0.0)
+✅ Module loaded: Website (v1.0.0)
+📋 Module load order: base -> activities -> advanced_features -> audit -> auth -> base_automation -> base_customization -> base_features_data -> base_security -> common -> documents -> donations -> gawdesy -> lume -> media -> messages -> rbac -> settings -> team -> user -> website
+🔧 Initializing Base Module...
+✅ Base Prisma adapters created: InstalledModule, Menu, Permission, Role, Group, RecordRule, Sequence, AuditLog, Setting, RolePermission
+✅ Base services created
+✅ Base API routes registered: /api/base
+✅ Base Module initialized
+✅ Module initialized: Base
+⚠️  Invalid router for base: function
+✅ Module initialized: Activities
+🔧 Initializing Advanced Features Module...
+✅ Advanced Features adapters created: Webhook, WebhookLog, Notification, NotificationChannel, Tag, Tagging, Comment, Attachment
+✅ Advanced Features services created (including webhook trigger + notification dispatch)
+✅ Advanced Features API routes registered: /api/advanced_features
+✅ Advanced Features Module initialized
+✅ Module initialized: Advanced Features
+⚠️  Invalid router for advanced_features: function
+✅ Module initialized: Audit
+✅ Module initialized: Authentication
+🔧 Initializing Base Automation Module...
+✅ Base Automation adapters created: Workflow, Flow, BusinessRule, ApprovalChain, ScheduledAction, ValidationRule, AssignmentRule, RollupField
+✅ Base Automation services created (including scheduler + rule engine)
+✅ Base Automation API routes registered: /api/base_automation
+[Scheduler] Initialized 0 scheduled actions
+✅ Base Automation Module initialized
+✅ Module initialized: Base Automation
+⚠️  Invalid router for base_automation: function
+🔧 Initializing Base Customization Module...
+✅ Base Customization adapters created: CustomField, CustomView, FormLayout, ListConfig, DashboardWidget
+✅ Base Customization services created
+✅ Base Customization API routes registered: /api/base_customization
+✅ Base Customization Module initialized
+✅ Module initialized: Base Customization
+⚠️  Invalid router for base_customization: function
+🔧 Initializing Base Features Data Module...
+✅ Base Features Data adapters created: FeatureFlag, DataImport, DataExport, Backup
+✅ Base Features Data services created
+✅ Base Features Data API routes registered: /api/base_features_data
+✅ Base Features Data Module initialized
+✅ Module initialized: Data Management
+⚠️  Invalid router for base_features_data: function
+🔧 Initializing Base Security Module...
+✅ Base Security adapters created: ApiKey, Session, IpAccess, TwoFactor, SecurityLog
+✅ Base Security services created
+✅ Base Security API routes registered: /api/base_security
+✅ Base Security Module initialized
+✅ Module initialized: Base Security
+⚠️  Invalid router for base_security: function
+🔧 Initializing Common Module...
+✅ Common Module initialized (frontend-only)
+✅ Module initialized: Common Utilities
+✅ Module initialized: Documents
+✅ Module initialized: Donations
+✅ Module initialized: Gawdesy
+✅ Module initialized: Lume
+✅ Module initialized: Media Library
+✅ Module initialized: Messages
+Initializing RBAC module...
+✅ RBAC adapters created: Role, Permission, AccessRule
+✅ RBAC API routes available at: /api/rbac
+RBAC module initialized
+✅ Module initialized: RBAC
+⚠️  Invalid router for rbac: function
+✅ Module initialized: Settings
+✅ Module initialized: Team
+✅ Module initialized: User Management
+✅ Module initialized: Website
+✅ Module system initialized with 21 modules
+📋 Registered 17 menu groups
+🔐 Registered 139 permissions
+✅ Module system initialized
+📦 Module activities state: uninstalled
+📦 Module documents state: uninstalled
+📦 Module donations state: uninstalled
+📦 Module gawdesy state: uninstalled
+📦 Module media state: uninstalled
+📦 Module messages state: uninstalled
+📦 Module team state: uninstalled
+⚠️  Failed to sync module state for website: Cannot read properties of null (reading 'getTime')
+✅ Module states synced to database
+✅ WebSocket server initialized on /ws
 node:events:496
       throw er; // Unhandled 'error' event
       ^
@@ -7378,9 +7510,9 @@ Error: listen EADDRINUSE: address already in use :::3000
     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
     at listenInCluster (node:net:1997:12)
     at Server.listen (node:net:2102:7)
-    at Function.listen (/opt/Lume/backend/node_modules/express/lib/application.js:635:24)
-    at startServer (file:///opt/Lume/backend/src/index.js:705:9)
-Emitted 'error' event on Server instance at:
+    at startServer (file:///opt/Lume/backend/src/index.js:747:12)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.emit (node:events:518:28)
     at emitErrorNT (node:net:1976:8)
     at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
   code: 'EADDRINUSE',
@@ -7392,140 +7524,7 @@ Emitted 'error' event on Server instance at:
 
 Node.js v22.17.0
 [31m[nodemon] app crashed - waiting for file changes before starting...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/index.js`[39m
-🚀 Starting Lume Modular Backend...
-✅ Prisma connected (core tables)
-✅ Drizzle connected (module tables)
-🚀 Initializing Gawdesy Module System...
-📦 Found 20 modules to load
-✅ Module loaded: Activities (v1.0.0)
-✅ Module loaded: Advanced Features (v1.0.0)
-✅ Module loaded: Audit (v1.0.0)
-✅ Module loaded: Authentication (v1.0.0)
-✅ Module loaded: Base (v1.0.0)
-✅ Module loaded: Base Automation (v1.0.0)
-✅ Module loaded: Base Customization (v1.0.0)
-✅ Module loaded: Data Management (v1.0.0)
-❌ Error loading module base_security: The requested module 'otplib' does not provide an export named 'authenticator'
-✅ Module loaded: Common Utilities (v1.0.0)
-✅ Module loaded: Documents (v1.0.0)
-✅ Module loaded: Donations (v1.0.0)
-✅ Module loaded: Gawdesy (v1.0.0)
-✅ Module loaded: Lume (v1.0.0)
-✅ Module loaded: Media Library (v1.0.0)
-✅ Module loaded: Messages (v1.0.0)
-✅ Module loaded: RBAC (v1.0.0)
-✅ Module loaded: Settings (v1.0.0)
-✅ Module loaded: Team (v1.0.0)
-✅ Module loaded: User Management (v1.0.0)
-📋 Module load order: base -> activities -> advanced_features -> audit -> auth -> base_automation -> base_customization -> base_features_data -> common -> documents -> donations -> gawdesy -> lume -> media -> messages -> rbac -> settings -> team -> user
-🔧 Initializing Base Module...
-✅ Base Prisma adapters created: InstalledModule, Menu, Permission, Role, Group, RecordRule, Sequence, AuditLog, Setting, RolePermission
-✅ Base services created
-✅ Base API routes registered: /api/base
-✅ Base Module initialized
-✅ Module initialized: Base
-⚠️  Invalid router for base: function
-✅ Module initialized: Activities
-🔧 Initializing Advanced Features Module...
-✅ Advanced Features adapters created: Webhook, WebhookLog, Notification, NotificationChannel, Tag, Tagging, Comment, Attachment
-✅ Advanced Features services created (including webhook trigger + notification dispatch)
-✅ Advanced Features API routes registered: /api/advanced_features
-✅ Advanced Features Module initialized
-✅ Module initialized: Advanced Features
-⚠️  Invalid router for advanced_features: function
-✅ Module initialized: Audit
-✅ Module initialized: Authentication
-🔧 Initializing Base Automation Module...
-✅ Base Automation adapters created: Workflow, Flow, BusinessRule, ApprovalChain, ScheduledAction, ValidationRule, AssignmentRule, RollupField
-✅ Base Automation services created (including scheduler + rule engine)
-✅ Base Automation API routes registered: /api/base_automation
-[Scheduler] Initialized 0 scheduled actions
-✅ Base Automation Module initialized
-✅ Module initialized: Base Automation
-⚠️  Invalid router for base_automation: function
-🔧 Initializing Base Customization Module...
-✅ Base Customization adapters created: CustomField, CustomView, FormLayout, ListConfig, DashboardWidget
-✅ Base Customization services created
-✅ Base Customization API routes registered: /api/base_customization
-✅ Base Customization Module initialized
-✅ Module initialized: Base Customization
-⚠️  Invalid router for base_customization: function
-🔧 Initializing Base Features Data Module...
-✅ Base Features Data adapters created: FeatureFlag, DataImport, DataExport, Backup
-✅ Base Features Data services created
-✅ Base Features Data API routes registered: /api/base_features_data
-✅ Base Features Data Module initialized
-✅ Module initialized: Data Management
-⚠️  Invalid router for base_features_data: function
-🔧 Initializing Common Module...
-✅ Common Module initialized (frontend-only)
-✅ Module initialized: Common Utilities
-✅ Module initialized: Documents
-✅ Module initialized: Donations
-✅ Module initialized: Gawdesy
-✅ Module initialized: Lume
-✅ Module initialized: Media Library
-✅ Module initialized: Messages
-Initializing RBAC module...
-✅ RBAC adapters created: Role, Permission, AccessRule
-✅ RBAC API routes available at: /api/rbac
-RBAC module initialized
-✅ Module initialized: RBAC
-⚠️  Invalid router for rbac: function
-✅ Module initialized: Settings
-✅ Module initialized: Team
-✅ Module initialized: User Management
-✅ Module system initialized with 19 modules
-📋 Registered 15 menu groups
-🔐 Registered 119 permissions
-✅ Module system initialized
-📦 Module activities state: uninstalled
-📦 Module documents state: uninstalled
-📦 Module donations state: uninstalled
-📦 Module gawdesy state: uninstalled
-📦 Module media state: uninstalled
-📦 Module messages state: uninstalled
-📦 Module team state: uninstalled
-✅ Module states synced to database
-
-╔════════════════════════════════════════════════════════════╗
-║              Lume Framework v1.0.0                        ║
-╠════════════════════════════════════════════════════════════╣
-║  Server:        http://localhost:3000                  ║
-║  API Base:      http://localhost:3000/api               ║
-║  Modules:       19                          ║
-╚════════════════════════════════════════════════════════════╝
-
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/index.js`[39m
-🚀 Starting Lume Modular Backend...
-✅ Prisma connected (core tables)
-✅ Drizzle connected (module tables)
-🚀 Initializing Gawdesy Module System...
-📦 Found 20 modules to load
-✅ Module loaded: Activities (v1.0.0)
-✅ Module loaded: Advanced Features (v1.0.0)
-✅ Module loaded: Audit (v1.0.0)
-✅ Module loaded: Authentication (v1.0.0)
-✅ Module loaded: Base (v1.0.0)
-✅ Module loaded: Base Automation (v1.0.0)
-✅ Module loaded: Base Customization (v1.0.0)
-✅ Module loaded: Data Management (v1.0.0)
-❌ Error loading module base_security: The requested module 'otplib' does not provide an export named 'authenticator'
-✅ Module loaded: Common Utilities (v1.0.0)
-✅ Module loaded: Documents (v1.0.0)
-✅ Module loaded: Donations (v1.0.0)
-✅ Module loaded: Gawdesy (v1.0.0)
-✅ Module loaded: Lume (v1.0.0)
-✅ Module loaded: Media Library (v1.0.0)
-✅ Module loaded: Messages (v1.0.0)
-✅ Module loaded: RBAC (v1.0.0)
-✅ Module loaded: Settings (v1.0.0)
-✅ Module loaded: Team (v1.0.0)
-✅ Module loaded: User Management (v1.0.0)
-📋 Module load order: base -> activities -> advanced_features -> audit -> auth -> base_automation -> base_customization -> base_features_data -> common -> documents -> donations -> gawdesy -> lume -> media -> messages -> rbac -> settings -> team -> user
+dvanced_features -> audit -> auth -> base_automation -> base_customization -> base_features_data -> common -> documents -> donations -> gawdesy -> lume -> media -> messages -> rbac -> settings -> team -> user
 🔧 Initializing Base Module...
 ✅ Base Prisma adapters created: InstalledModule, Menu, Permission, Role, Group, RecordRule, Sequence, AuditLog, Setting, RolePermission
 ✅ Base services created
@@ -9985,3 +9984,251 @@ Emitted 'error' event on WebSocketServer instance at:
 
 Node.js v22.17.0
 [31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+🚀 Starting Lume Modular Backend...
+✅ Prisma connected (core tables)
+✅ Drizzle connected (module tables)
+🚀 Initializing Gawdesy Module System...
+📦 Found 21 modules to load
+✅ Module loaded: Activities (v1.0.0)
+✅ Module loaded: Advanced Features (v1.0.0)
+✅ Module loaded: Audit (v1.0.0)
+✅ Module loaded: Authentication (v1.0.0)
+✅ Module loaded: Base (v1.0.0)
+✅ Module loaded: Base Automation (v1.0.0)
+✅ Module loaded: Base Customization (v1.0.0)
+✅ Module loaded: Data Management (v1.0.0)
+✅ Module loaded: Base Security (v1.0.0)
+✅ Module loaded: Common Utilities (v1.0.0)
+✅ Module loaded: Documents (v1.0.0)
+✅ Module loaded: Donations (v1.0.0)
+✅ Module loaded: Gawdesy (v1.0.0)
+✅ Module loaded: Lume (v1.0.0)
+✅ Module loaded: Media Library (v1.0.0)
+✅ Module loaded: Messages (v1.0.0)
+✅ Module loaded: RBAC (v1.0.0)
+✅ Module loaded: Settings (v1.0.0)
+✅ Module loaded: Team (v1.0.0)
+✅ Module loaded: User Management (v1.0.0)
+✅ Module loaded: Website (v1.0.0)
+📋 Module load order: base -> activities -> advanced_features -> audit -> auth -> base_automation -> base_customization -> base_features_data -> base_security -> common -> documents -> donations -> gawdesy -> lume -> media -> messages -> rbac -> settings -> team -> user -> website
+🔧 Initializing Base Module...
+✅ Base Prisma adapters created: InstalledModule, Menu, Permission, Role, Group, RecordRule, Sequence, AuditLog, Setting, RolePermission
+✅ Base services created
+✅ Base API routes registered: /api/base
+✅ Base Module initialized
+✅ Module initialized: Base
+⚠️  Invalid router for base: function
+✅ Module initialized: Activities
+🔧 Initializing Advanced Features Module...
+✅ Advanced Features adapters created: Webhook, WebhookLog, Notification, NotificationChannel, Tag, Tagging, Comment, Attachment
+✅ Advanced Features services created (including webhook trigger + notification dispatch)
+✅ Advanced Features API routes registered: /api/advanced_features
+✅ Advanced Features Module initialized
+✅ Module initialized: Advanced Features
+⚠️  Invalid router for advanced_features: function
+✅ Module initialized: Audit
+✅ Module initialized: Authentication
+🔧 Initializing Base Automation Module...
+✅ Base Automation adapters created: Workflow, Flow, BusinessRule, ApprovalChain, ScheduledAction, ValidationRule, AssignmentRule, RollupField
+✅ Base Automation services created (including scheduler + rule engine)
+✅ Base Automation API routes registered: /api/base_automation
+[Scheduler] Initialized 0 scheduled actions
+✅ Base Automation Module initialized
+✅ Module initialized: Base Automation
+⚠️  Invalid router for base_automation: function
+🔧 Initializing Base Customization Module...
+✅ Base Customization adapters created: CustomField, CustomView, FormLayout, ListConfig, DashboardWidget
+✅ Base Customization services created
+✅ Base Customization API routes registered: /api/base_customization
+✅ Base Customization Module initialized
+✅ Module initialized: Base Customization
+⚠️  Invalid router for base_customization: function
+🔧 Initializing Base Features Data Module...
+✅ Base Features Data adapters created: FeatureFlag, DataImport, DataExport, Backup
+✅ Base Features Data services created
+✅ Base Features Data API routes registered: /api/base_features_data
+✅ Base Features Data Module initialized
+✅ Module initialized: Data Management
+⚠️  Invalid router for base_features_data: function
+🔧 Initializing Base Security Module...
+✅ Base Security adapters created: ApiKey, Session, IpAccess, TwoFactor, SecurityLog
+✅ Base Security services created
+✅ Base Security API routes registered: /api/base_security
+✅ Base Security Module initialized
+✅ Module initialized: Base Security
+⚠️  Invalid router for base_security: function
+🔧 Initializing Common Module...
+✅ Common Module initialized (frontend-only)
+✅ Module initialized: Common Utilities
+✅ Module initialized: Documents
+✅ Module initialized: Donations
+✅ Module initialized: Gawdesy
+✅ Module initialized: Lume
+✅ Module initialized: Media Library
+✅ Module initialized: Messages
+Initializing RBAC module...
+✅ RBAC adapters created: Role, Permission, AccessRule
+✅ RBAC API routes available at: /api/rbac
+RBAC module initialized
+✅ Module initialized: RBAC
+⚠️  Invalid router for rbac: function
+✅ Module initialized: Settings
+✅ Module initialized: Team
+✅ Module initialized: User Management
+✅ Module initialized: Website
+✅ Module system initialized with 21 modules
+📋 Registered 17 menu groups
+🔐 Registered 139 permissions
+✅ Module system initialized
+📦 Module activities state: uninstalled
+📦 Module documents state: uninstalled
+📦 Module donations state: uninstalled
+📦 Module gawdesy state: uninstalled
+📦 Module media state: uninstalled
+📦 Module messages state: uninstalled
+📦 Module team state: uninstalled
+⚠️  Failed to sync module state for website: Cannot read properties of null (reading 'getTime')
+✅ Module states synced to database
+✅ WebSocket server initialized on /ws
+node:events:496
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at startServer (file:///opt/Lume/backend/src/index.js:717:12)
+Emitted 'error' event on WebSocketServer instance at:
+    at Server.emit (node:events:518:28)
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3000
+}
+
+Node.js v22.17.0
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+🚀 Starting Lume Modular Backend...
+✅ Prisma connected (core tables)
+✅ Drizzle connected (module tables)
+🚀 Initializing Gawdesy Module System...
+📦 Found 21 modules to load
+✅ Module loaded: Activities (v1.0.0)
+✅ Module loaded: Advanced Features (v1.0.0)
+✅ Module loaded: Audit (v1.0.0)
+✅ Module loaded: Authentication (v1.0.0)
+✅ Module loaded: Base (v1.0.0)
+✅ Module loaded: Base Automation (v1.0.0)
+✅ Module loaded: Base Customization (v1.0.0)
+✅ Module loaded: Data Management (v1.0.0)
+✅ Module loaded: Base Security (v1.0.0)
+✅ Module loaded: Common Utilities (v1.0.0)
+✅ Module loaded: Documents (v1.0.0)
+✅ Module loaded: Donations (v1.0.0)
+✅ Module loaded: Gawdesy (v1.0.0)
+✅ Module loaded: Lume (v1.0.0)
+✅ Module loaded: Media Library (v1.0.0)
+✅ Module loaded: Messages (v1.0.0)
+✅ Module loaded: RBAC (v1.0.0)
+✅ Module loaded: Settings (v1.0.0)
+✅ Module loaded: Team (v1.0.0)
+✅ Module loaded: User Management (v1.0.0)
+✅ Module loaded: Website (v1.0.0)
+📋 Module load order: base -> activities -> advanced_features -> audit -> auth -> base_automation -> base_customization -> base_features_data -> base_security -> common -> documents -> donations -> gawdesy -> lume -> media -> messages -> rbac -> settings -> team -> user -> website
+🔧 Initializing Base Module...
+✅ Base Prisma adapters created: InstalledModule, Menu, Permission, Role, Group, RecordRule, Sequence, AuditLog, Setting, RolePermission
+✅ Base services created
+✅ Base API routes registered: /api/base
+✅ Base Module initialized
+✅ Module initialized: Base
+⚠️  Invalid router for base: function
+✅ Module initialized: Activities
+🔧 Initializing Advanced Features Module...
+✅ Advanced Features adapters created: Webhook, WebhookLog, Notification, NotificationChannel, Tag, Tagging, Comment, Attachment
+✅ Advanced Features services created (including webhook trigger + notification dispatch)
+✅ Advanced Features API routes registered: /api/advanced_features
+✅ Advanced Features Module initialized
+✅ Module initialized: Advanced Features
+⚠️  Invalid router for advanced_features: function
+✅ Module initialized: Audit
+✅ Module initialized: Authentication
+🔧 Initializing Base Automation Module...
+✅ Base Automation adapters created: Workflow, Flow, BusinessRule, ApprovalChain, ScheduledAction, ValidationRule, AssignmentRule, RollupField
+✅ Base Automation services created (including scheduler + rule engine)
+✅ Base Automation API routes registered: /api/base_automation
+[Scheduler] Initialized 0 scheduled actions
+✅ Base Automation Module initialized
+✅ Module initialized: Base Automation
+⚠️  Invalid router for base_automation: function
+🔧 Initializing Base Customization Module...
+✅ Base Customization adapters created: CustomField, CustomView, FormLayout, ListConfig, DashboardWidget
+✅ Base Customization services created
+✅ Base Customization API routes registered: /api/base_customization
+✅ Base Customization Module initialized
+✅ Module initialized: Base Customization
+⚠️  Invalid router for base_customization: function
+🔧 Initializing Base Features Data Module...
+✅ Base Features Data adapters created: FeatureFlag, DataImport, DataExport, Backup
+✅ Base Features Data services created
+✅ Base Features Data API routes registered: /api/base_features_data
+✅ Base Features Data Module initialized
+✅ Module initialized: Data Management
+⚠️  Invalid router for base_features_data: function
+🔧 Initializing Base Security Module...
+✅ Base Security adapters created: ApiKey, Session, IpAccess, TwoFactor, SecurityLog
+✅ Base Security services created
+✅ Base Security API routes registered: /api/base_security
+✅ Base Security Module initialized
+✅ Module initialized: Base Security
+⚠️  Invalid router for base_security: function
+🔧 Initializing Common Module...
+✅ Common Module initialized (frontend-only)
+✅ Module initialized: Common Utilities
+✅ Module initialized: Documents
+✅ Module initialized: Donations
+✅ Module initialized: Gawdesy
+✅ Module initialized: Lume
+✅ Module initialized: Media Library
+✅ Module initialized: Messages
+Initializing RBAC module...
+✅ RBAC adapters created: Role, Permission, AccessRule
+✅ RBAC API routes available at: /api/rbac
+RBAC module initialized
+✅ Module initialized: RBAC
+⚠️  Invalid router for rbac: function
+✅ Module initialized: Settings
+✅ Module initialized: Team
+✅ Module initialized: User Management
+✅ Module initialized: Website
+✅ Module system initialized with 21 modules
+📋 Registered 17 menu groups
+🔐 Registered 139 permissions
+✅ Module system initialized
+📦 Module activities state: uninstalled
+📦 Module documents state: uninstalled
+📦 Module donations state: uninstalled
+📦 Module gawdesy state: uninstalled
+📦 Module media state: uninstalled
+📦 Module messages state: uninstalled
+📦 Module team state: uninstalled
+⚠️  Failed to sync module state for website: Cannot read properties of null (reading 'getTime')
+✅ Module states synced to database
+✅ WebSocket server initialized on /ws
+
+╔════════════════════════════════════════════════════════════╗
+║              Lume Framework v1.0.0                        ║
+╠════════════════════════════════════════════════════════════╣
+║  Server:        http://localhost:3000                  ║
+║  API Base:      http://localhost:3000/api               ║
+║  WebSocket:     ws://localhost:3000/ws                  ║
+║  Modules:       21                          ║
+╚════════════════════════════════════════════════════════════╝
+
