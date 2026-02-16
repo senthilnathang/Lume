@@ -106,6 +106,7 @@ const publicApiPaths = [
   '/api/users/login',
   '/api/users/register',
   '/api/auth/refresh-token',
+  '/api/public/config',
 ];
 
 // Paths that optionally parse auth token but don't require it
@@ -169,6 +170,36 @@ app.get('/health', (req, res) => {
     modular: true
   });
 });
+
+// ─── Public Config (no auth) ────────────────────────────────────────────────
+// Returns framework config including which modules are installed.
+// Used by frontend router to decide landing page behavior.
+app.get('/api/public/config', async (req, res) => {
+  try {
+    let websiteInstalled = false;
+    try {
+      const record = await prisma.installedModule.findUnique({
+        where: { name: 'website' },
+      });
+      websiteInstalled = record?.state === 'installed';
+    } catch (e) { /* table may not exist yet */ }
+
+    res.json({
+      success: true,
+      data: {
+        framework: 'Lume',
+        version: '1.0.0',
+        websiteInstalled,
+        publicUrl: process.env.PUBLIC_WEBSITE_URL || null,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to fetch config' });
+  }
+});
+
+// Also allow website module public routes without auth
+optionalAuthPaths.push('/api/website/public');
 
 // Serve module static files (views) - FastVue style
 // Views are served from: /modules/{moduleName}/static/views/{viewName}.vue
