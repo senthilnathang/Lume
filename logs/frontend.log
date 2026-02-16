@@ -239,3 +239,10 @@ Are they installed?
 8:45:11 AM [vite] page reload src/router/index.ts
 8:59:43 AM [vite] page reload src/router/index.ts
 8:59:49 AM [vite] page reload src/router/index.ts
+11:47:56 AM [vite] page reload src/composables/index.ts
+11:48:43 AM [vite] hmr update /src/components/layout/Header.vue, /src/style.css
+11:50:22 AM [vite] hmr update /src/components/layout/Header.vue, /src/style.css
+11:50:26 AM [vite] hmr update /src/components/layout/Header.vue, /src/style.css
+11:50:30 AM [vite] hmr update /src/components/layout/Header.vue, /src/style.css
+11:50:35 AM [vite] hmr update /src/components/layout/Header.vue, /src/style.css
+11:50:41 AM [vite] hmr update /src/components/layout/Header.vue, /src/style.css

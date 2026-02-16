@@ -12,6 +12,8 @@ import {
 import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
 import { SecurityService } from './services/index.js';
 import createRoutes from './api/index.js';
+import { setSecurityService } from '../../core/middleware/ipAccess.js';
+import serviceRegistry from '../../core/services/service-registry.js';
 
 const initializeBaseSecurity = async (context) => {
   const { app } = context;
@@ -27,10 +29,13 @@ const initializeBaseSecurity = async (context) => {
   };
   console.log(`✅ Base Security adapters created: ${Object.keys(adapters).join(', ')}`);
 
-  const services = {
-    securityService: new SecurityService(adapters)
-  };
+  const securityService = new SecurityService(adapters);
+  const services = { securityService };
   console.log('✅ Base Security services created');
+
+  // Register security service globally for IP access middleware and cross-module use
+  serviceRegistry.register('securityService', securityService);
+  setSecurityService(securityService);
 
   const routes = createRoutes(adapters, services);
   app.use('/api/base_security', routes);

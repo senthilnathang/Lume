@@ -17,6 +17,7 @@ import { AutomationService } from './services/index.js';
 import { SchedulerService } from '../../core/services/scheduler.service.js';
 import { RuleEngineService } from '../../core/services/rule-engine.service.js';
 import createRoutes from './api/index.js';
+import serviceRegistry from '../../core/services/service-registry.js';
 
 const initializeBaseAutomation = async (context) => {
   const { app } = context;
@@ -44,6 +45,10 @@ const initializeBaseAutomation = async (context) => {
     ruleEngineService
   };
   console.log('✅ Base Automation services created (including scheduler + rule engine)');
+
+  // Register services globally for cross-module access (BaseService hooks)
+  serviceRegistry.register('schedulerService', schedulerService);
+  serviceRegistry.register('ruleEngineService', ruleEngineService);
 
   const routes = createRoutes(adapters, services);
   app.use('/api/base_automation', routes);

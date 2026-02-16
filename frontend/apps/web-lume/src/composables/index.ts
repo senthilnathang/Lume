@@ -13,3 +13,6 @@ export { useIsMobile } from './useIsMobile';
 export { useModal } from './useModal';
 export { useScrollLock } from './useScrollLock';
 export { useToast } from './useToast';
+export { useColumnSettings } from './useColumnSettings';
+export type { Column } from './useColumnSettings';
+export { useWebSocket } from './useWebSocket';

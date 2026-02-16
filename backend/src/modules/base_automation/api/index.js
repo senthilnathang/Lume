@@ -237,6 +237,15 @@ const createRoutes = (models, services) => {
     }
   });
 
+  router.get('/scheduled/status', async (req, res) => {
+    try {
+      const status = services.schedulerService ? services.schedulerService.getStatus() : { activeJobs: 0 };
+      res.json({ success: true, data: status });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   router.get('/scheduled/:id', async (req, res) => {
     try {
       const action = await svc.getScheduledAction(req.params.id);
@@ -285,15 +294,6 @@ const createRoutes = (models, services) => {
       res.json({ success: true, message: 'Scheduled action deleted' });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
-    }
-  });
-
-  router.get('/scheduled/status', async (req, res) => {
-    try {
-      const status = services.schedulerService ? services.schedulerService.getStatus() : { activeJobs: 0 };
-      res.json({ success: true, data: status });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
     }
   });
 

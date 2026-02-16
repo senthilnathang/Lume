@@ -2,6 +2,22 @@ import prisma from '../../core/db/prisma.js';
 import bcrypt from 'bcryptjs';
 import { passwordUtil, jwtUtil, responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES, USER_ROLES, PAGINATION } from '../../shared/constants/index.js';
+import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
+import { sessions, twoFactor } from '../base_security/models/schema.js';
+
+// Lazy-init adapters (created once)
+let sessionAdapter = null;
+let twoFactorAdapter = null;
+
+function getSessionAdapter() {
+  if (!sessionAdapter) sessionAdapter = new DrizzleAdapter(sessions);
+  return sessionAdapter;
+}
+
+function getTwoFactorAdapter() {
+  if (!twoFactorAdapter) twoFactorAdapter = new DrizzleAdapter(twoFactor);
+  return twoFactorAdapter;
+}
 
 export class UserService {
   constructor() {}
@@ -154,7 +170,7 @@ export class UserService {
   }
 
   // Login user
-  async login(email, password) {
+  async login(email, password, options = {}) {
     const user = await prisma.user.findFirst({ where: { email } });
 
     if (!user) {
@@ -170,6 +186,56 @@ export class UserService {
     if (!isValid) {
       return responseUtil.error(MESSAGES.INVALID_CREDENTIALS, null, 'UNAUTHORIZED');
     }
+
+    // Check if 2FA is enabled for this user
+    const tfAdapter = getTwoFactorAdapter();
+    const tfRecord = await tfAdapter.findOne([['userId', '=', user.id]]);
+
+    if (tfRecord && tfRecord.enabled) {
+      // If no 2FA token provided, return partial response requiring 2FA
+      if (!options.twoFactorToken) {
+        return responseUtil.success({
+          requires2FA: true,
+          tempToken: jwtUtil.generateToken({ id: user.id, pending2FA: true }, '5m'),
+        }, 'Two-factor authentication required');
+      }
+
+      // Verify 2FA token (TOTP or backup code)
+      const { TotpService } = await import('../../core/services/totp.service.js');
+      const totpService = new TotpService();
+      let tfValid = totpService.verifyToken(tfRecord.secret, options.twoFactorToken);
+
+      if (!tfValid) {
+        // Try backup code
+        const storedCodes = typeof tfRecord.backupCodes === 'string'
+          ? JSON.parse(tfRecord.backupCodes)
+          : (tfRecord.backupCodes || []);
+        const backupResult = totpService.verifyBackupCode(storedCodes, options.twoFactorToken);
+        if (backupResult.valid) {
+          tfValid = true;
+          await tfAdapter.update(tfRecord.id, {
+            backupCodes: JSON.stringify(backupResult.remainingCodes),
+          });
+        }
+      }
+
+      if (!tfValid) {
+        return responseUtil.error('Invalid two-factor authentication code', null, 'UNAUTHORIZED');
+      }
+    }
+
+    // Check password expiry
+    let passwordExpired = false;
+    try {
+      const policy = await this._getPasswordPolicy();
+      const expiryDays = policy.password_expiry_days || 0;
+      if (expiryDays > 0 && user.updatedAt) {
+        const daysSinceChange = (Date.now() - new Date(user.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSinceChange > expiryDays) {
+          passwordExpired = true;
+        }
+      }
+    } catch { /* ignore */ }
 
     // Update last login
     await prisma.user.update({
@@ -190,6 +256,110 @@ export class UserService {
 
     const refreshToken = jwtUtil.generateRefreshToken(user.id);
 
+    // Create session record
+    try {
+      const sessAdapter = getSessionAdapter();
+      await sessAdapter.create({
+        userId: user.id,
+        token,
+        ipAddress: options.ipAddress || null,
+        userAgent: options.userAgent || null,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        lastActivityAt: new Date(),
+        status: 'active',
+      });
+    } catch (err) {
+      console.warn('[Session] Failed to create session record:', err.message);
+    }
+
+    const safeUser = { ...this._toSnakeCase(user, roleName) };
+    delete safeUser.password;
+
+    return responseUtil.success({
+      user: safeUser,
+      token,
+      refreshToken,
+      passwordExpired,
+    }, MESSAGES.LOGIN_SUCCESS);
+  }
+
+  // Logout user — terminate session
+  async logout(id, token) {
+    try {
+      const sessAdapter = getSessionAdapter();
+      const session = await sessAdapter.findOne([['token', '=', token], ['status', '=', 'active']]);
+      if (session) {
+        await sessAdapter.update(session.id, { status: 'revoked' });
+      }
+    } catch (err) {
+      console.warn('[Session] Failed to terminate session on logout:', err.message);
+    }
+    return responseUtil.success(null, MESSAGES.LOGOUT_SUCCESS);
+  }
+
+  // Complete 2FA login (called after initial login returned requires2FA)
+  async completeTwoFactorLogin(user, twoFactorToken, options = {}) {
+    const tfAdapter = getTwoFactorAdapter();
+    const tfRecord = await tfAdapter.findOne([['userId', '=', user.id]]);
+
+    if (!tfRecord || !tfRecord.enabled) {
+      return responseUtil.error('2FA is not enabled for this account', null, 'BAD_REQUEST');
+    }
+
+    const { TotpService } = await import('../../core/services/totp.service.js');
+    const totpService = new TotpService();
+    let valid = totpService.verifyToken(tfRecord.secret, twoFactorToken);
+
+    if (!valid) {
+      const storedCodes = typeof tfRecord.backupCodes === 'string'
+        ? JSON.parse(tfRecord.backupCodes)
+        : (tfRecord.backupCodes || []);
+      const backupResult = totpService.verifyBackupCode(storedCodes, twoFactorToken);
+      if (backupResult.valid) {
+        valid = true;
+        await tfAdapter.update(tfRecord.id, {
+          backupCodes: JSON.stringify(backupResult.remainingCodes),
+        });
+      }
+    }
+
+    if (!valid) {
+      return responseUtil.error('Invalid two-factor authentication code', null, 'UNAUTHORIZED');
+    }
+
+    // Update last login
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() },
+    });
+
+    const userRole = await prisma.role.findUnique({ where: { id: user.role_id } });
+    const roleName = userRole?.name || 'viewer';
+
+    const token = jwtUtil.generateToken({
+      id: user.id,
+      email: user.email,
+      role: roleName
+    });
+
+    const refreshToken = jwtUtil.generateRefreshToken(user.id);
+
+    // Create session
+    try {
+      const sessAdapter = getSessionAdapter();
+      await sessAdapter.create({
+        userId: user.id,
+        token,
+        ipAddress: options.ipAddress || null,
+        userAgent: options.userAgent || null,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        lastActivityAt: new Date(),
+        status: 'active',
+      });
+    } catch (err) {
+      console.warn('[Session] Failed to create session record:', err.message);
+    }
+
     const safeUser = { ...this._toSnakeCase(user, roleName) };
     delete safeUser.password;
 
@@ -200,9 +370,23 @@ export class UserService {
     }, MESSAGES.LOGIN_SUCCESS);
   }
 
-  // Logout user
-  async logout(id) {
-    return responseUtil.success(null, MESSAGES.LOGOUT_SUCCESS);
+  // Load password policy from settings table
+  async _getPasswordPolicy() {
+    try {
+      const settings = await prisma.setting.findMany({
+        where: { key: { startsWith: 'password_' } },
+      });
+      const policy = {};
+      for (const s of settings) {
+        if (s.value === 'true') policy[s.key] = true;
+        else if (s.value === 'false') policy[s.key] = false;
+        else if (!isNaN(s.value)) policy[s.key] = Number(s.value);
+        else policy[s.key] = s.value;
+      }
+      return policy;
+    } catch {
+      return {}; // Fallback to defaults
+    }
   }
 
   // Change password
@@ -219,11 +403,28 @@ export class UserService {
       return responseUtil.error('Current password is incorrect', null, 'BAD_REQUEST');
     }
 
-    // Validate new password strength
-    const { isValid: isStrong, errors } = passwordUtil.validatePassword(newPassword);
+    // Validate new password against configurable policy
+    const policy = await this._getPasswordPolicy();
+    const { isValid: isStrong, errors } = passwordUtil.validatePassword(newPassword, policy);
 
     if (!isStrong) {
       return responseUtil.error('Password does not meet requirements', errors, 'VALIDATION_ERROR');
+    }
+
+    // Check password history (prevent reuse)
+    const historyCount = policy.password_history_count || 0;
+    if (historyCount > 0 && user.passwordHistory) {
+      const history = typeof user.passwordHistory === 'string'
+        ? JSON.parse(user.passwordHistory)
+        : (user.passwordHistory || []);
+      for (const oldHash of history.slice(0, historyCount)) {
+        if (await bcrypt.compare(newPassword, oldHash)) {
+          return responseUtil.error(
+            `Cannot reuse any of your last ${historyCount} passwords`,
+            null, 'VALIDATION_ERROR'
+          );
+        }
+      }
     }
 
     // Prisma middleware will hash the password
