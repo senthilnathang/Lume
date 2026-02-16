@@ -1,7 +1,9 @@
-import { mysqlTable, int, varchar, text, boolean, json, timestamp } from 'drizzle-orm/mysql-core';
+import { table, int, integer, varchar, text, boolean, json } from '../../../core/db/dialect.js';
 import { baseColumns } from '../../../core/db/drizzle-helpers.js';
 
-export const teamMembers = mysqlTable('team_members', {
+const idCol = int || integer;
+
+export const teamMembers = table('team_members', {
   ...baseColumns(),
   firstName: varchar('first_name', { length: 100 }).notNull(),
   lastName: varchar('last_name', { length: 100 }).notNull(),
@@ -11,7 +13,7 @@ export const teamMembers = mysqlTable('team_members', {
   department: varchar('department', { length: 100 }),
   bio: text('bio'),
   photo: varchar('photo', { length: 500 }),
-  order: int('order').default(0),
+  order: idCol('order').default(0),
   isActive: boolean('is_active').default(true),
   isLeader: boolean('is_leader').default(false),
   socialLinks: json('social_links').$type().default({}),

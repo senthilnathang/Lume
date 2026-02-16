@@ -1,7 +1,9 @@
-import { mysqlTable, int, varchar, text, boolean, json, timestamp, mysqlEnum } from 'drizzle-orm/mysql-core';
+import { table, int, integer, varchar, text, boolean, json, timestamp } from '../../../core/db/dialect.js';
 import { baseColumns } from '../../../core/db/drizzle-helpers.js';
 
-export const webhooks = mysqlTable('webhooks', {
+const idCol = int || integer;
+
+export const webhooks = table('webhooks', {
   ...baseColumns(),
   name: varchar('name', { length: 100 }).notNull(),
   url: varchar('url', { length: 500 }).notNull(),
@@ -9,47 +11,47 @@ export const webhooks = mysqlTable('webhooks', {
   headers: json('headers').$type().default({}),
   secret: varchar('secret', { length: 255 }),
   model: varchar('model', { length: 100 }),
-  retryCount: int('retry_count').default(3),
+  retryCount: idCol('retry_count').default(3),
   lastTriggeredAt: timestamp('last_triggered_at'),
   lastStatus: varchar('last_status', { length: 20 }),
-  status: mysqlEnum('status', ['active', 'inactive', 'error']).default('active'),
+  status: varchar('status', { length: 20 }).default('active'),
 });
 
-export const webhookLogs = mysqlTable('webhook_logs', {
+export const webhookLogs = table('webhook_logs', {
   ...baseColumns(),
-  webhookId: int('webhook_id').notNull(),
+  webhookId: idCol('webhook_id').notNull(),
   event: varchar('event', { length: 100 }).notNull(),
   payload: json('payload').$type().default({}),
-  responseStatus: int('response_status'),
+  responseStatus: idCol('response_status'),
   responseBody: text('response_body'),
-  duration: int('duration'),
-  status: mysqlEnum('status', ['success', 'failed', 'pending']).default('pending'),
+  duration: idCol('duration'),
+  status: varchar('status', { length: 20 }).default('pending'),
 });
 
-export const notifications = mysqlTable('notifications', {
+export const notifications = table('notifications', {
   ...baseColumns(),
-  userId: int('user_id').notNull(),
+  userId: idCol('user_id').notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   message: text('message'),
-  type: mysqlEnum('type', ['info', 'success', 'warning', 'error', 'action']).default('info'),
-  channel: mysqlEnum('channel', ['in_app', 'email', 'sms', 'push']).default('in_app'),
+  type: varchar('type', { length: 20 }).default('info'),
+  channel: varchar('channel', { length: 20 }).default('in_app'),
   relatedModel: varchar('related_model', { length: 100 }),
-  relatedId: int('related_id'),
+  relatedId: idCol('related_id'),
   actionUrl: varchar('action_url', { length: 500 }),
   readAt: timestamp('read_at'),
-  status: mysqlEnum('status', ['unread', 'read', 'dismissed']).default('unread'),
+  status: varchar('status', { length: 20 }).default('unread'),
 });
 
-export const notificationChannels = mysqlTable('notification_channels', {
+export const notificationChannels = table('notification_channels', {
   ...baseColumns(),
   name: varchar('name', { length: 100 }).notNull(),
-  channelType: mysqlEnum('channel_type', ['email', 'sms', 'push', 'slack', 'webhook']).notNull(),
+  channelType: varchar('channel_type', { length: 20 }).notNull(),
   config: json('config').$type().default({}),
   isDefault: boolean('is_default').default(false),
-  status: mysqlEnum('status', ['active', 'inactive']).default('active'),
+  status: varchar('status', { length: 20 }).default('active'),
 });
 
-export const tags = mysqlTable('tags', {
+export const tags = table('tags', {
   ...baseColumns(),
   name: varchar('name', { length: 100 }).notNull().unique(),
   color: varchar('color', { length: 20 }).default('#1890ff'),
@@ -57,29 +59,29 @@ export const tags = mysqlTable('tags', {
   category: varchar('category', { length: 100 }),
 });
 
-export const taggings = mysqlTable('taggings', {
+export const taggings = table('taggings', {
   ...baseColumns(),
-  tagId: int('tag_id').notNull(),
+  tagId: idCol('tag_id').notNull(),
   taggableType: varchar('taggable_type', { length: 100 }).notNull(),
-  taggableId: int('taggable_id').notNull(),
+  taggableId: idCol('taggable_id').notNull(),
 });
 
-export const comments = mysqlTable('comments', {
+export const comments = table('comments', {
   ...baseColumns(),
   body: text('body').notNull(),
   commentableType: varchar('commentable_type', { length: 100 }).notNull(),
-  commentableId: int('commentable_id').notNull(),
-  parentId: int('parent_id'),
-  userId: int('user_id').notNull(),
+  commentableId: idCol('commentable_id').notNull(),
+  parentId: idCol('parent_id'),
+  userId: idCol('user_id').notNull(),
 });
 
-export const attachments = mysqlTable('attachments', {
+export const attachments = table('attachments', {
   ...baseColumns(),
   fileName: varchar('file_name', { length: 255 }).notNull(),
   filePath: varchar('file_path', { length: 500 }).notNull(),
-  fileSize: int('file_size'),
+  fileSize: idCol('file_size'),
   mimeType: varchar('mime_type', { length: 100 }),
   attachableType: varchar('attachable_type', { length: 100 }).notNull(),
-  attachableId: int('attachable_id').notNull(),
-  uploadedBy: int('uploaded_by'),
+  attachableId: idCol('attachable_id').notNull(),
+  uploadedBy: idCol('uploaded_by'),
 });

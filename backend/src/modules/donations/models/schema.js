@@ -1,20 +1,22 @@
-import { mysqlTable, int, varchar, text, boolean, json, timestamp, mysqlEnum, decimal } from 'drizzle-orm/mysql-core';
+import { table, int, integer, varchar, text, boolean, json, timestamp, decimal } from '../../../core/db/dialect.js';
 import { baseColumns } from '../../../core/db/drizzle-helpers.js';
 
-export const donations = mysqlTable('donations', {
+const idCol = int || integer;
+
+export const donations = table('donations', {
   ...baseColumns(),
-  donorId: int('donor_id'),
+  donorId: idCol('donor_id'),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   currency: varchar('currency', { length: 3 }).default('USD'),
-  status: mysqlEnum('status', ['pending', 'completed', 'failed', 'refunded']).default('pending'),
-  paymentMethod: mysqlEnum('payment_method', ['cash', 'cheque', 'bank_transfer', 'online', 'other']),
+  status: varchar('status', { length: 20 }).default('pending'),
+  paymentMethod: varchar('payment_method', { length: 20 }),
   transactionId: varchar('transaction_id', { length: 255 }),
   paymentGateway: varchar('payment_gateway', { length: 50 }),
-  campaignId: int('campaign_id'),
-  activityId: int('activity_id'),
+  campaignId: idCol('campaign_id'),
+  activityId: idCol('activity_id'),
   designation: varchar('designation', { length: 255 }),
   isRecurring: boolean('is_recurring').default(false),
-  frequency: mysqlEnum('frequency', ['one_time', 'weekly', 'monthly', 'quarterly', 'annually']).default('one_time'),
+  frequency: varchar('frequency', { length: 20 }).default('one_time'),
   receiptSent: boolean('receipt_sent').default(false),
   receiptSentAt: timestamp('receipt_sent_at'),
   notes: text('notes'),
@@ -22,7 +24,7 @@ export const donations = mysqlTable('donations', {
   metadata: json('metadata').$type().default({}),
 });
 
-export const campaigns = mysqlTable('campaigns', {
+export const campaigns = table('campaigns', {
   ...baseColumns(),
   name: varchar('name', { length: 255 }).notNull(),
   slug: varchar('slug', { length: 255 }).notNull().unique(),
@@ -31,13 +33,13 @@ export const campaigns = mysqlTable('campaigns', {
   raisedAmount: decimal('raised_amount', { precision: 12, scale: 2 }).default('0'),
   startDate: timestamp('start_date'),
   endDate: timestamp('end_date'),
-  status: mysqlEnum('status', ['draft', 'active', 'completed', 'cancelled']).default('draft'),
+  status: varchar('status', { length: 20 }).default('draft'),
   coverImage: varchar('cover_image', { length: 500 }),
   isFeatured: boolean('is_featured').default(false),
   metadata: json('metadata').$type().default({}),
 });
 
-export const donors = mysqlTable('donors', {
+export const donors = table('donors', {
   ...baseColumns(),
   firstName: varchar('first_name', { length: 100 }).notNull(),
   lastName: varchar('last_name', { length: 100 }).notNull(),
