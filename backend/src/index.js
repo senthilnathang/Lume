@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 import { responseUtil, jwtUtil } from './shared/utils/index.js';
 import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
 import { requestLogger } from './core/middleware/requestLogger.js';
+import { ipAccessMiddleware } from './core/middleware/ipAccess.js';
 
 // ORM adapters
 import prisma from './core/db/prisma.js';
@@ -85,7 +86,7 @@ const corsOrigin = process.env.CORS_ORIGIN || (isProduction ? false : '*');
 app.use(cors({
   origin: corsOrigin,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-API-Key'],
   credentials: true,
   maxAge: 86400
 }));
@@ -97,6 +98,7 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('combined'));
 }
 app.use(requestLogger);
+app.use(ipAccessMiddleware);
 app.use(limiter);
 
 // ─── Security: Authentication Middleware ──────────────────────────────────────
@@ -104,6 +106,7 @@ app.use(limiter);
 const publicApiPaths = [
   '/health',
   '/api/users/login',
+  '/api/users/login/verify-2fa',
   '/api/users/register',
   '/api/auth/refresh-token',
   '/api/public/config',
@@ -125,7 +128,7 @@ const optionalAuthPaths = [
   '/api/advanced_features/health',
 ];
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   // Public paths skip auth entirely
   const isPublicPath = publicApiPaths.some(path =>
     req.path === path
@@ -139,16 +142,49 @@ app.use((req, res, next) => {
     req.path === path || req.path.startsWith(path + '/')
   );
 
-  // For API routes, try to parse the auth token
+  // For API routes, try to parse the auth token or API key
   if (req.path.startsWith('/api/')) {
     const authHeader = req.headers.authorization;
+    const apiKeyHeader = req.headers['x-api-key'];
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       const decoded = jwtUtil.verifyToken(token);
-      if (decoded) {
+      if (decoded && !decoded.pending2FA) {
         req.user = decoded;
       } else if (!isOptionalAuth) {
         return res.status(401).json(responseUtil.unauthorized('Invalid or expired token'));
+      }
+    } else if (apiKeyHeader) {
+      // API Key authentication at global level
+      try {
+        const { default: crypto } = await import('crypto');
+        const hash = crypto.createHash('sha256').update(apiKeyHeader).digest('hex');
+        const { DrizzleAdapter } = await import('./core/db/adapters/drizzle-adapter.js');
+        const { apiKeys } = await import('./modules/base_security/models/schema.js');
+        const adapter = new DrizzleAdapter(apiKeys);
+        const apiKey = await adapter.findOne([['key', '=', hash], ['status', '=', 'active']]);
+
+        if (apiKey && apiKey.userId) {
+          if (!apiKey.expiresAt || new Date(apiKey.expiresAt) >= new Date()) {
+            // Update last used (fire-and-forget)
+            adapter.update(apiKey.id, { lastUsedAt: new Date() }).catch(() => {});
+            // Resolve user
+            const user = await prisma.user.findUnique({ where: { id: apiKey.userId } });
+            if (user && user.isActive) {
+              const role = await prisma.role.findUnique({ where: { id: user.role_id } });
+              req.user = {
+                id: user.id,
+                email: user.email,
+                role: role?.name || 'viewer',
+                role_id: user.role_id,
+                authMethod: 'api_key',
+              };
+            }
+          }
+        }
+      } catch (err) {
+        // Non-blocking: if API key check fails at global level, continue
       }
     } else if (!isOptionalAuth) {
       // Module routes handle their own auth - only block truly protected routes
@@ -713,7 +749,7 @@ const startServer = async () => {
         });
         // Respect persisted state on subsequent runs
         mod.initialized = record.state === 'installed';
-        if (record.createdAt.getTime() > Date.now() - 5000) {
+        if (record.createdAt && record.createdAt.getTime() > Date.now() - 5000) {
           console.log(`📦 Registered module: ${mod.name} (installed)`);
         } else if (record.state !== 'installed') {
           console.log(`📦 Module ${mod.name} state: ${record.state}`);

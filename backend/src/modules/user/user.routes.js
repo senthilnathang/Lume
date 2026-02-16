@@ -33,9 +33,13 @@ const loginValidation = [
 // Public routes
 router.post('/login', loginValidation, validateRequest, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const result = await getUserService().login(email, password);
-    
+    const { email, password, twoFactorToken } = req.body;
+    const result = await getUserService().login(email, password, {
+      twoFactorToken,
+      ipAddress: req.ip || req.connection?.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
+
     if (result.success) {
       res.json(result);
     } else {
@@ -44,6 +48,43 @@ router.post('/login', loginValidation, validateRequest, async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json(responseUtil.error('Login failed'));
+  }
+});
+
+// 2FA verification for pending login (when login returns requires2FA)
+router.post('/login/verify-2fa', [
+  body('tempToken').notEmpty().withMessage('Temporary token is required'),
+  body('twoFactorToken').notEmpty().withMessage('2FA code is required'),
+], validateRequest, async (req, res) => {
+  try {
+    const { tempToken, twoFactorToken } = req.body;
+    const { jwtUtil: jwt } = await import('../../shared/utils/index.js');
+    const decoded = jwt.verifyToken(tempToken);
+
+    if (!decoded || !decoded.pending2FA) {
+      return res.status(401).json(responseUtil.error('Invalid or expired temporary token', null, 'UNAUTHORIZED'));
+    }
+
+    // Look up user and re-run login with 2FA token (skip password check via direct flow)
+    const user = await (await import('../../core/db/prisma.js')).default.user.findUnique({ where: { id: decoded.id } });
+    if (!user) {
+      return res.status(401).json(responseUtil.error('User not found', null, 'UNAUTHORIZED'));
+    }
+
+    // We use a special internal method to complete the login with 2FA
+    const result = await getUserService().completeTwoFactorLogin(user, twoFactorToken, {
+      ipAddress: req.ip || req.connection?.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
+
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(401).json(result);
+    }
+  } catch (error) {
+    console.error('2FA verification error:', error);
+    res.status(500).json(responseUtil.error('2FA verification failed'));
   }
 });
 
@@ -137,7 +178,8 @@ router.post('/:id/change-password', authenticate, authorize(), [
 
 router.post('/logout', authenticate, async (req, res) => {
   try {
-    const result = await getUserService().logout(req.user.id);
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const result = await getUserService().logout(req.user.id, token);
     res.json(result);
   } catch (error) {
     console.error('Logout error:', error);

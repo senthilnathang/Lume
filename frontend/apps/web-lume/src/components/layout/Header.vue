@@ -13,7 +13,7 @@
     </div>
 
     <div class="lume-header-center">
-      <div class="lume-search" @click="openSearch">
+      <div class="lume-search" @click="commandPaletteRef?.open()">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -23,15 +23,11 @@
       </div>
     </div>
 
+    <CommandPalette ref="commandPaletteRef" />
+
     <div class="lume-header-right">
       <div class="lume-header-actions">
-        <button class="lume-action-btn" @click="toggleNotifications">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-          </svg>
-          <span v-if="unreadCount > 0" class="lume-badge">{{ unreadCount }}</span>
-        </button>
+        <NotificationCenter ref="notificationCenterRef" />
 
         <button class="lume-action-btn" @click="toggleFullscreen">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -115,6 +111,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import Breadcrumb from '@/components/layout/Breadcrumb.vue';
+import CommandPalette from '@/components/CommandPalette.vue';
+import NotificationCenter from '@/components/NotificationCenter.vue';
 
 interface UserInfo {
   id: number;
@@ -139,8 +137,9 @@ const props = defineProps<{
 
 const showUserDropdown = ref(false);
 const isDark = ref(false);
-const unreadCount = ref(3);
 const userDropdownRef = ref<HTMLElement | null>(null);
+const commandPaletteRef = ref<InstanceType<typeof CommandPalette> | null>(null);
+const notificationCenterRef = ref<InstanceType<typeof NotificationCenter> | null>(null);
 
 const userName = computed(() => {
   if (props.user?.first_name || props.user?.last_name) {
@@ -163,10 +162,6 @@ const toggleUserDropdown = () => {
   showUserDropdown.value = !showUserDropdown.value;
 };
 
-const toggleNotifications = () => {
-  console.log('Toggle notifications');
-};
-
 const toggleFullscreen = () => {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
@@ -178,10 +173,6 @@ const toggleFullscreen = () => {
 const toggleTheme = () => {
   isDark.value = !isDark.value;
   document.documentElement.classList.toggle('dark', isDark.value);
-};
-
-const openSearch = () => {
-  console.log('Open search modal');
 };
 
 const handleLogout = () => {
@@ -203,7 +194,7 @@ const handleClickOutside = (event: MouseEvent) => {
 const handleKeyboard = (event: KeyboardEvent) => {
   if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
     event.preventDefault();
-    openSearch();
+    commandPaletteRef.value?.open();
   }
   if (event.key === 'Escape') {
     showUserDropdown.value = false;

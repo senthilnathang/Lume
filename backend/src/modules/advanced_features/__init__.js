@@ -17,6 +17,7 @@ import { AdvancedFeaturesService } from './services/index.js';
 import { WebhookService } from '../../core/services/webhook.service.js';
 import { NotificationService } from '../../core/services/notification.service.js';
 import createRoutes from './api/index.js';
+import serviceRegistry from '../../core/services/service-registry.js';
 
 const initializeAdvancedFeatures = async (context) => {
   const { app } = context;
@@ -44,6 +45,10 @@ const initializeAdvancedFeatures = async (context) => {
     notificationService
   };
   console.log('✅ Advanced Features services created (including webhook trigger + notification dispatch)');
+
+  // Register services globally for cross-module access (BaseService hooks)
+  serviceRegistry.register('webhookService', webhookService);
+  serviceRegistry.register('notificationService', notificationService);
 
   const routes = createRoutes(adapters, services);
   app.use('/api/advanced_features', routes);

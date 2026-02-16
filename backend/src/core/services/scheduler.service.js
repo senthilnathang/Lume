@@ -4,6 +4,7 @@
  */
 
 import cron from 'node-cron';
+import serviceRegistry from './service-registry.js';
 
 export class SchedulerService {
   constructor(scheduledActionAdapter) {
@@ -37,7 +38,7 @@ export class SchedulerService {
       this.jobs.get(action.id).stop();
     }
 
-    const cronExpr = action.cron;
+    const cronExpr = action.cronExpression || action.cron;
     if (!cronExpr || !cron.validate(cronExpr)) {
       console.warn(`[Scheduler] Invalid cron expression for action ${action.id}: ${cronExpr}`);
       return;
@@ -68,7 +69,7 @@ export class SchedulerService {
           result = await this._executeSendNotification(config);
           break;
         case 'run_service_method':
-          result = { message: 'Service method execution not yet configured' };
+          result = await this._executeServiceMethod(config);
           break;
         default:
           result = { error: `Unknown action type: ${action.actionType}` };
@@ -84,7 +85,7 @@ export class SchedulerService {
       });
 
       // Compute next run
-      const nextRun = this._getNextCronRun(action.cron);
+      const nextRun = this._getNextCronRun(action.cronExpression || action.cron);
       if (nextRun) {
         await this.actions.update(action.id, { nextRunAt: nextRun });
       }
@@ -115,8 +116,41 @@ export class SchedulerService {
   }
 
   async _executeSendNotification(config) {
-    // This integrates with NotificationService if available
-    return { message: 'Notification sent', config };
+    const notificationService = serviceRegistry.get('notificationService');
+    if (!notificationService) {
+      return { error: 'NotificationService not available' };
+    }
+
+    const { userId, userIds, title, message, type = 'info', channel = 'in_app' } = config;
+
+    if (userIds && Array.isArray(userIds)) {
+      const results = await notificationService.dispatchBulk(userIds, { title, message, type, channel });
+      return { sent: results.length };
+    } else if (userId) {
+      await notificationService.dispatch(userId, { title, message, type, channel });
+      return { sent: 1 };
+    }
+
+    return { error: 'No userId or userIds in config' };
+  }
+
+  async _executeServiceMethod(config) {
+    const { serviceName, method, args = [] } = config;
+    if (!serviceName || !method) {
+      return { error: 'serviceName and method are required' };
+    }
+
+    const service = serviceRegistry.get(serviceName);
+    if (!service) {
+      return { error: `Service "${serviceName}" not found in registry` };
+    }
+
+    if (typeof service[method] !== 'function') {
+      return { error: `Method "${method}" not found on service "${serviceName}"` };
+    }
+
+    const result = await service[method](...args);
+    return { result };
   }
 
   _getNextCronRun(cronExpr) {

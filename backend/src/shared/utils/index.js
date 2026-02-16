@@ -22,26 +22,32 @@ export const passwordUtil = {
     return bcrypt.compare(password, hashedPassword);
   },
   
-  // Validate password strength
-  validatePassword(password) {
+  // Validate password strength against configurable policy
+  // policy can be passed from DB settings or falls back to defaults
+  validatePassword(password, policy = {}) {
     const errors = [];
-    
-    if (password.length < 8) {
-      errors.push('Password must be at least 8 characters long');
+    const minLength = policy.password_min_length || 8;
+    const requireUppercase = policy.password_require_uppercase !== false;
+    const requireLowercase = policy.password_require_lowercase !== false;
+    const requireNumber = policy.password_require_number !== false;
+    const requireSpecial = policy.password_require_special !== false;
+
+    if (password.length < minLength) {
+      errors.push(`Password must be at least ${minLength} characters long`);
     }
-    if (!/[A-Z]/.test(password)) {
+    if (requireUppercase && !/[A-Z]/.test(password)) {
       errors.push('Password must contain at least one uppercase letter');
     }
-    if (!/[a-z]/.test(password)) {
+    if (requireLowercase && !/[a-z]/.test(password)) {
       errors.push('Password must contain at least one lowercase letter');
     }
-    if (!/[0-9]/.test(password)) {
+    if (requireNumber && !/[0-9]/.test(password)) {
       errors.push('Password must contain at least one number');
     }
-    if (!/[!@#$%^&*]/.test(password)) {
-      errors.push('Password must contain at least one special character (!@#$%^&*)');
+    if (requireSpecial && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+      errors.push('Password must contain at least one special character');
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors

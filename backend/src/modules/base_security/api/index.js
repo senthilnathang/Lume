@@ -37,7 +37,7 @@ const createRoutes = (models, services) => {
 
   router.delete('/api-keys/:id', async (req, res) => {
     try {
-      await services.securityService.revokeApiKey(req.params.id);
+      await services.securityService.revokeApiKey(parseInt(req.params.id, 10));
       res.json({ success: true, message: 'API key revoked' });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -95,21 +95,21 @@ const createRoutes = (models, services) => {
     }
   });
 
-  router.delete('/sessions/:id', async (req, res) => {
-    try {
-      await services.securityService.terminateSession(req.params.id);
-      res.json({ success: true, message: 'Session revoked' });
-    } catch (error) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  });
-
   router.delete('/sessions/all-other', async (req, res) => {
     try {
       const userId = req.user?.id;
       const token = req.headers.authorization?.replace('Bearer ', '');
       const result = await services.securityService.terminateAllOtherSessions(userId, token);
       res.json({ success: true, data: result });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.delete('/sessions/:id', async (req, res) => {
+    try {
+      await services.securityService.terminateSession(parseInt(req.params.id, 10));
+      res.json({ success: true, message: 'Session revoked' });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
     }
