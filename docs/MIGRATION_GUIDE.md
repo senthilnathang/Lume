@@ -2,8 +2,6 @@
 
 ## Upgrading Lume
 
-When a new version of Lume is available, follow these steps to upgrade your installation.
-
 ### Standard Upgrade Procedure
 
 ```bash
@@ -21,14 +19,16 @@ npx prisma generate
 # 4. Apply database schema changes
 npx prisma db push
 
-# 5. Install any new frontend dependencies
+# 5. Install any new admin panel dependencies
 cd ../frontend/apps/web-lume
 npm install
 
-# 6. Restart both development servers
-```
+# 6. Install any new public site dependencies
+cd ../riagri-website
+npm install
 
-> **Tip:** Always read the release notes before upgrading. Breaking changes will be documented there.
+# 7. Restart all development servers
+```
 
 ### Upgrade Checklist
 
@@ -38,70 +38,60 @@ npm install
 | Backend dependencies | `npm install` | `backend/` |
 | Prisma client | `npx prisma generate` | `backend/` |
 | Schema sync | `npx prisma db push` | `backend/` |
-| Frontend dependencies | `npm install` | `frontend/apps/web-lume/` |
+| Admin panel dependencies | `npm install` | `frontend/apps/web-lume/` |
+| Public site dependencies | `npm install` | `frontend/apps/riagri-website/` |
 | Restart backend | `npm run dev` | `backend/` |
-| Restart frontend | `npm run dev` | `frontend/apps/web-lume/` |
+| Restart admin panel | `npm run dev` | `frontend/apps/web-lume/` |
+| Restart public site | `npm run dev` | `frontend/apps/riagri-website/` |
 
 ---
 
 ## Database Migrations
 
-### Using Prisma Migrate
+### Prisma (Core Tables)
 
-Prisma Migrate is the recommended approach for production environments where you need a versioned migration history.
+Prisma manages the 11 core tables (users, roles, permissions, etc.).
 
-#### Creating a Migration
-
-After modifying `backend/prisma/schema.prisma`, generate a migration:
+#### Development — Quick Sync
 
 ```bash
 cd backend
-npx prisma migrate dev --name describe_your_change
-```
-
-This will:
-1. Generate a SQL migration file in `prisma/migrations/`.
-2. Apply the migration to your development database.
-3. Regenerate the Prisma client.
-
-#### Applying Migrations in Production
-
-```bash
-cd backend
-npx prisma migrate deploy
-```
-
-This applies all pending migrations without generating new ones. It is safe for production use.
-
-#### Viewing Migration Status
-
-```bash
-npx prisma migrate status
-```
-
-#### Resetting the Database
-
-To drop and recreate the database with all migrations applied:
-
-```bash
-npx prisma migrate reset
-```
-
-> **Warning:** This destroys all data. Only use in development.
-
-### Using Prisma DB Push (Development)
-
-For rapid development where you do not need migration history:
-
-```bash
 npx prisma db push
 ```
 
-This synchronizes the database schema with `schema.prisma` directly, without creating migration files. It is suitable for development but not recommended for production.
+Synchronizes the database directly from `schema.prisma` without migration files.
 
-### Using Drizzle Schema Sync
+#### Production — Versioned Migrations
 
-If your project uses Drizzle ORM alongside or instead of Prisma:
+```bash
+# Create a migration
+npx prisma migrate dev --name describe_your_change
+
+# Apply in production
+npx prisma migrate deploy
+
+# Check status
+npx prisma migrate status
+```
+
+#### Introspection (DB → Schema)
+
+Lume uses introspection to generate the Prisma schema from the database:
+
+```bash
+npx prisma db pull      # Updates schema.prisma from DB
+npx prisma generate     # Regenerates client
+```
+
+### Drizzle (Module Tables)
+
+Drizzle manages tables for 14 modules. Schemas are defined in `modules/{name}/models/schema.js`.
+
+#### Runtime Sync
+
+Module tables are automatically synced when the server starts. Adding a new column to a Drizzle schema will create it on the next restart.
+
+#### Manual Migration
 
 ```bash
 # Generate migrations from schema changes
@@ -114,62 +104,121 @@ npx drizzle-kit migrate
 npx drizzle-kit push
 ```
 
+#### Adding a Column to a Module Table
+
+1. Edit the schema file:
+   ```javascript
+   // modules/my_module/models/schema.js
+   export const myTable = mysqlTable('my_table', {
+     // ... existing columns
+     newField: varchar('new_field', { length: 255 }),  // Add this
+   });
+   ```
+
+2. Restart the backend — Drizzle will sync the new column.
+
+3. Or apply via SQL directly:
+   ```sql
+   ALTER TABLE my_table ADD COLUMN new_field VARCHAR(255);
+   ```
+
 ---
 
 ## Module Management
 
-Lume uses a modular architecture. Modules can be installed and uninstalled at runtime. The Base module is always installed and cannot be removed.
-
 ### Install a Module
 
-**Via API:**
+**Via Admin UI:**
+1. Navigate to **Settings > Modules**
+2. Find the module → Click **Install**
 
+**Via API:**
 ```bash
 curl -X POST http://localhost:3000/api/modules/install \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your-token>" \
+  -H "Authorization: Bearer <token>" \
   -d '{ "moduleName": "donations" }'
 ```
-
-**Via the Admin UI:**
-
-1. Navigate to **Settings > Modules**.
-2. Find the module you want to install.
-3. Click **Install**.
 
 ### Uninstall a Module
 
-**Via API:**
+**Via Admin UI:**
+1. Navigate to **Settings > Modules**
+2. Find the module → Click **Uninstall**
 
+**Via API:**
 ```bash
 curl -X POST http://localhost:3000/api/modules/uninstall \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your-token>" \
+  -H "Authorization: Bearer <token>" \
   -d '{ "moduleName": "donations" }'
 ```
 
-**Via the Admin UI:**
-
-1. Navigate to **Settings > Modules**.
-2. Find the installed module.
-3. Click **Uninstall**.
-
 ### Module Dependencies
 
-Modules can declare dependencies on other modules in their `__manifest__.js`. The framework enforces these dependencies:
+Modules declare dependencies in `__manifest__.js`. The framework enforces:
 
-- A module cannot be installed if its dependencies are not installed first.
-- A module cannot be uninstalled if other installed modules depend on it.
+- A module cannot be installed if its dependencies are not installed
+- A module cannot be uninstalled if other installed modules depend on it
+- The `base` module cannot be uninstalled
 
-To check a module's dependencies, inspect its manifest:
-
-```bash
-cat backend/src/modules/<module_name>/__manifest__.js
+Dependency chain example:
+```
+base ← editor ← website
+base ← base_security
+base ← base_automation
 ```
 
-### Module Lifecycle Hooks
+---
 
-Modules can define `installHook` and `uninstallHook` functions in their manifest for custom setup and teardown logic (e.g., seeding default data on install, cleaning up on uninstall).
+## Content Migration
+
+### Migrating Page Content to Visual Page Builder
+
+Pages using structured JSON content can be migrated to TipTap format for the visual page builder.
+
+#### TipTap Content Format
+
+The page builder stores content as TipTap JSON:
+
+```json
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "sectionBlock",
+      "attrs": { "backgroundColor": "#f8f9fa" },
+      "content": [
+        { "type": "heading", "attrs": { "level": 1 }, "content": [{ "type": "text", "text": "Title" }] },
+        { "type": "paragraph", "content": [{ "type": "text", "text": "Body" }] }
+      ]
+    }
+  ]
+}
+```
+
+#### Detection Logic
+
+The page editor detects the content format:
+
+```javascript
+function isTipTapJson(obj) {
+  return obj && obj.type === 'doc' && Array.isArray(obj.content);
+}
+```
+
+- TipTap format → shows visual PageBuilder (3-panel layout)
+- Other JSON → shows form-based editor
+
+#### Migration Approach
+
+To migrate a page to the visual builder:
+
+1. Build the equivalent TipTap JSON using available block types (sectionBlock, columnsBlock, infoBox, testimonial, etc.)
+2. Update the page via `PUT /api/website/pages/:id` with the new content
+3. The page will automatically show the visual builder on next edit
+
+Available block types for migration: sectionBlock, columnsBlock, columnBlock, heading, paragraph, dualHeading, advancedHeading, infoBox, testimonial, teamMember, iconList, faq, contactForm, businessHours, calloutBlock, buttonBlock, marketingButton, spacerBlock, imageBlock, videoBlock, htmlBlock, priceTable, priceList, googleMap, socialShare, countdown, contentToggle, modalPopup, progressBar, postsGrid, imageGallery.
 
 ---
 
@@ -180,29 +229,21 @@ Modules can define `installHook` and `uninstallHook` functions in their manifest
 #### MySQL
 
 ```bash
-# Full database dump
+# Full dump
 mysqldump -u gawdesy -pgawdesy lume > backup_$(date +%Y%m%d_%H%M%S).sql
 
-# Compressed backup
+# Compressed
 mysqldump -u gawdesy -pgawdesy lume | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
-
-# Specific tables only
-mysqldump -u gawdesy -pgawdesy lume users roles permissions > backup_core_$(date +%Y%m%d_%H%M%S).sql
 ```
 
 #### PostgreSQL
 
 ```bash
-# Full database dump
 pg_dump -U gawdesy -d lume > backup_$(date +%Y%m%d_%H%M%S).sql
-
-# Compressed backup (custom format, supports selective restore)
 pg_dump -U gawdesy -d lume -Fc > backup_$(date +%Y%m%d_%H%M%S).dump
 ```
 
-### Uploads Directory Backup
-
-Module uploads and user-uploaded files are stored on disk. Back up the uploads directory:
+### Uploads Backup
 
 ```bash
 tar -czf uploads_backup_$(date +%Y%m%d_%H%M%S).tar.gz backend/uploads/
@@ -210,144 +251,75 @@ tar -czf uploads_backup_$(date +%Y%m%d_%H%M%S).tar.gz backend/uploads/
 
 ### Full Backup Script
 
-A combined script for backing up both the database and uploads:
-
 ```bash
 #!/bin/bash
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="./backups/${TIMESTAMP}"
 mkdir -p "${BACKUP_DIR}"
 
-# Database
 mysqldump -u gawdesy -pgawdesy lume | gzip > "${BACKUP_DIR}/database.sql.gz"
-
-# Uploads
 tar -czf "${BACKUP_DIR}/uploads.tar.gz" backend/uploads/
 
 echo "Backup completed: ${BACKUP_DIR}"
-```
-
-### Automated Backups
-
-Use cron to schedule regular backups:
-
-```bash
-# Edit crontab
-crontab -e
-
-# Add a daily backup at 2:00 AM
-0 2 * * * /path/to/lume/scripts/backup.sh >> /var/log/lume-backup.log 2>&1
 ```
 
 ---
 
 ## Rollback Procedures
 
-### Rolling Back Code Changes
-
-If an upgrade introduces issues, revert to the previous version:
+### Rolling Back Code
 
 ```bash
-# View recent commits to find the version to roll back to
-git log --oneline -10
-
-# Revert to a specific commit
-git checkout <commit-hash>
-
-# Or revert the last commit while keeping the changes staged
-git revert HEAD
-```
-
-After reverting code, re-sync dependencies and the database:
-
-```bash
-cd backend && npm install && npx prisma generate
-cd ../frontend/apps/web-lume && npm install
-```
-
-### Rolling Back Database Migrations
-
-#### Prisma Migrate
-
-Prisma does not have a built-in "rollback last migration" command. To undo a migration:
-
-1. Modify `schema.prisma` to reflect the previous state.
-2. Create a new migration that reverses the changes:
-
-```bash
-npx prisma migrate dev --name revert_previous_change
-```
-
-Alternatively, if you have a backup, restore it:
-
-```bash
-# MySQL
-mysql -u gawdesy -pgawdesy lume < backup_20260215_020000.sql
-
-# PostgreSQL
-psql -U gawdesy -d lume < backup_20260215_020000.sql
-# or for custom format dumps:
-pg_restore -U gawdesy -d lume backup_20260215_020000.dump
-```
-
-### Restoring from Backup
-
-#### Database Restore
-
-```bash
-# MySQL — restore from SQL dump
-mysql -u gawdesy -pgawdesy lume < backup_20260215_020000.sql
-
-# MySQL — restore from compressed dump
-gunzip < backup_20260215_020000.sql.gz | mysql -u gawdesy -pgawdesy lume
-
-# PostgreSQL — restore from SQL dump
-psql -U gawdesy -d lume < backup_20260215_020000.sql
-
-# PostgreSQL — restore from custom format
-pg_restore -U gawdesy -d lume --clean backup_20260215_020000.dump
-```
-
-#### Uploads Restore
-
-```bash
-# Extract the uploads backup
-tar -xzf uploads_backup_20260215_020000.tar.gz -C /path/to/lume/
-```
-
-### Emergency Recovery
-
-If the application is in a broken state after an upgrade:
-
-1. **Stop all servers** (backend and frontend).
-2. **Restore the database** from the most recent backup.
-3. **Revert the code** to the last known working commit.
-4. **Re-sync dependencies**: `npm install` in both `backend/` and `frontend/apps/web-lume/`.
-5. **Regenerate Prisma client**: `npx prisma generate` in `backend/`.
-6. **Restart servers** and verify functionality.
-
-```bash
-# Full emergency recovery sequence
-cd /path/to/lume
-
-# Stop servers (Ctrl+C in their terminals, or)
-pkill -f "node.*backend"
-pkill -f "vite"
-
-# Restore database
-gunzip < backups/latest/database.sql.gz | mysql -u gawdesy -pgawdesy lume
-
-# Restore uploads
-tar -xzf backups/latest/uploads.tar.gz -C .
-
-# Revert code
-git checkout <last-known-good-commit>
+git log --oneline -10     # Find the target commit
+git checkout <commit>      # Revert to it
 
 # Re-sync
 cd backend && npm install && npx prisma generate
 cd ../frontend/apps/web-lume && npm install
+cd ../riagri-website && npm install
+```
 
-# Restart
-cd ../../backend && npm run dev &
+### Restoring Database
+
+```bash
+# MySQL
+gunzip < backup.sql.gz | mysql -u gawdesy -pgawdesy lume
+
+# PostgreSQL
+psql -U gawdesy -d lume < backup.sql
+pg_restore -U gawdesy -d lume --clean backup.dump
+```
+
+### Restoring Uploads
+
+```bash
+tar -xzf uploads_backup.tar.gz -C /path/to/lume/
+```
+
+### Emergency Recovery
+
+```bash
+# 1. Stop all servers
+pkill -f "node.*backend"
+pkill -f "vite"
+pkill -f "nuxt"
+
+# 2. Restore database
+gunzip < backups/latest/database.sql.gz | mysql -u gawdesy -pgawdesy lume
+
+# 3. Restore uploads
+tar -xzf backups/latest/uploads.tar.gz -C .
+
+# 4. Revert code
+git checkout <last-known-good-commit>
+
+# 5. Re-sync
+cd backend && npm install && npx prisma generate
+cd ../frontend/apps/web-lume && npm install
+cd ../frontend/apps/riagri-website && npm install
+
+# 6. Restart
+cd backend && npm run dev &
 cd ../frontend/apps/web-lume && npm run dev &
+cd ../frontend/apps/riagri-website && npm run dev &
 ```

@@ -7,27 +7,36 @@
 | Node.js | 18+ | LTS recommended |
 | MySQL | 8.0+ | Default database |
 | PostgreSQL | 14+ | Alternative database |
-| npm | 9+ | Comes with Node.js |
+| pnpm | 8+ | Package manager (monorepo workspaces) |
 | Git | 2.30+ | For cloning the repository |
 
 ## Quick Start
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/lume.git && cd lume
+git clone <repo-url> && cd lume
 
 # 2. Install backend dependencies
 cd backend && npm install && npx prisma generate
 
-# 3. Install frontend dependencies
+# 3. Initialize the database
+npx prisma db push && npm run db:init
+
+# 4. Install admin panel dependencies
 cd ../frontend/apps/web-lume && npm install
 
-# 4. Initialize the database
-cd ../../../backend && npx prisma db push && npm run db:init
+# 5. Install public site dependencies
+cd ../riagri-website && npm install
 
-# 5. Start development servers
-npm run dev          # backend on http://localhost:3000
-cd ../frontend/apps/web-lume && npm run dev   # frontend on http://localhost:5173
+# 6. Start all development servers (3 terminals)
+# Terminal 1: backend on http://localhost:3000
+cd backend && npm run dev
+
+# Terminal 2: admin panel on http://localhost:5173
+cd frontend/apps/web-lume && npm run dev
+
+# Terminal 3: public site on http://localhost:3007
+cd frontend/apps/riagri-website && npm run dev
 ```
 
 ---
@@ -37,7 +46,7 @@ cd ../frontend/apps/web-lume && npm run dev   # frontend on http://localhost:517
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/lume.git
+git clone <repo-url>
 cd lume
 ```
 
@@ -51,30 +60,37 @@ npx prisma generate
 
 `npx prisma generate` creates the Prisma client from the schema. This step is required before the backend can connect to the database.
 
-### 3. Frontend Setup
+### 3. Admin Panel Setup (Vue 3 SPA)
 
 ```bash
 cd frontend/apps/web-lume
 npm install
 ```
 
-The frontend is a Vite + Vue 3 + TypeScript application. All dependencies, including Ant Design Vue and Tailwind CSS, are installed via npm.
+The admin panel is a Vite + Vue 3 + TypeScript application with Ant Design Vue and Tailwind CSS.
 
-### 4. Environment Configuration
+### 4. Public Site Setup (Nuxt 3 SSR)
 
-Create a `.env` file in the `backend/` directory:
+```bash
+cd frontend/apps/riagri-website
+npm install
+```
+
+The public site is a Nuxt 3 server-side rendered application that consumes the website module's public API. It uses TipTap's BlockRenderer to display page content built with the visual page builder.
+
+### 5. Environment Configuration
+
+**Backend** — Create `.env` in `backend/`:
 
 ```bash
 cp .env.example .env
 ```
 
-Configure the following variables:
-
 | Variable | Description | Default / Example |
 |----------|-------------|-------------------|
 | `DATABASE_URL` | Database connection string | `mysql://gawdesy:gawdesy@localhost:3306/lume` |
-| `JWT_SECRET` | Secret key for signing access tokens | (generate a random string) |
-| `JWT_REFRESH_SECRET` | Secret key for signing refresh tokens | (generate a random string) |
+| `JWT_SECRET` | Secret key for access tokens | (generate a random string) |
+| `JWT_REFRESH_SECRET` | Secret key for refresh tokens | (generate a random string) |
 | `PORT` | Backend server port | `3000` |
 | `NODE_ENV` | Environment mode | `development` |
 | `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:5173` |
@@ -84,52 +100,42 @@ Configure the following variables:
 | `SMTP_PASSWORD` | SMTP authentication password | (your SMTP password) |
 | `APP_NAME` | Application display name | `Lume` |
 
-Example `.env` file:
+**Admin Panel** — Create `.env` in `frontend/apps/web-lume/`:
 
-```env
-DATABASE_URL="mysql://gawdesy:gawdesy@localhost:3306/lume"
-JWT_SECRET="your-secret-key-here"
-JWT_REFRESH_SECRET="your-refresh-secret-here"
-PORT=3000
-NODE_ENV=development
-CORS_ORIGIN="http://localhost:5173"
-SMTP_HOST="smtp.example.com"
-SMTP_PORT=587
-SMTP_USER="noreply@example.com"
-SMTP_PASSWORD="your-smtp-password"
-APP_NAME="Lume"
-```
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_API_URL` | API base path (relative for proxy) | `/api` |
+| `VITE_PUBLIC_SITE_URL` | Public site URL for preview iframe | `http://localhost:3007` |
 
-### 5. Database Initialization
+### 6. Database Initialization
 
 ```bash
 cd backend
 
-# Push the Prisma schema to the database (creates tables)
+# Push the Prisma schema to the database (creates core tables)
 npx prisma db push
 
 # Seed roles, permissions, admin user, and default settings
 npm run db:init
 ```
 
-The `db:init` script seeds the database with:
+The `db:init` script seeds:
 
-- Default roles (admin, super_admin, user)
-- Permissions (109 permissions across all modules)
-- Admin user account
+- 6 default roles (super_admin, admin, manager, staff, user, guest)
+- 147+ permissions across all 23 modules
+- Admin user account (`admin@lume.dev` / `admin123`)
 - Default application settings
+- Editor templates (6 page templates)
 
-**The `--force` flag:** If you need to drop and recreate all tables (destroying existing data), use:
+**The `--force` flag:** Drops and recreates all tables (destroys existing data):
 
 ```bash
 npm run db:init -- --force
 ```
 
-> **Warning:** The `--force` flag will delete all existing data. Only use it during initial development or when you need a clean slate.
+### 7. Running Development Servers
 
-### 6. Running Development Servers
-
-Open two terminal windows:
+Open three terminal windows:
 
 **Terminal 1 — Backend (port 3000):**
 
@@ -138,14 +144,21 @@ cd backend
 npm run dev
 ```
 
-**Terminal 2 — Frontend (port 5173):**
+**Terminal 2 — Admin Panel (port 5173):**
 
 ```bash
 cd frontend/apps/web-lume
 npm run dev
 ```
 
-The frontend Vite dev server proxies `/api` requests to `http://localhost:3000`, so both servers must be running for the application to work.
+**Terminal 3 — Public Site (port 3007):**
+
+```bash
+cd frontend/apps/riagri-website
+npm run dev
+```
+
+The admin panel's Vite dev proxy routes `/api` requests to `http://localhost:3000`. The Nuxt public site also proxies API requests to the backend.
 
 ---
 
@@ -154,17 +167,11 @@ The frontend Vite dev server proxies `/api` requests to `http://localhost:3000`,
 ### MySQL Setup (Default)
 
 ```sql
--- Connect to MySQL as root
-mysql -u root -p
-
--- Create the database and user
 CREATE DATABASE lume CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER 'gawdesy'@'localhost' IDENTIFIED BY 'gawdesy';
 GRANT ALL PRIVILEGES ON lume.* TO 'gawdesy'@'localhost';
 FLUSH PRIVILEGES;
 ```
-
-Set the `DATABASE_URL` in your `.env`:
 
 ```env
 DATABASE_URL="mysql://gawdesy:gawdesy@localhost:3306/lume"
@@ -172,35 +179,30 @@ DATABASE_URL="mysql://gawdesy:gawdesy@localhost:3306/lume"
 
 ### PostgreSQL Setup (Alternative)
 
-To use PostgreSQL instead of MySQL:
-
 1. Update the provider in `backend/prisma/schema.prisma`:
 
 ```prisma
 datasource db {
-  provider = "postgresql"   // change from "mysql" to "postgresql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 ```
 
-2. Create the PostgreSQL database:
+2. Create the database:
 
 ```sql
--- Connect to PostgreSQL as superuser
-psql -U postgres
-
 CREATE DATABASE lume;
 CREATE USER gawdesy WITH PASSWORD 'gawdesy';
 GRANT ALL PRIVILEGES ON DATABASE lume TO gawdesy;
 ```
 
-3. Update the `DATABASE_URL` in your `.env`:
+3. Update `DATABASE_URL`:
 
 ```env
 DATABASE_URL="postgresql://gawdesy:gawdesy@localhost:5432/lume"
 ```
 
-4. Regenerate the Prisma client and push the schema:
+4. Regenerate and push:
 
 ```bash
 npx prisma generate
@@ -213,28 +215,32 @@ npx prisma db push
 
 ### Health Check
 
-Once both servers are running, verify the backend is responding:
-
 ```bash
 curl http://localhost:3000/api/health
+# Expected: { "success": true, "message": "OK" }
 ```
 
-Expected response:
+### Admin Login
 
-```json
-{ "success": true, "message": "OK" }
-```
-
-### Login
-
-Open `http://localhost:5173` in your browser and log in with the default credentials:
+Open `http://localhost:5173` and log in:
 
 | Field | Value |
 |-------|-------|
 | Email | `admin@lume.dev` |
 | Password | `admin123` |
 
-> **Important:** Change the default admin password immediately after your first login.
+### Public Site
+
+Open `http://localhost:3007` to view the public website. Pages are rendered using TipTap content from the visual page builder.
+
+### Website CMS
+
+In the admin panel, navigate to **Website > Pages** to manage public site content:
+
+- **Pages** — Visual page editor with 30+ widget blocks
+- **Menus** — Drag-and-drop hierarchical menu management
+- **Media** — Image and file upload library
+- **Settings** — Site name, logo, contact info, social links
 
 ---
 
@@ -242,37 +248,21 @@ Open `http://localhost:5173` in your browser and log in with the default credent
 
 ### `EADDRINUSE: address already in use :::3000`
 
-Another process is using port 3000. Find and kill it:
-
 ```bash
-# Find the process
 lsof -i :3000
-
-# Kill it
 kill -9 <PID>
 ```
 
-Or change the `PORT` in your `.env` file.
-
 ### `ECONNREFUSED 127.0.0.1:3306`
 
-MySQL is not running or not accessible. Start the MySQL service:
+MySQL is not running:
 
 ```bash
-# Linux (systemd)
-sudo systemctl start mysql
-
-# macOS (Homebrew)
-brew services start mysql
+sudo systemctl start mysql     # Linux
+brew services start mysql      # macOS
 ```
 
 ### Prisma Generate Errors
-
-If `npx prisma generate` fails, ensure:
-
-1. The `DATABASE_URL` in `.env` is correct and the database server is running.
-2. You are running the command from the `backend/` directory.
-3. Try clearing the Prisma cache:
 
 ```bash
 rm -rf node_modules/.prisma
@@ -281,26 +271,24 @@ npx prisma generate
 
 ### ESM / Import Errors
 
-The backend uses ES modules (`"type": "module"` in `package.json`). Common issues:
+The backend uses ES modules (`"type": "module"`):
 
-- **`require is not defined`** — You are using CommonJS syntax. Use `import`/`export` instead.
-- **`Cannot use import statement outside a module`** — Ensure the file has a `.js` extension and the nearest `package.json` has `"type": "module"`.
-- **Jest tests failing** — Jest requires `NODE_OPTIONS='--experimental-vm-modules'` and `transform: {}` in `jest.config.cjs`.
+- Use `import`/`export`, not `require`/`module.exports`
+- Jest requires `NODE_OPTIONS='--experimental-vm-modules'`
 
-### Frontend Not Loading Module Views
+### Frontend Module Views Not Loading
 
-If module views show a blank page or crash:
+1. Verify Tailwind scans module directories in `tailwind.config.js`:
+   ```js
+   content: ['../../../backend/src/modules/**/static/**/*.{vue,js,ts,jsx,tsx}']
+   ```
+2. Verify the `@modules` alias in `vite.config.ts` and `tsconfig.json`
 
-- Ensure Tailwind CSS is scanning module directories. Check that `tailwind.config.js` includes:
+### Public Site Preview Not Working
 
-```js
-content: [
-  // ...
-  '../../../backend/src/modules/**/static/**/*.{vue,js,ts,jsx,tsx}'
-]
-```
-
-- Verify the `@modules` alias is configured in both `vite.config.ts` and `tsconfig.json`.
+If the page editor preview shows "localhost refused to connect":
+- Check `VITE_PUBLIC_SITE_URL` in `frontend/apps/web-lume/.env`
+- Ensure the Nuxt dev server is running on the configured port
 
 ---
 
@@ -310,22 +298,7 @@ content: [
 
 | Extension | Purpose |
 |-----------|---------|
-| [Vue - Official (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) | Vue 3 language support and TypeScript integration |
-| [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) | JavaScript/TypeScript linting |
-| [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss) | Tailwind class autocompletion and hover preview |
-| [Prisma](https://marketplace.visualstudio.com/items?itemName=Prisma.prisma) | Prisma schema syntax highlighting and formatting |
-
-### Recommended VS Code Settings
-
-Add to your workspace `.vscode/settings.json`:
-
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "eslint.validate": ["javascript", "typescript", "vue"],
-  "tailwindCSS.experimental.classRegex": [
-    ["class=\"([^\"]*)\"", "([a-zA-Z0-9\\-:]+)"]
-  ]
-}
-```
+| Vue - Official (Volar) | Vue 3 + TypeScript support |
+| ESLint | Linting |
+| Tailwind CSS IntelliSense | Class autocompletion |
+| Prisma | Schema syntax highlighting |
