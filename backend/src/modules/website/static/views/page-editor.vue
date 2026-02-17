@@ -95,7 +95,7 @@ const isStructuredContent = computed(() => {
 });
 
 // Public site iframe URL
-const publicSiteUrl = 'http://localhost:3100';
+const publicSiteUrl = import.meta.env.VITE_PUBLIC_SITE_URL || 'http://localhost:3100';
 const iframeUrl = computed(() => {
   if (!page.slug) return '';
   return page.slug === 'home' ? publicSiteUrl : `${publicSiteUrl}/${page.slug}`;

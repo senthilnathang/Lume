@@ -66,8 +66,7 @@ const isStructuredContent = computed(() => {
 
 // Public site URL for iframe preview of structured pages
 const publicSiteUrl = computed(() => {
-  // Use env or default
-  return 'http://localhost:3100';
+  return import.meta.env.VITE_PUBLIC_SITE_URL || 'http://localhost:3100';
 });
 
 const iframeUrl = computed(() => {
