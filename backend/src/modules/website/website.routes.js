@@ -37,7 +37,7 @@ router.get('/public/pages/:slug', async (req, res) => {
 
 router.get('/public/menus/:location', async (req, res) => {
   try {
-    const result = await menuService.getByLocation(req.params.location);
+    const result = await menuService.getByLocationNested(req.params.location);
     res.json(result);
   } catch (error) {
     console.error('Get menu by location error:', error);
@@ -219,6 +219,15 @@ router.delete('/menus/:id', authenticate, [param('id').isInt()], validateRequest
     res.json(result);
   } catch (error) {
     res.status(500).json(responseUtil.error('Failed to delete menu'));
+  }
+});
+
+router.put('/menus/:id/reorder', authenticate, [param('id').isInt()], validateRequest, async (req, res) => {
+  try {
+    const result = await menuService.reorderItems(req.params.id, req.body.items || []);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json(responseUtil.error('Failed to reorder menu items'));
   }
 });
 
