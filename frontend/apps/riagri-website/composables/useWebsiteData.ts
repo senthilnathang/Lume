@@ -30,8 +30,11 @@ interface MenuItem {
   pageId: number | null
   target: string
   icon: string | null
+  cssClass: string | null
+  description: string | null
   sequence: number
   isActive: boolean
+  children: MenuItem[]
 }
 
 interface MenuData {

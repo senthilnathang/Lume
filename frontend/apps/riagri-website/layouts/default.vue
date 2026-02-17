@@ -18,15 +18,50 @@
 
           <!-- Desktop Navigation -->
           <nav class="hidden lg:flex items-center gap-1">
-            <NuxtLink
-              v-for="link in navLinks"
-              :key="link.url"
-              :to="link.url"
-              class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-primary-700 hover:bg-primary-50 transition-all duration-200"
-              active-class="!text-primary-700 !bg-primary-50"
-            >
-              {{ link.label }}
-            </NuxtLink>
+            <template v-for="link in navLinks" :key="link.url">
+              <!-- Item with children: dropdown -->
+              <div v-if="link.children?.length" class="relative group" @mouseenter="openDropdown = link.url" @mouseleave="openDropdown = null">
+                <NuxtLink
+                  :to="link.url"
+                  class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-primary-700 hover:bg-primary-50 transition-all duration-200 inline-flex items-center gap-1"
+                  active-class="!text-primary-700 !bg-primary-50"
+                >
+                  {{ link.label }}
+                  <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-primary-500 transition-transform duration-200" :class="{ 'rotate-180': openDropdown === link.url }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </NuxtLink>
+                <Transition
+                  enter-active-class="transition duration-150 ease-out"
+                  enter-from-class="opacity-0 translate-y-1"
+                  enter-to-class="opacity-100 translate-y-0"
+                  leave-active-class="transition duration-100 ease-in"
+                  leave-from-class="opacity-100 translate-y-0"
+                  leave-to-class="opacity-0 translate-y-1"
+                >
+                  <div v-show="openDropdown === link.url" class="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                    <NuxtLink
+                      v-for="child in link.children"
+                      :key="child.url"
+                      :to="child.url"
+                      :target="child.target !== '_self' ? child.target : undefined"
+                      class="block px-4 py-2.5 text-sm text-gray-600 hover:text-primary-700 hover:bg-primary-50 transition-colors"
+                      @click="openDropdown = null"
+                    >
+                      <span class="font-medium">{{ child.label }}</span>
+                      <span v-if="child.description" class="block text-xs text-gray-400 mt-0.5">{{ child.description }}</span>
+                    </NuxtLink>
+                  </div>
+                </Transition>
+              </div>
+              <!-- Simple item -->
+              <NuxtLink
+                v-else
+                :to="link.url"
+                class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-primary-700 hover:bg-primary-50 transition-all duration-200"
+                active-class="!text-primary-700 !bg-primary-50"
+              >
+                {{ link.label }}
+              </NuxtLink>
+            </template>
           </nav>
 
           <!-- CTA + Mobile Toggle -->
@@ -65,16 +100,56 @@
         >
           <div v-if="mobileMenuOpen" class="lg:hidden pb-4 border-t border-gray-100 mt-2 pt-4">
             <nav class="flex flex-col gap-1">
-              <NuxtLink
-                v-for="link in navLinks"
-                :key="link.url"
-                :to="link.url"
-                class="px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-primary-700 hover:bg-primary-50 transition-all"
-                active-class="!text-primary-700 !bg-primary-50"
-                @click="mobileMenuOpen = false"
-              >
-                {{ link.label }}
-              </NuxtLink>
+              <template v-for="link in navLinks" :key="link.url">
+                <!-- Item with children: accordion -->
+                <div v-if="link.children?.length">
+                  <button
+                    class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-primary-700 hover:bg-primary-50 transition-all"
+                    @click="mobileExpanded === link.url ? (mobileExpanded = null) : (mobileExpanded = link.url)"
+                  >
+                    {{ link.label }}
+                    <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': mobileExpanded === link.url }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                  <Transition
+                    enter-active-class="transition duration-200 ease-out"
+                    enter-from-class="opacity-0 max-h-0"
+                    enter-to-class="opacity-100 max-h-96"
+                    leave-active-class="transition duration-150 ease-in"
+                    leave-from-class="opacity-100 max-h-96"
+                    leave-to-class="opacity-0 max-h-0"
+                  >
+                    <div v-show="mobileExpanded === link.url" class="overflow-hidden pl-4">
+                      <NuxtLink
+                        :to="link.url"
+                        class="block px-4 py-2.5 rounded-lg text-sm font-medium text-primary-600 hover:bg-primary-50 transition-all"
+                        @click="mobileMenuOpen = false"
+                      >
+                        All {{ link.label }}
+                      </NuxtLink>
+                      <NuxtLink
+                        v-for="child in link.children"
+                        :key="child.url"
+                        :to="child.url"
+                        :target="child.target !== '_self' ? child.target : undefined"
+                        class="block px-4 py-2.5 rounded-lg text-sm text-gray-600 hover:text-primary-700 hover:bg-primary-50 transition-all"
+                        @click="mobileMenuOpen = false"
+                      >
+                        {{ child.label }}
+                      </NuxtLink>
+                    </div>
+                  </Transition>
+                </div>
+                <!-- Simple item -->
+                <NuxtLink
+                  v-else
+                  :to="link.url"
+                  class="px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-primary-700 hover:bg-primary-50 transition-all"
+                  active-class="!text-primary-700 !bg-primary-50"
+                  @click="mobileMenuOpen = false"
+                >
+                  {{ link.label }}
+                </NuxtLink>
+              </template>
               <NuxtLink
                 to="/contact"
                 class="mt-2 px-4 py-3 bg-primary-600 text-white text-center font-semibold rounded-xl hover:bg-primary-700 transition-colors sm:hidden"
@@ -185,6 +260,8 @@
 
 <script setup lang="ts">
 const mobileMenuOpen = ref(false)
+const openDropdown = ref<string | null>(null)
+const mobileExpanded = ref<string | null>(null)
 
 // Fetch dynamic data from CMS
 const { settings } = useSettings()
@@ -200,15 +277,26 @@ const addressHtml = computed(() => address.value.replace(', ', ',<br>'))
 
 const navLinks = computed(() => {
   if (headerMenuItems.value.length > 0) {
-    return headerMenuItems.value.map(item => ({ label: item.label, url: item.url || '/' }))
+    return headerMenuItems.value.map(item => ({
+      label: item.label,
+      url: item.url || '/',
+      target: item.target || '_self',
+      description: item.description,
+      children: item.children?.map(child => ({
+        label: child.label,
+        url: child.url || '/',
+        target: child.target || '_self',
+        description: child.description,
+      })) || [],
+    }))
   }
   // Fallback
   return [
-    { label: 'Home', url: '/' },
-    { label: 'Products', url: '/products' },
-    { label: 'Services', url: '/services' },
-    { label: 'About', url: '/about' },
-    { label: 'Contact', url: '/contact' },
+    { label: 'Home', url: '/', children: [] },
+    { label: 'Products', url: '/products', children: [] },
+    { label: 'Services', url: '/services', children: [] },
+    { label: 'About', url: '/about', children: [] },
+    { label: 'Contact', url: '/contact', children: [] },
   ]
 })
 

@@ -1,6 +1,6 @@
 import { getDb } from '../../../core/db/drizzle.js';
 import { websitePages, websiteMenus, websiteMenuItems, websiteMedia, websiteSettings } from '../models/schema.js';
-import { eq, like, desc, asc, and, isNull, sql } from 'drizzle-orm';
+import { eq, like, desc, asc, and, isNull, sql, inArray } from 'drizzle-orm';
 import { responseUtil } from '../../../shared/utils/index.js';
 
 /**
@@ -134,6 +134,26 @@ export class PageService {
   }
 }
 
+/**
+ * Convert flat menu items array to nested tree structure
+ */
+function buildMenuTree(flatItems) {
+  const map = new Map();
+  const roots = [];
+  for (const item of flatItems) {
+    map.set(item.id, { ...item, children: [] });
+  }
+  for (const item of flatItems) {
+    const node = map.get(item.id);
+    if (item.parentId && map.has(item.parentId)) {
+      map.get(item.parentId).children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
+
 export class MenuService {
   async findAll() {
     const db = getDb();
@@ -148,7 +168,8 @@ export class MenuService {
     const items = await db.select().from(websiteMenuItems)
       .where(eq(websiteMenuItems.menuId, Number(id)))
       .orderBy(asc(websiteMenuItems.sequence));
-    return responseUtil.success({ ...menu, items });
+    const tree = buildMenuTree(items);
+    return responseUtil.success({ ...menu, items, tree });
   }
 
   async getByLocation(location) {
@@ -159,7 +180,48 @@ export class MenuService {
     const items = await db.select().from(websiteMenuItems)
       .where(and(eq(websiteMenuItems.menuId, menu.id), eq(websiteMenuItems.isActive, true)))
       .orderBy(asc(websiteMenuItems.sequence));
-    return responseUtil.success({ ...menu, items });
+    const tree = buildMenuTree(items);
+    return responseUtil.success({ ...menu, items: tree });
+  }
+
+  async getByLocationNested(location) {
+    const db = getDb();
+    const [menu] = await db.select().from(websiteMenus)
+      .where(and(eq(websiteMenus.location, location), eq(websiteMenus.isActive, true)));
+    if (!menu) return responseUtil.success({ items: [] });
+    const items = await db.select().from(websiteMenuItems)
+      .where(and(eq(websiteMenuItems.menuId, menu.id), eq(websiteMenuItems.isActive, true)))
+      .orderBy(asc(websiteMenuItems.sequence));
+    const tree = buildMenuTree(items);
+    return responseUtil.success({ ...menu, items: tree });
+  }
+
+  async reorderItems(menuId, items) {
+    const db = getDb();
+    const [menu] = await db.select().from(websiteMenus).where(eq(websiteMenus.id, Number(menuId)));
+    if (!menu) return responseUtil.notFound('Menu');
+
+    // Validate all items belong to this menu
+    const itemIds = items.map(i => i.id);
+    if (itemIds.length > 0) {
+      const existing = await db.select({ id: websiteMenuItems.id }).from(websiteMenuItems)
+        .where(and(eq(websiteMenuItems.menuId, Number(menuId)), inArray(websiteMenuItems.id, itemIds)));
+      const existingIds = new Set(existing.map(e => e.id));
+      const invalid = itemIds.filter(id => !existingIds.has(id));
+      if (invalid.length > 0) {
+        return responseUtil.error(`Items not found in this menu: ${invalid.join(', ')}`);
+      }
+    }
+
+    // Update each item's parentId and sequence
+    for (const item of items) {
+      await db.update(websiteMenuItems).set({
+        parentId: item.parentId || null,
+        sequence: item.sequence,
+      }).where(eq(websiteMenuItems.id, item.id));
+    }
+
+    return responseUtil.success(null, 'Menu items reordered');
   }
 
   async create(data) {

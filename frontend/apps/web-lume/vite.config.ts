@@ -48,6 +48,9 @@ export default defineConfig({
       '@tiptap/extension-dropcursor': nm('@tiptap/extension-dropcursor'),
       '@tiptap/extension-gapcursor': nm('@tiptap/extension-gapcursor'),
       '@tiptap/suggestion': nm('@tiptap/suggestion'),
+      // Drag-and-drop (used by website menu editor)
+      'vuedraggable': path.resolve(frontendRoot, 'node_modules/vuedraggable/dist/vuedraggable.umd.js'),
+      'sortablejs': nm('sortablejs'),
     },
     dedupe: ['vue', 'vue-router', 'pinia'],
   },

@@ -60,6 +60,8 @@ export const websiteMenuItems = table('website_menu_items', {
   parentId: idCol('parent_id'),
   sequence: idCol('sequence').default(0),
   isActive: boolean('is_active').default(true),
+  cssClass: varchar('css_class', { length: 255 }),
+  description: text('description'),
 });
 
 /**

@@ -21,6 +21,8 @@ export const deleteMenu = (id: number) => del(`${BASE}/menus/${id}`);
 export const addMenuItem = (menuId: number, data: Record<string, any>) => post(`${BASE}/menus/${menuId}/items`, data);
 export const updateMenuItem = (id: number, data: Record<string, any>) => put(`${BASE}/menu-items/${id}`, data);
 export const deleteMenuItem = (id: number) => del(`${BASE}/menu-items/${id}`);
+export const reorderMenuItems = (menuId: number, items: Array<{ id: number; parentId: number | null; sequence: number }>) =>
+  put(`${BASE}/menus/${menuId}/reorder`, { items });
 
 // --- Media ---
 export const getMediaList = (params?: Record<string, any>) => get(`${BASE}/media`, { params });
