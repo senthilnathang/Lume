@@ -68,3 +68,26 @@ internal/
 *.png
 !frontend/apps/web-lume/public/**
 !frontend/apps/web-lume/src/assets/**
+!frontend/apps/riagri-website/public/**
+!frontend/apps/riagri-website/assets/**
+
+# Debug/test HTML files (keep only index.html)
+*SUCCESS*.html
+*FIXED*.html
+*READY*.html
+*RESTORED*.html
+*STATUS*.html
+test-*.html
+quick-test.html
+ui-check.html
+success.html
+
+# Test scripts
+test-app.cjs
+
+# Deployment staging
+cpanel-deploy/
+lume-deploy.zip
+
+# Turbo cache
+.turbo/
