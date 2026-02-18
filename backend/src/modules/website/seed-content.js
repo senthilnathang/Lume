@@ -5,7 +5,7 @@
  * Idempotent: checks if content exists before inserting.
  */
 import { getDb, initDrizzle } from '../../core/db/drizzle.js';
-import { websitePages, websiteMenus, websiteMenuItems, websiteSettings } from './models/schema.js';
+import { websitePages, websiteMenus, websiteMenuItems, websiteSettings, websiteThemeTemplates, websitePopups, websiteForms, websitePageRevisions } from './models/schema.js';
 import { eq } from 'drizzle-orm';
 
 async function seed() {
@@ -295,6 +295,92 @@ async function seed() {
     console.log(`  ✅ Footer menu with ${footerItems.length} items`);
   } else {
     console.log(`  ⏭️  Menus already exist (${existingMenus.length} menus)`);
+  }
+
+  // ─── Theme Templates ───
+  const existingTemplates = await db.select().from(websiteThemeTemplates);
+  if (existingTemplates.length === 0) {
+    await db.insert(websiteThemeTemplates).values({
+      name: 'Default Header', type: 'header', priority: 10, isActive: true,
+      content: JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'RIAGRI — Agricultural Equipment & Transport Solutions' }] }] }),
+    });
+    await db.insert(websiteThemeTemplates).values({
+      name: 'Default Footer', type: 'footer', priority: 10, isActive: true,
+      content: JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '© 2026 RIAGRI. All rights reserved.' }] }] }),
+    });
+    console.log('  ✅ Theme templates (header + footer)');
+  } else {
+    console.log(`  ⏭️  Theme templates exist (${existingTemplates.length})`);
+  }
+
+  // ─── Popups ───
+  const existingPopups = await db.select().from(websitePopups);
+  if (existingPopups.length === 0) {
+    await db.insert(websitePopups).values({
+      name: 'Welcome Popup', triggerType: 'timer', triggerValue: '3', position: 'center', width: 'md',
+      overlayClose: true, showOnce: true, isActive: false,
+      content: JSON.stringify({ heading: 'Welcome to RIAGRI!', body: 'Subscribe to our newsletter for the latest equipment deals and farming tips.' }),
+    });
+    console.log('  ✅ Welcome popup');
+  } else {
+    console.log(`  ⏭️  Popups exist (${existingPopups.length})`);
+  }
+
+  // ─── Forms ───
+  const existingForms = await db.select().from(websiteForms);
+  if (existingForms.length === 0) {
+    await db.insert(websiteForms).values({
+      name: 'Contact Form', isActive: true,
+      fields: JSON.stringify([
+        { name: 'name', type: 'text', label: 'Your Name', required: true, placeholder: 'Enter your name' },
+        { name: 'email', type: 'email', label: 'Email Address', required: true, placeholder: 'Enter your email' },
+        { name: 'phone', type: 'text', label: 'Phone Number', required: false, placeholder: '+1 (234) 567-890' },
+        { name: 'subject', type: 'select', label: 'Subject', required: true, options: ['General Inquiry', 'Product Quote', 'Service Request', 'Technical Support'] },
+        { name: 'message', type: 'textarea', label: 'Message', required: true, placeholder: 'Tell us how we can help...' },
+      ]),
+      settings: JSON.stringify({ emailTo: 'info@riagri.com', emailSubject: 'New Contact Form Submission', successMessage: 'Thank you! We will get back to you within 24 hours.', redirectUrl: '' }),
+    });
+    await db.insert(websiteForms).values({
+      name: 'Newsletter Signup', isActive: true,
+      fields: JSON.stringify([
+        { name: 'name', type: 'text', label: 'Your Name', required: true, placeholder: 'Your name' },
+        { name: 'email', type: 'email', label: 'Email Address', required: true, placeholder: 'you@example.com' },
+      ]),
+      settings: JSON.stringify({ emailTo: 'newsletter@riagri.com', emailSubject: 'New Newsletter Signup', successMessage: 'You have been subscribed!', redirectUrl: '' }),
+    });
+    console.log('  ✅ Forms (Contact + Newsletter)');
+  } else {
+    console.log(`  ⏭️  Forms exist (${existingForms.length})`);
+  }
+
+  // ─── Design Tokens Setting ───
+  const existingTokens = await db.select().from(websiteSettings).where(eq(websiteSettings.key, 'design_tokens'));
+  if (existingTokens.length === 0) {
+    await db.insert(websiteSettings).values({
+      key: 'design_tokens', type: 'json',
+      value: JSON.stringify({
+        colors: { primary: '#16a34a', secondary: '#1677ff', accent: '#f59e0b', success: '#22c55e', warning: '#eab308', danger: '#ef4444', info: '#3b82f6', dark: '#1f2937', light: '#f9fafb', muted: '#6b7280' },
+        typography: { headingFont: 'Inter, sans-serif', bodyFont: 'Inter, sans-serif', baseFontSize: '16px', lineHeight: '1.6', headingWeight: '700', bodyWeight: '400' },
+      }),
+    });
+    console.log('  ✅ Design tokens');
+  } else {
+    console.log('  ⏭️  Design tokens exist');
+  }
+
+  // ─── Page Revisions (for Home page) ───
+  const [homePage] = await db.select().from(websitePages).where(eq(websitePages.slug, 'home'));
+  if (homePage) {
+    const existingRevisions = await db.select().from(websitePageRevisions).where(eq(websitePageRevisions.pageId, homePage.id));
+    if (existingRevisions.length === 0) {
+      await db.insert(websitePageRevisions).values({
+        pageId: homePage.id, content: homePage.content, revisionNumber: 1,
+        changeDescription: 'Initial version', isAutoSave: false,
+      });
+      console.log('  ✅ Home page revision (v1)');
+    } else {
+      console.log(`  ⏭️  Home page revisions exist (${existingRevisions.length})`);
+    }
   }
 
   console.log('\n✅ Website content seeded successfully!');

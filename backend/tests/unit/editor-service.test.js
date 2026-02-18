@@ -193,6 +193,15 @@ describe('Page Builder Block Extensions', () => {
     'PostsGridBlock.ts',
     'IconListBlock.ts',
     'ProgressBarBlock.ts',
+    // Phase 4 widgets
+    'CarouselBlock.ts',
+    'FlipBoxBlock.ts',
+    'AnimatedHeadlineBlock.ts',
+    'HotspotBlock.ts',
+    'TOCBlock.ts',
+    'OffCanvasBlock.ts',
+    // Phase 5 dynamic content
+    'DynamicTagBlock.ts',
   ];
 
   test.each(extensions)('extension %s exists', (file) => {
@@ -236,6 +245,15 @@ describe('Page Builder Block Views', () => {
     'PostsGridBlockView.vue',
     'IconListBlockView.vue',
     'ProgressBarBlockView.vue',
+    // Phase 4 widgets
+    'CarouselBlockView.vue',
+    'FlipBoxBlockView.vue',
+    'AnimatedHeadlineBlockView.vue',
+    'HotspotBlockView.vue',
+    'TOCBlockView.vue',
+    'OffCanvasBlockView.vue',
+    // Phase 5 dynamic content
+    'DynamicTagBlockView.vue',
   ];
 
   test.each(views)('block view %s exists', (file) => {
@@ -344,5 +362,39 @@ describe('Website Module Editor Dependency', () => {
 
   test('website depends on editor', () => {
     expect(manifest.depends).toContain('editor');
+  });
+});
+
+// ─── Phase 2 Common Attributes & Animation ───
+
+describe('Phase 2 Common Attributes', () => {
+  const editorDir = join(modulesDir, 'editor');
+
+  test('shared/commonAttributes.ts exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'extensions', 'shared', 'commonAttributes.ts'))).toBe(true);
+  });
+
+  test('animation-styles.css exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'widgets', 'animation-styles.css'))).toBe(true);
+  });
+});
+
+// ─── Phase 4 Widget Render Components ───
+
+describe('Phase 4 Widget Renders', () => {
+  const rendersDir = join(modulesDir, 'editor', 'static', 'widgets', 'renders');
+
+  const renders = [
+    'CarouselRender.vue',
+    'FlipBoxRender.vue',
+    'AnimatedHeadlineRender.vue',
+    'HotspotRender.vue',
+    'TOCRender.vue',
+    'OffCanvasRender.vue',
+    'DynamicTagRender.vue',
+  ];
+
+  test.each(renders)('render %s exists', (file) => {
+    expect(existsSync(join(rendersDir, file))).toBe(true);
   });
 });
