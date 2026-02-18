@@ -42,7 +42,10 @@ export default {
           { name: 'Pages', path: '/website/pages', icon: 'lucide:file-text', sequence: 1 },
           { name: 'Menus', path: '/website/menus', icon: 'lucide:menu', sequence: 2 },
           { name: 'Media', path: '/website/media', icon: 'lucide:image', sequence: 3 },
-          { name: 'Settings', path: '/website/settings', icon: 'lucide:settings', sequence: 4 },
+          { name: 'Forms', path: '/website/forms', icon: 'lucide:file-input', sequence: 4 },
+          { name: 'Theme Builder', path: '/website/theme-builder', icon: 'lucide:layout', sequence: 5 },
+          { name: 'Popups', path: '/website/popups', icon: 'lucide:maximize-2', sequence: 6 },
+          { name: 'Settings', path: '/website/settings', icon: 'lucide:settings', sequence: 7 },
         ]
       }
     ]
@@ -59,7 +62,21 @@ export default {
     'website.media.read',
     'website.media.upload',
     'website.media.delete',
+    'website.form.read',
+    'website.form.create',
+    'website.form.edit',
+    'website.form.delete',
+    'website.submission.read',
+    'website.submission.delete',
     'website.settings.read',
     'website.settings.edit',
+    'website.theme.read',
+    'website.theme.create',
+    'website.theme.edit',
+    'website.theme.delete',
+    'website.popup.read',
+    'website.popup.create',
+    'website.popup.edit',
+    'website.popup.delete',
   ]
 }

@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import ContentToggleBlockView from '../components/blocks/ContentToggleBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const ContentToggleBlock = Node.create({
   name: 'contentToggle',
@@ -10,6 +11,7 @@ export const ContentToggleBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       primaryLabel: { default: 'Option A' },
       secondaryLabel: { default: 'Option B' },
       primaryContent: { default: 'Content for option A' },

@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import PostsGridBlockView from '../components/blocks/PostsGridBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const PostsGridBlock = Node.create({
   name: 'postsGrid',
@@ -10,6 +11,7 @@ export const PostsGridBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       pageType: { default: 'all' },
       count: { default: 6 },
       columns: { default: 3 },

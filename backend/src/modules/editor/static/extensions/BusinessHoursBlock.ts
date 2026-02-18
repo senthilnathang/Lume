@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import BusinessHoursBlockView from '../components/blocks/BusinessHoursBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const BusinessHoursBlock = Node.create({
   name: 'businessHours',
@@ -10,6 +11,7 @@ export const BusinessHoursBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       title: { default: 'Business Hours' },
       days: { default: [] },
       highlightToday: { default: true },

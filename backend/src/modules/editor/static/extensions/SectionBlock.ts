@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import SectionBlockView from '../components/blocks/SectionBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const SectionBlock = Node.create({
   name: 'sectionBlock',
@@ -11,6 +12,7 @@ export const SectionBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       backgroundColor: { default: 'transparent' },
       backgroundImage: { default: '' },
       paddingTop: { default: '40' },

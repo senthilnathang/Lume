@@ -115,7 +115,10 @@ const customViews: Record<string, () => Promise<any>> = {
   'website/pages/preview': () => import('@modules/website/static/views/page-preview.vue'),
   'website/menus': () => import('@modules/website/static/views/menus.vue'),
   'website/media': () => import('@modules/website/static/views/media.vue'),
+  'website/forms': () => import('@modules/website/static/views/forms.vue'),
   'website/settings': () => import('@modules/website/static/views/settings.vue'),
+  'website/theme-builder': () => import('@modules/website/static/views/theme-builder.vue'),
+  'website/popups': () => import('@modules/website/static/views/popups.vue'),
 };
 
 /**

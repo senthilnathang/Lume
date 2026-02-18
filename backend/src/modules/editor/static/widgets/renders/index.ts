@@ -23,6 +23,8 @@ export { default as IconListRender } from './IconListRender.vue';
 export { default as PostsGridRender } from './PostsGridRender.vue';
 
 // Interactive
+export { default as CarouselRender } from './CarouselRender.vue';
+export { default as FlipBoxRender } from './FlipBoxRender.vue';
 export { default as CountdownRender } from './CountdownRender.vue';
 export { default as ContentToggleRender } from './ContentToggleRender.vue';
 export { default as MarketingButtonRender } from './MarketingButtonRender.vue';

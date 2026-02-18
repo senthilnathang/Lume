@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import PriceListBlockView from '../components/blocks/PriceListBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const PriceListBlock = Node.create({
   name: 'priceList',
@@ -10,6 +11,7 @@ export const PriceListBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       items: { default: [] },
       separator: { default: true },
     }

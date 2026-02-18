@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
-import { Settings, Save, Globe, Palette, Search as SearchIcon, Share2, Code2 } from 'lucide-vue-next';
+import { Settings, Save, Globe, Palette, Search as SearchIcon, Share2, Code2, Paintbrush } from 'lucide-vue-next';
 import { get, put } from '@/api/request';
+import DesignTokensEditor from '../components/DesignTokensEditor.vue';
 
 defineOptions({ name: 'WebsiteSettings' });
 
@@ -28,6 +29,13 @@ const form = reactive({
   social_instagram: '',
   // Custom Code
   custom_head_code: '',
+  // Design Tokens (stored as JSON string)
+  design_tokens: '',
+});
+
+const designTokens = ref({
+  colors: {} as Record<string, string>,
+  typography: {} as Record<string, any>,
 });
 
 function settingsToForm(settings: any[]) {
@@ -38,13 +46,21 @@ function settingsToForm(settings: any[]) {
       (form as any)[key] = s.value || '';
     }
   }
+  // Parse design tokens
+  if (form.design_tokens) {
+    try {
+      designTokens.value = JSON.parse(form.design_tokens);
+    } catch { /* keep defaults */ }
+  }
 }
 
 function formToPayload() {
+  // Serialize design tokens before saving
+  form.design_tokens = JSON.stringify(designTokens.value);
   const entries = Object.entries(form).map(([key, value]) => ({
     key,
     value: value ?? '',
-    type: key === 'primary_color' ? 'string' : 'string',
+    type: 'string',
   }));
   return { settings: entries };
 }
@@ -227,6 +243,17 @@ onMounted(() => {
               </p>
             </a-form-item>
           </a-form>
+        </a-card>
+
+        <!-- Design Tokens -->
+        <a-card size="small">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <Paintbrush :size="16" class="text-indigo-500" />
+              Design Tokens
+            </div>
+          </template>
+          <DesignTokensEditor v-model="designTokens" />
         </a-card>
 
       </div>

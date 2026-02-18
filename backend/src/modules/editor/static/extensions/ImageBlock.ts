@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import ImageBlockView from '../components/blocks/ImageBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const ImageBlock = Node.create({
   name: 'imageBlock',
@@ -10,6 +11,7 @@ export const ImageBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       src: { default: '' },
       alt: { default: '' },
       caption: { default: '' },

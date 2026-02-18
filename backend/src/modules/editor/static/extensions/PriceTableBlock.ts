@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import PriceTableBlockView from '../components/blocks/PriceTableBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const PriceTableBlock = Node.create({
   name: 'priceTable',
@@ -10,6 +11,7 @@ export const PriceTableBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       title: { default: 'Basic Plan' },
       price: { default: '$29' },
       period: { default: '/month' },

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import {
   Layout, Columns3, Type, ImageIcon, MousePointerClick,
   MoveVertical, Minus, Video, Quote, Code2, AlertTriangle,
@@ -7,15 +7,48 @@ import {
   Info, HelpCircle, CreditCard, ListChecks, UserCircle,
   MessageSquareQuote, Timer, ToggleLeft, Zap, Maximize2,
   MapPin, Mail, Clock, Share2, LayoutGrid, BarChart2,
-  Grid3x3, type LucideIcon,
+  Grid3x3, Bookmark, type LucideIcon,
 } from 'lucide-vue-next';
 import { widgetRegistry, type WidgetDef, type WidgetCategory } from '../widgets/registry';
+import { get, post } from '@/api/request';
 
 const props = defineProps<{
   editor: any;
 }>();
 
 const searchQuery = ref('');
+const activeTab = ref<'widgets' | 'saved'>('widgets');
+const savedBlocks = ref<any[]>([]);
+const loadingSaved = ref(false);
+
+async function loadSavedBlocks() {
+  loadingSaved.value = true;
+  try {
+    const result = await get('/editor/snippets');
+    savedBlocks.value = (result.data || result || []).filter((s: any) => s.content);
+  } catch {
+    savedBlocks.value = [];
+  } finally {
+    loadingSaved.value = false;
+  }
+}
+
+function insertSavedBlock(block: any) {
+  if (!props.editor || !block.content) return;
+  try {
+    const content = typeof block.content === 'string' ? JSON.parse(block.content) : block.content;
+    props.editor.chain().focus().insertContent(content).run();
+    // Increment usage count
+    post(`/editor/snippets/${block.id}/use`).catch(() => {});
+  } catch {
+    // Try inserting as raw content
+    props.editor.chain().focus().insertContent(block.content).run();
+  }
+}
+
+onMounted(() => {
+  loadSavedBlocks();
+});
 
 // Map lucide icon names to components
 const iconMap: Record<string, LucideIcon> = {
@@ -210,35 +243,70 @@ const filteredCategories = computed(() => {
 <template>
   <div class="block-palette">
     <div class="palette-header">
-      <h4>Widgets</h4>
-    </div>
-    <div class="palette-search">
-      <a-input
-        v-model:value="searchQuery"
-        placeholder="Search widgets..."
-        size="small"
-        allow-clear
-      >
-        <template #prefix><Search :size="14" class="text-gray-400" /></template>
-      </a-input>
-    </div>
-    <div class="palette-content">
-      <div v-for="category in filteredCategories" :key="category.name" class="block-category">
-        <div class="category-label">{{ category.name }}</div>
-        <div class="category-blocks">
-          <button
-            v-for="block in category.blocks"
-            :key="block.name"
-            class="block-item"
-            :title="block.description"
-            @click="block.action"
-          >
-            <component :is="block.icon" :size="18" />
-            <span class="block-name">{{ block.name }}</span>
-          </button>
-        </div>
+      <div class="palette-tabs">
+        <button :class="['palette-tab', activeTab === 'widgets' && 'active']" @click="activeTab = 'widgets'">Widgets</button>
+        <button :class="['palette-tab', activeTab === 'saved' && 'active']" @click="activeTab = 'saved'; loadSavedBlocks()">Saved</button>
       </div>
     </div>
+
+    <!-- Widgets Tab -->
+    <template v-if="activeTab === 'widgets'">
+      <div class="palette-search">
+        <a-input
+          v-model:value="searchQuery"
+          placeholder="Search widgets..."
+          size="small"
+          allow-clear
+        >
+          <template #prefix><Search :size="14" class="text-gray-400" /></template>
+        </a-input>
+      </div>
+      <div class="palette-content">
+        <div v-for="category in filteredCategories" :key="category.name" class="block-category">
+          <div class="category-label">{{ category.name }}</div>
+          <div class="category-blocks">
+            <button
+              v-for="block in category.blocks"
+              :key="block.name"
+              class="block-item"
+              :title="block.description"
+              @click="block.action"
+            >
+              <component :is="block.icon" :size="18" />
+              <span class="block-name">{{ block.name }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Saved Blocks Tab -->
+    <template v-else>
+      <div class="palette-content">
+        <a-spin :spinning="loadingSaved" size="small">
+          <div v-if="!savedBlocks.length && !loadingSaved" class="saved-empty">
+            <Bookmark :size="24" class="text-gray-300 mx-auto mb-2" />
+            <p class="text-xs text-gray-400">No saved blocks yet</p>
+            <p class="text-[10px] text-gray-300">Select content in the editor and click "Save as Block"</p>
+          </div>
+          <div v-else class="saved-blocks-list">
+            <button
+              v-for="block in savedBlocks"
+              :key="block.id"
+              class="saved-block-item"
+              :title="block.name"
+              @click="insertSavedBlock(block)"
+            >
+              <Bookmark :size="14" class="text-blue-400 flex-shrink-0" />
+              <div class="saved-block-info">
+                <span class="saved-block-name">{{ block.name }}</span>
+                <span v-if="block.category && block.category !== 'general'" class="saved-block-cat">{{ block.category }}</span>
+              </div>
+            </button>
+          </div>
+        </a-spin>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -253,16 +321,31 @@ const filteredCategories = computed(() => {
   overflow: hidden;
 }
 .palette-header {
-  padding: 12px 16px 8px;
+  padding: 8px 8px 0;
   border-bottom: 1px solid #e5e7eb;
 }
-.palette-header h4 {
-  margin: 0;
-  font-size: 13px;
+.palette-tabs {
+  display: flex;
+  gap: 0;
+}
+.palette-tab {
+  flex: 1;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
   font-weight: 600;
-  color: #374151;
+  color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.palette-tab:hover { color: #6b7280; }
+.palette-tab.active {
+  color: #1677ff;
+  border-bottom-color: #1677ff;
 }
 .palette-search {
   padding: 8px 12px;
@@ -312,5 +395,51 @@ const filteredCategories = computed(() => {
   font-weight: 500;
   text-align: center;
   line-height: 1.2;
+}
+
+/* Saved blocks */
+.saved-empty {
+  text-align: center;
+  padding: 32px 12px;
+}
+.saved-blocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.saved-block-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  width: 100%;
+}
+.saved-block-item:hover {
+  border-color: #1677ff;
+  background: #f0f5ff;
+}
+.saved-block-info {
+  min-width: 0;
+  flex: 1;
+}
+.saved-block-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.saved-block-cat {
+  display: block;
+  font-size: 10px;
+  color: #9ca3af;
 }
 </style>

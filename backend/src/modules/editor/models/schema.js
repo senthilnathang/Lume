@@ -29,5 +29,8 @@ export const editorSnippets = table('editor_snippets', {
   category: varchar('category', { length: 100 }).default('general'),
   icon: varchar('icon', { length: 100 }),
   shortcut: varchar('shortcut', { length: 50 }),
+  thumbnailUrl: varchar('thumbnail_url', { length: 500 }),
+  isGlobal: boolean('is_global').default(false),
+  usageCount: idCol('usage_count').default(0),
   createdBy: idCol('created_by'),
 });

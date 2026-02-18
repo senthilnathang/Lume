@@ -1971,7 +1971,171 @@ export const widgetRegistry: WidgetDef[] = [
       showPercentage: true,
     },
   },
+  // ========================================
+  // PHASE 4: 6 NEW BLOCK TYPES
+  // ========================================
+
+  {
+    type: 'carouselBlock',
+    name: 'Carousel',
+    category: 'interactive',
+    icon: 'layout-grid',
+    description: 'Image/content carousel slider',
+    attributes: [
+      {
+        key: 'slides',
+        label: 'Slides',
+        type: 'repeater',
+        section: 'content',
+        default: [],
+        children: [
+          { key: 'image', label: 'Image', type: 'image', section: 'content', default: '' },
+          { key: 'title', label: 'Title', type: 'text', section: 'content', default: '' },
+          { key: 'description', label: 'Description', type: 'textarea', section: 'content', default: '' },
+          { key: 'link', label: 'Link', type: 'url', section: 'content', default: '' },
+        ],
+      },
+      { key: 'effect', label: 'Effect', type: 'select', section: 'style', default: 'slide', options: [{ value: 'slide', label: 'Slide' }, { value: 'fade', label: 'Fade' }, { value: 'cube', label: 'Cube 3D' }] },
+      { key: 'autoplay', label: 'Autoplay', type: 'switch', section: 'style', default: true },
+      { key: 'loop', label: 'Loop', type: 'switch', section: 'style', default: true },
+      { key: 'interval', label: 'Interval (ms)', type: 'slider', section: 'style', default: 3000, min: 1000, max: 10000, step: 500 },
+      { key: 'navigation', label: 'Show Arrows', type: 'switch', section: 'style', default: true },
+      { key: 'pagination', label: 'Show Dots', type: 'switch', section: 'style', default: true },
+      { key: 'slidesPerView', label: 'Slides Per View', type: 'slider', section: 'style', default: 1, min: 1, max: 4, step: 1 },
+    ],
+    defaults: { slides: [], effect: 'slide', autoplay: true, loop: true, interval: 3000, navigation: true, pagination: true, slidesPerView: 1 },
+  },
+
+  {
+    type: 'flipBox',
+    name: 'Flip Box',
+    category: 'interactive',
+    icon: 'toggle-left',
+    description: 'Card that flips on hover to reveal back content',
+    attributes: [
+      { key: 'frontTitle', label: 'Front Title', type: 'text', section: 'content', default: 'Front Side' },
+      { key: 'frontDescription', label: 'Front Description', type: 'textarea', section: 'content', default: 'Hover to flip' },
+      { key: 'frontIcon', label: 'Front Icon', type: 'text', section: 'content', default: 'layers', helpText: 'Lucide icon name' },
+      { key: 'frontBgColor', label: 'Front Background', type: 'color', section: 'style', default: '#ffffff' },
+      { key: 'backTitle', label: 'Back Title', type: 'text', section: 'content', default: 'Back Side' },
+      { key: 'backDescription', label: 'Back Description', type: 'textarea', section: 'content', default: 'More details here' },
+      { key: 'backBgColor', label: 'Back Background', type: 'color', section: 'style', default: '#3b82f6' },
+      { key: 'backTextColor', label: 'Back Text Color', type: 'color', section: 'style', default: '#ffffff' },
+      { key: 'flipDirection', label: 'Flip Direction', type: 'select', section: 'style', default: 'horizontal', options: [{ value: 'horizontal', label: 'Horizontal' }, { value: 'vertical', label: 'Vertical' }] },
+      { key: 'height', label: 'Height (px)', type: 'slider', section: 'style', default: 280, min: 150, max: 500, step: 10 },
+      { key: 'backLinkUrl', label: 'Back Link URL', type: 'url', section: 'advanced', default: '' },
+      { key: 'backLinkText', label: 'Back Link Text', type: 'text', section: 'advanced', default: 'Learn More' },
+    ],
+    defaults: { frontTitle: 'Front Side', frontDescription: 'Hover to flip', frontIcon: 'layers', frontBgColor: '#ffffff', backTitle: 'Back Side', backDescription: 'More details here', backBgColor: '#3b82f6', backTextColor: '#ffffff', flipDirection: 'horizontal', height: 280, backLinkUrl: '', backLinkText: 'Learn More' },
+  },
+
+  {
+    type: 'animatedHeadline',
+    name: 'Animated Headline',
+    category: 'content',
+    icon: 'type',
+    description: 'Headline with rotating animated text',
+    attributes: [
+      { key: 'beforeText', label: 'Before Text', type: 'text', section: 'content', default: 'This is' },
+      { key: 'rotatingTexts', label: 'Rotating Texts', type: 'textarea', section: 'content', default: '["Amazing","Creative","Beautiful"]', helpText: 'JSON array of strings' },
+      { key: 'afterText', label: 'After Text', type: 'text', section: 'content', default: '' },
+      { key: 'effect', label: 'Animation Effect', type: 'select', section: 'style', default: 'typing', options: [{ value: 'typing', label: 'Typing' }, { value: 'fade', label: 'Fade' }, { value: 'slide', label: 'Slide' }, { value: 'clip', label: 'Clip' }, { value: 'rotate', label: 'Rotate 3D' }] },
+      { key: 'speed', label: 'Speed (ms)', type: 'slider', section: 'style', default: 2000, min: 500, max: 5000, step: 250 },
+      { key: 'tag', label: 'HTML Tag', type: 'select', section: 'content', default: 'h2', options: [{ value: 'h1', label: 'H1' }, { value: 'h2', label: 'H2' }, { value: 'h3', label: 'H3' }, { value: 'h4', label: 'H4' }] },
+      { key: 'color', label: 'Accent Color', type: 'color', section: 'style', default: '#3b82f6' },
+      { key: 'alignment', label: 'Alignment', type: 'alignment', section: 'style', default: 'center' },
+    ],
+    defaults: { beforeText: 'This is', rotatingTexts: '["Amazing","Creative","Beautiful"]', afterText: '', effect: 'typing', speed: 2000, tag: 'h2', color: '#3b82f6', alignment: 'center' },
+  },
+
+  {
+    type: 'hotspotBlock',
+    name: 'Hotspot Image',
+    category: 'media',
+    icon: 'image',
+    description: 'Image with interactive hotspot markers',
+    attributes: [
+      { key: 'image', label: 'Image', type: 'image', section: 'content', default: '' },
+      {
+        key: 'hotspots',
+        label: 'Hotspots',
+        type: 'repeater',
+        section: 'content',
+        default: [],
+        children: [
+          { key: 'x', label: 'X Position (%)', type: 'slider', section: 'content', default: 50, min: 0, max: 100, step: 1 },
+          { key: 'y', label: 'Y Position (%)', type: 'slider', section: 'content', default: 50, min: 0, max: 100, step: 1 },
+          { key: 'title', label: 'Title', type: 'text', section: 'content', default: '' },
+          { key: 'description', label: 'Description', type: 'textarea', section: 'content', default: '' },
+          { key: 'link', label: 'Link', type: 'url', section: 'content', default: '' },
+        ],
+      },
+      { key: 'tooltipStyle', label: 'Tooltip Style', type: 'select', section: 'style', default: 'dark', options: [{ value: 'dark', label: 'Dark' }, { value: 'light', label: 'Light' }, { value: 'colored', label: 'Colored' }] },
+      { key: 'pulseAnimation', label: 'Pulse Animation', type: 'switch', section: 'style', default: true },
+      { key: 'tooltipPosition', label: 'Tooltip Position', type: 'select', section: 'style', default: 'auto', options: [{ value: 'auto', label: 'Auto' }, { value: 'top', label: 'Top' }, { value: 'bottom', label: 'Bottom' }] },
+    ],
+    defaults: { image: '', hotspots: [], tooltipStyle: 'dark', pulseAnimation: true, tooltipPosition: 'auto' },
+  },
+
+  {
+    type: 'tocBlock',
+    name: 'Table of Contents',
+    category: 'utility',
+    icon: 'list',
+    description: 'Auto-generated table of contents from headings',
+    attributes: [
+      { key: 'title', label: 'Title', type: 'text', section: 'content', default: 'Table of Contents' },
+      { key: 'maxDepth', label: 'Max Heading Depth', type: 'slider', section: 'content', default: 3, min: 1, max: 6, step: 1 },
+      { key: 'displayStyle', label: 'Style', type: 'select', section: 'style', default: 'list', options: [{ value: 'list', label: 'Bullet List' }, { value: 'numbered', label: 'Numbered' }, { value: 'dots', label: 'Dot Markers' }] },
+      { key: 'sticky', label: 'Sticky Position', type: 'switch', section: 'advanced', default: false },
+      { key: 'smoothScroll', label: 'Smooth Scroll', type: 'switch', section: 'advanced', default: true },
+      { key: 'collapsible', label: 'Collapsible', type: 'switch', section: 'advanced', default: false },
+    ],
+    defaults: { title: 'Table of Contents', maxDepth: 3, displayStyle: 'list', sticky: false, smoothScroll: true, collapsible: false },
+  },
+
+  {
+    type: 'offCanvasBlock',
+    name: 'Off-Canvas Panel',
+    category: 'interactive',
+    icon: 'maximize-2',
+    description: 'Button that opens a slide-out panel',
+    attributes: [
+      { key: 'triggerText', label: 'Trigger Text', type: 'text', section: 'content', default: 'Open Panel' },
+      { key: 'triggerVariant', label: 'Trigger Style', type: 'select', section: 'style', default: 'primary', options: [{ value: 'primary', label: 'Primary' }, { value: 'outline', label: 'Outline' }, { value: 'ghost', label: 'Ghost' }] },
+      { key: 'direction', label: 'Slide Direction', type: 'select', section: 'style', default: 'right', options: [{ value: 'left', label: 'From Left' }, { value: 'right', label: 'From Right' }] },
+      { key: 'width', label: 'Panel Width (px)', type: 'slider', section: 'style', default: 400, min: 250, max: 800, step: 50 },
+      { key: 'panelTitle', label: 'Panel Title', type: 'text', section: 'content', default: 'Panel' },
+      { key: 'panelContent', label: 'Panel Content', type: 'textarea', section: 'content', default: 'Your content here' },
+      { key: 'overlayColor', label: 'Overlay Color', type: 'text', section: 'style', default: 'rgba(0,0,0,0.5)', placeholder: 'rgba(0,0,0,0.5)' },
+      { key: 'showCloseButton', label: 'Show Close Button', type: 'switch', section: 'style', default: true },
+    ],
+    defaults: { triggerText: 'Open Panel', triggerVariant: 'primary', direction: 'right', width: 400, panelTitle: 'Panel', panelContent: 'Your content here', overlayColor: 'rgba(0,0,0,0.5)', showCloseButton: true },
+  },
 ];
+
+/**
+ * Common advanced attributes — auto-injected into all widgets
+ */
+import { commonAdvancedSchema, commonDefaults } from '../extensions/shared/commonAttributes';
+
+// Auto-inject common advanced attributes into every widget
+widgetRegistry.forEach((widget) => {
+  // Add common advanced schema entries (skip duplicates)
+  const existingKeys = new Set(widget.attributes.map((a) => a.key));
+  commonAdvancedSchema.forEach((attr) => {
+    if (!existingKeys.has(attr.key)) {
+      widget.attributes.push(attr);
+    }
+  });
+
+  // Merge common defaults
+  Object.entries(commonDefaults).forEach(([key, value]) => {
+    if (!(key in widget.defaults)) {
+      widget.defaults[key] = value;
+    }
+  });
+});
 
 /**
  * Utility functions

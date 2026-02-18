@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import GoogleMapBlockView from '../components/blocks/GoogleMapBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const GoogleMapBlock = Node.create({
   name: 'googleMap',
@@ -10,6 +11,7 @@ export const GoogleMapBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       lat: { default: 37.7749 },
       lng: { default: -122.4194 },
       zoom: { default: 12 },

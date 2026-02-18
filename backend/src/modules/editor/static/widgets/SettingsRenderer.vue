@@ -1,5 +1,18 @@
 <template>
   <div class="settings-renderer">
+    <!-- Device toggle for responsive editing -->
+    <div class="device-toggle">
+      <button :class="['device-btn', activeDevice === 'desktop' && 'active']" title="Desktop" @click="activeDevice = 'desktop'">
+        <Monitor :size="14" />
+      </button>
+      <button :class="['device-btn', activeDevice === 'tablet' && 'active']" title="Tablet" @click="activeDevice = 'tablet'">
+        <Tablet :size="14" />
+      </button>
+      <button :class="['device-btn', activeDevice === 'mobile' && 'active']" title="Mobile" @click="activeDevice = 'mobile'">
+        <Smartphone :size="14" />
+      </button>
+    </div>
+
     <a-tabs v-if="visibleSections.length > 1" v-model:activeKey="activeSection" size="small">
       <a-tab-pane v-for="section in visibleSections" :key="section" :tab="sectionLabels[section]">
         <div class="settings-section">
@@ -270,7 +283,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { AlignLeft, AlignCenter, AlignRight, Trash2, Plus } from 'lucide-vue-next';
+import { AlignLeft, AlignCenter, AlignRight, Trash2, Plus, Monitor, Tablet, Smartphone } from 'lucide-vue-next';
 
 interface AttrSchema {
   key: string;
@@ -295,12 +308,50 @@ const emit = defineEmits<{
 }>();
 
 const activeSection = ref<string>('content');
+const activeDevice = ref<'desktop' | 'tablet' | 'mobile'>('desktop');
 
 const sectionLabels: Record<string, string> = {
   content: 'Content',
   style: 'Style',
   advanced: 'Advanced'
 };
+
+// Responsive overrides — stored as JSON in 'responsiveOverrides' attr
+const responsiveOverrides = computed(() => {
+  const raw = props.values.responsiveOverrides;
+  if (!raw || raw === '{}') return {};
+  try { return typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { return {}; }
+});
+
+function getEffectiveValue(key: string): any {
+  if (activeDevice.value === 'desktop') return props.values[key];
+  const overrides = responsiveOverrides.value[activeDevice.value] || {};
+  return key in overrides ? overrides[key] : props.values[key];
+}
+
+function isOverridden(key: string): boolean {
+  if (activeDevice.value === 'desktop') return false;
+  const overrides = responsiveOverrides.value[activeDevice.value] || {};
+  return key in overrides;
+}
+
+// Style-section attrs that support responsive overrides
+const responsiveKeys = new Set([
+  'alignment', 'fontSize', 'paddingTop', 'paddingBottom', 'maxWidth',
+  'gap', 'columns', 'width', 'height', 'iconSize', 'size',
+]);
+
+function handleResponsiveChange(key: string, value: any) {
+  if (activeDevice.value === 'desktop') {
+    emit('update', key, value);
+    return;
+  }
+  // Store as responsive override
+  const current = { ...responsiveOverrides.value };
+  if (!current[activeDevice.value]) current[activeDevice.value] = {};
+  current[activeDevice.value][key] = value;
+  emit('update', 'responsiveOverrides', JSON.stringify(current));
+}
 
 const sectionAttributes = computed(() => {
   const sections: Record<string, AttrSchema[]> = {
@@ -309,7 +360,11 @@ const sectionAttributes = computed(() => {
     advanced: []
   };
 
+  // Internal attrs managed programmatically — hide from UI
+  const hiddenKeys = new Set(['responsiveOverrides', 'displayConditions']);
+
   props.attributes.forEach(attr => {
+    if (hiddenKeys.has(attr.key)) return;
     if (sections[attr.section]) {
       sections[attr.section].push(attr);
     }
@@ -371,6 +426,40 @@ const handleRepeaterChange = (key: string, index: number, childKey: string, valu
 <style scoped>
 .settings-renderer {
   width: 100%;
+}
+
+.device-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 0 8px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 4px;
+}
+
+.device-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #fff;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.device-btn:hover {
+  border-color: #4096ff;
+  color: #4096ff;
+}
+
+.device-btn.active {
+  border-color: #4096ff;
+  background: #e6f4ff;
+  color: #4096ff;
 }
 
 .settings-section {

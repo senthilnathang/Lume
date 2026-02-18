@@ -31,3 +31,14 @@ export { SocialShareBlock } from './SocialShareBlock'
 export { PostsGridBlock } from './PostsGridBlock'
 export { IconListBlock } from './IconListBlock'
 export { ProgressBarBlock } from './ProgressBarBlock'
+
+// Phase 4: 6 new block types
+export { CarouselBlock } from './CarouselBlock'
+export { FlipBoxBlock } from './FlipBoxBlock'
+export { AnimatedHeadlineBlock } from './AnimatedHeadlineBlock'
+export { HotspotBlock } from './HotspotBlock'
+export { TOCBlock } from './TOCBlock'
+export { OffCanvasBlock } from './OffCanvasBlock'
+
+// Inline nodes
+export { DynamicTagBlock } from './DynamicTagBlock'

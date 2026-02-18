@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import IconListBlockView from '../components/blocks/IconListBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const IconListBlock = Node.create({
   name: 'iconList',
@@ -10,6 +11,7 @@ export const IconListBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       items: { default: [] },
       iconColor: { default: '#3b82f6' },
       iconSize: { default: 20 },

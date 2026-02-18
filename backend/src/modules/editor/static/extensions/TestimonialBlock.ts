@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TestimonialBlockView from '../components/blocks/TestimonialBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const TestimonialBlock = Node.create({
   name: 'testimonial',
@@ -10,6 +11,7 @@ export const TestimonialBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       quote: { default: 'This is an amazing product!' },
       authorName: { default: 'Jane Smith' },
       authorRole: { default: 'CEO, Company' },

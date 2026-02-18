@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import SocialShareBlockView from '../components/blocks/SocialShareBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const SocialShareBlock = Node.create({
   name: 'socialShare',
@@ -10,6 +11,7 @@ export const SocialShareBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       platforms: { default: [] },
       style: { default: 'icon' }, // icon, button, icon-text
       size: { default: 'md' }, // sm, md, lg
