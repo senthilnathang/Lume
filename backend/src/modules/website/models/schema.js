@@ -21,6 +21,7 @@ export const websitePages = table('website_pages', {
   metaTitle: varchar('meta_title', { length: 255 }),
   metaDescription: text('meta_description'),
   metaKeywords: varchar('meta_keywords', { length: 500 }),
+  focusKeyword: varchar('focus_keyword', { length: 255 }),
   ogTitle: varchar('og_title', { length: 255 }),
   ogDescription: text('og_description'),
   ogImage: varchar('og_image', { length: 500 }),
@@ -36,6 +37,12 @@ export const websitePages = table('website_pages', {
   headScripts: text('head_scripts'),
   bodyScripts: text('body_scripts'),
   createdBy: idCol('created_by'),
+  publishAt: timestamp('publish_at'),
+  expireAt: timestamp('expire_at'),
+  visibility: varchar('visibility', { length: 20 }).default('public'),
+  passwordHash: varchar('password_hash', { length: 255 }),
+  lockedBy: idCol('locked_by'),
+  lockedAt: timestamp('locked_at'),
 });
 
 /**
@@ -64,6 +71,7 @@ export const websiteMenuItems = table('website_menu_items', {
   isActive: boolean('is_active').default(true),
   cssClass: varchar('css_class', { length: 255 }),
   description: text('description'),
+  megaMenuContent: longtext('mega_menu_content').default(null),
 });
 
 /**
@@ -126,11 +134,13 @@ export const websiteFormSubmissions = table('website_form_submissions', {
 
 /**
  * Website Theme Templates - Custom header/footer/sidebar templates
+ * Supported type values: 'header', 'footer', 'sidebar',
+ * 'single-post', 'archive', 'error-404', 'search-results'
  */
 export const websiteThemeTemplates = table('website_theme_templates', {
   ...baseColumns(),
   name: varchar('name', { length: 255 }).notNull(),
-  type: varchar('type', { length: 20 }).default('header'),
+  type: varchar('type', { length: 50 }).default('header'),
   content: longtext('content'),
   contentHtml: longtext('content_html'),
   conditions: longtext('conditions'),
@@ -164,4 +174,80 @@ export const websiteSettings = table('website_settings', {
   key: varchar('key', { length: 100 }).notNull(),
   value: text('value'),
   type: varchar('type', { length: 20 }).default('string'),
+});
+
+/**
+ * Website Custom Fonts - Uploaded font files
+ */
+export const websiteCustomFonts = table('website_custom_fonts', {
+  ...baseColumns(),
+  name: varchar('name', { length: 255 }).notNull(),
+  family: varchar('family', { length: 255 }).notNull(),
+  weight: idCol('weight').default(400),
+  style: varchar('style', { length: 20 }).default('normal'),
+  fileUrl: varchar('file_url', { length: 500 }).notNull(),
+  format: varchar('format', { length: 20 }).default('woff2'),
+});
+
+/**
+ * Website Custom Icons - Uploaded SVG icons
+ */
+export const websiteCustomIcons = table('website_custom_icons', {
+  ...baseColumns(),
+  name: varchar('name', { length: 255 }).notNull(),
+  setName: varchar('set_name', { length: 100 }).default('custom'),
+  svgContent: longtext('svg_content').notNull(),
+  tags: varchar('tags', { length: 500 }),
+});
+
+/**
+ * Website Redirects - URL redirect rules
+ */
+export const websiteRedirects = table('website_redirects', {
+  ...baseColumns(),
+  ...withSoftDelete(),
+  sourcePath: varchar('source_path', { length: 500 }).notNull(),
+  targetPath: varchar('target_path', { length: 500 }).notNull(),
+  statusCode: int('status_code').default(301),
+  hits: int('hits').default(0),
+  isActive: boolean('is_active').default(true),
+});
+
+/**
+ * Website Categories - Hierarchical categories for pages
+ */
+export const websiteCategories = table('website_categories', {
+  ...baseColumns(),
+  ...withSoftDelete(),
+  name: varchar('name', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).notNull(),
+  description: text('description'),
+  parentId: idCol('parent_id'),
+  sequence: idCol('sequence').default(0),
+});
+
+/**
+ * Website Tags - Flat tags for pages
+ */
+export const websiteTags = table('website_tags', {
+  ...baseColumns(),
+  ...withSoftDelete(),
+  name: varchar('name', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).notNull(),
+});
+
+/**
+ * Website Page Categories - M2M pivot
+ */
+export const websitePageCategories = table('website_page_categories', {
+  pageId: idCol('page_id').notNull(),
+  categoryId: idCol('category_id').notNull(),
+});
+
+/**
+ * Website Page Tags - M2M pivot
+ */
+export const websitePageTags = table('website_page_tags', {
+  pageId: idCol('page_id').notNull(),
+  tagId: idCol('tag_id').notNull(),
 });

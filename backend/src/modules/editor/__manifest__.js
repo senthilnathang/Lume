@@ -25,8 +25,18 @@ export default {
   services: ['services/editor.service.js'],
 
   frontend: {
-    views: ['views/templates.vue'],
-    menus: []
+    views: ['views/templates.vue', 'views/widget-manager.vue'],
+    menus: [
+      {
+        name: 'Editor',
+        icon: 'lucide:layout',
+        sequence: 90,
+        children: [
+          { name: 'Templates', path: '/settings/editor/templates', icon: 'lucide:file-text', sequence: 1 },
+          { name: 'Widget Manager', path: '/editor/widget-manager', icon: 'lucide:puzzle', sequence: 2 },
+        ],
+      },
+    ],
   },
 
   permissions: [

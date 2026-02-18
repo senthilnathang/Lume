@@ -25,6 +25,11 @@ export const commonTipTapAttributes = {
   animationDuration: { default: 600 },
   responsiveOverrides: { default: '{}' },
   displayConditions: { default: '{}' },
+  motionFx: { default: '{}' },
+  stickyPosition: { default: 'none' },
+  stickyOffset: { default: 0 },
+  stickyZIndex: { default: 100 },
+  interactions: { default: '[]' },
 };
 
 /**
@@ -94,6 +99,28 @@ export const commonAdvancedSchema: AttrSchema[] = [
     max: 2000,
     step: 100,
   },
+  {
+    key: 'stickyPosition',
+    label: 'Sticky Position',
+    type: 'select',
+    section: 'advanced',
+    default: 'none',
+    options: [
+      { value: 'none', label: 'None' },
+      { value: 'top', label: 'Stick to Top' },
+      { value: 'bottom', label: 'Stick to Bottom' },
+    ],
+  },
+  {
+    key: 'stickyOffset',
+    label: 'Sticky Offset (px)',
+    type: 'slider',
+    section: 'advanced',
+    default: 0,
+    min: 0,
+    max: 200,
+    step: 5,
+  },
 ];
 
 /**
@@ -108,4 +135,9 @@ export const commonDefaults: Record<string, any> = {
   animationDuration: 600,
   responsiveOverrides: '{}',
   displayConditions: '{}',
+  motionFx: '{}',
+  stickyPosition: 'none',
+  stickyOffset: 0,
+  stickyZIndex: 100,
+  interactions: '[]',
 };

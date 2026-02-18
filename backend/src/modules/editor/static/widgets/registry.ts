@@ -16,7 +16,16 @@ export type AttrType =
   | 'alignment'
   | 'spacing'
   | 'repeater'
-  | 'date';
+  | 'date'
+  // Phase 13 — Advanced control types
+  | 'gradient'       // Linear/radial gradient builder
+  | 'typography'     // Font family + size + weight + style + line-height + tracking
+  | 'border'         // Border width + style + color + radius
+  | 'shadow'         // Box-shadow builder with preview
+  | 'icon'           // Icon picker modal (lucide / custom SVG)
+  | 'link-builder'   // URL + title + target + nofollow
+  | 'font'           // Google/custom font picker
+  | 'code-editor';   // Monospace textarea with expand toggle
 
 export type AttrSection = 'content' | 'style' | 'advanced';
 
@@ -38,9 +47,11 @@ export interface AttrSchema {
   children?: AttrSchema[];
   placeholder?: string;
   helpText?: string;
+  /** Conditionally show this field only when another field has a specific value */
+  dependsOn?: { key: string; value: any | any[] };
 }
 
-export type WidgetCategory = 'layout' | 'content' | 'media' | 'interactive' | 'commercial' | 'utility' | 'social';
+export type WidgetCategory = 'layout' | 'content' | 'media' | 'interactive' | 'commercial' | 'utility' | 'social' | 'navigation' | 'global';
 
 export interface WidgetDef {
   type: string; // TipTap node name
@@ -70,11 +81,33 @@ export const widgetRegistry: WidgetDef[] = [
     isContainer: true,
     attributes: [
       {
+        key: 'backgroundType',
+        label: 'Background Type',
+        type: 'select',
+        section: 'style',
+        default: 'solid',
+        options: [
+          { value: 'solid', label: 'Solid Color' },
+          { value: 'gradient', label: 'Gradient' },
+          { value: 'image', label: 'Image' },
+          { value: 'none', label: 'None' },
+        ],
+      },
+      {
         key: 'backgroundColor',
         label: 'Background Color',
         type: 'color',
         section: 'style',
         default: 'transparent',
+        dependsOn: { key: 'backgroundType', value: 'solid' },
+      },
+      {
+        key: 'backgroundGradient',
+        label: 'Background Gradient',
+        type: 'gradient',
+        section: 'style',
+        default: '',
+        dependsOn: { key: 'backgroundType', value: 'gradient' },
       },
       {
         key: 'backgroundImage',
@@ -82,6 +115,7 @@ export const widgetRegistry: WidgetDef[] = [
         type: 'image',
         section: 'style',
         default: '',
+        dependsOn: { key: 'backgroundType', value: 'image' },
       },
       {
         key: 'paddingTop',
@@ -279,12 +313,11 @@ export const widgetRegistry: WidgetDef[] = [
         placeholder: 'Enter button text',
       },
       {
-        key: 'url',
-        label: 'Link URL',
-        type: 'url',
+        key: 'link',
+        label: 'Link',
+        type: 'link-builder',
         section: 'content',
         default: '',
-        placeholder: 'https://example.com',
       },
       {
         key: 'variant',
@@ -325,14 +358,30 @@ export const widgetRegistry: WidgetDef[] = [
         section: 'style',
         default: false,
       },
+      {
+        key: 'border',
+        label: 'Border',
+        type: 'border',
+        section: 'style',
+        default: '',
+      },
+      {
+        key: 'shadow',
+        label: 'Shadow',
+        type: 'shadow',
+        section: 'style',
+        default: '',
+      },
     ],
     defaults: {
       text: 'Click Me',
-      url: '',
+      link: '',
       variant: 'primary',
       size: 'md',
       alignment: 'left',
       fullWidth: false,
+      border: '',
+      shadow: '',
     },
   },
 
@@ -446,7 +495,7 @@ export const widgetRegistry: WidgetDef[] = [
       {
         key: 'content',
         label: 'HTML Content',
-        type: 'textarea',
+        type: 'code-editor',
         section: 'content',
         default: '',
         placeholder: '<div>Your HTML here</div>',
@@ -2112,6 +2161,479 @@ export const widgetRegistry: WidgetDef[] = [
     ],
     defaults: { triggerText: 'Open Panel', triggerVariant: 'primary', direction: 'right', width: 400, panelTitle: 'Panel', panelContent: 'Your content here', overlayColor: 'rgba(0,0,0,0.5)', showCloseButton: true },
   },
+
+  // ========================================
+  // PHASE 9: 15 NEW CONTENT BLOCK WIDGETS
+  // ========================================
+
+  {
+    type: 'tabsBlock',
+    name: 'Tabs',
+    category: 'interactive',
+    icon: 'layout-list',
+    description: 'Tabbed content panels',
+    attributes: [
+      {
+        key: 'tabs',
+        label: 'Tabs',
+        type: 'repeater',
+        section: 'content',
+        default: [],
+        children: [
+          { key: 'title', label: 'Title', type: 'text', section: 'content', default: '' },
+          { key: 'content', label: 'Content', type: 'textarea', section: 'content', default: '' },
+        ],
+      },
+      { key: 'defaultActive', label: 'Default Active Tab', type: 'number', section: 'content', default: 0 },
+      { key: 'style', label: 'Style', type: 'select', section: 'style', default: 'default', options: [{ value: 'default', label: 'Default' }, { value: 'pills', label: 'Pills' }, { value: 'underline', label: 'Underline' }] },
+      { key: 'position', label: 'Tab Position', type: 'select', section: 'style', default: 'top', options: [{ value: 'top', label: 'Top' }, { value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }] },
+    ],
+    defaults: { tabs: '[]', defaultActive: 0, style: 'default', position: 'top' },
+  },
+
+  {
+    type: 'accordionBlock',
+    name: 'Accordion',
+    category: 'interactive',
+    icon: 'chevrons-up-down',
+    description: 'Expandable content sections',
+    attributes: [
+      {
+        key: 'items',
+        label: 'Items',
+        type: 'repeater',
+        section: 'content',
+        default: [],
+        children: [
+          { key: 'title', label: 'Title', type: 'text', section: 'content', default: '' },
+          { key: 'content', label: 'Content', type: 'textarea', section: 'content', default: '' },
+          { key: 'icon', label: 'Icon', type: 'text', section: 'content', default: '' },
+        ],
+      },
+      { key: 'allowMultiple', label: 'Allow Multiple Open', type: 'switch', section: 'content', default: false },
+      { key: 'defaultOpen', label: 'Default Open Index', type: 'number', section: 'content', default: 0 },
+      { key: 'style', label: 'Style', type: 'select', section: 'style', default: 'default', options: [{ value: 'default', label: 'Default' }, { value: 'bordered', label: 'Bordered' }, { value: 'minimal', label: 'Minimal' }] },
+    ],
+    defaults: { items: '[]', allowMultiple: false, defaultOpen: 0, style: 'default' },
+  },
+
+  {
+    type: 'counterBlock',
+    name: 'Counter',
+    category: 'content',
+    icon: 'hash',
+    description: 'Animated number counter',
+    attributes: [
+      { key: 'startValue', label: 'Start Value', type: 'number', section: 'content', default: 0 },
+      { key: 'endValue', label: 'End Value', type: 'number', section: 'content', default: 100 },
+      { key: 'prefix', label: 'Prefix', type: 'text', section: 'content', default: '', placeholder: 'e.g., $' },
+      { key: 'suffix', label: 'Suffix', type: 'text', section: 'content', default: '', placeholder: 'e.g., +, %' },
+      { key: 'duration', label: 'Duration (ms)', type: 'slider', section: 'style', default: 2000, min: 500, max: 5000, step: 250 },
+      { key: 'separator', label: 'Thousand Separator', type: 'switch', section: 'style', default: true },
+      { key: 'tag', label: 'HTML Tag', type: 'select', section: 'style', default: 'h2', options: [{ value: 'h1', label: 'H1' }, { value: 'h2', label: 'H2' }, { value: 'h3', label: 'H3' }, { value: 'h4', label: 'H4' }, { value: 'span', label: 'Span' }] },
+      { key: 'color', label: 'Color', type: 'color', section: 'style', default: '#1677ff' },
+    ],
+    defaults: { startValue: 0, endValue: 100, prefix: '', suffix: '', duration: 2000, separator: true, tag: 'h2', color: '#1677ff' },
+  },
+
+  {
+    type: 'starRatingBlock',
+    name: 'Star Rating',
+    category: 'content',
+    icon: 'star',
+    description: 'Visual star rating display',
+    attributes: [
+      { key: 'rating', label: 'Rating', type: 'slider', section: 'content', default: 4.5, min: 0, max: 5, step: 0.5 },
+      { key: 'scale', label: 'Scale', type: 'slider', section: 'content', default: 5, min: 3, max: 10, step: 1 },
+      { key: 'icon', label: 'Icon', type: 'select', section: 'style', default: 'star', options: [{ value: 'star', label: 'Star' }] },
+      { key: 'size', label: 'Size (px)', type: 'slider', section: 'style', default: 24, min: 12, max: 48, step: 2 },
+      { key: 'color', label: 'Color', type: 'color', section: 'style', default: '#f59e0b' },
+      { key: 'title', label: 'Title', type: 'text', section: 'content', default: '', placeholder: 'Optional title above stars' },
+    ],
+    defaults: { rating: 4.5, scale: 5, icon: 'star', size: 24, color: '#f59e0b', title: '' },
+  },
+
+  {
+    type: 'blockquoteBlock',
+    name: 'Blockquote',
+    category: 'content',
+    icon: 'quote',
+    description: 'Styled quote with author info',
+    attributes: [
+      { key: 'content', label: 'Quote Text', type: 'textarea', section: 'content', default: 'Quote text...', placeholder: 'Enter the quote' },
+      { key: 'author', label: 'Author', type: 'text', section: 'content', default: '', placeholder: 'Author name' },
+      { key: 'authorTitle', label: 'Author Title', type: 'text', section: 'content', default: '', placeholder: 'Role or title' },
+      { key: 'authorImage', label: 'Author Image', type: 'image', section: 'content', default: '' },
+      { key: 'borderColor', label: 'Border Color', type: 'color', section: 'style', default: '#1677ff' },
+      { key: 'style', label: 'Style', type: 'select', section: 'style', default: 'default', options: [{ value: 'default', label: 'Default' }, { value: 'modern', label: 'Modern' }, { value: 'minimal', label: 'Minimal' }] },
+    ],
+    defaults: { content: 'Quote text...', author: '', authorTitle: '', authorImage: '', borderColor: '#1677ff', style: 'default' },
+  },
+
+  {
+    type: 'codeHighlightBlock',
+    name: 'Code Highlight',
+    category: 'utility',
+    icon: 'code-2',
+    description: 'Syntax-highlighted code block',
+    attributes: [
+      { key: 'code', label: 'Code', type: 'textarea', section: 'content', default: '', placeholder: 'Paste your code here' },
+      { key: 'language', label: 'Language', type: 'select', section: 'content', default: 'javascript', options: [{ value: 'javascript', label: 'JavaScript' }, { value: 'typescript', label: 'TypeScript' }, { value: 'html', label: 'HTML' }, { value: 'css', label: 'CSS' }, { value: 'python', label: 'Python' }, { value: 'php', label: 'PHP' }, { value: 'bash', label: 'Bash' }, { value: 'json', label: 'JSON' }, { value: 'sql', label: 'SQL' }] },
+      { key: 'theme', label: 'Theme', type: 'select', section: 'style', default: 'dark', options: [{ value: 'dark', label: 'Dark' }, { value: 'light', label: 'Light' }] },
+      { key: 'lineNumbers', label: 'Line Numbers', type: 'switch', section: 'style', default: true },
+      { key: 'copyButton', label: 'Copy Button', type: 'switch', section: 'style', default: true },
+      { key: 'maxHeight', label: 'Max Height (px)', type: 'slider', section: 'style', default: 400, min: 100, max: 800, step: 50 },
+    ],
+    defaults: { code: '', language: 'javascript', theme: 'dark', lineNumbers: true, copyButton: true, maxHeight: 400 },
+  },
+
+  {
+    type: 'audioBlock',
+    name: 'Audio Player',
+    category: 'media',
+    icon: 'volume-2',
+    description: 'HTML5 audio player with custom UI',
+    attributes: [
+      { key: 'src', label: 'Audio URL', type: 'url', section: 'content', default: '', placeholder: 'Enter audio file URL' },
+      { key: 'title', label: 'Title', type: 'text', section: 'content', default: '', placeholder: 'Track title' },
+      { key: 'artist', label: 'Artist', type: 'text', section: 'content', default: '', placeholder: 'Artist name' },
+      { key: 'cover', label: 'Cover Image', type: 'image', section: 'content', default: '' },
+      { key: 'autoplay', label: 'Autoplay', type: 'switch', section: 'advanced', default: false },
+      { key: 'loop', label: 'Loop', type: 'switch', section: 'advanced', default: false },
+    ],
+    defaults: { src: '', title: '', artist: '', cover: '', autoplay: false, loop: false },
+  },
+
+  {
+    type: 'beforeAfterBlock',
+    name: 'Before/After',
+    category: 'media',
+    icon: 'columns-2',
+    description: 'Image comparison slider',
+    attributes: [
+      { key: 'beforeImage', label: 'Before Image', type: 'image', section: 'content', default: '' },
+      { key: 'afterImage', label: 'After Image', type: 'image', section: 'content', default: '' },
+      { key: 'beforeLabel', label: 'Before Label', type: 'text', section: 'content', default: 'Before' },
+      { key: 'afterLabel', label: 'After Label', type: 'text', section: 'content', default: 'After' },
+      { key: 'orientation', label: 'Orientation', type: 'select', section: 'style', default: 'horizontal', options: [{ value: 'horizontal', label: 'Horizontal' }, { value: 'vertical', label: 'Vertical' }] },
+      { key: 'handleColor', label: 'Handle Color', type: 'color', section: 'style', default: '#ffffff' },
+      { key: 'handleWidth', label: 'Handle Width (px)', type: 'slider', section: 'style', default: 4, min: 2, max: 10, step: 1 },
+      { key: 'startPosition', label: 'Start Position (%)', type: 'slider', section: 'style', default: 50, min: 10, max: 90, step: 5 },
+    ],
+    defaults: { beforeImage: '', afterImage: '', beforeLabel: 'Before', afterLabel: 'After', orientation: 'horizontal', handleColor: '#ffffff', handleWidth: 4, startPosition: 50 },
+  },
+
+  {
+    type: 'lottieBlock',
+    name: 'Lottie Animation',
+    category: 'media',
+    icon: 'sparkles',
+    description: 'Lottie JSON animation player',
+    attributes: [
+      { key: 'jsonUrl', label: 'Animation JSON URL', type: 'url', section: 'content', default: '', placeholder: 'URL to Lottie JSON file' },
+      { key: 'trigger', label: 'Trigger', type: 'select', section: 'content', default: 'none', options: [{ value: 'none', label: 'Auto / None' }, { value: 'hover', label: 'On Hover' }, { value: 'scroll', label: 'On Scroll' }, { value: 'viewport', label: 'In Viewport' }] },
+      { key: 'loop', label: 'Loop', type: 'switch', section: 'style', default: true },
+      { key: 'speed', label: 'Speed', type: 'slider', section: 'style', default: 1, min: 0.1, max: 3, step: 0.1 },
+      { key: 'width', label: 'Width', type: 'text', section: 'style', default: '100%', placeholder: 'e.g., 100%, 300px' },
+      { key: 'height', label: 'Height', type: 'text', section: 'style', default: '300px', placeholder: 'e.g., 300px, auto' },
+      { key: 'autoplay', label: 'Autoplay', type: 'switch', section: 'style', default: true },
+    ],
+    defaults: { jsonUrl: '', trigger: 'none', loop: true, speed: 1, width: '100%', height: '300px', autoplay: true },
+  },
+
+  {
+    type: 'navMenuBlock',
+    name: 'Navigation Menu',
+    category: 'navigation',
+    icon: 'menu',
+    description: 'Dynamic navigation menu from website menus',
+    attributes: [
+      { key: 'menuLocation', label: 'Menu Location', type: 'text', section: 'content', default: 'main', placeholder: 'e.g., main, footer' },
+      { key: 'layout', label: 'Layout', type: 'select', section: 'style', default: 'horizontal', options: [{ value: 'horizontal', label: 'Horizontal' }, { value: 'vertical', label: 'Vertical' }, { value: 'dropdown', label: 'Dropdown' }] },
+      { key: 'hamburgerBreakpoint', label: 'Hamburger Breakpoint (px)', type: 'slider', section: 'style', default: 768, min: 480, max: 1200, step: 40 },
+      { key: 'mobileLayout', label: 'Mobile Layout', type: 'select', section: 'style', default: 'dropdown', options: [{ value: 'dropdown', label: 'Dropdown' }, { value: 'fullscreen', label: 'Fullscreen' }, { value: 'offcanvas', label: 'Off-Canvas' }] },
+      { key: 'fontSize', label: 'Font Size (px)', type: 'slider', section: 'style', default: 14, min: 12, max: 20, step: 1 },
+      { key: 'color', label: 'Text Color', type: 'color', section: 'style', default: '#374151' },
+      { key: 'hoverColor', label: 'Hover Color', type: 'color', section: 'style', default: '#1677ff' },
+    ],
+    defaults: { menuLocation: 'main', layout: 'horizontal', hamburgerBreakpoint: 768, mobileLayout: 'dropdown', fontSize: 14, color: '#374151', hoverColor: '#1677ff' },
+  },
+
+  {
+    type: 'breadcrumbsBlock',
+    name: 'Breadcrumbs',
+    category: 'navigation',
+    icon: 'chevron-right',
+    description: 'Breadcrumb navigation trail',
+    attributes: [
+      { key: 'separator', label: 'Separator', type: 'text', section: 'content', default: '/', placeholder: 'e.g., /, >, -' },
+      { key: 'homeLabel', label: 'Home Label', type: 'text', section: 'content', default: 'Home' },
+      { key: 'showCurrent', label: 'Show Current Page', type: 'switch', section: 'content', default: true },
+      { key: 'fontSize', label: 'Font Size (px)', type: 'slider', section: 'style', default: 14, min: 10, max: 20, step: 1 },
+      { key: 'color', label: 'Text Color', type: 'color', section: 'style', default: '#6b7280' },
+    ],
+    defaults: { separator: '/', homeLabel: 'Home', showCurrent: true, fontSize: 14, color: '#6b7280' },
+  },
+
+  {
+    type: 'searchFormBlock',
+    name: 'Search Form',
+    category: 'utility',
+    icon: 'search',
+    description: 'Site search form',
+    attributes: [
+      { key: 'placeholder', label: 'Placeholder', type: 'text', section: 'content', default: 'Search...', placeholder: 'Search placeholder text' },
+      { key: 'style', label: 'Style', type: 'select', section: 'style', default: 'default', options: [{ value: 'default', label: 'Default' }, { value: 'rounded', label: 'Rounded' }, { value: 'minimal', label: 'Minimal' }] },
+      { key: 'buttonText', label: 'Button Text', type: 'text', section: 'content', default: 'Search' },
+      { key: 'showButton', label: 'Show Button', type: 'switch', section: 'style', default: true },
+    ],
+    defaults: { placeholder: 'Search...', style: 'default', buttonText: 'Search', showButton: true },
+  },
+
+  {
+    type: 'slidesBlock',
+    name: 'Hero Slides',
+    category: 'media',
+    icon: 'presentation',
+    description: 'Full-screen hero slides with overlay',
+    attributes: [
+      {
+        key: 'slides',
+        label: 'Slides',
+        type: 'repeater',
+        section: 'content',
+        default: [],
+        children: [
+          { key: 'bgImage', label: 'Background Image', type: 'image', section: 'content', default: '' },
+          { key: 'heading', label: 'Heading', type: 'text', section: 'content', default: '' },
+          { key: 'description', label: 'Description', type: 'textarea', section: 'content', default: '' },
+          { key: 'buttonText', label: 'Button Text', type: 'text', section: 'content', default: '' },
+          { key: 'buttonUrl', label: 'Button URL', type: 'url', section: 'content', default: '' },
+        ],
+      },
+      { key: 'autoplay', label: 'Autoplay', type: 'switch', section: 'style', default: true },
+      { key: 'effect', label: 'Effect', type: 'select', section: 'style', default: 'fade', options: [{ value: 'fade', label: 'Fade' }, { value: 'slide', label: 'Slide' }] },
+      { key: 'height', label: 'Height (px)', type: 'slider', section: 'style', default: 500, min: 300, max: 900, step: 50 },
+      { key: 'overlayColor', label: 'Overlay Color', type: 'text', section: 'style', default: 'rgba(0,0,0,0.3)', placeholder: 'rgba(0,0,0,0.3)' },
+      { key: 'interval', label: 'Interval (ms)', type: 'slider', section: 'style', default: 5000, min: 2000, max: 10000, step: 500 },
+    ],
+    defaults: { slides: '[]', autoplay: true, effect: 'fade', height: 500, overlayColor: 'rgba(0,0,0,0.3)', interval: 5000 },
+  },
+
+  {
+    type: 'progressTrackerBlock',
+    name: 'Reading Progress',
+    category: 'utility',
+    icon: 'loader',
+    description: 'Scroll-based reading progress bar',
+    attributes: [
+      { key: 'height', label: 'Height (px)', type: 'slider', section: 'style', default: 4, min: 2, max: 12, step: 1 },
+      { key: 'color', label: 'Color', type: 'color', section: 'style', default: '#1677ff' },
+      { key: 'backgroundColor', label: 'Background Color', type: 'color', section: 'style', default: '#e5e7eb' },
+      { key: 'position', label: 'Position', type: 'select', section: 'style', default: 'top', options: [{ value: 'top', label: 'Top' }, { value: 'bottom', label: 'Bottom' }] },
+      { key: 'style', label: 'Style', type: 'select', section: 'style', default: 'bar', options: [{ value: 'bar', label: 'Solid Bar' }, { value: 'gradient', label: 'Gradient' }] },
+    ],
+    defaults: { height: 4, color: '#1677ff', backgroundColor: '#e5e7eb', position: 'top', style: 'bar' },
+  },
+
+  {
+    type: 'floatingButtonsBlock',
+    name: 'Floating Buttons',
+    category: 'interactive',
+    icon: 'message-circle',
+    description: 'Fixed-position action buttons',
+    attributes: [
+      {
+        key: 'buttons',
+        label: 'Buttons',
+        type: 'repeater',
+        section: 'content',
+        default: [],
+        children: [
+          { key: 'type', label: 'Type', type: 'select', section: 'content', default: 'custom', options: [{ value: 'whatsapp', label: 'WhatsApp' }, { value: 'phone', label: 'Phone' }, { value: 'email', label: 'Email' }, { value: 'messenger', label: 'Messenger' }, { value: 'custom', label: 'Custom' }] },
+          { key: 'label', label: 'Label', type: 'text', section: 'content', default: '' },
+          { key: 'url', label: 'URL / Number', type: 'text', section: 'content', default: '' },
+          { key: 'icon', label: 'Icon', type: 'text', section: 'content', default: '' },
+          { key: 'color', label: 'Color', type: 'color', section: 'content', default: '#1677ff' },
+        ],
+      },
+      { key: 'position', label: 'Position', type: 'select', section: 'style', default: 'bottom-right', options: [{ value: 'bottom-right', label: 'Bottom Right' }, { value: 'bottom-left', label: 'Bottom Left' }] },
+      { key: 'style', label: 'Button Style', type: 'select', section: 'style', default: 'circle', options: [{ value: 'circle', label: 'Circle' }, { value: 'pill', label: 'Pill' }] },
+      { key: 'showLabels', label: 'Show Labels', type: 'switch', section: 'style', default: false },
+    ],
+    defaults: { buttons: '[]', position: 'bottom-right', style: 'circle', showLabels: false },
+  },
+
+  // ========================================
+  // PHASE 10: DYNAMIC CONTENT LOOP BLOCKS
+  // ========================================
+
+  {
+    type: 'loopGridBlock',
+    name: 'Loop Grid',
+    category: 'content',
+    icon: 'layout-grid',
+    description: 'Dynamic grid of pages/posts from a query',
+    attributes: [
+      {
+        key: 'query',
+        label: 'Query (JSON)',
+        type: 'textarea',
+        section: 'content',
+        default: '{}',
+        placeholder: '{"source":"all","limit":6}',
+        helpText: 'JSON query object for dynamic content',
+      },
+      {
+        key: 'columns',
+        label: 'Columns',
+        type: 'slider',
+        section: 'style',
+        default: 3,
+        min: 1,
+        max: 6,
+        step: 1,
+      },
+      {
+        key: 'gap',
+        label: 'Gap (px)',
+        type: 'slider',
+        section: 'style',
+        default: 24,
+        min: 0,
+        max: 60,
+        step: 4,
+      },
+      {
+        key: 'pagination',
+        label: 'Enable Pagination',
+        type: 'switch',
+        section: 'advanced',
+        default: false,
+      },
+    ],
+    defaults: {
+      query: '{}',
+      columns: 3,
+      gap: 24,
+      cardTemplate: '{}',
+      pagination: false,
+    },
+  },
+
+  // ========================================
+  // PHASE 11: GLOBAL WIDGET BLOCK
+  // ========================================
+
+  {
+    type: 'globalWidgetBlock',
+    name: 'Global Widget',
+    category: 'global',
+    icon: 'globe',
+    description: 'Reusable global block that syncs across all pages',
+    attributes: [
+      {
+        key: 'globalWidgetId',
+        label: 'Widget ID',
+        type: 'number',
+        section: 'content',
+        default: null,
+        placeholder: 'Select from Global tab',
+      },
+      {
+        key: 'name',
+        label: 'Widget Name',
+        type: 'text',
+        section: 'content',
+        default: 'Global Widget',
+        placeholder: 'Display name',
+      },
+    ],
+    defaults: {
+      globalWidgetId: null,
+      name: 'Global Widget',
+    },
+  },
+
+  {
+    type: 'loopCarouselBlock',
+    name: 'Loop Carousel',
+    category: 'content',
+    icon: 'gallery-horizontal',
+    description: 'Dynamic carousel of pages/posts from a query',
+    attributes: [
+      {
+        key: 'query',
+        label: 'Query (JSON)',
+        type: 'textarea',
+        section: 'content',
+        default: '{}',
+        placeholder: '{"source":"all","limit":4}',
+        helpText: 'JSON query object for dynamic content',
+      },
+      {
+        key: 'effect',
+        label: 'Slide Effect',
+        type: 'select',
+        section: 'style',
+        default: 'slide',
+        options: [
+          { value: 'slide', label: 'Slide' },
+          { value: 'fade', label: 'Fade' },
+        ],
+      },
+      {
+        key: 'autoplay',
+        label: 'Autoplay',
+        type: 'switch',
+        section: 'style',
+        default: false,
+      },
+      {
+        key: 'height',
+        label: 'Height (px)',
+        type: 'slider',
+        section: 'style',
+        default: 400,
+        min: 200,
+        max: 800,
+        step: 50,
+      },
+      {
+        key: 'pagination',
+        label: 'Show Dots',
+        type: 'switch',
+        section: 'style',
+        default: false,
+      },
+    ],
+    defaults: {
+      query: '{}',
+      effect: 'slide',
+      autoplay: false,
+      height: 400,
+      cardTemplate: '{}',
+      pagination: false,
+    },
+  },
+  // Phase 18: Chart widget
+  {
+    type: 'chartBlock',
+    name: 'Chart',
+    category: 'media',
+    icon: 'bar-chart-2',
+    description: 'Data visualization chart (bar, line, pie, doughnut)',
+    attributes: [
+      { key: 'chartType', label: 'Chart Type', type: 'select', section: 'content', default: 'bar', options: [{ value: 'bar', label: 'Bar' }, { value: 'line', label: 'Line' }, { value: 'pie', label: 'Pie' }, { value: 'doughnut', label: 'Doughnut' }] },
+      { key: 'labels', label: 'Labels (JSON array)', type: 'textarea', section: 'content', default: '["Jan","Feb","Mar","Apr","May","Jun"]', placeholder: '["Jan","Feb","Mar"]' },
+      { key: 'datasets', label: 'Datasets (JSON array)', type: 'textarea', section: 'content', default: '[{"label":"Dataset 1","data":[12,19,3,5,2,3],"backgroundColor":"#1677ff"}]' },
+      { key: 'showLegend', label: 'Show Legend', type: 'switch', section: 'style', default: true },
+      { key: 'showGrid', label: 'Show Grid', type: 'switch', section: 'style', default: true },
+      { key: 'aspectRatio', label: 'Aspect Ratio', type: 'slider', section: 'style', default: 2, min: 1, max: 4, step: 0.5 },
+      { key: 'height', label: 'Height', type: 'text', section: 'style', default: '300px', placeholder: '300px' },
+    ],
+    defaults: { chartType: 'bar', labels: '["Jan","Feb","Mar","Apr","May","Jun"]', datasets: '[{"label":"Dataset 1","data":[12,19,3,5,2,3],"backgroundColor":"#1677ff"}]', showLegend: true, showGrid: true, aspectRatio: 2, height: '300px' },
+  },
 ];
 
 /**
@@ -2159,4 +2681,6 @@ export const widgetCategories: WidgetCategory[] = [
   'commercial',
   'utility',
   'social',
+  'navigation',
+  'global',
 ];

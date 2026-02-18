@@ -80,3 +80,10 @@ export const importPage = (data: Record<string, any>) => post(`${BASE}/pages/imp
 // --- Settings ---
 export const getWebsiteSettings = () => get(`${BASE}/settings`);
 export const updateWebsiteSettings = (data: Record<string, any>) => put(`${BASE}/settings`, data);
+
+// --- Redirects ---
+export const getRedirects = (params?: Record<string, any>) => get(`${BASE}/redirects`, { params });
+export const getRedirect = (id: number) => get(`${BASE}/redirects/${id}`);
+export const createRedirect = (data: Record<string, any>) => post(`${BASE}/redirects`, data);
+export const updateRedirect = (id: number, data: Record<string, any>) => put(`${BASE}/redirects/${id}`, data);
+export const deleteRedirect = (id: number) => del(`${BASE}/redirects/${id}`);

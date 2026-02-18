@@ -42,3 +42,33 @@ export { default as BusinessHoursRender } from './BusinessHoursRender.vue';
 
 // Social
 export { default as SocialShareRender } from './SocialShareRender.vue';
+
+// Global
+export { default as GlobalWidgetRender } from './GlobalWidgetRender.vue';
+
+// Phase 9: Content blocks
+export { default as TabsRender } from './TabsRender.vue';
+export { default as AccordionRender } from './AccordionRender.vue';
+export { default as CounterRender } from './CounterRender.vue';
+export { default as StarRatingRender } from './StarRatingRender.vue';
+export { default as BlockquoteRender } from './BlockquoteRender.vue';
+export { default as CodeHighlightRender } from './CodeHighlightRender.vue';
+export { default as AudioRender } from './AudioRender.vue';
+export { default as BeforeAfterRender } from './BeforeAfterRender.vue';
+export { default as LottieRender } from './LottieRender.vue';
+export { default as NavMenuRender } from './NavMenuRender.vue';
+export { default as BreadcrumbsRender } from './BreadcrumbsRender.vue';
+export { default as SearchFormRender } from './SearchFormRender.vue';
+export { default as SlidesRender } from './SlidesRender.vue';
+export { default as ProgressTrackerRender } from './ProgressTrackerRender.vue';
+export { default as FloatingButtonsRender } from './FloatingButtonsRender.vue';
+
+// Phase 10: Dynamic content loop blocks
+export { default as LoopGridRender } from './LoopGridRender.vue';
+export { default as LoopCarouselRender } from './LoopCarouselRender.vue';
+
+// Inline nodes
+export { default as DynamicTagRender } from './DynamicTagRender.vue';
+
+// Phase 18: Chart widget
+export { default as ChartRender } from './ChartRender.vue';

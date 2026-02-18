@@ -1,0 +1,296 @@
+/**
+ * Lume Page Builder — Motion Effects & Interactions CSS
+ * Phase 8: Scroll-based motion, sticky positioning, scroll snap
+ */
+
+/* ==========================================================================
+   1. Scroll-based Motion Effects
+   Applied via JS — elements with data-motion-fx get transform/opacity updates
+   ========================================================================== */
+[data-motion-fx] {
+  will-change: transform, opacity, filter;
+  transition: none; /* JS handles frame-by-frame updates */
+}
+
+/* ==========================================================================
+   2. Sticky Positioning
+   ========================================================================== */
+.lume-sticky-top {
+  position: sticky;
+  top: var(--sticky-offset, 0px);
+  z-index: var(--sticky-z, 100);
+}
+
+.lume-sticky-bottom {
+  position: sticky;
+  bottom: var(--sticky-offset, 0px);
+  z-index: var(--sticky-z, 100);
+}
+
+/* ==========================================================================
+   3. Scroll Snap (for section blocks)
+   ========================================================================== */
+.lume-scroll-snap-container {
+  scroll-snap-type: y mandatory;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.lume-scroll-snap-start {
+  scroll-snap-align: start;
+}
+
+.lume-scroll-snap-center {
+  scroll-snap-align: center;
+}
+
+.lume-scroll-snap-end {
+  scroll-snap-align: end;
+}
+
+/* ==========================================================================
+   4. Interaction animation classes
+   Applied/removed by JS based on trigger events (hover, click, viewport)
+   ========================================================================== */
+.lume-ix-fade-in {
+  animation: lumeFadeIn 0.4s ease-out both;
+}
+
+.lume-ix-fade-out {
+  animation: lumeFadeIn 0.4s ease-out both reverse;
+}
+
+.lume-ix-slide-up {
+  animation: lumeSlideUp 0.4s ease-out both;
+}
+
+.lume-ix-slide-down {
+  animation: lumeSlideDown 0.4s ease-out both;
+}
+
+.lume-ix-zoom-in {
+  animation: lumeZoomIn 0.4s ease-out both;
+}
+
+.lume-ix-bounce {
+  animation: lumeBounceIn 0.6s ease-out both;
+}
+
+.lume-ix-shake {
+  animation: lumeShake 0.5s ease-in-out both;
+}
+
+.lume-ix-pulse {
+  animation: lumePulse 0.6s ease-in-out both;
+}
+
+.lume-ix-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lume-ix-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Additional keyframes for interactions */
+@keyframes lumeShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes lumePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* ==========================================================================
+   5. Mouse-based tilt perspective container
+   ========================================================================== */
+[data-motion-tilt] {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* ==========================================================================
+   6. Page transition overlays
+   ========================================================================== */
+.lume-page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.lume-page-transition--fade {
+  background-color: var(--transition-color, #ffffff);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lume-page-transition--fade.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.lume-page-transition--slide {
+  background-color: var(--transition-color, #ffffff);
+  transform: translateY(100%);
+  transition: transform 0.4s ease;
+}
+
+.lume-page-transition--slide.active {
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.lume-page-transition--circle {
+  background-color: var(--transition-color, #ffffff);
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 0.5s ease;
+}
+
+.lume-page-transition--circle.active {
+  clip-path: circle(150% at 50% 50%);
+  pointer-events: all;
+}
+
+/* ==========================================================================
+   7. Preloader styles
+   ========================================================================== */
+.lume-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--transition-color, #ffffff);
+}
+
+.lume-preloader-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--lume-border, #e5e7eb);
+  border-top-color: var(--lume-primary, #1677ff);
+  border-radius: 50%;
+  animation: lumeSpinnerRotate 0.8s linear infinite;
+}
+
+.lume-preloader-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.lume-preloader-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--lume-primary, #1677ff);
+  animation: lumeDotBounce 0.6s ease-in-out infinite alternate;
+}
+
+.lume-preloader-dot:nth-child(2) { animation-delay: 0.2s; }
+.lume-preloader-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.lume-preloader-progress {
+  width: 200px;
+  height: 3px;
+  background-color: var(--lume-border, #e5e7eb);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.lume-preloader-progress-bar {
+  height: 100%;
+  background-color: var(--lume-primary, #1677ff);
+  border-radius: 2px;
+  animation: lumeProgressSlide 1.2s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   8. Entrance animation keyframes (used by animation-styles.css & BlockRenderer)
+   ========================================================================== */
+
+@keyframes lumeFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lumeSlideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lumeSlideDown {
+  from { opacity: 0; transform: translateY(-40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lumeSlideLeft {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes lumeSlideRight {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes lumeZoomIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes lumeBounceIn {
+  0%   { opacity: 0; transform: scale(0.3); }
+  50%  { opacity: 1; transform: scale(1.05); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes lumeFlipIn {
+  from { opacity: 0; transform: perspective(400px) rotateX(-90deg); }
+  to   { opacity: 1; transform: perspective(400px) rotateX(0); }
+}
+
+@keyframes lumeSpinnerRotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes lumeDotBounce {
+  to { transform: translateY(-8px); opacity: 0.4; }
+}
+
+@keyframes lumeProgressSlide {
+  0% { width: 0; margin-left: 0; }
+  50% { width: 60%; margin-left: 20%; }
+  100% { width: 0; margin-left: 100%; }
+}
+
+/* ==========================================================================
+   9. Accessibility — Respect prefers-reduced-motion
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  [data-motion-fx],
+  [data-lume-animation],
+  .lume-ix-fade-in,
+  .lume-ix-fade-out,
+  .lume-ix-slide-up,
+  .lume-ix-slide-down,
+  .lume-ix-zoom-in,
+  .lume-ix-bounce,
+  .lume-ix-shake,
+  .lume-ix-pulse,
+  .lume-page-transition,
+  .lume-preloader-spinner,
+  .lume-preloader-dot,
+  .lume-preloader-progress-bar {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

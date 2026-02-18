@@ -45,6 +45,33 @@ const renders: Record<string, Component> = {
 
   // Inline nodes
   dynamicTag: defineAsyncComponent(() => import('./renders/DynamicTagRender.vue')),
+
+  // Phase 9 blocks
+  tabsBlock: defineAsyncComponent(() => import('./renders/TabsRender.vue')),
+  accordionBlock: defineAsyncComponent(() => import('./renders/AccordionRender.vue')),
+  counterBlock: defineAsyncComponent(() => import('./renders/CounterRender.vue')),
+  starRatingBlock: defineAsyncComponent(() => import('./renders/StarRatingRender.vue')),
+  blockquoteBlock: defineAsyncComponent(() => import('./renders/BlockquoteRender.vue')),
+  codeHighlightBlock: defineAsyncComponent(() => import('./renders/CodeHighlightRender.vue')),
+  audioBlock: defineAsyncComponent(() => import('./renders/AudioRender.vue')),
+  beforeAfterBlock: defineAsyncComponent(() => import('./renders/BeforeAfterRender.vue')),
+  lottieBlock: defineAsyncComponent(() => import('./renders/LottieRender.vue')),
+  navMenuBlock: defineAsyncComponent(() => import('./renders/NavMenuRender.vue')),
+  breadcrumbsBlock: defineAsyncComponent(() => import('./renders/BreadcrumbsRender.vue')),
+  searchFormBlock: defineAsyncComponent(() => import('./renders/SearchFormRender.vue')),
+  slidesBlock: defineAsyncComponent(() => import('./renders/SlidesRender.vue')),
+  progressTrackerBlock: defineAsyncComponent(() => import('./renders/ProgressTrackerRender.vue')),
+  floatingButtonsBlock: defineAsyncComponent(() => import('./renders/FloatingButtonsRender.vue')),
+
+  // Phase 10 — Dynamic content loop blocks
+  loopGridBlock: defineAsyncComponent(() => import('./renders/LoopGridRender.vue')),
+  loopCarouselBlock: defineAsyncComponent(() => import('./renders/LoopCarouselRender.vue')),
+
+  // Phase 11 — Global widget block
+  globalWidgetBlock: defineAsyncComponent(() => import('./renders/GlobalWidgetRender.vue')),
+
+  // Phase 18: Chart widget
+  chartBlock: defineAsyncComponent(() => import('./renders/ChartRender.vue')),
 };
 
 const markTags: Record<string, string> = {
@@ -57,8 +84,16 @@ const markTags: Record<string, string> = {
 
 const containerTypes = new Set(['sectionBlock', 'columnsBlock', 'columnBlock', 'calloutBlock']);
 
-// Attributes that should be arrays — TipTap may serialize them as JSON strings
-const arrayAttrs = new Set(['items', 'features', 'images', 'links', 'fields', 'hours', 'platforms', 'socials', 'contentA', 'contentB']);
+// Attributes that should be arrays/objects — TipTap may serialize them as JSON strings
+const arrayAttrs = new Set([
+  'items', 'features', 'images', 'links', 'fields', 'hours', 'platforms', 'socials', 'contentA', 'contentB',
+  // Phase 9 block array attrs
+  'tabs', 'slides', 'buttons', 'tracks', 'steps', 'markers',
+  // Phase 10 — query is an object
+  'query',
+  // Shared
+  'datasets', 'counters', 'crumbs', 'blocks',
+]);
 
 /** Parse attrs: JSON strings → objects/arrays, rename conflicting keys */
 function prepareAttrs(attrs: Record<string, any>): Record<string, any> {

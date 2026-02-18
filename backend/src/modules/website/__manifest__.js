@@ -46,6 +46,9 @@ export default {
           { name: 'Theme Builder', path: '/website/theme-builder', icon: 'lucide:layout', sequence: 5 },
           { name: 'Popups', path: '/website/popups', icon: 'lucide:maximize-2', sequence: 6 },
           { name: 'Settings', path: '/website/settings', icon: 'lucide:settings', sequence: 7 },
+          { name: 'Redirects', path: '/website/redirects', icon: 'ArrowLeftRight', sequence: 8 },
+          { name: 'Categories', path: '/website/categories', icon: 'lucide:tag', sequence: 9 },
+          { name: 'Tags', path: '/website/tags', icon: 'lucide:hash', sequence: 10 },
         ]
       }
     ]
@@ -78,5 +81,11 @@ export default {
     'website.popup.create',
     'website.popup.edit',
     'website.popup.delete',
+    'website.redirect.read',
+    'website.redirect.manage',
+    'website.category.read',
+    'website.category.manage',
+    'website.tag.read',
+    'website.tag.manage',
   ]
 }

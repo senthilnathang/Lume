@@ -217,7 +217,7 @@ Lume uses two ORMs for different purposes. This is a deliberate architectural ch
 | media | media_library |
 | messages | messages |
 | team | team_members |
-| website | website_pages, website_menu_items, website_menus, website_settings |
+| website | website_pages, website_menus, website_menu_items, website_media, website_page_revisions, website_forms, website_form_submissions, website_theme_templates, website_popups, website_settings, website_custom_fonts, website_custom_icons, website_redirects, website_categories, website_tags, website_page_categories, website_page_tags |
 
 ### Adapter Pattern
 
@@ -543,7 +543,7 @@ Module API client (e.g., @modules/activities/static/api/index.ts):
 
 ## Editor Module & Visual Page Builder
 
-The editor module provides a TipTap-based WYSIWYG editor and a visual page builder with 30+ widget block types.
+The editor module provides a TipTap-based WYSIWYG editor and a visual page builder with **54 widget block types** across 9 categories.
 
 ### Architecture
 
@@ -566,18 +566,25 @@ The editor module provides a TipTap-based WYSIWYG editor and a visual page build
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Widget Block Types (30+)
+### Widget Block Types (54)
 
 | Category | Blocks |
 |----------|--------|
-| **Text** | Heading, Paragraph, Bullet List, Numbered List, Quote, Code Block |
+| **Text** | Heading, Paragraph, Bullet List, Numbered List, Quote, Code Block, Blockquote |
 | **Layout** | Section, Columns, Spacer, Divider |
-| **Content** | Advanced Heading, Dual Heading, Info Box, FAQ, Team Member, Testimonial, Posts Grid, Icon List, Callout |
-| **Media** | Image, Video, Image Gallery |
-| **Interactive** | Button, Marketing Button, Countdown, Content Toggle, Modal Popup, Progress Bar |
+| **Content** | Advanced Heading, Dual Heading, Info Box, FAQ, Team Member, Testimonial, Posts Grid, Icon List, Callout, Counter, Star Rating, Tabs, Accordion |
+| **Media** | Image, Video, Image Gallery, Audio, Lottie, Before/After |
+| **Interactive** | Button, Marketing Button, Countdown, Content Toggle, Modal Popup, Progress Bar, Slides, Progress Tracker, Floating Buttons, Flip Box, Hotspot, Carousel, Off-Canvas, TOC, Animated Headline |
 | **Commercial** | Price Table, Price List |
-| **Utility** | Table, HTML, Google Map, Contact Form, Business Hours |
+| **Utility** | Table, HTML, Google Map, Contact Form, Business Hours, Code Highlight, Breadcrumbs, Nav Menu, Search Form |
 | **Social** | Social Share |
+| **Dynamic** | Dynamic Tag (inline), Loop Grid, Loop Carousel, Global Widget, Chart |
+
+### Block Attribute System
+
+Every block shares 8 **common attributes** (via `shared/commonAttributes.ts`): `blockId`, `cssClass`, `customCss`, `entranceAnimation`, `animationDelay`, `animationDuration`, `responsiveOverrides` (Desktop/Tablet/Mobile overrides), and `displayConditions` (rule-based visibility).
+
+Block-specific settings use **21 attribute types** in `registry.ts`: text, textarea, number, slider, color, select, checkbox, switch, repeater, media, icon, gradient, typography, border, shadow, link-builder, font, code-editor, and more.
 
 ### Content Format (TipTap JSON)
 
@@ -609,21 +616,29 @@ All page content is stored as TipTap JSON — a tree of nodes that maps to block
 
 ```
 modules/editor/
-├── models/schema.js          # editor_templates, editor_snippets tables
+├── models/schema.js              # editor_templates, editor_snippets, editor_presets tables
 ├── services/editor.service.js
-├── api/index.js              # /api/editor/templates, /api/editor/snippets
+├── api/index.js                  # /api/editor/templates, /api/editor/snippets, /api/editor/presets
 └── static/
-    ├── components/           # PageBuilder, BlockPalette, BlockSettings, EditorToolbar,
-    │                         # RichEditor, CompactEditor, SlashCommandList
-    ├── components/blocks/    # 29 NodeView components (*BlockView.vue)
-    ├── extensions/           # TipTap extensions for each block type
+    ├── composables/              # useEditorHistory.ts, useEditorShortcuts.ts
+    ├── components/               # PageBuilder, BlockPalette, BlockSettings, EditorToolbar,
+    │                             # RichEditor, CompactEditor, SlashCommandList, NavigatorPanel,
+    │                             # LayoutPicker, PresetPicker, BlockContextMenu, ShortcutsHelpModal,
+    │                             # IconPicker, DisplayConditionBuilder, QueryBuilder,
+    │                             # AiGeneratorModal, NoteIndicator, NotesPanel
+    ├── components/blocks/        # 54 NodeView components (*BlockView.vue)
+    ├── extensions/               # 54 TipTap extensions + shared/commonAttributes.ts
     ├── widgets/
-    │   ├── BlockRenderer.vue         # Recursive renderer for public site
-    │   ├── EditableBlockRenderer.vue # Editable renderer for admin
-    │   ├── SettingsRenderer.vue      # Block settings panel
-    │   ├── WidgetPickerModal.vue     # Widget insertion modal
-    │   └── renders/                  # 29 render components (*Render.vue)
-    └── views/templates.vue           # Template management view
+    │   ├── BlockRenderer.vue     # Recursive renderer for public site (54 blocks, lazy-loaded)
+    │   ├── SettingsRenderer.vue  # Block settings panel (21 attr types + conditional display)
+    │   ├── registry.ts           # Widget registry (WidgetDef per block, categories, defaults)
+    │   ├── widget-styles.css     # Block presentation styles
+    │   ├── motion-fx.css         # Motion FX animations (parallax, rotate, sticky)
+    │   ├── animation-styles.css  # CSS keyframe animations (7 entrance types)
+    │   └── renders/              # 54 render components (*Render.vue)
+    └── views/
+        ├── templates.vue         # Template management
+        └── widget-manager.vue    # Enable/disable widgets per installation
 ```
 
 ### Rendering Pipeline
@@ -634,8 +649,10 @@ TipTap JSON (stored in DB)
     ├─── Admin Editor ───► PageBuilder + EditableBlockRenderer
     │                       (drag-and-drop, inline editing, block settings)
     │
-    └─── Public Site  ───► PageRenderer → BlockRenderer
-                            (recursive render function, lazy-loaded components)
+    └─── Public Site  ───► PageRenderer → BlockRenderer (54 blocks, lazy-loaded)
+                            + motion-fx.css (parallax, rotate, sticky effects)
+                            + animation-styles.css (entrance animations)
+                            + useMotionFx() / useInteractions() / useSticky()
 ```
 
 ---
@@ -647,11 +664,21 @@ The website module provides a full CMS for managing public website pages, naviga
 ### Features
 
 - **Page Management** — Create, edit, publish pages with the visual page builder
+- **Content Scheduling** — Set `publishAt` / `expireAt` timestamps; pages auto-publish/expire
+- **Page Access Control** — Visibility: public, private, password-protected, members-only
+- **Page Locking** — Concurrent-edit prevention with 30-min auto-release and live poll
 - **Hierarchical Menus** — Drag-and-drop tree menu management with nesting (WordPress/Drupal-style)
 - **Media Library** — Image and file upload management
-- **SEO** — Meta titles, descriptions, Open Graph, canonical URLs, noindex/nofollow
-- **Site Settings** — Site name, logo, contact info, social links, footer content
-- **Live Preview** — Iframe preview of pages during editing
+- **SEO** — Meta titles, descriptions, Open Graph, XML sitemap, robots.txt, Schema.org JSON-LD
+- **SEO Analysis** — Live per-page score (title length, keyword density, H1 count, content length, image alt)
+- **Design Tokens** — CSS variable system for colors, typography, spacing; `/api/website/public/styles.css`
+- **Theme Builder** — Visual header/footer/sidebar templates with PageBuilder + live preview iframe
+- **Taxonomy** — Hierarchical categories + flat tags with archive pages
+- **Redirects** — URL redirect management (301/302)
+- **Popup Builder** — 5 trigger types (time, scroll, exit intent, click, page load)
+- **Form Builder** — Custom forms with submission management
+- **Revision History** — Page version history with one-click revert
+- **Site Settings** — Site name, logo, contact info, social links, design tokens, analytics ID, robots.txt
 
 ### Menu Management Architecture
 
@@ -675,31 +702,62 @@ Admin UI (menus.vue)
             → bulk update { id, parentId, sequence } for all items
 ```
 
-### Database Tables
+### Database Tables (14)
 
 | Table | Purpose |
 |-------|---------|
-| `website_pages` | Page content (TipTap JSON), SEO metadata, publish state |
+| `website_pages` | Page content (TipTap JSON), SEO metadata, publish state, scheduling, visibility, locking |
 | `website_menus` | Menu containers (name, location: header/footer/sidebar) |
 | `website_menu_items` | Menu items with parentId for hierarchy, sequence for order |
-| `website_settings` | Site-wide settings (JSON key-value) |
+| `website_media` | Uploaded images and files with metadata |
+| `website_page_revisions` | Version history snapshots per page |
+| `website_forms` | Custom form definitions (field config JSON) |
+| `website_form_submissions` | Form submission data |
+| `website_theme_templates` | Header/footer/sidebar templates (TipTap JSON) |
+| `website_popups` | Popup definitions with trigger type + content |
+| `website_settings` | Site-wide settings (key-value JSON) |
+| `website_categories` | Hierarchical page categories (parentId + sequence) |
+| `website_tags` | Flat tag taxonomy |
+| `website_page_categories` | Page ↔ category pivot |
+| `website_page_tags` | Page ↔ tag pivot |
 
-### API Endpoints
+### Key `website_pages` Columns
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `title`, `slug`, `content`, `content_html` | | Page identity and content |
+| `is_published`, `published_at` | | Publish state |
+| `publish_at`, `expire_at` | `timestamp` | Content scheduling |
+| `visibility` | `varchar(20)` | public / private / password / members |
+| `password_hash` | `varchar(255)` | Bcrypt hash for password-protected pages |
+| `locked_by`, `locked_at` | `int`, `timestamp` | Concurrent edit lock |
+| `meta_title`, `meta_description`, `og_image` | | SEO metadata |
+
+### API Endpoints (60+)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/website/pages` | List all pages |
-| GET | `/api/website/pages/:id` | Get page by ID |
-| POST | `/api/website/pages` | Create page |
-| PUT | `/api/website/pages/:id` | Update page |
-| DELETE | `/api/website/pages/:id` | Delete page |
-| GET | `/api/website/menus` | List menus |
-| GET | `/api/website/menus/:id` | Get menu with nested items |
-| POST | `/api/website/menus` | Create menu |
-| PUT | `/api/website/menus/:id/reorder` | Bulk reorder menu items |
-| GET | `/api/website/public/menus/:location` | Public: nested menu by location |
-| GET | `/api/website/public/pages/:slug` | Public: page by slug |
-| GET | `/api/website/public/settings` | Public: site settings |
+| GET/POST | `/api/website/pages` | List / create pages |
+| GET/PUT/DELETE | `/api/website/pages/:id` | Get / update / delete page |
+| POST | `/api/website/pages/:id/publish` | Publish page |
+| POST | `/api/website/pages/:id/lock` | Acquire edit lock |
+| POST | `/api/website/pages/:id/unlock` | Release edit lock |
+| GET/PUT | `/api/website/pages/:id/categories` | Page categories |
+| GET/PUT | `/api/website/pages/:id/tags` | Page tags |
+| GET | `/api/website/public/pages/:slug` | Public: page by slug (auto-schedules) |
+| POST | `/api/website/public/pages/:slug/verify-password` | Verify page password |
+| GET | `/api/website/public/pages/:slug/breadcrumbs` | Page breadcrumb chain |
+| GET/PUT | `/api/website/menus/:id/reorder` | Reorder menu items |
+| GET/POST/PUT/DELETE | `/api/website/categories` | Category CRUD |
+| PUT | `/api/website/categories/reorder` | Bulk reorder categories |
+| GET | `/api/website/public/categories` | Public category list |
+| GET | `/api/website/public/categories/:slug/pages` | Category archive |
+| GET/POST/PUT/DELETE | `/api/website/tags` | Tag CRUD |
+| GET | `/api/website/public/tags/:slug/pages` | Tag archive |
+| GET | `/api/website/public/sitemap.xml` | XML sitemap (Nuxt proxy at `/sitemap.xml`) |
+| GET | `/api/website/public/robots.txt` | robots.txt (Nuxt proxy at `/robots.txt`) |
+| GET | `/api/website/public/styles.css` | CSS design tokens (`:root` vars) |
+| GET/PUT | `/api/website/public/theme/:type` | Active theme template (supports `?preview_id`) |
 
 ---
 
@@ -712,38 +770,43 @@ The public-facing website is a Nuxt 3 SSR application (`frontend/apps/riagri-web
 ```
 URL Request
     │
-    ├── /                → pages/index.vue (Home)
-    ├── /products        → pages/products.vue
-    ├── /services        → pages/services.vue
-    ├── /about           → pages/about.vue
-    ├── /contact         → pages/contact.vue
-    └── /anything-else   → pages/[...slug].vue (dynamic CMS pages)
+    ├── /                     → pages/index.vue (Home)
+    ├── /products             → pages/products.vue
+    ├── /services             → pages/services.vue
+    ├── /about                → pages/about.vue
+    ├── /contact              → pages/contact.vue
+    ├── /category/[slug]      → pages/category/[slug].vue (category archive)
+    ├── /tag/[slug]           → pages/tag/[slug].vue (tag archive)
+    ├── /sitemap.xml          → proxied to backend sitemap endpoint (Nitro)
+    ├── /robots.txt           → proxied to backend robots.txt endpoint (Nitro)
+    └── /anything-else        → pages/[...slug].vue (dynamic CMS pages)
 ```
 
 ### Content Rendering
 
-All pages use TipTap JSON content rendered through the BlockRenderer:
-
 ```
-Page Template (e.g., index.vue)
+pages/[...slug].vue
     │
     ▼
-Fetch page from API: GET /api/website/public/pages/{slug}
+Fetch page: GET /api/website/public/pages/{slug}
+    │        Auto-applies scheduling (publishAt/expireAt)
+    │        Returns requiresPassword if visibility=password
+    │
+    ├── requiresPassword? → Password gate UI → verify-password endpoint
     │
     ▼
-Parse content JSON → detect TipTap format (type: "doc")
+PageRenderer → BlockRenderer (recursive, 54 blocks, lazy-loaded)
     │
-    ▼
-PageRenderer component
+    ├── Motion FX init: useMotionFx() + useInteractions() + useSticky()
     │
-    ▼
-BlockRenderer (recursive)
-    ├── sectionBlock → SectionRender.vue
-    ├── columnsBlock → ColumnsRender.vue
-    ├── infoBox      → InfoBoxRender.vue
-    ├── testimonial  → TestimonialRender.vue
-    ├── contactForm  → ContactFormRender.vue
-    └── ... (30+ block types)
+    ├── Schema.org JSON-LD injection via useHead():
+    │   ├── WebPage (every page)
+    │   ├── Article (pageType=post)
+    │   ├── FAQPage (pages with faqBlock)
+    │   ├── Organization (homepage)
+    │   └── BreadcrumbList (all pages)
+    │
+    └── Preview mode: ?preview_template + ?preview_id → preview banner
 ```
 
 ### Navigation
@@ -760,6 +823,29 @@ BlockRenderer (recursive)
 | `useWebsiteData()` | Fetch header/footer menus, site settings, contact info |
 | `usePageContent(slug)` | Fetch page content by slug, returns page + SEO data |
 | `useSiteSettings()` | Site-wide configuration (name, logo, social links) |
+| `useMotionFx()` | Parallax, rotate, tilt, zoom scroll effects via `data-motion-fx` attrs |
+| `useInteractions()` | Hover/click interaction states on blocks |
+| `useSticky()` | Sticky block positioning via `data-sticky-position` attrs |
+| `useEditMode()` | Admin inline page editing: dirty tracking, undo stack, autosave, lock |
+
+### Live Edit Mode (Admin)
+
+When an admin user visits a public page while logged in, `useEditMode()` activates:
+
+```
+Admin visits /about (public site)
+    │
+    ▼
+useEditMode detects auth cookie → fetch page JSON
+    │
+    ▼
+BlockRenderer wraps each block in EditableBlock overlay
+    ├── Block toolbar: Edit / Move / Duplicate / Delete
+    ├── WidgetSettingsPanel ← widgetRegistry attrs for that block type
+    ├── Undo/redo stack (20 operations)
+    ├── Autosave (debounced 3s after last change)
+    └── beforeunload guard if unsaved changes
+```
 
 ---
 
@@ -822,8 +908,8 @@ Complete flow for an authenticated API request:
 | Advanced | Drizzle | 8 | webhooks, webhook_logs, notifications, notification_channels, tags, taggings, comments, attachments |
 | Data Modules | Drizzle | 6 | activities, donations, donors, campaigns, team_members, documents, media_library, messages |
 | Editor | Drizzle | 2 | editor_templates, editor_snippets |
-| Website | Drizzle | 4 | website_pages, website_menus, website_menu_items, website_settings |
-| **Total** | | **~54** | |
+| Website | Drizzle | 17 | website_pages, website_menus, website_menu_items, website_media, website_page_revisions, website_forms, website_form_submissions, website_theme_templates, website_popups, website_settings, website_custom_fonts, website_custom_icons, website_redirects, website_categories, website_tags, website_page_categories, website_page_tags |
+| **Total** | | **~67** | |
 
 ---
 

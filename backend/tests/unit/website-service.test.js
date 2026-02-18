@@ -36,8 +36,8 @@ describe('Website Module Manifest', () => {
     expect(manifest.depends).toEqual(['base', 'editor']);
   });
 
-  test('has 26 permissions', () => {
-    expect(manifest.permissions).toHaveLength(26);
+  test('has 32 permissions', () => {
+    expect(manifest.permissions).toHaveLength(32);
   });
 
   test('has page permissions', () => {
@@ -87,14 +87,29 @@ describe('Website Module Manifest', () => {
     expect(manifest.permissions).toContain('website.popup.delete');
   });
 
-  test('has 7 menu children', () => {
-    expect(manifest.frontend.menus).toHaveLength(1);
-    expect(manifest.frontend.menus[0].children).toHaveLength(7);
+  test('has redirect permissions', () => {
+    expect(manifest.permissions).toContain('website.redirect.read');
+    expect(manifest.permissions).toContain('website.redirect.manage');
   });
 
-  test('menu children include Pages, Menus, Media, Forms, Theme Builder, Popups, Settings', () => {
+  test('has category permissions', () => {
+    expect(manifest.permissions).toContain('website.category.read');
+    expect(manifest.permissions).toContain('website.category.manage');
+  });
+
+  test('has tag permissions', () => {
+    expect(manifest.permissions).toContain('website.tag.read');
+    expect(manifest.permissions).toContain('website.tag.manage');
+  });
+
+  test('has 10 menu children', () => {
+    expect(manifest.frontend.menus).toHaveLength(1);
+    expect(manifest.frontend.menus[0].children).toHaveLength(10);
+  });
+
+  test('menu children include Pages, Menus, Media, Forms, Theme Builder, Popups, Settings, Redirects, Categories, Tags', () => {
     const childNames = manifest.frontend.menus[0].children.map(c => c.name);
-    expect(childNames).toEqual(['Pages', 'Menus', 'Media', 'Forms', 'Theme Builder', 'Popups', 'Settings']);
+    expect(childNames).toEqual(['Pages', 'Menus', 'Media', 'Forms', 'Theme Builder', 'Popups', 'Settings', 'Redirects', 'Categories', 'Tags']);
   });
 
   test('has models, api, and services arrays', () => {
@@ -441,5 +456,156 @@ describe('Website Service Classes', () => {
     expect(typeof instance.create).toBe('function');
     expect(typeof instance.update).toBe('function');
     expect(typeof instance.delete).toBe('function');
+  });
+});
+
+// ─── Phase 17: Taxonomy Schema Tables ───
+
+describe('Phase 17 Taxonomy Schema Tables', () => {
+  let schema;
+
+  beforeAll(async () => {
+    const schemaPath = join(modulesDir, 'website', 'models', 'schema.js');
+    const imported = await import(pathToFileURL(schemaPath).href);
+    schema = imported;
+  });
+
+  test('exports websiteCategories table', () => {
+    expect(schema.websiteCategories).toBeDefined();
+  });
+
+  test('exports websiteTags table', () => {
+    expect(schema.websiteTags).toBeDefined();
+  });
+
+  test('exports websitePageCategories table', () => {
+    expect(schema.websitePageCategories).toBeDefined();
+  });
+
+  test('exports websitePageTags table', () => {
+    expect(schema.websitePageTags).toBeDefined();
+  });
+
+  test('websiteCategories has expected columns', () => {
+    const table = schema.websiteCategories;
+    const columnNames = Object.keys(table);
+    expect(columnNames).toContain('name');
+    expect(columnNames).toContain('slug');
+    expect(columnNames).toContain('description');
+    expect(columnNames).toContain('parentId');
+    expect(columnNames).toContain('sequence');
+  });
+
+  test('websiteTags has expected columns', () => {
+    const table = schema.websiteTags;
+    const columnNames = Object.keys(table);
+    expect(columnNames).toContain('name');
+    expect(columnNames).toContain('slug');
+  });
+
+  test('websitePages has scheduling and access columns', () => {
+    const table = schema.websitePages;
+    const columnNames = Object.keys(table);
+    expect(columnNames).toContain('publishAt');
+    expect(columnNames).toContain('expireAt');
+    expect(columnNames).toContain('visibility');
+    expect(columnNames).toContain('passwordHash');
+    expect(columnNames).toContain('lockedBy');
+    expect(columnNames).toContain('lockedAt');
+  });
+});
+
+// ─── Phase 17: CategoryService and TagService ───
+
+describe('Phase 17 Taxonomy Services', () => {
+  let CategoryService, TagService;
+
+  beforeAll(async () => {
+    const servicePath = join(modulesDir, 'website', 'services', 'page.service.js');
+    const imported = await import(pathToFileURL(servicePath).href);
+    CategoryService = imported.CategoryService;
+    TagService = imported.TagService;
+  });
+
+  test('CategoryService class is exported', () => {
+    expect(CategoryService).toBeDefined();
+    expect(typeof CategoryService).toBe('function');
+  });
+
+  test('CategoryService has expected methods', () => {
+    const instance = new CategoryService();
+    expect(typeof instance.findAll).toBe('function');
+    expect(typeof instance.findBySlug).toBe('function');
+    expect(typeof instance.create).toBe('function');
+    expect(typeof instance.update).toBe('function');
+    expect(typeof instance.delete).toBe('function');
+    expect(typeof instance.findPagesByCategory).toBe('function');
+    expect(typeof instance.reorder).toBe('function');
+  });
+
+  test('TagService class is exported', () => {
+    expect(TagService).toBeDefined();
+    expect(typeof TagService).toBe('function');
+  });
+
+  test('TagService has expected methods', () => {
+    const instance = new TagService();
+    expect(typeof instance.findAll).toBe('function');
+    expect(typeof instance.findBySlug).toBe('function');
+    expect(typeof instance.create).toBe('function');
+    expect(typeof instance.update).toBe('function');
+    expect(typeof instance.delete).toBe('function');
+    expect(typeof instance.findPagesByTag).toBe('function');
+  });
+});
+
+// ─── Phase 17/18: PageService Advanced Methods ───
+
+describe('Phase 17/18 PageService Advanced Methods', () => {
+  let PageService;
+
+  beforeAll(async () => {
+    const servicePath = join(modulesDir, 'website', 'services', 'page.service.js');
+    const imported = await import(pathToFileURL(servicePath).href);
+    PageService = imported.PageService;
+  });
+
+  test('PageService has scheduling methods', () => {
+    const instance = new PageService();
+    expect(typeof instance.checkAndApplyScheduling).toBe('function');
+  });
+
+  test('PageService has access control methods', () => {
+    const instance = new PageService();
+    expect(typeof instance.verifyPagePassword).toBe('function');
+  });
+
+  test('PageService has page locking methods', () => {
+    const instance = new PageService();
+    expect(typeof instance.lockPage).toBe('function');
+    expect(typeof instance.unlockPage).toBe('function');
+  });
+
+  test('PageService has breadcrumbs method', () => {
+    const instance = new PageService();
+    expect(typeof instance.getBreadcrumbs).toBe('function');
+  });
+});
+
+// ─── Phase 17/18: New Website Admin Views ───
+
+describe('Phase 17/18 New Website Admin Views', () => {
+  const websiteDir = join(modulesDir, 'website');
+
+  test('static/views/categories.vue exists', () => {
+    expect(existsSync(join(websiteDir, 'static', 'views', 'categories.vue'))).toBe(true);
+  });
+
+  test('static/views/tags.vue exists', () => {
+    expect(existsSync(join(websiteDir, 'static', 'views', 'tags.vue'))).toBe(true);
+  });
+
+  test('static/views/redirects.vue exists', () => {
+    expect(existsSync(join(websiteDir, 'static', 'views', 'redirects.vue'))).toBe(true);
   });
 });

@@ -2,7 +2,7 @@
 import { ref, reactive, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
-import { Globe, ArrowLeft, Save, Check, Settings, Eye, Plus, Trash2, ChevronDown, ChevronRight, Monitor, Tablet, Smartphone, ExternalLink, RefreshCw, Code, FormInput, Clock, Image as ImageIcon } from 'lucide-vue-next';
+import { Globe, ArrowLeft, Save, Check, Settings, Eye, Plus, Trash2, ChevronDown, ChevronRight, Monitor, Tablet, Smartphone, ExternalLink, RefreshCw, Code, FormInput, Clock, Image as ImageIcon, CheckCircle2, AlertCircle, XCircle, BarChart2 } from 'lucide-vue-next';
 import { get, put, post } from '@/api/request';
 import { autoSavePage } from '../api/index';
 import { PageBuilder } from '@modules/editor/static/components/index';
@@ -68,7 +68,117 @@ const page = reactive({
   customCss: '',
   headScripts: '',
   bodyScripts: '',
+  // Phase 17: Scheduling
+  publishAt: '' as string,
+  expireAt: '' as string,
+  // Phase 18: Access control
+  visibility: 'public' as string,
+  passwordHash: '' as string,
 });
+
+// Page locking
+const lockStatus = ref<{ isLocked: boolean; lockedBy: number | null; lockedByName?: string } | null>(null);
+const isLockedByOther = computed(() => lockStatus.value?.isLocked && lockStatus.value?.lockedBy !== null);
+let lockPollTimer: ReturnType<typeof setInterval> | null = null;
+
+async function acquireLock() {
+  if (!pageId.value) return;
+  try {
+    await post(`/website/pages/${pageId.value}/lock`);
+  } catch {
+    // If 409, the page is locked by someone else — poll status
+    await checkLockStatus();
+  }
+}
+
+async function releaseLock() {
+  if (!pageId.value) return;
+  try { await post(`/website/pages/${pageId.value}/unlock`); } catch { /* ignore */ }
+}
+
+async function checkLockStatus() {
+  if (!pageId.value) return;
+  try {
+    const data = await get(`/website/pages/${pageId.value}/lock`);
+    lockStatus.value = data;
+  } catch { /* ignore */ }
+}
+
+// Taxonomy: categories and tags
+const allCategories = ref<any[]>([]);
+const selectedCategories = ref<number[]>([]);
+const allTags = ref<any[]>([]);
+const selectedTagIds = ref<(number | string)[]>([]);
+const tagOptions = ref<any[]>([]);
+
+async function loadTaxonomy() {
+  try {
+    const [cats, tags] = await Promise.all([
+      get('/website/categories'),
+      get('/website/tags'),
+    ]);
+    allCategories.value = Array.isArray(cats) ? cats : cats?.rows || cats?.data || [];
+    allTags.value = Array.isArray(tags) ? tags : tags?.rows || tags?.data || [];
+    tagOptions.value = allTags.value.map((t: any) => ({ value: t.id, label: t.name }));
+  } catch {
+    // taxonomy optional
+  }
+}
+
+// Handle tag change with create-on-enter support
+// In mode="tags", new entries appear as string values; existing ones stay as number IDs
+async function handleTagChange(values: (number | string)[]) {
+  const resolved: number[] = [];
+  for (const v of values) {
+    if (typeof v === 'number') {
+      resolved.push(v);
+    } else {
+      // Check if it matches an existing tag (case-insensitive)
+      const existing = allTags.value.find((t: any) => t.name.toLowerCase() === String(v).toLowerCase());
+      if (existing) {
+        resolved.push(existing.id);
+      } else {
+        // Create new tag
+        try {
+          const slug = String(v).toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+          const newTag = await post('/website/tags', { name: String(v), slug });
+          if (newTag?.id) {
+            allTags.value.push(newTag);
+            tagOptions.value.push({ value: newTag.id, label: newTag.name });
+            resolved.push(newTag.id);
+          }
+        } catch {
+          // skip failed tag creation
+        }
+      }
+    }
+  }
+  selectedTagIds.value = resolved;
+}
+
+async function loadPageTaxonomy(id: string) {
+  try {
+    const [pageCats, pageTags] = await Promise.all([
+      get(`/website/pages/${id}/categories`).catch(() => []),
+      get(`/website/pages/${id}/tags`).catch(() => []),
+    ]);
+    selectedCategories.value = (Array.isArray(pageCats) ? pageCats : []).map((c: any) => c.id ?? c.categoryId);
+    selectedTagIds.value = (Array.isArray(pageTags) ? pageTags : []).map((t: any) => t.id ?? t.tagId);
+  } catch {
+    // optional
+  }
+}
+
+async function saveTaxonomy(id: string) {
+  try {
+    await Promise.all([
+      put(`/website/pages/${id}/categories`, { categoryIds: selectedCategories.value }),
+      put(`/website/pages/${id}/tags`, { tagIds: selectedTagIds.value }),
+    ]);
+  } catch {
+    // taxonomy save optional — don't block page save
+  }
+}
 
 function generateSlug(title: string): string {
   return title
@@ -108,6 +218,12 @@ function isTipTapJson(obj: any): boolean {
 const isStructuredContent = computed(() => {
   if (!contentJson.value) return false;
   return !isTipTapJson(contentJson.value);
+});
+
+// Scheduled: publishAt is set and in the future and page is not yet published
+const isScheduled = computed(() => {
+  if (!page.publishAt || page.isPublished) return false;
+  return new Date(page.publishAt) > new Date();
 });
 
 // Public site iframe URL
@@ -261,7 +377,12 @@ async function loadPage() {
       customCss: data.customCss || '',
       headScripts: data.headScripts || '',
       bodyScripts: data.bodyScripts || '',
+      publishAt: data.publishAt || '',
+      expireAt: data.expireAt || '',
+      visibility: data.visibility || 'public',
     });
+    // Load taxonomy after page data
+    if (data.id) await loadPageTaxonomy(String(data.id));
   } catch (err: any) {
     message.error('Failed to load page');
   } finally {
@@ -300,10 +421,13 @@ async function handleSave() {
         await nextTick();
         iframeKey.value++;
       }
+      // Save taxonomy associations
+      await saveTaxonomy(String(page.id));
     } else {
       const data = await post('/website/pages', payload);
       page.id = data.id;
       message.success('Page created');
+      await saveTaxonomy(String(data.id));
     }
   } catch (err: any) {
     message.error(err?.message || 'Failed to save page');
@@ -377,13 +501,96 @@ function onMediaSelected(urls: string[]) {
   }
 }
 
-onMounted(() => {
-  loadPage();
-  startAutoSave();
+// SEO Analysis
+const seoAnalysis = computed(() => {
+  const checks: { label: string; status: 'good' | 'warn' | 'error'; detail?: string }[] = [];
+
+  const title = page.metaTitle || page.title || '';
+  const desc = page.metaDescription || '';
+  const keyword = (page.metaKeywords || '').split(',')[0]?.trim().toLowerCase() || '';
+  const slugVal = page.slug || '';
+
+  // Extract text/headings/images from TipTap JSON
+  let textContent = '';
+  const headings: { level: number }[] = [];
+  const images: { alt: string }[] = [];
+
+  function walkNodes(nodes: any[]) {
+    if (!Array.isArray(nodes)) return;
+    for (const node of nodes) {
+      if (node.type === 'text') textContent += (node.text || '') + ' ';
+      if (node.type === 'heading') headings.push({ level: node.attrs?.level || 1 });
+      if (node.type === 'imageBlock' || node.type === 'image') images.push({ alt: node.attrs?.alt || '' });
+      if (node.content) walkNodes(node.content);
+    }
+  }
+  if (contentJson.value) walkNodes(contentJson.value.content || []);
+  const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length;
+
+  // Title length
+  const tLen = title.length;
+  if (tLen === 0) checks.push({ label: 'Meta Title', status: 'error', detail: 'Missing' });
+  else if (tLen < 30 || tLen > 70) checks.push({ label: 'Meta Title', status: 'warn', detail: `${tLen} chars (aim 50–60)` });
+  else checks.push({ label: 'Meta Title', status: 'good', detail: `${tLen} chars` });
+
+  // Description length
+  const dLen = desc.length;
+  if (dLen === 0) checks.push({ label: 'Meta Description', status: 'error', detail: 'Missing' });
+  else if (dLen < 100 || dLen > 175) checks.push({ label: 'Meta Description', status: 'warn', detail: `${dLen} chars (aim 150–160)` });
+  else checks.push({ label: 'Meta Description', status: 'good', detail: `${dLen} chars` });
+
+  // Focus keyword
+  if (keyword) {
+    checks.push(title.toLowerCase().includes(keyword)
+      ? { label: 'Keyword in title', status: 'good' }
+      : { label: 'Keyword in title', status: 'warn', detail: 'Not found' });
+    checks.push(desc.toLowerCase().includes(keyword)
+      ? { label: 'Keyword in description', status: 'good' }
+      : { label: 'Keyword in description', status: 'warn', detail: 'Not found' });
+  }
+
+  // Content length
+  if (wordCount === 0) checks.push({ label: 'Content', status: 'warn', detail: 'No text content' });
+  else if (wordCount < 300) checks.push({ label: 'Content', status: 'warn', detail: `${wordCount} words (aim 300+)` });
+  else checks.push({ label: 'Content', status: 'good', detail: `${wordCount} words` });
+
+  // H1
+  const h1s = headings.filter(h => h.level === 1);
+  if (h1s.length === 0) checks.push({ label: 'H1 Heading', status: 'warn', detail: 'None in content' });
+  else if (h1s.length > 1) checks.push({ label: 'H1 Heading', status: 'warn', detail: `${h1s.length} H1s (use one)` });
+  else checks.push({ label: 'H1 Heading', status: 'good', detail: '1 H1 found' });
+
+  // Image alt text
+  if (images.length > 0) {
+    const missing = images.filter(i => !i.alt).length;
+    checks.push(missing === 0
+      ? { label: 'Image Alt Text', status: 'good', detail: `All ${images.length}` }
+      : { label: 'Image Alt Text', status: 'warn', detail: `${missing}/${images.length} missing` });
+  }
+
+  // Slug length
+  if (slugVal.length > 75) checks.push({ label: 'URL Slug', status: 'warn', detail: `${slugVal.length} chars` });
+  else if (slugVal.length > 0) checks.push({ label: 'URL Slug', status: 'good', detail: `${slugVal.length} chars` });
+
+  const score = checks.filter(c => c.status === 'good').length;
+  return { checks, score, total: checks.length };
 });
 
-onBeforeUnmount(() => {
+onMounted(async () => {
+  await loadPage();
+  loadTaxonomy();
+  startAutoSave();
+  if (pageId.value) {
+    await acquireLock();
+    // Poll lock status every 30s to detect if another user takes the lock
+    lockPollTimer = setInterval(checkLockStatus, 30_000);
+  }
+});
+
+onBeforeUnmount(async () => {
   if (autoSaveTimer) clearInterval(autoSaveTimer);
+  if (lockPollTimer) clearInterval(lockPollTimer);
+  await releaseLock();
 });
 
 // Re-load when navigating between pages (same component, different query)
@@ -419,6 +626,7 @@ watch(pageId, (newId, oldId) => {
           />
         </div>
         <a-tag v-if="page.isPublished" color="green">Published</a-tag>
+        <a-tag v-else-if="isScheduled" color="blue">Scheduled</a-tag>
         <a-tag v-else color="orange">Draft</a-tag>
       </div>
       <div class="flex items-center gap-2">
@@ -443,6 +651,15 @@ watch(pageId, (newId, oldId) => {
           {{ page.isPublished ? 'Unpublish' : 'Publish' }}
         </a-button>
       </div>
+    </div>
+
+    <!-- Page Lock Warning Banner -->
+    <div
+      v-if="isLockedByOther"
+      class="bg-amber-50 border-b border-amber-200 px-6 py-2 flex items-center gap-2 text-sm text-amber-800 flex-shrink-0"
+    >
+      <AlertCircle :size="16" class="text-amber-500 flex-shrink-0" />
+      <span>This page is currently being edited by another user. Your changes may conflict. Editing is read-only until the lock is released.</span>
     </div>
 
     <!-- Content Area -->
@@ -768,6 +985,36 @@ watch(pageId, (newId, oldId) => {
               </a-select>
             </a-form-item>
 
+            <a-form-item label="Visibility">
+              <a-select v-model:value="page.visibility">
+                <a-select-option value="public">Public</a-select-option>
+                <a-select-option value="private">Private (admin only)</a-select-option>
+                <a-select-option value="password">Password Protected</a-select-option>
+                <a-select-option value="members">Members Only</a-select-option>
+              </a-select>
+            </a-form-item>
+
+            <a-form-item v-if="page.visibility === 'password'" label="Page Password">
+              <a-input-password v-model:value="page.passwordHash" placeholder="Set access password" />
+            </a-form-item>
+
+            <a-form-item label="Schedule Publish">
+              <a-input
+                v-model:value="page.publishAt"
+                type="datetime-local"
+                placeholder="Schedule for future publish"
+              />
+              <p class="text-xs text-gray-400 mt-1 m-0">Leave empty to publish immediately when published.</p>
+            </a-form-item>
+
+            <a-form-item label="Expire At">
+              <a-input
+                v-model:value="page.expireAt"
+                type="datetime-local"
+                placeholder="Auto-revert to draft at this time"
+              />
+            </a-form-item>
+
             <a-form-item label="Featured Image">
               <div class="flex gap-2">
                 <a-input v-model:value="page.featuredImage" placeholder="https://..." class="flex-1" />
@@ -781,6 +1028,37 @@ watch(pageId, (newId, oldId) => {
               >
                 <img :src="page.featuredImage" alt="Featured" class="w-full h-32 object-cover" />
               </div>
+            </a-form-item>
+
+            <a-divider>Taxonomy</a-divider>
+
+            <a-form-item label="Categories">
+              <a-checkbox-group
+                v-model:value="selectedCategories"
+                class="flex flex-col gap-1"
+              >
+                <a-checkbox
+                  v-for="cat in allCategories"
+                  :key="cat.id"
+                  :value="cat.id"
+                >
+                  {{ cat.name }}
+                </a-checkbox>
+              </a-checkbox-group>
+              <div v-if="!allCategories.length" class="text-xs text-gray-400">No categories yet</div>
+            </a-form-item>
+
+            <a-form-item label="Tags">
+              <a-select
+                v-model:value="selectedTagIds"
+                mode="tags"
+                placeholder="Select or type to create new tags"
+                :options="tagOptions"
+                :filter-option="(input: string, opt: any) => opt.label?.toLowerCase().includes(input.toLowerCase())"
+                allow-clear
+                @change="handleTagChange"
+              />
+              <div class="text-xs text-gray-400 mt-1">Press Enter to create a new tag</div>
             </a-form-item>
 
             <a-divider>SEO</a-divider>
@@ -831,6 +1109,37 @@ watch(pageId, (newId, oldId) => {
               </a-form-item>
             </div>
           </a-form>
+
+          <!-- SEO Analysis Panel -->
+          <a-divider>
+            <span class="flex items-center gap-1.5 text-xs"><BarChart2 :size="12" /> SEO Analysis</span>
+          </a-divider>
+          <div class="seo-analysis">
+            <div class="seo-score-row">
+              <span class="seo-score-label">Score: {{ seoAnalysis.score }}/{{ seoAnalysis.total }}</span>
+              <div class="seo-score-track">
+                <div
+                  class="seo-score-fill"
+                  :style="{
+                    width: seoAnalysis.total ? `${Math.round(seoAnalysis.score / seoAnalysis.total * 100)}%` : '0%',
+                    background: seoAnalysis.score / seoAnalysis.total > 0.7 ? '#52c41a'
+                      : seoAnalysis.score / seoAnalysis.total > 0.4 ? '#faad14' : '#ff4d4f',
+                  }"
+                />
+              </div>
+            </div>
+            <div class="seo-checks">
+              <div v-for="chk in seoAnalysis.checks" :key="chk.label" class="seo-check-item">
+                <CheckCircle2 v-if="chk.status === 'good'" :size="12" class="text-green-500 flex-shrink-0" />
+                <AlertCircle v-else-if="chk.status === 'warn'" :size="12" class="text-yellow-500 flex-shrink-0" />
+                <XCircle v-else :size="12" class="text-red-500 flex-shrink-0" />
+                <div class="seo-check-content">
+                  <span class="seo-check-name">{{ chk.label }}</span>
+                  <span v-if="chk.detail" class="seo-check-detail">{{ chk.detail }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </a-spin>
@@ -853,6 +1162,63 @@ watch(pageId, (newId, oldId) => {
 <style scoped>
 :deep(.ant-input-borderless) {
   box-shadow: none !important;
+}
+
+/* SEO Analysis */
+.seo-analysis {
+  padding: 0 2px 12px;
+}
+.seo-score-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.seo-score-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+.seo-score-track {
+  flex: 1;
+  height: 6px;
+  background: #f3f4f6;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.seo-score-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+.seo-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.seo-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: #f9fafb;
+}
+.seo-check-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.seo-check-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: #374151;
+}
+.seo-check-detail {
+  font-size: 10px;
+  color: #9ca3af;
 }
 
 /* Structured content editor */

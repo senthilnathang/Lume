@@ -39,13 +39,16 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 
 | Suite | File | Tests | Description |
 |-------|------|-------|-------------|
-| Utils | `utils.test.js` | Password hashing, JWT, date formatting, string utils |
-| Security Service | `security-service.test.js` | Security feature aggregation |
-| Module Loader | `module-loader.test.js` | Module discovery, dependency resolution, lifecycle |
-| Manifests | `manifests.test.js` | All 23 module manifests validation |
-| Constants | `constants.test.js` | HTTP codes, roles, messages constants |
-| Error Handler | `error-handler.test.js` | Global error handling middleware |
-| Editor Service | `editor-service.test.js` | Template/snippet CRUD, seeding |
+| Utils | `utils.test.js` | ~60 | Password hashing, JWT, date formatting, string utils |
+| Security Service | `security-service.test.js` | ~25 | Security feature aggregation |
+| Module Loader | `module-loader.test.js` | ~15 | Module discovery, dependency resolution, lifecycle |
+| Manifests | `manifests.test.js` | ~50 | All 23 module manifests validation |
+| Constants | `constants.test.js` | ~20 | HTTP codes, roles, messages constants |
+| Error Handler | `error-handler.test.js` | ~30 | Global error handling middleware |
+| Editor Service | `editor-service.test.js` | ~200 | Block extensions, views, renders, widget manager, Phase 9–18 |
+| Website Service | `website-service.test.js` | ~100 | Manifest, schema tables, services, taxonomy, scheduling, locking |
+
+**Total: 577 tests across 8 suites** (as of Phase 18).
 
 ### Configuration
 

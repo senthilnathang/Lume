@@ -18,6 +18,7 @@ export const SectionBlock = Node.create({
       paddingTop: { default: '40' },
       paddingBottom: { default: '40' },
       maxWidth: { default: '1200' },
+      scrollSnap: { default: 'none' },
     }
   },
 

@@ -7,9 +7,18 @@ const widgetsDir = resolve(__dirname, '../../../backend/src/modules/editor/stati
 export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: true,
+  plugins: ['~/plugins/analytics.client.ts'],
+  nitro: {
+    routeRules: {
+      '/robots.txt': { proxy: `${process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/website/public/robots.txt` },
+      '/sitemap.xml': { proxy: `${process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/website/public/sitemap.xml` },
+    },
+  },
   css: [
     '~/assets/css/main.css',
     resolve(widgetsDir, 'widget-styles.css'),
+    resolve(widgetsDir, 'motion-fx.css'),
+    resolve(widgetsDir, 'animation-styles.css'),
   ],
   alias: {
     '@widgets': widgetsDir,
@@ -39,6 +48,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'stylesheet', href: `${process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/website/public/styles.css` },
       ],
     },
   },

@@ -28,14 +28,31 @@ import {
   ContentToggleBlock, MarketingButtonBlock, ModalPopupBlock,
   GoogleMapBlock, ContactFormBlock, BusinessHoursBlock,
   SocialShareBlock, PostsGridBlock, IconListBlock, ProgressBarBlock,
+  // Phase 4: 6 new block types
+  CarouselBlock, FlipBoxBlock, AnimatedHeadlineBlock,
+  HotspotBlock, TOCBlock, OffCanvasBlock,
+  // Phase 9: 15 new content blocks
+  TabsBlock, AccordionBlock, CounterBlock, StarRatingBlock,
+  BlockquoteBlock, CodeHighlightBlock, AudioBlock, BeforeAfterBlock,
+  LottieBlock, NavMenuBlock, BreadcrumbsBlock, SearchFormBlock,
+  SlidesBlock, ProgressTrackerBlock, FloatingButtonsBlock,
+  // Phase 10: Dynamic Content loop blocks
+  LoopGridBlock, LoopCarouselBlock,
+  // Phase 11: Global Widget Block
+  GlobalWidgetBlock,
 } from '../extensions';
 import EditorToolbar from './EditorToolbar.vue';
 import BlockPalette from './BlockPalette.vue';
 import BlockSettings from './BlockSettings.vue';
+import NavigatorPanel from './NavigatorPanel.vue';
+import BlockContextMenu from './BlockContextMenu.vue';
+import ShortcutsHelpModal from './ShortcutsHelpModal.vue';
+import { useEditorHistory } from '../composables/useEditorHistory';
+import { useEditorShortcuts } from '../composables/useEditorShortcuts';
 import {
   Monitor, Tablet, Smartphone, Eye, Code2, Undo2, Redo2,
   PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen,
-  Maximize2, Minimize2, Bookmark
+  Maximize2, Minimize2, Bookmark, Layers, HelpCircle
 } from 'lucide-vue-next';
 import { message } from 'ant-design-vue';
 import { post } from '@/api/request';
@@ -66,6 +83,9 @@ const sourceContent = ref('');
 const showPalette = ref(props.showBlockPalette);
 const showSettings = ref(props.showSettingsPanel);
 const isFullscreen = ref(false);
+const showNavigator = ref(false);
+const showShortcuts = ref(false);
+const contextMenuRef = ref<InstanceType<typeof BlockContextMenu> | null>(null);
 
 const canvasWidth = computed(() => {
   switch (devicePreview.value) {
@@ -140,6 +160,34 @@ const editor = useEditor({
     PostsGridBlock,
     IconListBlock,
     ProgressBarBlock,
+    // Phase 4: 6 new block types
+    CarouselBlock,
+    FlipBoxBlock,
+    AnimatedHeadlineBlock,
+    HotspotBlock,
+    TOCBlock,
+    OffCanvasBlock,
+    // Phase 9: 15 new content blocks
+    TabsBlock,
+    AccordionBlock,
+    CounterBlock,
+    StarRatingBlock,
+    BlockquoteBlock,
+    CodeHighlightBlock,
+    AudioBlock,
+    BeforeAfterBlock,
+    LottieBlock,
+    NavMenuBlock,
+    BreadcrumbsBlock,
+    SearchFormBlock,
+    SlidesBlock,
+    ProgressTrackerBlock,
+    FloatingButtonsBlock,
+    // Phase 10: Dynamic Content loop blocks
+    LoopGridBlock,
+    LoopCarouselBlock,
+    // Phase 11: Global Widget Block
+    GlobalWidgetBlock,
   ],
   onUpdate: ({ editor: ed }) => {
     const html = ed.getHTML();
@@ -147,6 +195,100 @@ const editor = useEditor({
     emit('update:blocks', ed.getJSON());
   },
 });
+
+// Editor History (block-level undo/redo)
+const editorHistory = useEditorHistory(editor as any);
+
+// Start watching after editor is ready
+watch(editor, (ed) => {
+  if (ed) {
+    editorHistory.startWatching();
+  }
+}, { immediate: true });
+
+// Editor Shortcuts
+function toggleMobilePreview() {
+  devicePreview.value = devicePreview.value === 'mobile' ? 'desktop' : 'mobile';
+}
+
+const shortcuts = useEditorShortcuts({
+  editor: editor as any,
+  onSave: () => {
+    emit('update:modelValue', editor.value?.getHTML() || '');
+    message.success('Saved');
+  },
+  onToggleMobilePreview: toggleMobilePreview,
+  onShowHelp: () => { showShortcuts.value = true; },
+  history: editorHistory,
+});
+
+// Context menu handlers
+function onCanvasContextMenu(e: MouseEvent) {
+  contextMenuRef.value?.show(e);
+}
+
+function handleContextCopy() { shortcuts.copyBlock(); }
+function handleContextPaste() { shortcuts.pasteBlock(); }
+function handleContextDuplicate() { shortcuts.duplicateBlock(); }
+function handleContextDelete() { shortcuts.deleteBlock(); }
+
+function handleContextMoveUp() {
+  if (!editor.value) return;
+  const sel = editor.value.state.selection;
+  const { $from } = sel;
+  for (let d = $from.depth; d >= 1; d--) {
+    const node = $from.node(d);
+    const pos = $from.before(d);
+    if (pos > 0) {
+      const prevResolved = editor.value.state.doc.resolve(pos);
+      if (prevResolved.nodeBefore) {
+        const from = pos;
+        const to = pos + node.nodeSize;
+        const targetPos = pos - prevResolved.nodeBefore.nodeSize;
+        const nodeJson = node.toJSON();
+        editor.value.chain().focus().deleteRange({ from, to }).insertContentAt(targetPos, nodeJson).run();
+      }
+      break;
+    }
+  }
+}
+
+function handleContextMoveDown() {
+  if (!editor.value) return;
+  const sel = editor.value.state.selection;
+  const { $from } = sel;
+  for (let d = $from.depth; d >= 1; d--) {
+    const node = $from.node(d);
+    const pos = $from.before(d);
+    const after = pos + node.nodeSize;
+    const resolvedAfter = editor.value.state.doc.resolve(after);
+    if (resolvedAfter.nodeAfter) {
+      const targetPos = after + resolvedAfter.nodeAfter.nodeSize;
+      const nodeJson = node.toJSON();
+      editor.value.chain().focus().deleteRange({ from: pos, to: after }).insertContentAt(targetPos - node.nodeSize, nodeJson).run();
+      break;
+    }
+  }
+}
+
+function handleSaveAsPreset() {
+  // Delegate to BlockSettings' preset save
+  message.info('Use the "Save as Preset" button in the settings panel');
+}
+
+function handleSaveAsTemplate() {
+  if (!editor.value) return;
+  const content = editor.value.getJSON();
+  post('/editor/templates', {
+    name: 'Untitled Template',
+    content: JSON.stringify(content),
+    category: 'saved',
+  }).then(() => {
+    message.success('Saved as template');
+  }).catch((err: any) => {
+    message.error(err?.message || 'Failed to save template');
+  });
+}
 
 // Sync external changes
 watch(() => props.modelValue, (newVal) => {
@@ -243,6 +385,7 @@ const blockCount = computed(() => {
 });
 
 onBeforeUnmount(() => {
+  editorHistory.stopWatching();
   editor.value?.destroy();
 });
 </script>
@@ -286,6 +429,14 @@ onBeforeUnmount(() => {
           <button class="toolbar-btn" @click="showSettings = !showSettings">
             <PanelRightOpen v-if="!showSettings" :size="16" />
             <PanelRightClose v-else :size="16" />
+          </button>
+        </a-tooltip>
+
+        <div class="toolbar-divider" />
+
+        <a-tooltip title="Toggle navigator">
+          <button :class="['toolbar-btn', { active: showNavigator }]" @click="showNavigator = !showNavigator">
+            <Layers :size="16" />
           </button>
         </a-tooltip>
       </div>
@@ -347,6 +498,11 @@ onBeforeUnmount(() => {
             </button>
           </a-tooltip>
         </a-popover>
+        <a-tooltip title="Keyboard shortcuts (?)">
+          <button class="toolbar-btn" @click="showShortcuts = true">
+            <HelpCircle :size="16" />
+          </button>
+        </a-tooltip>
         <a-tooltip :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'">
           <button class="toolbar-btn" @click="toggleFullscreen">
             <Minimize2 v-if="isFullscreen" :size="16" />
@@ -374,8 +530,14 @@ onBeforeUnmount(() => {
         :editor="editor"
       />
 
+      <!-- Navigator Panel (Left, after palette) -->
+      <NavigatorPanel
+        v-if="showNavigator && mode === 'visual'"
+        :editor="editor"
+      />
+
       <!-- Canvas (Center) -->
-      <div class="builder-canvas">
+      <div class="builder-canvas" @contextmenu="onCanvasContextMenu">
         <!-- Visual Mode -->
         <div
           v-show="mode === 'visual'"
@@ -406,6 +568,23 @@ onBeforeUnmount(() => {
         :editor="editor"
       />
     </div>
+
+    <!-- Block Context Menu -->
+    <BlockContextMenu
+      ref="contextMenuRef"
+      :editor="editor"
+      @copy="handleContextCopy"
+      @paste="handleContextPaste"
+      @duplicate="handleContextDuplicate"
+      @delete="handleContextDelete"
+      @move-up="handleContextMoveUp"
+      @move-down="handleContextMoveDown"
+      @save-preset="handleSaveAsPreset"
+      @save-template="handleSaveAsTemplate"
+    />
+
+    <!-- Shortcuts Help Modal -->
+    <ShortcutsHelpModal v-model:open="showShortcuts" />
 
     <!-- Status Bar -->
     <div class="builder-statusbar">
@@ -509,6 +688,7 @@ onBeforeUnmount(() => {
 }
 
 .toolbar-btn:hover { background: #e5e7eb; color: #1f2937; }
+.toolbar-btn.active { background: #dbeafe; color: #1677ff; }
 .toolbar-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .device-preview {

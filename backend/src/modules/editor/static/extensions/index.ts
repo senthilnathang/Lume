@@ -40,5 +40,32 @@ export { HotspotBlock } from './HotspotBlock'
 export { TOCBlock } from './TOCBlock'
 export { OffCanvasBlock } from './OffCanvasBlock'
 
+// Phase 9: 15 new content block widgets
+export { TabsBlock } from './TabsBlock'
+export { AccordionBlock } from './AccordionBlock'
+export { CounterBlock } from './CounterBlock'
+export { StarRatingBlock } from './StarRatingBlock'
+export { BlockquoteBlock } from './BlockquoteBlock'
+export { CodeHighlightBlock } from './CodeHighlightBlock'
+export { AudioBlock } from './AudioBlock'
+export { BeforeAfterBlock } from './BeforeAfterBlock'
+export { LottieBlock } from './LottieBlock'
+export { NavMenuBlock } from './NavMenuBlock'
+export { BreadcrumbsBlock } from './BreadcrumbsBlock'
+export { SearchFormBlock } from './SearchFormBlock'
+export { SlidesBlock } from './SlidesBlock'
+export { ProgressTrackerBlock } from './ProgressTrackerBlock'
+export { FloatingButtonsBlock } from './FloatingButtonsBlock'
+
+// Phase 10: Dynamic Content loop blocks
+export { LoopGridBlock } from './LoopGridBlock'
+export { LoopCarouselBlock } from './LoopCarouselBlock'
+
 // Inline nodes
 export { DynamicTagBlock } from './DynamicTagBlock'
+
+// Phase 11: Global Widget Block
+export { GlobalWidgetBlock } from './GlobalWidgetBlock'
+
+// Phase 18: Chart widget
+export { ChartBlock } from './ChartBlock';

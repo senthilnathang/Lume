@@ -237,10 +237,15 @@ Open `http://localhost:3007` to view the public website. Pages are rendered usin
 
 In the admin panel, navigate to **Website > Pages** to manage public site content:
 
-- **Pages** — Visual page editor with 30+ widget blocks
+- **Pages** — Visual page editor with 54 widget blocks, content scheduling, access control, page locking
 - **Menus** — Drag-and-drop hierarchical menu management
 - **Media** — Image and file upload library
-- **Settings** — Site name, logo, contact info, social links
+- **Categories** — Hierarchical category taxonomy for pages
+- **Tags** — Flat tag taxonomy for pages
+- **Forms** — Form builder with submission tracking
+- **Theme Builder** — Header, footer, and sidebar templates with live preview
+- **Popups** — Popup builder with 5 trigger types
+- **Settings** — Site name, logo, contact info, design tokens, SEO, robots.txt, code injection
 
 ---
 

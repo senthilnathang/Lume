@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
-import { Globe, FileText, Plus, Edit, Trash2, Search, Check, X, RefreshCw, Eye } from 'lucide-vue-next';
+import { Globe, FileText, Plus, Edit, Trash2, Search, Check, X, RefreshCw, Eye, Clock } from 'lucide-vue-next';
 import { get, post, put, del } from '@/api/request';
 import { CompactEditor } from '@modules/editor/static/components/index';
 
@@ -48,21 +48,31 @@ const columns = [
   { title: 'Actions', key: 'actions', width: 160, fixed: 'right' },
 ];
 
+const categoryFilter = ref<number | null>(null);
+const tagFilter = ref<number | null>(null);
+const allCategories = ref<any[]>([]);
+const allTags = ref<any[]>([]);
+
 const stats = computed(() => {
   const total = pages.value.length;
   const published = pages.value.filter((p: any) => p.isPublished).length;
-  const drafts = total - published;
-  return { total, published, drafts };
+  const scheduled = pages.value.filter((p: any) => !p.isPublished && p.publishAt && new Date(p.publishAt) > new Date()).length;
+  const drafts = total - published - scheduled;
+  return { total, published, drafts, scheduled };
 });
 
+// Client-side filtering for search, status, type (immediate feedback)
+// Category/tag filters trigger a fresh API load (server-side)
 const filteredPages = computed(() => {
   return pages.value.filter((page: any) => {
     const matchesSearch = !searchText.value ||
       page.title?.toLowerCase().includes(searchText.value.toLowerCase()) ||
       page.slug?.toLowerCase().includes(searchText.value.toLowerCase());
+    const isScheduled = !page.isPublished && page.publishAt && new Date(page.publishAt) > new Date();
     const matchesStatus = !statusFilter.value ||
       (statusFilter.value === 'published' && page.isPublished) ||
-      (statusFilter.value === 'draft' && !page.isPublished);
+      (statusFilter.value === 'draft' && !page.isPublished && !isScheduled) ||
+      (statusFilter.value === 'scheduled' && isScheduled);
     const matchesType = !typeFilter.value || page.pageType === typeFilter.value;
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -91,13 +101,27 @@ function formatDate(date: string) {
 async function loadPages() {
   loading.value = true;
   try {
-    const data = await get('/website/pages');
+    const params: Record<string, any> = { limit: 200 };
+    if (categoryFilter.value) params.categoryId = categoryFilter.value;
+    if (tagFilter.value) params.tagId = tagFilter.value;
+    const data = await get('/website/pages', { params });
     pages.value = Array.isArray(data) ? data : data?.rows || data?.data || [];
   } catch (err: any) {
     message.error('Failed to load pages');
   } finally {
     loading.value = false;
   }
+}
+
+async function loadTaxonomy() {
+  try {
+    const [cats, tags] = await Promise.all([
+      get('/website/categories').catch(() => []),
+      get('/website/tags').catch(() => []),
+    ]);
+    allCategories.value = Array.isArray(cats) ? cats : cats?.rows || cats?.data || [];
+    allTags.value = Array.isArray(tags) ? tags : tags?.rows || tags?.data || [];
+  } catch { /* taxonomy optional */ }
 }
 
 function resetForm() {
@@ -184,8 +208,13 @@ async function handleDelete(page: any) {
   }
 }
 
+watch([categoryFilter, tagFilter], () => {
+  loadPages();
+});
+
 onMounted(() => {
   loadPages();
+  loadTaxonomy();
 });
 </script>
 
@@ -209,7 +238,7 @@ onMounted(() => {
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <a-card size="small">
         <div class="flex items-center justify-between">
           <div>
@@ -237,6 +266,15 @@ onMounted(() => {
           <Edit :size="24" class="text-orange-400" />
         </div>
       </a-card>
+      <a-card size="small">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500 m-0">Scheduled</p>
+            <p class="text-2xl font-semibold m-0 text-blue-600">{{ stats.scheduled }}</p>
+          </div>
+          <Clock :size="24" class="text-blue-400" />
+        </div>
+      </a-card>
     </div>
 
     <!-- Filter Bar & Table -->
@@ -258,15 +296,38 @@ onMounted(() => {
         >
           <a-select-option value="published">Published</a-select-option>
           <a-select-option value="draft">Draft</a-select-option>
+          <a-select-option value="scheduled">Scheduled</a-select-option>
         </a-select>
         <a-select
           v-model:value="typeFilter"
           placeholder="All Types"
-          style="width: 150px"
+          style="width: 130px"
           allow-clear
         >
           <a-select-option v-for="pt in pageTypes" :key="pt" :value="pt">
             {{ pt.charAt(0).toUpperCase() + pt.slice(1) }}
+          </a-select-option>
+        </a-select>
+        <a-select
+          v-if="allCategories.length"
+          v-model:value="categoryFilter"
+          placeholder="All Categories"
+          style="width: 160px"
+          allow-clear
+        >
+          <a-select-option v-for="cat in allCategories" :key="cat.id" :value="cat.id">
+            {{ cat.name }}
+          </a-select-option>
+        </a-select>
+        <a-select
+          v-if="allTags.length"
+          v-model:value="tagFilter"
+          placeholder="All Tags"
+          style="width: 140px"
+          allow-clear
+        >
+          <a-select-option v-for="tag in allTags" :key="tag.id" :value="tag.id">
+            {{ tag.name }}
           </a-select-option>
         </a-select>
         <a-tooltip title="Refresh">
@@ -290,9 +351,11 @@ onMounted(() => {
             <a class="font-medium text-blue-600 hover:text-blue-800 cursor-pointer" @click="editPage(record)">{{ record.title }}</a>
           </template>
           <template v-else-if="column.key === 'status'">
-            <a-tag :color="record.isPublished ? 'green' : 'orange'">
-              {{ record.isPublished ? 'Published' : 'Draft' }}
+            <a-tag v-if="record.isPublished" color="green">Published</a-tag>
+            <a-tag v-else-if="record.publishAt && new Date(record.publishAt) > new Date()" color="blue">
+              Scheduled
             </a-tag>
+            <a-tag v-else color="orange">Draft</a-tag>
           </template>
           <template v-else-if="column.key === 'created'">
             {{ formatDate(record.created_at) }}

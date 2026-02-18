@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
 import { message } from 'ant-design-vue';
-import { Menu, Plus, Edit, Trash2, Link2, GripVertical, Save } from 'lucide-vue-next';
+import { Menu, Plus, Edit, Trash2, Link2, GripVertical, Save, LayoutGrid } from 'lucide-vue-next';
 import { get, post, put, del } from '@/api/request';
 import draggable from 'vuedraggable';
 import MenuTreeNode from '../components/MenuTreeNode.vue';
@@ -22,6 +22,10 @@ const editingMenu = ref<any>(null);
 const itemModalVisible = ref(false);
 const editingItem = ref<any>(null);
 const pages = ref<any[]>([]);
+const megaMenuDrawerVisible = ref(false);
+const editingMegaMenuItem = ref<any>(null);
+const megaMenuContent = ref('');
+const savingMegaMenu = ref(false);
 
 const locations = ['header', 'footer', 'sidebar'];
 const targets = ['_self', '_blank'];
@@ -288,6 +292,39 @@ async function handleSaveOrder() {
   }
 }
 
+// --- Mega Menu ---
+
+function openMegaMenuDrawer(item: any) {
+  editingMegaMenuItem.value = item;
+  megaMenuContent.value = item.megaMenuContent || '';
+  megaMenuDrawerVisible.value = true;
+}
+
+function closeMegaMenuDrawer() {
+  megaMenuDrawerVisible.value = false;
+  editingMegaMenuItem.value = null;
+  megaMenuContent.value = '';
+}
+
+async function handleSaveMegaMenu() {
+  if (!editingMegaMenuItem.value) return;
+  savingMegaMenu.value = true;
+  try {
+    await put(`/website/menu-items/${editingMegaMenuItem.value.id}`, {
+      megaMenuContent: megaMenuContent.value || null,
+    });
+    message.success('Mega menu content saved');
+    closeMegaMenuDrawer();
+    if (selectedMenu.value) {
+      await selectMenu(selectedMenu.value);
+    }
+  } catch (err: any) {
+    message.error(err?.message || 'Failed to save mega menu');
+  } finally {
+    savingMegaMenu.value = false;
+  }
+}
+
 // --- Init ---
 
 async function loadPages() {
@@ -438,6 +475,7 @@ onMounted(() => {
                   @edit="openItemModal"
                   @delete="handleDeleteItem"
                   @change="handleTreeChange"
+                  @mega-menu="openMegaMenuDrawer"
                 />
               </template>
             </draggable>
@@ -552,6 +590,49 @@ onMounted(() => {
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- Mega Menu Drawer -->
+    <a-drawer
+      :open="megaMenuDrawerVisible"
+      title="Edit Mega Menu"
+      width="580"
+      @close="closeMegaMenuDrawer"
+    >
+      <div v-if="editingMegaMenuItem" class="mb-4">
+        <div class="text-xs text-gray-500 mb-1">
+          Menu item: <strong>{{ editingMegaMenuItem.label }}</strong>
+        </div>
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700 mb-4">
+          Mega menu content (TipTap JSON). Paste or edit the JSON structure that will be rendered as the mega menu dropdown for this top-level item.
+        </div>
+        <a-form layout="vertical">
+          <a-form-item label="Mega Menu Content (TipTap JSON)">
+            <a-textarea
+              v-model:value="megaMenuContent"
+              :rows="18"
+              placeholder='{"type":"doc","content":[...]}'
+              style="font-family: monospace; font-size: 12px"
+            />
+          </a-form-item>
+        </a-form>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <a-button @click="closeMegaMenuDrawer">Cancel</a-button>
+          <a-button
+            v-if="editingMegaMenuItem?.megaMenuContent"
+            danger
+            @click="() => { megaMenuContent = ''; handleSaveMegaMenu(); }"
+          >
+            Clear Mega Menu
+          </a-button>
+          <a-button type="primary" :loading="savingMegaMenu" @click="handleSaveMegaMenu">
+            Save
+          </a-button>
+        </div>
+      </template>
+    </a-drawer>
   </div>
 </template>
 
