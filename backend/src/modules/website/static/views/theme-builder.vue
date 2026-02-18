@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { message, Modal } from 'ant-design-vue';
-import { Layout, Plus, Edit3, Trash2, Search } from 'lucide-vue-next';
+import { Layout, Plus, Edit3, Trash2, Search, ExternalLink, Eye, Code, PanelRight } from 'lucide-vue-next';
 import {
   getThemeTemplates,
   createThemeTemplate,
@@ -9,6 +9,8 @@ import {
   deleteThemeTemplate,
   getPages,
 } from '../api/index';
+import ConditionBuilder from '../components/ConditionBuilder.vue';
+import { PageBuilder } from '@modules/editor/static/components/index';
 
 defineOptions({ name: 'WebsiteThemeBuilder' });
 
@@ -19,7 +21,7 @@ const page = ref(1);
 const searchQuery = ref('');
 const activeFilter = ref('all');
 
-const filterOptions = ['All', 'Header', 'Footer', 'Sidebar'];
+const filterOptions = ['All', 'Header', 'Footer', 'Sidebar', 'Single-Post', 'Archive', 'Error-404', 'Search-Results'];
 
 // Page slugs for conditions multi-select
 const pageSlugs = ref<{ label: string; value: string }[]>([]);
@@ -30,28 +32,32 @@ const drawerLoading = ref(false);
 const editingTemplate = reactive({
   id: null as number | null,
   name: '',
-  type: 'header' as 'header' | 'footer' | 'sidebar',
+  type: 'header' as string,
   content: '',
   contentHtml: '',
-  conditions: null as { pages?: string[]; excludePages?: string[] } | null,
+  conditions: null as any,
   priority: 0,
   isActive: true,
 });
 
 const conditionMode = ref<'include' | 'exclude'>('include');
 const conditionPages = ref<string[]>([]);
+const conditionsJson = ref<string>('[]');
 
 const typeColors: Record<string, string> = {
   header: 'blue',
   footer: 'green',
   sidebar: 'purple',
+  'single-post': 'orange',
+  'archive': 'cyan',
+  'error-404': 'red',
+  'search-results': 'geekblue',
 };
 
 const filteredTemplates = computed(() => {
   if (activeFilter.value === 'all') return templates.value;
-  return templates.value.filter(
-    (t) => t.type === activeFilter.value.toLowerCase()
-  );
+  const filterVal = activeFilter.value.toLowerCase().replace(' ', '-');
+  return templates.value.filter((t) => t.type === filterVal);
 });
 
 async function loadTemplates() {
@@ -97,6 +103,7 @@ function openCreate() {
   });
   conditionMode.value = 'include';
   conditionPages.value = [];
+  conditionsJson.value = '[]';
   drawerVisible.value = true;
 }
 
@@ -114,16 +121,24 @@ async function openEdit(record: any) {
       priority: record.priority || 0,
       isActive: record.isActive !== false,
     });
-    // Parse conditions into mode + pages
-    if (editingTemplate.conditions?.excludePages?.length) {
-      conditionMode.value = 'exclude';
-      conditionPages.value = editingTemplate.conditions.excludePages;
-    } else if (editingTemplate.conditions?.pages?.length) {
+    // Parse conditions — support both new array format and legacy pages/excludePages format
+    const conds = editingTemplate.conditions;
+    if (Array.isArray(conds) && conds.length > 0) {
+      conditionsJson.value = JSON.stringify(conds);
       conditionMode.value = 'include';
-      conditionPages.value = editingTemplate.conditions.pages;
+      conditionPages.value = [];
+    } else if (conds?.excludePages?.length) {
+      conditionMode.value = 'exclude';
+      conditionPages.value = conds.excludePages;
+      conditionsJson.value = '[]';
+    } else if (conds?.pages?.length) {
+      conditionMode.value = 'include';
+      conditionPages.value = conds.pages;
+      conditionsJson.value = '[]';
     } else {
       conditionMode.value = 'include';
       conditionPages.value = [];
+      conditionsJson.value = '[]';
     }
   } catch {
     message.error('Failed to load template');
@@ -133,7 +148,13 @@ async function openEdit(record: any) {
   }
 }
 
-function buildConditions(): { pages?: string[]; excludePages?: string[] } | null {
+function buildConditions(): any {
+  // Prefer the new ConditionBuilder JSON format if present
+  try {
+    const parsed = JSON.parse(conditionsJson.value || '[]');
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+  } catch { /* fall through to legacy */ }
+  // Legacy: pages multi-select
   if (!conditionPages.value.length) return null;
   if (conditionMode.value === 'exclude') {
     return { excludePages: conditionPages.value };
@@ -192,7 +213,7 @@ function handleDelete(record: any) {
 }
 
 function handleFilterChange(value: string | number) {
-  activeFilter.value = String(value).toLowerCase();
+  activeFilter.value = String(value).toLowerCase().replace(/\s+/g, '-');
 }
 
 function formatDate(d: string) {
@@ -213,8 +234,61 @@ const columns = [
   { title: 'Status', dataIndex: 'isActive', key: 'status', width: 100 },
   { title: 'Priority', dataIndex: 'priority', key: 'priority', width: 90 },
   { title: 'Created', dataIndex: 'createdAt', key: 'createdAt', width: 170 },
-  { title: 'Actions', key: 'actions', width: 120 },
+  { title: 'Actions', key: 'actions', width: 150 },
 ];
+
+// Live preview
+const publicSiteUrl = import.meta.env.VITE_PUBLIC_SITE_URL || 'http://localhost:3100';
+const previewOpen = ref(false);
+const previewTemplateId = ref<number | null>(null);
+const previewTemplateType = ref('');
+
+function openPreview(record: any) {
+  previewTemplateId.value = record.id;
+  previewTemplateType.value = record.type;
+  previewOpen.value = true;
+}
+
+const previewSrc = computed(() => {
+  if (!previewTemplateId.value) return '';
+  return `${publicSiteUrl}/?preview_template=${previewTemplateType.value}&preview_id=${previewTemplateId.value}`;
+});
+
+// Content editor mode: 'visual' (PageBuilder) or 'json' (textarea)
+const contentMode = ref<'visual' | 'json'>('visual');
+
+// PageBuilder content object (parsed TipTap JSON)
+const builderContent = ref<any>(null);
+
+// Sync builderContent ↔ editingTemplate.content (string)
+function parseTemplateContent(raw: string): any {
+  if (!raw) return { type: 'doc', content: [] };
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed;
+  } catch {
+    return { type: 'doc', content: [] };
+  }
+}
+
+watch(drawerVisible, (open) => {
+  if (open) {
+    builderContent.value = parseTemplateContent(editingTemplate.content);
+    contentMode.value = 'visual';
+  }
+});
+
+function handleBuilderUpdate(content: any) {
+  builderContent.value = content;
+  editingTemplate.content = JSON.stringify(content);
+}
+
+// Drawer live preview src (uses the template being edited, if already saved)
+const drawerPreviewSrc = computed(() => {
+  if (!editingTemplate.id) return '';
+  return `${publicSiteUrl}/?preview_template=${editingTemplate.type}&preview_id=${editingTemplate.id}`;
+});
+const drawerPreviewOpen = ref(false);
 
 onMounted(() => {
   loadTemplates();
@@ -244,7 +318,7 @@ onMounted(() => {
     <!-- Filter bar -->
     <div class="flex items-center justify-between mb-4">
       <a-segmented
-        :value="activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1)"
+        :value="filterOptions.find(f => f.toLowerCase().replace(/\s+/g, '-') === activeFilter) || filterOptions[0]"
         :options="filterOptions"
         @change="handleFilterChange"
       />
@@ -299,6 +373,11 @@ onMounted(() => {
         </template>
         <template v-else-if="column.key === 'actions'">
           <div class="flex gap-1">
+            <a-tooltip title="Preview">
+              <a-button type="text" size="small" @click="openPreview(record)">
+                <template #icon><Eye :size="14" /></template>
+              </a-button>
+            </a-tooltip>
             <a-tooltip title="Edit">
               <a-button type="text" size="small" @click="openEdit(record)">
                 <template #icon><Edit3 :size="14" /></template>
@@ -314,11 +393,35 @@ onMounted(() => {
       </template>
     </a-table>
 
+    <!-- Live Preview Modal -->
+    <a-modal
+      v-model:open="previewOpen"
+      title="Theme Template Preview"
+      width="90vw"
+      :footer="null"
+      :body-style="{ padding: 0, height: '75vh', overflow: 'hidden' }"
+    >
+      <div class="flex items-center justify-between px-4 py-2 border-b bg-gray-50">
+        <span class="text-sm text-gray-500">
+          Previewing <strong>{{ previewTemplateType }}</strong> template on the public site
+        </span>
+        <a :href="previewSrc" target="_blank" class="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700">
+          <ExternalLink :size="14" /> Open in new tab
+        </a>
+      </div>
+      <iframe
+        v-if="previewSrc"
+        :src="previewSrc"
+        class="w-full border-0"
+        style="height: calc(75vh - 44px);"
+      />
+    </a-modal>
+
     <!-- Edit Drawer -->
     <a-drawer
       :open="drawerVisible"
       :title="editingTemplate.id ? 'Edit Template' : 'New Template'"
-      :width="700"
+      :width="drawerPreviewOpen && editingTemplate.id ? '95vw' : 860"
       @close="drawerVisible = false"
     >
       <a-spin :spinning="drawerLoading">
@@ -333,6 +436,10 @@ onMounted(() => {
                 <a-select-option value="header">Header</a-select-option>
                 <a-select-option value="footer">Footer</a-select-option>
                 <a-select-option value="sidebar">Sidebar</a-select-option>
+                <a-select-option value="single-post">Single Post</a-select-option>
+                <a-select-option value="archive">Archive</a-select-option>
+                <a-select-option value="error-404">404 Error</a-select-option>
+                <a-select-option value="search-results">Search Results</a-select-option>
               </a-select>
             </a-form-item>
 
@@ -357,46 +464,61 @@ onMounted(() => {
 
           <a-divider>Display Conditions</a-divider>
 
-          <a-form-item label="Condition Mode">
-            <a-segmented
-              v-model:value="conditionMode"
-              :options="[
-                { label: 'Show on specific pages', value: 'include' },
-                { label: 'Hide on specific pages', value: 'exclude' },
-              ]"
-            />
-          </a-form-item>
+          <ConditionBuilder
+            :model-value="conditionsJson"
+            @update:model-value="(val: string) => { conditionsJson.value = val }"
+          />
 
-          <a-form-item :label="conditionMode === 'include' ? 'Show on pages' : 'Hide on pages'">
-            <a-select
-              v-model:value="conditionPages"
-              mode="multiple"
-              placeholder="Leave empty to show on all pages"
-              :options="pageSlugs"
-              allow-clear
-              show-search
-              :filter-option="(input: string, option: any) => option.label.toLowerCase().includes(input.toLowerCase())"
-            />
-            <div class="text-xs text-gray-400 mt-1">
-              {{ conditionMode === 'include'
-                ? 'Template will only appear on selected pages. Leave empty for all pages.'
-                : 'Template will be hidden on selected pages.'
-              }}
+          <a-divider>
+            <div class="flex items-center gap-3">
+              <span>Content</span>
+              <a-segmented
+                v-model:value="contentMode"
+                :options="[{ label: 'Visual', value: 'visual' }, { label: 'JSON', value: 'json' }]"
+                size="small"
+              />
+              <a-tooltip v-if="editingTemplate.id" title="Live Preview">
+                <a-button size="small" @click="drawerPreviewOpen = !drawerPreviewOpen">
+                  <template #icon><PanelRight :size="14" /></template>
+                </a-button>
+              </a-tooltip>
             </div>
-          </a-form-item>
+          </a-divider>
 
-          <a-divider>Content</a-divider>
+          <!-- Visual PageBuilder mode -->
+          <div v-if="contentMode === 'visual'" class="flex gap-4">
+            <div :class="drawerPreviewOpen && editingTemplate.id ? 'w-1/2' : 'w-full'">
+              <PageBuilder
+                v-if="drawerVisible"
+                :model-value="builderContent"
+                @update:model-value="handleBuilderUpdate"
+                style="min-height: 400px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;"
+              />
+            </div>
+            <div v-if="drawerPreviewOpen && editingTemplate.id" class="w-1/2 flex flex-col gap-2">
+              <div class="flex items-center justify-between text-xs text-gray-500">
+                <span>Live Preview (save to refresh)</span>
+                <a :href="drawerPreviewSrc" target="_blank" class="text-blue-500 hover:text-blue-700 flex items-center gap-1">
+                  <ExternalLink :size="12" /> Open
+                </a>
+              </div>
+              <iframe
+                :src="drawerPreviewSrc"
+                class="w-full border border-gray-200 rounded-lg"
+                style="height: 420px;"
+              />
+            </div>
+          </div>
 
-          <a-form-item label="Template Content (TipTap JSON)">
+          <!-- JSON textarea mode -->
+          <a-form-item v-else label="Template Content (TipTap JSON)">
             <a-textarea
               v-model:value="editingTemplate.content"
-              :rows="14"
+              :rows="16"
               placeholder='{"type":"doc","content":[...]}'
               class="font-mono text-xs"
+              @change="builderContent = parseTemplateContent(editingTemplate.content)"
             />
-            <div class="text-xs text-gray-400 mt-1">
-              Paste TipTap JSON content here. PageBuilder integration coming soon.
-            </div>
           </a-form-item>
         </a-form>
       </a-spin>

@@ -7,7 +7,12 @@ import {
   Info, HelpCircle, CreditCard, ListChecks, UserCircle,
   MessageSquareQuote, Timer, ToggleLeft, Zap, Maximize2,
   MapPin, Mail, Clock, Share2, LayoutGrid, BarChart2,
-  Grid3x3, Bookmark, type LucideIcon,
+  Grid3x3, Bookmark, Globe, Plus,
+  // Phase 9 icons
+  LayoutList, ChevronsUpDown, Hash, Star, Code,
+  Volume2, Columns2, Sparkles, Menu, ChevronRight,
+  Presentation, Loader, MessageCircle,
+  type LucideIcon,
 } from 'lucide-vue-next';
 import { widgetRegistry, type WidgetDef, type WidgetCategory } from '../widgets/registry';
 import { get, post } from '@/api/request';
@@ -16,10 +21,31 @@ const props = defineProps<{
   editor: any;
 }>();
 
+const WIDGET_STORAGE_KEY = 'lume_enabled_widgets';
+
 const searchQuery = ref('');
-const activeTab = ref<'widgets' | 'saved'>('widgets');
+const activeTab = ref<'widgets' | 'saved' | 'global'>('widgets');
 const savedBlocks = ref<any[]>([]);
 const loadingSaved = ref(false);
+const globalWidgets = ref<any[]>([]);
+const loadingGlobal = ref(false);
+
+// Load widget enabled/disabled state from localStorage (set by Widget Manager)
+function getEnabledWidgets(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(WIDGET_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function isWidgetEnabled(type: string): boolean {
+  const state = getEnabledWidgets();
+  // If no state recorded yet (fresh install), default all to enabled
+  if (Object.keys(state).length === 0) return true;
+  return state[type] !== false;
+}
 
 async function loadSavedBlocks() {
   loadingSaved.value = true;
@@ -44,6 +70,30 @@ function insertSavedBlock(block: any) {
     // Try inserting as raw content
     props.editor.chain().focus().insertContent(block.content).run();
   }
+}
+
+async function loadGlobalWidgets() {
+  loadingGlobal.value = true;
+  try {
+    const result = await get('/editor/global-widgets');
+    const rows = result?.rows || result?.data || (Array.isArray(result) ? result : []);
+    globalWidgets.value = rows;
+  } catch {
+    globalWidgets.value = [];
+  } finally {
+    loadingGlobal.value = false;
+  }
+}
+
+function insertGlobalWidget(widget: any) {
+  if (!props.editor) return;
+  props.editor.chain().focus().insertContent({
+    type: 'globalWidgetBlock',
+    attrs: {
+      globalWidgetId: widget.id,
+      name: widget.name,
+    },
+  }).run();
 }
 
 onMounted(() => {
@@ -80,6 +130,22 @@ const iconMap: Record<string, LucideIcon> = {
   'layout-grid': LayoutGrid,
   'bar-chart-2': BarChart2,
   'grid-3x3': Grid3x3,
+  // Phase 9 icons
+  'globe': Globe,
+  'layout-list': LayoutList,
+  'chevrons-up-down': ChevronsUpDown,
+  'hash': Hash,
+  'star': Star,
+  'code-2': Code2,
+  'volume-2': Volume2,
+  'columns-2': Columns2,
+  'sparkles': Sparkles,
+  'menu': Menu,
+  'chevron-right': ChevronRight,
+  'search': Search,
+  'presentation': Presentation,
+  'loader': Loader,
+  'message-circle': MessageCircle,
 };
 
 function getIcon(iconName: string): LucideIcon {
@@ -95,6 +161,8 @@ const categoryConfig: Record<WidgetCategory | string, { label: string; order: nu
   commercial: { label: 'Commercial', order: 5 },
   utility: { label: 'Utility', order: 6 },
   social: { label: 'Social', order: 7 },
+  navigation: { label: 'Navigation', order: 8 },
+  global: { label: 'Global', order: 9 },
   text: { label: 'Text', order: 0 },
 };
 
@@ -208,10 +276,12 @@ const allCategories = computed(() => {
     catMap[b.category].push(b);
   });
 
-  // Add widget registry blocks
+  // Add widget registry blocks (skip disabled ones)
   widgetRegistry.forEach(widget => {
     // Skip columnBlock from palette (it's auto-inserted with columns)
     if (widget.type === 'columnBlock') return;
+    // Skip widgets disabled in Widget Manager
+    if (!isWidgetEnabled(widget.type)) return;
     const cat = widget.category;
     if (!catMap[cat]) catMap[cat] = [];
     catMap[cat].push(widgetToBlock(widget));
@@ -246,6 +316,7 @@ const filteredCategories = computed(() => {
       <div class="palette-tabs">
         <button :class="['palette-tab', activeTab === 'widgets' && 'active']" @click="activeTab = 'widgets'">Widgets</button>
         <button :class="['palette-tab', activeTab === 'saved' && 'active']" @click="activeTab = 'saved'; loadSavedBlocks()">Saved</button>
+        <button :class="['palette-tab', activeTab === 'global' && 'active']" @click="activeTab = 'global'; loadGlobalWidgets()">Global</button>
       </div>
     </div>
 
@@ -281,7 +352,7 @@ const filteredCategories = computed(() => {
     </template>
 
     <!-- Saved Blocks Tab -->
-    <template v-else>
+    <template v-else-if="activeTab === 'saved'">
       <div class="palette-content">
         <a-spin :spinning="loadingSaved" size="small">
           <div v-if="!savedBlocks.length && !loadingSaved" class="saved-empty">
@@ -302,6 +373,35 @@ const filteredCategories = computed(() => {
                 <span class="saved-block-name">{{ block.name }}</span>
                 <span v-if="block.category && block.category !== 'general'" class="saved-block-cat">{{ block.category }}</span>
               </div>
+            </button>
+          </div>
+        </a-spin>
+      </div>
+    </template>
+
+    <!-- Global Widgets Tab -->
+    <template v-else-if="activeTab === 'global'">
+      <div class="palette-content">
+        <a-spin :spinning="loadingGlobal" size="small">
+          <div v-if="!globalWidgets.length && !loadingGlobal" class="saved-empty">
+            <Globe :size="24" class="text-gray-300 mx-auto mb-2" />
+            <p class="text-xs text-gray-400">No global widgets yet</p>
+            <p class="text-[10px] text-gray-300">Create global widgets via the editor API</p>
+          </div>
+          <div v-else class="saved-blocks-list">
+            <button
+              v-for="widget in globalWidgets"
+              :key="widget.id"
+              class="saved-block-item global-widget-item"
+              :title="`Insert: ${widget.name}`"
+              @click="insertGlobalWidget(widget)"
+            >
+              <Globe :size="14" class="text-blue-500 flex-shrink-0" />
+              <div class="saved-block-info">
+                <span class="saved-block-name">{{ widget.name }}</span>
+                <span class="saved-block-cat global-badge">GLOBAL</span>
+              </div>
+              <Plus :size="12" class="text-gray-400 flex-shrink-0" />
             </button>
           </div>
         </a-spin>
@@ -441,5 +541,19 @@ const filteredCategories = computed(() => {
   display: block;
   font-size: 10px;
   color: #9ca3af;
+}
+.global-widget-item {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+.global-widget-item:hover {
+  border-color: #2563eb;
+  background: #dbeafe;
+}
+.global-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: 0.5px;
 }
 </style>

@@ -218,7 +218,7 @@ To migrate a page to the visual builder:
 2. Update the page via `PUT /api/website/pages/:id` with the new content
 3. The page will automatically show the visual builder on next edit
 
-Available block types for migration: sectionBlock, columnsBlock, columnBlock, heading, paragraph, dualHeading, advancedHeading, infoBox, testimonial, teamMember, iconList, faq, contactForm, businessHours, calloutBlock, buttonBlock, marketingButton, spacerBlock, imageBlock, videoBlock, htmlBlock, priceTable, priceList, googleMap, socialShare, countdown, contentToggle, modalPopup, progressBar, postsGrid, imageGallery.
+Available block types for migration: sectionBlock, columnsBlock, columnBlock, heading, paragraph, dualHeading, advancedHeading, infoBox, testimonial, teamMember, iconList, faq, contactForm, businessHours, calloutBlock, buttonBlock, marketingButton, spacerBlock, imageBlock, videoBlock, htmlBlock, priceTable, priceList, googleMap, socialShare, countdown, contentToggle, modalPopup, progressBar, postsGrid, imageGallery, carouselBlock, flipBoxBlock, animatedHeadlineBlock, hotspotBlock, tocBlock, offCanvasBlock, dynamicTagBlock, accordionBlock, audioBlock, beforeAfterBlock, blockquoteBlock, breadcrumbsBlock, chartBlock, codeHighlightBlock, counterBlock, floatingButtonsBlock, globalWidgetBlock, loopCarouselBlock, loopGridBlock, lottieBlock, navMenuBlock, progressTrackerBlock, searchFormBlock, slidesBlock, starRatingBlock, tabsBlock.
 
 ---
 

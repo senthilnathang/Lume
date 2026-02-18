@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
-import { Settings, Save, Globe, Palette, Search as SearchIcon, Share2, Code2, Paintbrush } from 'lucide-vue-next';
+import { Settings, Save, Globe, Palette, Search as SearchIcon, Share2, Code2, Paintbrush, Play, Droplets } from 'lucide-vue-next';
 import { get, put } from '@/api/request';
 import DesignTokensEditor from '../components/DesignTokensEditor.vue';
+import FontPicker from '../components/FontPicker.vue';
 
 defineOptions({ name: 'WebsiteSettings' });
 
 const loading = ref(false);
 const saving = ref(false);
+const activeTab = ref('general');
+const savingDesign = ref(false);
 
 const form = reactive({
   // General
@@ -29,8 +32,22 @@ const form = reactive({
   social_instagram: '',
   // Custom Code
   custom_head_code: '',
+  custom_body_code: '',
+  // SEO
+  robots_txt: '',
   // Design Tokens (stored as JSON string)
   design_tokens: '',
+  // Page Transitions
+  transition_type: 'none',
+  transition_color: '#ffffff',
+  preloader_type: 'none',
+  // Design system
+  color_primary: '#1677ff',
+  color_secondary: '#0050b3',
+  color_accent: '#faad14',
+  color_neutral: '#6b7280',
+  font_heading: 'Inter, sans-serif',
+  font_body: 'Inter, sans-serif',
 });
 
 const designTokens = ref({
@@ -90,6 +107,24 @@ async function handleSave() {
   }
 }
 
+async function handleSaveDesign() {
+  savingDesign.value = true;
+  try {
+    // Serialize design tokens before saving
+    form.design_tokens = JSON.stringify(designTokens.value);
+    const designEntries = [
+      'color_primary', 'color_secondary', 'color_accent', 'color_neutral',
+      'font_heading', 'font_body', 'design_tokens',
+    ].map((key) => ({ key, value: (form as any)[key] ?? '', type: 'string' }));
+    await put('/website/settings', { settings: designEntries });
+    message.success('Design settings saved');
+  } catch (err: any) {
+    message.error(err?.message || 'Failed to save design settings');
+  } finally {
+    savingDesign.value = false;
+  }
+}
+
 onMounted(() => {
   loadSettings();
 });
@@ -115,9 +150,14 @@ onMounted(() => {
     </div>
 
     <a-spin :spinning="loading">
-      <div class="max-w-3xl space-y-6">
+      <a-tabs v-model:activeKey="activeTab" class="max-w-4xl">
 
-        <!-- General -->
+        <!-- General Tab -->
+        <a-tab-pane key="general">
+          <template #tab>
+            <span class="flex items-center gap-1.5"><Globe :size="14" /> General</span>
+          </template>
+          <div class="space-y-4 pt-2">
         <a-card size="small">
           <template #title>
             <div class="flex items-center gap-2">
@@ -139,8 +179,15 @@ onMounted(() => {
             </a-form-item>
           </a-form>
         </a-card>
+          </div>
+        </a-tab-pane>
 
-        <!-- Branding -->
+        <!-- Branding Tab -->
+        <a-tab-pane key="branding">
+          <template #tab>
+            <span class="flex items-center gap-1.5"><Palette :size="14" /> Branding</span>
+          </template>
+          <div class="space-y-4 pt-2">
         <a-card size="small">
           <template #title>
             <div class="flex items-center gap-2">
@@ -175,8 +222,15 @@ onMounted(() => {
             </a-form-item>
           </a-form>
         </a-card>
+          </div>
+        </a-tab-pane>
 
-        <!-- SEO -->
+        <!-- SEO Tab -->
+        <a-tab-pane key="seo">
+          <template #tab>
+            <span class="flex items-center gap-1.5"><SearchIcon :size="14" /> SEO</span>
+          </template>
+          <div class="space-y-4 pt-2">
         <a-card size="small">
           <template #title>
             <div class="flex items-center gap-2">
@@ -195,10 +249,30 @@ onMounted(() => {
             <a-form-item label="Google Analytics ID">
               <a-input v-model:value="form.google_analytics_id" placeholder="G-XXXXXXXXXX" />
             </a-form-item>
+            <a-form-item label="robots.txt Content">
+              <a-textarea
+                v-model:value="form.robots_txt"
+                placeholder="User-agent: *
+Allow: /
+Sitemap: https://yoursite.com/sitemap.xml"
+                :rows="6"
+                style="font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 13px;"
+              />
+              <p class="text-xs text-gray-400 mt-1 m-0">
+                Served at <code>/robots.txt</code>. Default allows all crawlers.
+              </p>
+            </a-form-item>
           </a-form>
         </a-card>
+          </div>
+        </a-tab-pane>
 
-        <!-- Social Links -->
+        <!-- Social Tab -->
+        <a-tab-pane key="social">
+          <template #tab>
+            <span class="flex items-center gap-1.5"><Share2 :size="14" /> Social</span>
+          </template>
+          <div class="space-y-4 pt-2">
         <a-card size="small">
           <template #title>
             <div class="flex items-center gap-2">
@@ -221,31 +295,58 @@ onMounted(() => {
             </a-form-item>
           </a-form>
         </a-card>
+          </div>
+        </a-tab-pane>
 
-        <!-- Custom Code -->
+        <!-- Custom Code Tab -->
+        <a-tab-pane key="code">
+          <template #tab>
+            <span class="flex items-center gap-1.5"><Code2 :size="14" /> Code</span>
+          </template>
+          <div class="space-y-4 pt-2">
         <a-card size="small">
           <template #title>
             <div class="flex items-center gap-2">
               <Code2 :size="16" class="text-orange-500" />
-              Custom Code
+              Custom Code Injection
             </div>
           </template>
           <a-form layout="vertical">
-            <a-form-item label="Custom Head Code">
+            <a-form-item label="Head Scripts">
               <a-textarea
                 v-model:value="form.custom_head_code"
-                placeholder="<!-- Add custom scripts, styles, or meta tags here -->"
+                placeholder="<!-- Scripts, meta tags, or styles injected inside <head> -->"
                 :rows="6"
                 style="font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 13px;"
               />
               <p class="text-xs text-gray-400 mt-1 m-0">
-                This code will be injected into the &lt;head&gt; section of every page.
+                Injected into the <code>&lt;head&gt;</code> of every public page (GA tags, hreflang, etc.).
+              </p>
+            </a-form-item>
+            <a-form-item label="Body Scripts">
+              <a-textarea
+                v-model:value="form.custom_body_code"
+                placeholder="<!-- Scripts injected just before </body> (chat widgets, pixels, etc.) -->"
+                :rows="6"
+                style="font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 13px;"
+              />
+              <p class="text-xs text-gray-400 mt-1 m-0">
+                Injected at the end of <code>&lt;body&gt;</code> on every public page.
               </p>
             </a-form-item>
           </a-form>
         </a-card>
+          </div>
+        </a-tab-pane>
 
-        <!-- Design Tokens -->
+        <!-- Design Tab -->
+        <a-tab-pane key="design">
+          <template #tab>
+            <span class="flex items-center gap-1.5"><Droplets :size="14" /> Design</span>
+          </template>
+          <div class="space-y-4 pt-2">
+
+        <!-- Design Tokens (colors + typography sliders) -->
         <a-card size="small">
           <template #title>
             <div class="flex items-center gap-2">
@@ -256,7 +357,124 @@ onMounted(() => {
           <DesignTokensEditor v-model="designTokens" />
         </a-card>
 
-      </div>
+        <!-- Font Selection (heading + body via FontPicker) -->
+        <a-card size="small">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <Code2 :size="16" class="text-blue-500" />
+              Fonts
+            </div>
+          </template>
+          <a-form layout="vertical">
+            <a-form-item label="Heading Font">
+              <FontPicker v-model="form.font_heading" />
+              <p class="text-xs text-gray-400 mt-1 m-0">Applied to h1–h6 via <code>--lume-font-heading</code>.</p>
+            </a-form-item>
+            <a-form-item label="Body Font">
+              <FontPicker v-model="form.font_body" />
+              <p class="text-xs text-gray-400 mt-1 m-0">Applied to body text via <code>--lume-font-body</code>.</p>
+            </a-form-item>
+          </a-form>
+        </a-card>
+
+        <!-- Quick color overrides -->
+        <a-card size="small">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <Palette :size="16" class="text-pink-500" />
+              Quick Color Overrides
+            </div>
+          </template>
+          <p class="text-xs text-gray-400 mb-3 m-0">These map to <code>--lume-primary</code> etc. and override token values.</p>
+          <a-form layout="vertical">
+            <div class="grid grid-cols-2 gap-4">
+              <a-form-item label="Primary">
+                <div class="flex items-center gap-2">
+                  <input type="color" v-model="form.color_primary" class="w-10 h-10 rounded border cursor-pointer" style="padding: 2px;" />
+                  <a-input v-model:value="form.color_primary" placeholder="#1677ff" />
+                </div>
+              </a-form-item>
+              <a-form-item label="Secondary">
+                <div class="flex items-center gap-2">
+                  <input type="color" v-model="form.color_secondary" class="w-10 h-10 rounded border cursor-pointer" style="padding: 2px;" />
+                  <a-input v-model:value="form.color_secondary" placeholder="#0050b3" />
+                </div>
+              </a-form-item>
+              <a-form-item label="Accent">
+                <div class="flex items-center gap-2">
+                  <input type="color" v-model="form.color_accent" class="w-10 h-10 rounded border cursor-pointer" style="padding: 2px;" />
+                  <a-input v-model:value="form.color_accent" placeholder="#faad14" />
+                </div>
+              </a-form-item>
+              <a-form-item label="Neutral">
+                <div class="flex items-center gap-2">
+                  <input type="color" v-model="form.color_neutral" class="w-10 h-10 rounded border cursor-pointer" style="padding: 2px;" />
+                  <a-input v-model:value="form.color_neutral" placeholder="#6b7280" />
+                </div>
+              </a-form-item>
+            </div>
+          </a-form>
+        </a-card>
+
+        <div class="flex justify-end pt-2">
+          <a-button type="primary" :loading="savingDesign" @click="handleSaveDesign">
+            <template #icon><Save :size="16" /></template>
+            Save Design Settings
+          </a-button>
+        </div>
+          </div>
+        </a-tab-pane>
+
+        <!-- Page Transitions Tab -->
+        <a-tab-pane key="transitions">
+          <template #tab>
+            <span class="flex items-center gap-1.5"><Play :size="14" /> Transitions</span>
+          </template>
+          <div class="space-y-4 pt-2">
+        <a-card size="small">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <Play :size="16" class="text-cyan-500" />
+              Page Transitions
+            </div>
+          </template>
+          <a-form layout="vertical">
+            <a-form-item label="Transition Type">
+              <a-select v-model:value="form.transition_type" placeholder="Select transition">
+                <a-select-option value="none">None</a-select-option>
+                <a-select-option value="fade">Fade</a-select-option>
+                <a-select-option value="slide">Slide</a-select-option>
+                <a-select-option value="circle">Circle Wipe</a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item label="Transition Color">
+              <div class="flex items-center gap-3">
+                <input
+                  type="color"
+                  v-model="form.transition_color"
+                  class="w-10 h-10 rounded border cursor-pointer"
+                  style="padding: 2px;"
+                />
+                <a-input v-model:value="form.transition_color" placeholder="#ffffff" style="width: 140px" />
+              </div>
+            </a-form-item>
+            <a-form-item label="Preloader Type">
+              <a-select v-model:value="form.preloader_type" placeholder="Select preloader">
+                <a-select-option value="none">None</a-select-option>
+                <a-select-option value="spinner">Spinner</a-select-option>
+                <a-select-option value="dots">Dots</a-select-option>
+                <a-select-option value="progress-bar">Progress Bar</a-select-option>
+              </a-select>
+            </a-form-item>
+            <p class="text-xs text-gray-400 m-0">
+              Page transitions are displayed during route changes on the public site.
+            </p>
+          </a-form>
+        </a-card>
+          </div>
+        </a-tab-pane>
+
+      </a-tabs>
     </a-spin>
   </div>
 </template>

@@ -420,12 +420,12 @@ export default defineComponent({
     const children: any[] = [];
 
     if (this.editMode) {
-      // Render an insert button before the first block
-      children.push(this.renderInsertButton([0], 'after'));
+      // Insert zone before the first block — use 'before' so handlers can compute index=0
+      children.push(this.renderInsertButton([0], 'before'));
 
       this.nodes.forEach((n: any, i: number) => {
         children.push(this.renderNode(n, i, [i]));
-        // Insert button after each block
+        // Insert zone after block i → index = i + 1
         children.push(this.renderInsertButton([i], 'after'));
       });
     } else {

@@ -119,6 +119,10 @@ const customViews: Record<string, () => Promise<any>> = {
   'website/settings': () => import('@modules/website/static/views/settings.vue'),
   'website/theme-builder': () => import('@modules/website/static/views/theme-builder.vue'),
   'website/popups': () => import('@modules/website/static/views/popups.vue'),
+  'website/redirects': () => import('@modules/website/static/views/redirects.vue'),
+  'website/categories': () => import('@modules/website/static/views/categories.vue'),
+  'website/tags': () => import('@modules/website/static/views/tags.vue'),
+  'editor/widget-manager': () => import('@modules/editor/static/views/widget-manager.vue'),
 };
 
 /**
@@ -333,37 +337,34 @@ function setupAccessGuard() {
     const staticRoutes = ['Dashboard', 'Login', 'Forbidden', 'NotFound', 'App'];
     
     for (const menu of menus) {
-      if (!menu.path || menu.hideInMenu) continue;
+      if (menu.hideInMenu) continue;
 
-      const routeName = menu.name || menu.path.split('/').pop();
-      if (staticRoutes.includes(routeName as string)) continue;
+      const moduleName = menu.module || menu.name || menu.path?.split('/').pop();
 
-      const moduleName = menu.module || routeName;
-
-      // Register parent route
-      if (!router.hasRoute(routeName as string)) {
-        router.addRoute('App', {
-          path: menu.path.startsWith('/') ? menu.path.slice(1) : menu.path,
-          name: routeName,
-          component: () => loadModuleView(moduleName as string, routeName as string, menu.path),
-          props: {
-            moduleName: moduleName,
-          },
-          meta: {
-            title: menu.name || menu.title,
-            icon: menu.icon,
-            permission: menu.permission,
-            requiresAuth: true,
-            module: moduleName,
-          },
-        });
+      // Register parent route only if it has a path
+      if (menu.path) {
+        const routeName = menu.name || menu.path.split('/').pop();
+        if (!staticRoutes.includes(routeName as string) && !router.hasRoute(routeName as string)) {
+          router.addRoute('App', {
+            path: menu.path.startsWith('/') ? menu.path.slice(1) : menu.path,
+            name: routeName,
+            component: () => loadModuleView(moduleName as string, routeName as string, menu.path),
+            props: { moduleName },
+            meta: {
+              title: menu.name || menu.title,
+              icon: menu.icon,
+              permission: menu.permission,
+              requiresAuth: true,
+              module: moduleName,
+            },
+          });
+        }
       }
 
-      // Register child routes
+      // Always register child routes regardless of whether parent has a path
       if (menu.children?.length) {
         for (const child of menu.children) {
           if (!child.path || child.hideInMenu) continue;
-          // Use path-based name to avoid collisions (e.g., both RBAC and Settings have "Roles")
           const childBaseName = child.name || child.path.split('/').pop();
           const childRouteName = child.path.replace(/^\//, '').replace(/\//g, '-') || childBaseName;
           const childModule = child.module || moduleName;
@@ -372,9 +373,7 @@ function setupAccessGuard() {
               path: child.path.startsWith('/') ? child.path.slice(1) : child.path,
               name: childRouteName,
               component: () => loadModuleView(childModule as string, childBaseName as string, child.path),
-              props: {
-                moduleName: childModule,
-              },
+              props: { moduleName: childModule },
               meta: {
                 title: child.name || child.title,
                 icon: child.icon,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GripVertical, Edit, Trash2, ExternalLink, FileText, ChevronRight } from 'lucide-vue-next';
+import { GripVertical, Edit, Trash2, ExternalLink, FileText, ChevronRight, LayoutGrid } from 'lucide-vue-next';
 import draggable from 'vuedraggable';
 
 defineOptions({ name: 'MenuTreeNode' });
@@ -9,7 +9,7 @@ const props = defineProps<{
   depth?: number;
 }>();
 
-const emit = defineEmits(['edit', 'delete', 'change']);
+const emit = defineEmits(['edit', 'delete', 'change', 'mega-menu']);
 </script>
 
 <template>
@@ -29,6 +29,17 @@ const emit = defineEmits(['edit', 'delete', 'change']);
       </a-tag>
       <span v-if="item.url" class="node-url">{{ item.url }}</span>
       <div class="node-actions">
+        <!-- Mega menu button — only for top-level items -->
+        <a-tooltip v-if="(depth || 0) === 0" :title="item.megaMenuContent ? 'Edit Mega Menu (active)' : 'Edit Mega Menu'">
+          <a-button
+            type="text"
+            size="small"
+            :class="item.megaMenuContent ? 'mega-menu-active' : ''"
+            @click.stop="emit('mega-menu', item)"
+          >
+            <template #icon><LayoutGrid :size="14" /></template>
+          </a-button>
+        </a-tooltip>
         <a-tooltip title="Edit">
           <a-button type="text" size="small" @click.stop="emit('edit', item)">
             <template #icon><Edit :size="14" /></template>
@@ -65,6 +76,7 @@ const emit = defineEmits(['edit', 'delete', 'change']);
           @edit="(i: any) => emit('edit', i)"
           @delete="(i: any) => emit('delete', i)"
           @change="emit('change')"
+          @mega-menu="(i: any) => emit('mega-menu', i)"
         />
       </template>
     </draggable>
@@ -159,5 +171,9 @@ const emit = defineEmits(['edit', 'delete', 'change']);
   opacity: 0.3;
   background: #eff6ff;
   border-color: #93c5fd;
+}
+
+:deep(.mega-menu-active) {
+  color: #f59e0b !important;
 }
 </style>

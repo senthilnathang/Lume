@@ -11,6 +11,7 @@ export const DynamicTagBlock = Node.create({
   addAttributes() {
     return {
       tagName: { default: 'site_name' },
+      fieldKey: { default: '' },
     }
   },
 

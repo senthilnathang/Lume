@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Palette, Type } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { Palette, Type, Download, Upload } from 'lucide-vue-next';
 
 interface DesignTokens {
   colors: Record<string, string>;
@@ -82,6 +82,43 @@ function updateTypography(key: string, value: any) {
     typography: { ...typography.value, [key]: value },
   };
   emit('update:modelValue', updated);
+}
+
+// ── Import / Export ────────────────────────────────────────────────────────
+const importing = ref(false);
+const importJson = ref('');
+const importError = ref('');
+
+function exportJson() {
+  const json = JSON.stringify(props.modelValue, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'design-tokens.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function startImport() {
+  importing.value = true;
+  importJson.value = '';
+  importError.value = '';
+}
+
+function applyImport() {
+  try {
+    const parsed = JSON.parse(importJson.value);
+    if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Must be an object');
+    emit('update:modelValue', {
+      colors: typeof parsed.colors === 'object' ? parsed.colors : colors.value,
+      typography: typeof parsed.typography === 'object' ? parsed.typography : typography.value,
+    });
+    importing.value = false;
+    importError.value = '';
+  } catch {
+    importError.value = 'Invalid JSON — expected { colors: {...}, typography: {...} }';
+  }
 }
 
 function isLight(hex: string): boolean {
@@ -190,6 +227,36 @@ function isLight(hex: string): boolean {
           />
         </div>
       </div>
+    </div>
+    <!-- Import / Export -->
+    <div class="tokens-section">
+      <div class="section-header">
+        <Download :size="18" class="section-icon" />
+        <span class="section-title">Import / Export</span>
+      </div>
+      <div class="ie-bar">
+        <a-button size="small" @click="exportJson">
+          <template #icon><Download :size="13" /></template>
+          Export JSON
+        </a-button>
+        <a-button size="small" @click="startImport">
+          <template #icon><Upload :size="13" /></template>
+          Import JSON
+        </a-button>
+      </div>
+      <template v-if="importing">
+        <a-textarea
+          v-model:value="importJson"
+          placeholder='{ "colors": { "primary": "#3b82f6" }, "typography": { "headingFont": "Inter" } }'
+          :rows="6"
+          style="font-family: monospace; font-size: 12px; margin-top: 8px;"
+        />
+        <p v-if="importError" class="import-error">{{ importError }}</p>
+        <div class="ie-bar" style="margin-top: 8px;">
+          <a-button type="primary" size="small" @click="applyImport">Apply</a-button>
+          <a-button size="small" @click="importing = false">Cancel</a-button>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -304,6 +371,17 @@ function isLight(hex: string): boolean {
   font-size: 13px;
   font-weight: 500;
   color: #374151;
+}
+
+.ie-bar {
+  display: flex;
+  gap: 8px;
+}
+
+.import-error {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #ef4444;
 }
 
 @media (max-width: 900px) {

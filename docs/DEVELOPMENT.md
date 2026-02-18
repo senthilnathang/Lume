@@ -327,28 +327,137 @@ All page content is stored as TipTap JSON:
 }
 ```
 
-### Available Widget Blocks (30+)
+### Available Widget Blocks (54)
 
 | Category | Blocks |
 |----------|--------|
-| Text | Heading, Paragraph, Bullet List, Numbered List, Quote, Code Block |
+| Text | Heading, Paragraph, Bullet List, Numbered List, Quote, Code Block, Blockquote, Code Highlight |
 | Layout | Section, Columns, Spacer, Divider |
-| Content | Advanced Heading, Dual Heading, Info Box, FAQ, Team Member, Testimonial, Posts Grid, Icon List, Callout |
-| Media | Image, Video, Image Gallery |
-| Interactive | Button, Marketing Button, Countdown, Content Toggle, Modal Popup, Progress Bar |
-| Commercial | Price Table, Price List |
-| Utility | Table, HTML, Google Map, Contact Form, Business Hours |
+| Content | Advanced Heading, Dual Heading, Info Box, FAQ, Team Member, Testimonial, Posts Grid, Icon List, Callout, Accordion, TOC, Before/After |
+| Media | Image, Video, Image Gallery, Audio, Lottie |
+| Interactive | Button, Marketing Button, Countdown, Content Toggle, Modal Popup, Progress Bar, Carousel, Flip Box, Animated Headline, Hotspot, Off-Canvas, Tabs, Slides, Progress Tracker, Star Rating, Counter, Chart |
+| Navigation | Nav Menu, Breadcrumbs, Search Form, Floating Buttons |
+| Loop | Loop Grid, Loop Carousel, Global Widget |
+| Utility | Table, HTML, Google Map, Contact Form, Business Hours, Dynamic Tag |
 | Social | Social Share |
+
+Each block consists of three files:
+- **Extension** (`static/extensions/XyzBlock.ts`) — TipTap Node definition with attrs
+- **NodeView** (`static/components/blocks/XyzBlockView.vue`) — editor canvas component
+- **Render** (`static/widgets/renders/XyzRender.vue`) — public site render component
+
+All blocks automatically receive 8 **common attributes** via `shared/commonAttributes.ts`:
+`blockId`, `cssClass`, `customCss`, `entranceAnimation`, `animationDelay`, `animationDuration`, `responsiveOverrides`, `displayConditions`.
+
+### Block Attribute Types (21)
+
+Block settings are schema-driven via `static/widgets/registry.ts`:
+
+| Type | UI Control |
+|------|-----------|
+| `text` | Text input |
+| `textarea` | Multi-line textarea |
+| `number` | Number spinner |
+| `boolean` | Toggle switch |
+| `select` | Dropdown select |
+| `color` | Color picker |
+| `image` | Image URL + picker |
+| `url` | URL input |
+| `slider` | Range slider |
+| `repeater` | Dynamic list of sub-fields |
+| `html` | Rich text textarea |
+| `icon` | Icon picker popover |
+| `link-builder` | URL + title + target + nofollow |
+| `gradient` | Linear/radial gradient builder |
+| `typography` | Font family + size + weight + style + line-height |
+| `border` | Width + style + color + radius per-corner |
+| `shadow` | Box-shadow x/y/blur/spread/color/inset |
+| `font` | Google Fonts picker |
+| `code-editor` | Monospace textarea with fullscreen toggle |
+| `datetime` | Date and time picker |
+| `media` | Media library picker |
+
+Fields support conditional display via `dependsOn: { key, value }` to show/hide based on another field's value.
 
 ### Adding a New Block Type
 
-1. Create the TipTap extension in `modules/editor/static/extensions/`
-2. Create the NodeView component in `modules/editor/static/components/blocks/`
-3. Create the render component in `modules/editor/static/widgets/renders/`
-4. Register the extension in `PageBuilder.vue`
-5. Add the block to `BlockPalette.vue`
-6. Add settings config to `BlockSettings.vue`
-7. Add the render component mapping in `BlockRenderer.vue`
+1. Create the TipTap extension in `modules/editor/static/extensions/XyzBlock.ts`
+2. Export it from `modules/editor/static/extensions/index.ts`
+3. Create the NodeView in `modules/editor/static/components/blocks/XyzBlockView.vue`
+4. Create the render component in `modules/editor/static/widgets/renders/XyzRender.vue`
+5. Export the render from `modules/editor/static/widgets/renders/index.ts`
+6. Add the block to `BlockPalette.vue` (category + icon entry)
+7. Register the render in `BlockRenderer.vue` (`renderMap` object)
+8. Add the widget definition to `registry.ts` (attrs schema + `WidgetDef`)
+
+---
+
+## Advanced CMS Features
+
+The Website module provides a full-featured CMS built on top of the Page Builder.
+
+### Content Scheduling
+
+Pages support future publishing and auto-expiry via `publishAt` / `expireAt` timestamps:
+
+```json
+{ "publishAt": "2025-06-01T00:00:00Z", "expireAt": "2025-12-31T23:59:59Z" }
+```
+
+`PageService.checkAndApplyScheduling(page)` is called on every public page load. If `publishAt <= now` and status is `draft`, the page is auto-published. If `expireAt <= now` and status is `published`, the page reverts to `draft`.
+
+### Taxonomy (Categories & Tags)
+
+Pages can be assigned to hierarchical categories and flat tags:
+
+- **Categories**: Tree structure via `parentId` + `sequence`. Admin view: `static/views/categories.vue`
+- **Tags**: Flat list. Admin view: `static/views/tags.vue`
+- **Pivot tables**: `website_page_categories`, `website_page_tags`
+- **Public endpoints**: `GET /api/website/public/categories/:slug/pages`, `GET /api/website/public/tags/:slug/pages`
+- **Archive pages**: `frontend/apps/riagri-website/pages/category/[slug].vue`, `tag/[slug].vue`
+
+### Page Access Control
+
+Pages support four visibility modes controlled by the `visibility` field:
+
+| Visibility | Behaviour |
+|------------|-----------|
+| `public` | Anyone can view (default) |
+| `private` | Admin-only, returns 403 for unauthenticated users |
+| `password` | Requires password via `POST /api/website/public/pages/:slug/verify-password` |
+| `members` | Requires valid JWT in Authorization header |
+
+### Page Locking (Concurrent Edit Prevention)
+
+When a user opens the page editor, the backend acquires a lock (`lockedBy`, `lockedAt`).
+- Lock auto-releases after 30 minutes of inactivity
+- Other editors see a read-only warning banner and poll every 30 seconds
+- Routes: `POST /api/website/pages/:id/lock` and `POST /api/website/pages/:id/unlock`
+
+### SEO Tools
+
+- **XML Sitemap**: `GET /api/website/public/sitemap.xml` — auto-generated from all published pages
+- **robots.txt**: `GET /api/website/public/robots.txt` — editable in Settings > SEO tab
+- **Schema.org JSON-LD**: Auto-injected in Nuxt pages (WebPage, Article, FAQPage, Organization, BreadcrumbList)
+- **SEO Analysis Panel**: Live client-side SEO score in the page editor sidebar (title length, keyword density, H1, image alts, etc.)
+
+### Design Tokens & CSS Variables
+
+Global design tokens (colors, typography, spacing) are stored in `website_settings` and served as CSS:
+
+```
+GET /api/website/public/styles.css
+→ :root { --color-primary: #...; --font-heading: '...'; --lume-h1-size: 3rem; }
+```
+
+Admin UI: **Settings > Design Tokens** tab uses `DesignTokensEditor.vue`.
+
+### Theme Builder Live Preview
+
+The Theme Builder (`static/views/theme-builder.vue`) supports a live preview mode:
+- Edit header/footer/sidebar templates in the left PageBuilder panel
+- Right iframe shows the public site with `?preview_id=:id` to bypass saved content
+- Backend: `GET /api/website/public/theme/:type?preview_id=:id`
 
 ---
 

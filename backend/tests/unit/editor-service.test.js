@@ -65,6 +65,14 @@ describe('Editor Module Manifest', () => {
     expect(manifest.category).toBeDefined();
     expect(typeof manifest.category).toBe('string');
   });
+
+  test('has frontend menus with Widget Manager', () => {
+    expect(manifest.frontend.menus).toHaveLength(1);
+    const children = manifest.frontend.menus[0].children;
+    const names = children.map((c) => c.name);
+    expect(names).toContain('Templates');
+    expect(names).toContain('Widget Manager');
+  });
 });
 
 // ─── Editor Module Files Existence Tests ───
@@ -202,6 +210,8 @@ describe('Page Builder Block Extensions', () => {
     'OffCanvasBlock.ts',
     // Phase 5 dynamic content
     'DynamicTagBlock.ts',
+    // Phase 18: Chart widget
+    'ChartBlock.ts',
   ];
 
   test.each(extensions)('extension %s exists', (file) => {
@@ -254,6 +264,8 @@ describe('Page Builder Block Views', () => {
     'OffCanvasBlockView.vue',
     // Phase 5 dynamic content
     'DynamicTagBlockView.vue',
+    // Phase 18: Chart widget
+    'ChartBlockView.vue',
   ];
 
   test.each(views)('block view %s exists', (file) => {
@@ -392,9 +404,214 @@ describe('Phase 4 Widget Renders', () => {
     'TOCRender.vue',
     'OffCanvasRender.vue',
     'DynamicTagRender.vue',
+    // Phase 9: 15 new renders
+    'TabsRender.vue',
+    'AccordionRender.vue',
+    'CounterRender.vue',
+    'StarRatingRender.vue',
+    'BlockquoteRender.vue',
+    'CodeHighlightRender.vue',
+    'AudioRender.vue',
+    'BeforeAfterRender.vue',
+    'LottieRender.vue',
+    'NavMenuRender.vue',
+    'BreadcrumbsRender.vue',
+    'SearchFormRender.vue',
+    'SlidesRender.vue',
+    'ProgressTrackerRender.vue',
+    'FloatingButtonsRender.vue',
+    // Phase 18: Chart widget
+    'ChartRender.vue',
   ];
 
   test.each(renders)('render %s exists', (file) => {
     expect(existsSync(join(rendersDir, file))).toBe(true);
+  });
+});
+
+// ─── Phase 7: Editor UX Files ───
+
+describe('Phase 7 Editor UX Files', () => {
+  const editorDir = join(modulesDir, 'editor');
+
+  // Composables
+  test('composables/useEditorHistory.ts exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'composables', 'useEditorHistory.ts'))).toBe(true);
+  });
+
+  test('composables/useEditorShortcuts.ts exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'composables', 'useEditorShortcuts.ts'))).toBe(true);
+  });
+
+  // New components
+  test('static/components/NavigatorPanel.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'components', 'NavigatorPanel.vue'))).toBe(true);
+  });
+
+  test('static/components/LayoutPicker.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'components', 'LayoutPicker.vue'))).toBe(true);
+  });
+
+  test('static/components/PresetPicker.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'components', 'PresetPicker.vue'))).toBe(true);
+  });
+
+  test('static/components/BlockContextMenu.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'components', 'BlockContextMenu.vue'))).toBe(true);
+  });
+
+  test('static/components/ShortcutsHelpModal.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'components', 'ShortcutsHelpModal.vue'))).toBe(true);
+  });
+});
+
+// ─── Phase 8: Motion Effects Files ───
+
+describe('Phase 8 Motion Effects Files', () => {
+  const editorDir = join(modulesDir, 'editor');
+
+  test('static/widgets/motion-fx.css exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'widgets', 'motion-fx.css'))).toBe(true);
+  });
+});
+
+// ─── Phase 9: 15 New Block Extensions ───
+
+describe('Phase 9 Block Extensions', () => {
+  const extDir = join(modulesDir, 'editor', 'static', 'extensions');
+
+  const extensions = [
+    'TabsBlock.ts',
+    'AccordionBlock.ts',
+    'CounterBlock.ts',
+    'StarRatingBlock.ts',
+    'BlockquoteBlock.ts',
+    'CodeHighlightBlock.ts',
+    'AudioBlock.ts',
+    'BeforeAfterBlock.ts',
+    'LottieBlock.ts',
+    'NavMenuBlock.ts',
+    'BreadcrumbsBlock.ts',
+    'SearchFormBlock.ts',
+    'SlidesBlock.ts',
+    'ProgressTrackerBlock.ts',
+    'FloatingButtonsBlock.ts',
+  ];
+
+  test.each(extensions)('extension %s exists', (file) => {
+    expect(existsSync(join(extDir, file))).toBe(true);
+  });
+});
+
+// ─── Phase 9: 15 New Block Views ───
+
+describe('Phase 9 Block Views', () => {
+  const blocksDir = join(modulesDir, 'editor', 'static', 'components', 'blocks');
+
+  const views = [
+    'TabsBlockView.vue',
+    'AccordionBlockView.vue',
+    'CounterBlockView.vue',
+    'StarRatingBlockView.vue',
+    'BlockquoteBlockView.vue',
+    'CodeHighlightBlockView.vue',
+    'AudioBlockView.vue',
+    'BeforeAfterBlockView.vue',
+    'LottieBlockView.vue',
+    'NavMenuBlockView.vue',
+    'BreadcrumbsBlockView.vue',
+    'SearchFormBlockView.vue',
+    'SlidesBlockView.vue',
+    'ProgressTrackerBlockView.vue',
+    'FloatingButtonsBlockView.vue',
+  ];
+
+  test.each(views)('block view %s exists', (file) => {
+    expect(existsSync(join(blocksDir, file))).toBe(true);
+  });
+});
+
+// ─── Editor Presets Schema ───
+
+describe('Editor Presets Schema', () => {
+  let schema;
+
+  beforeAll(async () => {
+    const schemaPath = join(modulesDir, 'editor', 'models', 'schema.js');
+    const imported = await import(pathToFileURL(schemaPath).href);
+    schema = imported;
+  });
+
+  test('exports editorPresets table', () => {
+    expect(schema.editorPresets).toBeDefined();
+  });
+
+  test('editorPresets has expected columns', () => {
+    const table = schema.editorPresets;
+    const columnNames = Object.keys(table);
+    expect(columnNames).toContain('blockType');
+    expect(columnNames).toContain('name');
+    expect(columnNames).toContain('attributes');
+    expect(columnNames).toContain('thumbnailUrl');
+    expect(columnNames).toContain('createdBy');
+  });
+});
+
+// ─── Phase 10: Loop Block Extensions ───
+
+describe('Phase 10 Loop Block Extensions', () => {
+  const extDir = join(modulesDir, 'editor', 'static', 'extensions');
+
+  const extensions = [
+    'LoopGridBlock.ts',
+    'LoopCarouselBlock.ts',
+  ];
+
+  test.each(extensions)('extension %s exists', (file) => {
+    expect(existsSync(join(extDir, file))).toBe(true);
+  });
+});
+
+// ─── Phase 10: Loop Block Views ───
+
+describe('Phase 10 Loop Block Views', () => {
+  const blocksDir = join(modulesDir, 'editor', 'static', 'components', 'blocks');
+
+  const views = [
+    'LoopGridBlockView.vue',
+    'LoopCarouselBlockView.vue',
+  ];
+
+  test.each(views)('block view %s exists', (file) => {
+    expect(existsSync(join(blocksDir, file))).toBe(true);
+  });
+});
+
+// ─── Phase 13: Advanced Control Components ───
+
+describe('Phase 13 Advanced UI Components', () => {
+  const editorDir = join(modulesDir, 'editor');
+
+  const components = [
+    'IconPicker.vue',
+    'DisplayConditionBuilder.vue',
+    'QueryBuilder.vue',
+    'AiGeneratorModal.vue',
+    'NoteIndicator.vue',
+    'NotesPanel.vue',
+  ];
+
+  test.each(components)('static/components/%s exists', (file) => {
+    expect(existsSync(join(editorDir, 'static', 'components', file))).toBe(true);
+  });
+});
+
+// ─── Phase 18: Widget Manager View ───
+
+describe('Phase 18 Widget Manager', () => {
+  const editorDir = join(modulesDir, 'editor');
+
+  test('static/views/widget-manager.vue exists', () => {
+    expect(existsSync(join(editorDir, 'static', 'views', 'widget-manager.vue'))).toBe(true);
   });
 });

@@ -193,7 +193,7 @@ const menuGroups = computed((): MenuGroup[] => {
   const categorized = menuCategories.map(cat => ({
     ...cat,
     items: allMenus.filter(menu =>
-      cat.paths.some(p => menu.path.startsWith(p))
+      menu.path && cat.paths.some(p => menu.path.startsWith(p))
     )
   })).filter(cat => cat.items.length > 0);
 
