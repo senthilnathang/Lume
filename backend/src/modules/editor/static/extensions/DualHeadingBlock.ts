@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import DualHeadingBlockView from '../components/blocks/DualHeadingBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const DualHeadingBlock = Node.create({
   name: 'dualHeading',
@@ -10,6 +11,7 @@ export const DualHeadingBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       firstText: { default: 'Welcome to' },
       secondText: { default: 'Our Website' },
       tag: { default: 'h1' },

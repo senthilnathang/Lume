@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import ContactFormBlockView from '../components/blocks/ContactFormBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const ContactFormBlock = Node.create({
   name: 'contactForm',
@@ -10,6 +11,7 @@ export const ContactFormBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       fields: { default: [] },
       submitText: { default: 'Send Message' },
       successMessage: { default: 'Thank you! Your message has been sent.' },

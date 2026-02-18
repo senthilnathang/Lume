@@ -35,8 +35,10 @@ import BlockSettings from './BlockSettings.vue';
 import {
   Monitor, Tablet, Smartphone, Eye, Code2, Undo2, Redo2,
   PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen,
-  Maximize2, Minimize2
+  Maximize2, Minimize2, Bookmark
 } from 'lucide-vue-next';
+import { message } from 'ant-design-vue';
+import { post } from '@/api/request';
 
 const props = withDefaults(defineProps<{
   modelValue?: string;
@@ -187,6 +189,47 @@ function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value;
 }
 
+// Save as Block (snippet)
+const saveAsBlockVisible = ref(false);
+const saveBlockName = ref('');
+
+async function saveAsBlock() {
+  if (!editor.value) return;
+  const { from, to } = editor.value.state.selection;
+  const isEmpty = from === to;
+
+  let content;
+  if (isEmpty) {
+    // Save entire document
+    content = editor.value.getJSON();
+  } else {
+    // Save selected content
+    const slice = editor.value.state.doc.slice(from, to);
+    content = { type: 'doc', content: [] as any[] };
+    slice.content.forEach((node: any) => {
+      content.content.push(node.toJSON());
+    });
+  }
+
+  if (!saveBlockName.value.trim()) {
+    message.warning('Enter a name for this block');
+    return;
+  }
+
+  try {
+    await post('/editor/snippets', {
+      name: saveBlockName.value,
+      content: JSON.stringify(content),
+      category: 'saved',
+    });
+    message.success('Block saved to library');
+    saveAsBlockVisible.value = false;
+    saveBlockName.value = '';
+  } catch (err: any) {
+    message.error(err?.message || 'Failed to save block');
+  }
+}
+
 // Stats
 const wordCount = computed(() => {
   if (!editor.value) return 0;
@@ -290,6 +333,20 @@ onBeforeUnmount(() => {
           </button>
         </a-tooltip>
         <div class="toolbar-divider" />
+        <a-popover v-model:open="saveAsBlockVisible" trigger="click" placement="bottomRight">
+          <template #content>
+            <div class="p-2" style="width: 240px;">
+              <div class="text-xs text-gray-500 mb-2">Save {{ editor?.state.selection.from === editor?.state.selection.to ? 'entire page' : 'selection' }} as reusable block</div>
+              <a-input v-model:value="saveBlockName" placeholder="Block name" size="small" class="mb-2" @pressEnter="saveAsBlock" />
+              <a-button type="primary" size="small" block @click="saveAsBlock">Save Block</a-button>
+            </div>
+          </template>
+          <a-tooltip title="Save as Block">
+            <button class="toolbar-btn">
+              <Bookmark :size="16" />
+            </button>
+          </a-tooltip>
+        </a-popover>
         <a-tooltip :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'">
           <button class="toolbar-btn" @click="toggleFullscreen">
             <Minimize2 v-if="isFullscreen" :size="16" />

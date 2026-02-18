@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import MarketingButtonBlockView from '../components/blocks/MarketingButtonBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const MarketingButtonBlock = Node.create({
   name: 'marketingButton',
@@ -10,6 +11,7 @@ export const MarketingButtonBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       text: { default: 'Get Started' },
       subtext: { default: '' },
       url: { default: '' },

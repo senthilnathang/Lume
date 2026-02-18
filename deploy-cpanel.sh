@@ -3,10 +3,10 @@
 # LUME CPANEL Deployment Script
 # Domain: ri-agri.in
 #   /demo     — Public website (Nuxt 3 SSR)
-#   /admin    — Admin panel (Vue 3 SPA)
+#   /frontend — Admin panel (Vue 3 SPA)
 #   /backend  — Backend API (Express.js)
 #
-# Produces: lume-deploy.zip with demo/, admin/, backend/, README.md
+# Produces: lume-deploy.zip with demo/, frontend/, backend/, README.md
 # Usage: ./deploy-cpanel.sh [--skip-admin] [--skip-public] [--skip-backend]
 
 set -e
@@ -53,7 +53,7 @@ echo ""
 print_status "Cleaning previous deploy..."
 rm -rf "$DEPLOY_DIR"
 rm -f "$SCRIPT_DIR/lume-deploy.zip"
-mkdir -p "$DEPLOY_DIR/admin"
+mkdir -p "$DEPLOY_DIR/frontend"
 mkdir -p "$DEPLOY_DIR/demo"
 mkdir -p "$DEPLOY_DIR/backend"
 
@@ -100,10 +100,10 @@ fi
 
 # ─────────────────────────────────────────
 # 2. ADMIN PANEL (Vue 3 SPA)
-#    → ri-agri.in/admin
+#    → ri-agri.in/frontend
 # ─────────────────────────────────────────
 if [ "$SKIP_ADMIN" = false ]; then
-    print_section "Admin Panel → ri-agri.in/admin"
+    print_section "Admin Panel → ri-agri.in/frontend"
 
     if [ ! -d "$ADMIN_DIR" ]; then
         print_error "Admin panel directory not found: $ADMIN_DIR"
@@ -126,28 +126,28 @@ if [ "$SKIP_ADMIN" = false ]; then
 
     # Source code & config
     print_status "Staging admin panel (code + dist)..."
-    cp package.json "$DEPLOY_DIR/admin/"
-    cp package-lock.json "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp index.html "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp vite.config.ts "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp vite.config.mts "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp tsconfig.json "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp tsconfig.app.json "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp tsconfig.node.json "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp tailwind.config.js "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp postcss.config.js "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp .env "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp .env.production "$DEPLOY_DIR/admin/" 2>/dev/null || true
-    cp -r src "$DEPLOY_DIR/admin/"
-    cp -r public "$DEPLOY_DIR/admin/" 2>/dev/null || true
+    cp package.json "$DEPLOY_DIR/frontend/"
+    cp package-lock.json "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp index.html "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp vite.config.ts "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp vite.config.mts "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp tsconfig.json "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp tsconfig.app.json "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp tsconfig.node.json "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp tailwind.config.js "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp postcss.config.js "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp .env "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp .env.production "$DEPLOY_DIR/frontend/" 2>/dev/null || true
+    cp -r src "$DEPLOY_DIR/frontend/"
+    cp -r public "$DEPLOY_DIR/frontend/" 2>/dev/null || true
 
     # Build output
-    cp -r dist "$DEPLOY_DIR/admin/"
+    cp -r dist "$DEPLOY_DIR/frontend/"
 
     # .htaccess for SPA routing (goes inside dist/)
-    cat > "$DEPLOY_DIR/admin/dist/.htaccess" << 'HTACCESS'
+    cat > "$DEPLOY_DIR/frontend/dist/.htaccess" << 'HTACCESS'
 RewriteEngine On
-RewriteBase /admin/
+RewriteBase /frontend/
 
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json
@@ -178,7 +178,7 @@ RewriteCond %{REQUEST_FILENAME} -l [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-RewriteRule ^ /admin/index.html [L]
+RewriteRule ^ /frontend/index.html [L]
 HTACCESS
 
     print_success "Admin panel built and staged"
@@ -262,7 +262,7 @@ Domain: **ri-agri.in**
 | Path | App | Type |
 |------|-----|------|
 | `ri-agri.in/demo` | Public Website | Nuxt 3 SSR (Node.js) |
-| `ri-agri.in/admin` | Admin Panel | Vue 3 SPA (static) |
+| `ri-agri.in/frontend` | Admin Panel | Vue 3 SPA (static) |
 | `ri-agri.in/backend` | Backend API | Express.js (Node.js) |
 
 ---
@@ -330,7 +330,7 @@ JWT_EXPIRES_IN=7d
 
 # CORS — allow admin panel and public site
 CORS_ORIGIN=https://ri-agri.in
-FRONTEND_URL=https://ri-agri.in/admin
+FRONTEND_URL=https://ri-agri.in/frontend
 PUBLIC_WEBSITE_URL=https://ri-agri.in/demo
 
 # Email
@@ -376,9 +376,9 @@ The admin panel is a static SPA — only the `dist/` folder needs to be served.
 
 ### 2.1 Upload built files
 
-Upload the contents of `admin/dist/` (NOT the `admin/` folder itself) to:
+Upload the contents of `frontend/dist/` (NOT the `frontend/` folder itself) to:
 ```
-~/ri-agri.in/admin/
+~/ri-agri.in/frontend/
 ```
 
 The `.htaccess` file inside `dist/` handles SPA routing — make sure it's uploaded too.
@@ -396,20 +396,20 @@ To change it, rebuild locally with the correct `.env.production` values.
 
 ### 2.3 Verify
 
-Open `https://ri-agri.in/admin` in a browser.
+Open `https://ri-agri.in/frontend` in a browser.
 Log in with: `admin@lume.dev` / `admin123`
 
 ### 2.4 Rebuilding on server (optional)
 
 If you need to rebuild on the server instead of uploading pre-built dist:
 ```bash
-cd ~/ri-agri.in/admin
+cd ~/ri-agri.in/frontend
 npm install
 npm run build
 # Then copy dist/* to the served directory
 ```
 
-The `admin/` folder contains both source code and `dist/` for this purpose.
+The `frontend/` folder contains both source code and `dist/` for this purpose.
 
 ---
 
@@ -474,7 +474,7 @@ Open `https://ri-agri.in/demo` in a browser. The public website should load with
 │   ├── uploads/
 │   └── logs/
 │
-├── admin/                ← Static files (Vue 3 SPA dist/)
+├── frontend/             ← Static files (Vue 3 SPA dist/)
 │   ├── index.html
 │   ├── assets/
 │   └── .htaccess
@@ -491,7 +491,7 @@ Open `https://ri-agri.in/demo` in a browser. The public website should load with
 ## Post-Deployment Checklist
 
 - [ ] Backend `/api/health` returns OK
-- [ ] Admin panel loads at `/admin`
+- [ ] Admin panel loads at `/frontend`
 - [ ] Admin login works (`admin@lume.dev` / `admin123`)
 - [ ] Change admin password after first login
 - [ ] Public site loads at `/demo`
@@ -511,7 +511,7 @@ Open `https://ri-agri.in/demo` in a browser. The public website should load with
 
 ### Admin panel shows blank page
 - Ensure `.htaccess` is uploaded (may be hidden)
-- Verify `RewriteBase` matches the subpath (`/admin/`)
+- Verify `RewriteBase` matches the subpath (`/frontend/`)
 - Check browser console for API connection errors
 
 ### Public site shows "Cannot connect"
@@ -554,14 +554,14 @@ echo ""
 echo -e "${GREEN}Package:${NC} $SCRIPT_DIR/lume-deploy.zip"
 echo ""
 echo "  Contents:"
-echo "    backend/   → ri-agri.in/backend  (Express API + Prisma)"
-echo "    admin/     → ri-agri.in/admin    (Vue 3 SPA: code + dist/)"
-echo "    demo/      → ri-agri.in/demo     (Nuxt 3 SSR: code + .output/)"
+echo "    backend/   → ri-agri.in/backend   (Express API + Prisma)"
+echo "    frontend/  → ri-agri.in/frontend  (Vue 3 SPA: code + dist/)"
+echo "    demo/      → ri-agri.in/demo      (Nuxt 3 SSR: code + .output/)"
 echo "    README.md  → Step-by-step deployment instructions"
 echo ""
 echo -e "${YELLOW}Deploy order:${NC}"
 echo "  1. Backend  — Node.js app, entry: src/index.js"
-echo "  2. Admin    — Upload dist/ contents, static SPA"
+echo "  2. Frontend — Upload dist/ contents, static SPA"
 echo "  3. Demo     — Node.js app, entry: app.js"
 echo ""
 echo "  See README.md inside the zip for detailed instructions."

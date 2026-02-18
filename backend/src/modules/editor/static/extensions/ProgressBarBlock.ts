@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import ProgressBarBlockView from '../components/blocks/ProgressBarBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const ProgressBarBlock = Node.create({
   name: 'progressBar',
@@ -10,6 +11,7 @@ export const ProgressBarBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       items: { default: [] },
       style: { default: 'bar' },
       animated: { default: true },

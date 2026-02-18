@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import ModalPopupBlockView from '../components/blocks/ModalPopupBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const ModalPopupBlock = Node.create({
   name: 'modalPopup',
@@ -10,6 +11,7 @@ export const ModalPopupBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       triggerText: { default: 'Open Modal' },
       triggerVariant: { default: 'primary' },
       modalTitle: { default: 'Modal Title' },

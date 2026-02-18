@@ -1,6 +1,7 @@
 <script lang="ts">
-import { defineComponent, computed, defineAsyncComponent, h, type Component } from 'vue';
+import { defineComponent, computed, defineAsyncComponent, h, onMounted, onBeforeUnmount, ref, type Component } from 'vue';
 import './widget-styles.css';
+import './animation-styles.css';
 
 // Render components — lazy-loaded
 const renders: Record<string, Component> = {
@@ -33,6 +34,17 @@ const renders: Record<string, Component> = {
   postsGrid: defineAsyncComponent(() => import('./renders/PostsGridRender.vue')),
   iconList: defineAsyncComponent(() => import('./renders/IconListRender.vue')),
   progressBar: defineAsyncComponent(() => import('./renders/ProgressBarRender.vue')),
+
+  // Phase 4 blocks
+  carouselBlock: defineAsyncComponent(() => import('./renders/CarouselRender.vue')),
+  flipBox: defineAsyncComponent(() => import('./renders/FlipBoxRender.vue')),
+  animatedHeadline: defineAsyncComponent(() => import('./renders/AnimatedHeadlineRender.vue')),
+  hotspotBlock: defineAsyncComponent(() => import('./renders/HotspotRender.vue')),
+  tocBlock: defineAsyncComponent(() => import('./renders/TOCRender.vue')),
+  offCanvasBlock: defineAsyncComponent(() => import('./renders/OffCanvasRender.vue')),
+
+  // Inline nodes
+  dynamicTag: defineAsyncComponent(() => import('./renders/DynamicTagRender.vue')),
 };
 
 const markTags: Record<string, string> = {
@@ -128,12 +140,44 @@ function renderNode(node: any, key: number): any {
   const RenderComp = renders[node.type];
   if (RenderComp) {
     const prepared = prepareAttrs(attrs);
+
+    // Extract common attributes for wrapper
+    const { blockId, cssClass, customCss, entranceAnimation, animationDuration, animationDelay, ...renderProps } = prepared;
+
+    let rendered: any;
     if (containerTypes.has(node.type) && children.length) {
-      return h(RenderComp, { key, ...prepared }, {
+      rendered = h(RenderComp, { key, ...renderProps }, {
         default: () => children.map((c: any, i: number) => renderNode(c, i)),
       });
+    } else {
+      rendered = h(RenderComp, { key, ...renderProps });
     }
-    return h(RenderComp, { key, ...prepared });
+
+    // Wrap with common attributes if any are set
+    const hasCommon = blockId || cssClass || customCss || (entranceAnimation && entranceAnimation !== 'none');
+    if (hasCommon) {
+      const wrapperAttrs: Record<string, any> = {};
+      if (blockId) wrapperAttrs.id = blockId;
+      if (cssClass) wrapperAttrs.class = cssClass;
+      if (entranceAnimation && entranceAnimation !== 'none') {
+        wrapperAttrs['data-lume-animation'] = entranceAnimation;
+        wrapperAttrs.style = {
+          '--lume-anim-duration': `${animationDuration || 600}ms`,
+          '--lume-anim-delay': `${animationDelay || 0}ms`,
+        };
+      }
+
+      const wrapperChildren = [rendered];
+
+      // Inject scoped custom CSS
+      if (customCss && blockId) {
+        wrapperChildren.push(h('style', null, `#${blockId} { ${customCss} }`));
+      }
+
+      return h('div', wrapperAttrs, wrapperChildren);
+    }
+
+    return rendered;
   }
 
   if (children.length) {
@@ -164,11 +208,42 @@ export default defineComponent({
       return [d];
     });
 
-    return { nodes };
+    const containerRef = ref<HTMLElement | null>(null);
+    let observer: IntersectionObserver | null = null;
+
+    onMounted(() => {
+      // Set up IntersectionObserver for entrance animations
+      if (typeof IntersectionObserver === 'undefined') return;
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('lume-anim-visible');
+              observer?.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.15 }
+      );
+
+      // Observe all animated elements
+      const el = containerRef.value;
+      if (el) {
+        el.querySelectorAll('[data-lume-animation]').forEach((animEl) => {
+          observer!.observe(animEl);
+        });
+      }
+    });
+
+    onBeforeUnmount(() => {
+      observer?.disconnect();
+    });
+
+    return { nodes, containerRef };
   },
   render() {
     if (!this.nodes || !this.nodes.length) return null;
-    return h('div', { class: 'lume-page-content' }, this.nodes.map((n: any, i: number) => renderNode(n, i)));
+    return h('div', { class: 'lume-page-content', ref: 'containerRef' }, this.nodes.map((n: any, i: number) => renderNode(n, i)));
   },
 });
 </script>

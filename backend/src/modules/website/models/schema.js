@@ -33,6 +33,8 @@ export const websitePages = table('website_pages', {
   sequence: idCol('sequence').default(0),
   showInMenu: boolean('show_in_menu').default(false),
   customCss: text('custom_css'),
+  headScripts: text('head_scripts'),
+  bodyScripts: text('body_scripts'),
   createdBy: idCol('created_by'),
 });
 
@@ -81,6 +83,77 @@ export const websiteMedia = table('website_media', {
   caption: text('caption'),
   folder: varchar('folder', { length: 255 }).default('general'),
   uploadedBy: idCol('uploaded_by'),
+});
+
+/**
+ * Website Page Revisions - Version history for pages
+ */
+export const websitePageRevisions = table('website_page_revisions', {
+  ...baseColumns(),
+  pageId: idCol('page_id').notNull(),
+  content: longtext('content'),
+  contentHtml: longtext('content_html'),
+  revisionNumber: idCol('revision_number').default(1),
+  changeDescription: varchar('change_description', { length: 255 }),
+  createdBy: idCol('created_by'),
+  isAutoSave: boolean('is_auto_save').default(false),
+});
+
+/**
+ * Website Forms - Contact/custom form definitions
+ */
+export const websiteForms = table('website_forms', {
+  ...baseColumns(),
+  name: varchar('name', { length: 255 }).notNull(),
+  fields: longtext('fields'),
+  settings: longtext('settings'),
+  isActive: boolean('is_active').default(true),
+  submissionCount: idCol('submission_count').default(0),
+});
+
+/**
+ * Website Form Submissions - User submissions
+ */
+export const websiteFormSubmissions = table('website_form_submissions', {
+  ...baseColumns(),
+  formId: idCol('form_id').notNull(),
+  data: longtext('data'),
+  ipAddress: varchar('ip_address', { length: 45 }),
+  userAgent: text('user_agent'),
+  isRead: boolean('is_read').default(false),
+  pageSlug: varchar('page_slug', { length: 255 }),
+});
+
+/**
+ * Website Theme Templates - Custom header/footer/sidebar templates
+ */
+export const websiteThemeTemplates = table('website_theme_templates', {
+  ...baseColumns(),
+  name: varchar('name', { length: 255 }).notNull(),
+  type: varchar('type', { length: 20 }).default('header'),
+  content: longtext('content'),
+  contentHtml: longtext('content_html'),
+  conditions: longtext('conditions'),
+  priority: idCol('priority').default(10),
+  isActive: boolean('is_active').default(true),
+});
+
+/**
+ * Website Popups - Popup builder definitions
+ */
+export const websitePopups = table('website_popups', {
+  ...baseColumns(),
+  name: varchar('name', { length: 255 }).notNull(),
+  content: longtext('content'),
+  contentHtml: longtext('content_html'),
+  triggerType: varchar('trigger_type', { length: 20 }).default('page-load'),
+  triggerValue: varchar('trigger_value', { length: 100 }),
+  position: varchar('position', { length: 20 }).default('center'),
+  width: varchar('width', { length: 20 }).default('md'),
+  overlayClose: boolean('overlay_close').default(true),
+  showOnce: boolean('show_once').default(true),
+  conditions: longtext('conditions'),
+  isActive: boolean('is_active').default(false),
 });
 
 /**

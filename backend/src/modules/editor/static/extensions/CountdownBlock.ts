@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import CountdownBlockView from '../components/blocks/CountdownBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const CountdownBlock = Node.create({
   name: 'countdown',
@@ -10,6 +11,7 @@ export const CountdownBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       targetDate: { default: '' },
       showLabels: { default: true },
       style: { default: 'simple' },

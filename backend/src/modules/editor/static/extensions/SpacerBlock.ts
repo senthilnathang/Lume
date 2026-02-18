@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import SpacerBlockView from '../components/blocks/SpacerBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const SpacerBlock = Node.create({
   name: 'spacerBlock',
@@ -10,6 +11,7 @@ export const SpacerBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       height: { default: '40' },
     }
   },

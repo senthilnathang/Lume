@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
-import { Globe, ArrowLeft, Save, Check, Settings, Eye, Plus, Trash2, ChevronDown, ChevronRight, Monitor, Tablet, Smartphone, ExternalLink, RefreshCw, Code, FormInput } from 'lucide-vue-next';
+import { Globe, ArrowLeft, Save, Check, Settings, Eye, Plus, Trash2, ChevronDown, ChevronRight, Monitor, Tablet, Smartphone, ExternalLink, RefreshCw, Code, FormInput, Clock, Image as ImageIcon } from 'lucide-vue-next';
 import { get, put, post } from '@/api/request';
+import { autoSavePage } from '../api/index';
 import { PageBuilder } from '@modules/editor/static/components/index';
+import RevisionHistoryDrawer from '../components/RevisionHistoryDrawer.vue';
+import MediaPickerModal from '../components/MediaPickerModal.vue';
 
 defineOptions({ name: 'WebsitePageEditor' });
 
@@ -31,6 +34,17 @@ const previewDevice = ref<'desktop' | 'tablet' | 'mobile'>('desktop');
 const iframeKey = ref(0);               // force iframe reload
 const expandedSections = ref<Set<string>>(new Set());
 
+// Revision history
+const showRevisions = ref(false);
+
+// Media picker
+const showMediaPicker = ref(false);
+const mediaPickerTarget = ref<string>('featuredImage'); // which field gets the picked URL
+
+// Auto-save timer
+let autoSaveTimer: ReturnType<typeof setInterval> | null = null;
+const lastAutoSaveContent = ref<string>('');
+
 const page = reactive({
   id: null as number | null,
   title: '',
@@ -52,6 +66,8 @@ const page = reactive({
   noFollow: false,
   isPublished: false,
   customCss: '',
+  headScripts: '',
+  bodyScripts: '',
 });
 
 function generateSlug(title: string): string {
@@ -243,6 +259,8 @@ async function loadPage() {
       noFollow: data.noFollow || false,
       isPublished: data.isPublished || false,
       customCss: data.customCss || '',
+      headScripts: data.headScripts || '',
+      bodyScripts: data.bodyScripts || '',
     });
   } catch (err: any) {
     message.error('Failed to load page');
@@ -321,8 +339,51 @@ function goBack() {
   router.push('/website/pages');
 }
 
+// Auto-save every 60s (only if content changed)
+function startAutoSave() {
+  if (autoSaveTimer) clearInterval(autoSaveTimer);
+  autoSaveTimer = setInterval(async () => {
+    if (!page.id) return;
+    const currentContent = contentJson.value ? JSON.stringify(contentJson.value) : (structuredData.value ? JSON.stringify(structuredData.value) : '');
+    if (!currentContent || currentContent === lastAutoSaveContent.value) return;
+
+    try {
+      await autoSavePage(page.id, {
+        content: currentContent,
+        contentHtml: contentHtml.value || '',
+      });
+      lastAutoSaveContent.value = currentContent;
+    } catch { /* silent fail for autosave */ }
+  }, 60000);
+}
+
+function onRevisionReverted(data: any) {
+  // Reload the page after revert
+  loadPage();
+}
+
+function openMediaPicker(target: string) {
+  mediaPickerTarget.value = target;
+  showMediaPicker.value = true;
+}
+
+function onMediaSelected(urls: string[]) {
+  if (urls.length > 0) {
+    if (mediaPickerTarget.value === 'featuredImage') {
+      page.featuredImage = urls[0];
+    } else if (mediaPickerTarget.value === 'ogImage') {
+      page.ogImage = urls[0];
+    }
+  }
+}
+
 onMounted(() => {
   loadPage();
+  startAutoSave();
+});
+
+onBeforeUnmount(() => {
+  if (autoSaveTimer) clearInterval(autoSaveTimer);
 });
 
 // Re-load when navigating between pages (same component, different query)
@@ -361,6 +422,10 @@ watch(pageId, (newId, oldId) => {
         <a-tag v-else color="orange">Draft</a-tag>
       </div>
       <div class="flex items-center gap-2">
+        <a-button v-if="page.id" @click="showRevisions = true" title="Revision History">
+          <template #icon><Clock :size="16" /></template>
+          History
+        </a-button>
         <a-button v-if="page.slug" @click="router.push(`/website/pages/preview/${page.slug}?id=${page.id}`)">
           <template #icon><Eye :size="16" /></template>
           Preview
@@ -647,6 +712,29 @@ watch(pageId, (newId, oldId) => {
                 style="font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 13px;"
               />
             </a-card>
+
+            <a-card title="Custom Code Injection" class="mt-4">
+              <a-form layout="vertical">
+                <a-form-item label="Head Scripts">
+                  <a-textarea
+                    v-model:value="page.headScripts"
+                    placeholder="<!-- Scripts/styles injected into <head> -->"
+                    :rows="4"
+                    style="font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 13px;"
+                  />
+                  <p class="text-xs text-gray-400 mt-1 m-0">Injected before &lt;/head&gt;</p>
+                </a-form-item>
+                <a-form-item label="Body Scripts">
+                  <a-textarea
+                    v-model:value="page.bodyScripts"
+                    placeholder="<!-- Scripts injected before </body> -->"
+                    :rows="4"
+                    style="font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 13px;"
+                  />
+                  <p class="text-xs text-gray-400 mt-1 m-0">Injected before &lt;/body&gt;</p>
+                </a-form-item>
+              </a-form>
+            </a-card>
           </div>
         </template>
 
@@ -681,7 +769,12 @@ watch(pageId, (newId, oldId) => {
             </a-form-item>
 
             <a-form-item label="Featured Image">
-              <a-input v-model:value="page.featuredImage" placeholder="https://..." />
+              <div class="flex gap-2">
+                <a-input v-model:value="page.featuredImage" placeholder="https://..." class="flex-1" />
+                <a-button size="small" @click="openMediaPicker('featuredImage')">
+                  <template #icon><ImageIcon :size="14" /></template>
+                </a-button>
+              </div>
               <div
                 v-if="page.featuredImage"
                 class="mt-2 rounded border overflow-hidden"
@@ -719,7 +812,12 @@ watch(pageId, (newId, oldId) => {
             </a-form-item>
 
             <a-form-item label="OG Image">
-              <a-input v-model:value="page.ogImage" placeholder="https://..." />
+              <div class="flex gap-2">
+                <a-input v-model:value="page.ogImage" placeholder="https://..." class="flex-1" />
+                <a-button size="small" @click="openMediaPicker('ogImage')">
+                  <template #icon><ImageIcon :size="14" /></template>
+                </a-button>
+              </div>
             </a-form-item>
 
             <a-divider>Indexing</a-divider>
@@ -736,6 +834,19 @@ watch(pageId, (newId, oldId) => {
         </div>
       </div>
     </a-spin>
+
+    <!-- Revision History Drawer -->
+    <RevisionHistoryDrawer
+      v-model:open="showRevisions"
+      :page-id="page.id"
+      @reverted="onRevisionReverted"
+    />
+
+    <!-- Media Picker Modal -->
+    <MediaPickerModal
+      v-model:open="showMediaPicker"
+      @select="onMediaSelected"
+    />
   </div>
 </template>
 

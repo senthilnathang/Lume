@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import InfoBoxBlockView from '../components/blocks/InfoBoxBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const InfoBoxBlock = Node.create({
   name: 'infoBox',
@@ -10,6 +11,7 @@ export const InfoBoxBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       title: { default: 'Info Box Title' },
       description: { default: 'Your description here' },
       icon: { default: 'info' },

@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import ColumnBlockView from '../components/blocks/ColumnBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const ColumnBlock = Node.create({
   name: 'columnBlock',
@@ -11,6 +12,7 @@ export const ColumnBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       width: { default: '' }, // e.g., '50%', '33.33%', custom
     }
   },

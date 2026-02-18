@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import AdvancedHeadingBlockView from '../components/blocks/AdvancedHeadingBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const AdvancedHeadingBlock = Node.create({
   name: 'advancedHeading',
@@ -10,6 +11,7 @@ export const AdvancedHeadingBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       text: { default: 'Heading' },
       tag: { default: 'h2' },
       alignment: { default: 'left' },

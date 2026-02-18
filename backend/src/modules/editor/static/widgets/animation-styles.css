@@ -1,0 +1,83 @@
+/**
+ * Lume Page Builder — Entrance Animation Keyframes
+ * Phase 2C: Applied via data-animation attribute + IntersectionObserver
+ */
+
+/* Base state — hidden before animation triggers */
+[data-lume-animation]:not([data-lume-animation="none"]) {
+  opacity: 0;
+}
+
+/* Visible state — added by IntersectionObserver */
+[data-lume-animation].lume-anim-visible {
+  opacity: 1;
+}
+
+/* ---- Keyframes ---- */
+
+@keyframes lumeSlideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lumeSlideDown {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lumeSlideLeft {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes lumeSlideRight {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes lumeFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lumeZoomIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes lumeBounceIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ---- Animation classes (applied when visible) ---- */
+
+.lume-anim-visible[data-lume-animation="fadeIn"] {
+  animation: lumeFadeIn var(--lume-anim-duration, 600ms) var(--lume-anim-delay, 0ms) both ease-out;
+}
+
+.lume-anim-visible[data-lume-animation="slideUp"] {
+  animation: lumeSlideUp var(--lume-anim-duration, 600ms) var(--lume-anim-delay, 0ms) both ease-out;
+}
+
+.lume-anim-visible[data-lume-animation="slideDown"] {
+  animation: lumeSlideDown var(--lume-anim-duration, 600ms) var(--lume-anim-delay, 0ms) both ease-out;
+}
+
+.lume-anim-visible[data-lume-animation="slideLeft"] {
+  animation: lumeSlideLeft var(--lume-anim-duration, 600ms) var(--lume-anim-delay, 0ms) both ease-out;
+}
+
+.lume-anim-visible[data-lume-animation="slideRight"] {
+  animation: lumeSlideRight var(--lume-anim-duration, 600ms) var(--lume-anim-delay, 0ms) both ease-out;
+}
+
+.lume-anim-visible[data-lume-animation="zoomIn"] {
+  animation: lumeZoomIn var(--lume-anim-duration, 600ms) var(--lume-anim-delay, 0ms) both ease-out;
+}
+
+.lume-anim-visible[data-lume-animation="bounceIn"] {
+  animation: lumeBounceIn var(--lume-anim-duration, 600ms) var(--lume-anim-delay, 0ms) both ease-out;
+}

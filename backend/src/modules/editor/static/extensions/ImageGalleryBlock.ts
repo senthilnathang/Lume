@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import ImageGalleryBlockView from '../components/blocks/ImageGalleryBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const ImageGalleryBlock = Node.create({
   name: 'imageGallery',
@@ -10,6 +11,7 @@ export const ImageGalleryBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       images: { default: [] },
       columns: { default: 3 },
       gap: { default: '16px' },

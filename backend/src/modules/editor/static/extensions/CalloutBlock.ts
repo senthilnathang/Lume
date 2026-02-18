@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import CalloutBlockView from '../components/blocks/CalloutBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const CalloutBlock = Node.create({
   name: 'calloutBlock',
@@ -11,6 +12,7 @@ export const CalloutBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       type: { default: 'info' }, // info, warning, success, error
       title: { default: '' },
       icon: { default: '' }, // auto from type if empty

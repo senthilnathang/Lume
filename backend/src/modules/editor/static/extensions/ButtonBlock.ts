@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import ButtonBlockView from '../components/blocks/ButtonBlockView.vue'
+import { commonTipTapAttributes } from './shared/commonAttributes'
 
 export const ButtonBlock = Node.create({
   name: 'buttonBlock',
@@ -10,6 +11,7 @@ export const ButtonBlock = Node.create({
 
   addAttributes() {
     return {
+      ...commonTipTapAttributes,
       text: { default: 'Click me' },
       url: { default: '#' },
       variant: { default: 'primary' }, // primary, outline, ghost, danger
