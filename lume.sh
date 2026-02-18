@@ -10,12 +10,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$SCRIPT_DIR/backend"
 FRONTEND_DIR="$SCRIPT_DIR/frontend"
 WEB_LUME_DIR="$SCRIPT_DIR/frontend/apps/web-lume"
+WEBSITE_DIR="$SCRIPT_DIR/frontend/apps/riagri-website"
 LOG_DIR="$SCRIPT_DIR/logs"
 
 # Default ports
 DEFAULT_BACKEND_PORT=3000
 DEFAULT_FRONTEND_PORT=5173
 DEFAULT_FRONTEND_PREVIEW_PORT=4173
+DEFAULT_WEBSITE_PORT=3100
+DEFAULT_WEBSITE_PREVIEW_PORT=3101
 
 # Colors
 RED='\033[0;31m'
@@ -249,14 +252,25 @@ install_backend() {
 }
 
 install_frontend() {
-    print_header "=== Installing Frontend ==="
-    cd "$FRONTEND_DIR"
+    print_header "=== Installing Admin Panel (web-lume) ==="
+    cd "$WEB_LUME_DIR"
     if command_exists pnpm; then
         pnpm install
     else
         npm install
     fi
-    print_success "Frontend installed"
+    print_success "Admin panel installed"
+}
+
+install_website() {
+    print_header "=== Installing Website (riagri-website) ==="
+    cd "$WEBSITE_DIR"
+    if command_exists pnpm; then
+        pnpm install
+    else
+        npm install
+    fi
+    print_success "Website installed"
 }
 
 # ============== Backend ==============
@@ -516,43 +530,203 @@ status_frontend() {
     fi
 }
 
+# ============== Website (riagri-website) ==============
+start_website_dev() {
+    local port=${1:-$DEFAULT_WEBSITE_PORT}
+    local bg=${2:-false}
+
+    if is_port_in_use "$port"; then
+        print_warning "Port $port in use, finding next available..."
+        port=$(get_available_port "$port") || port=$((port + 1000))
+        print_status "Using port $port"
+    fi
+
+    cd "$WEBSITE_DIR"
+
+    if [ ! -d "node_modules" ]; then
+        print_status "Installing website dependencies..."
+        if command_exists pnpm; then pnpm install; else npm install; fi
+    fi
+
+    if command_exists pnpm; then
+        pnpm run dev --port "$port" > "$LOG_DIR/website.log" 2>&1 &
+    else
+        npm run dev -- --port "$port" > "$LOG_DIR/website.log" 2>&1 &
+    fi
+
+    local pid=$!
+    echo "$pid" > "$SCRIPT_DIR/website.pid"
+    echo "$port" > "$SCRIPT_DIR/website.port"
+
+    print_success "Website (riagri-website) started (PID: $pid, Port: $port)"
+
+    if [ "$bg" != "true" ]; then
+        wait_for_url "http://localhost:$port" "Website" || true
+        print_status "Website URL: http://localhost:$port"
+    fi
+
+    return 0
+}
+
+build_website() {
+    print_header "=== Building Website (riagri-website) ==="
+    cd "$WEBSITE_DIR"
+
+    if [ ! -d "node_modules" ]; then
+        print_status "Installing website dependencies..."
+        if command_exists pnpm; then pnpm install; else npm install; fi
+    fi
+
+    if command_exists pnpm; then
+        pnpm run build
+    else
+        npm run build
+    fi
+
+    print_success "Website built: $WEBSITE_DIR/.output"
+}
+
+start_website_prod() {
+    local port=${1:-$DEFAULT_WEBSITE_PREVIEW_PORT}
+    local bg=${2:-false}
+
+    if [ ! -d "$WEBSITE_DIR/.output" ]; then
+        build_website
+    fi
+
+    if is_port_in_use "$port"; then
+        print_warning "Port $port in use, finding next available..."
+        port=$(get_available_port "$port") || port=$((port + 1000))
+        print_status "Using port $port"
+    fi
+
+    cd "$WEBSITE_DIR"
+
+    PORT="$port" node .output/server/index.mjs > "$LOG_DIR/website-prod.log" 2>&1 &
+
+    local pid=$!
+    echo "$pid" > "$SCRIPT_DIR/website-prod.pid"
+    echo "$port" > "$SCRIPT_DIR/website-prod.port"
+
+    print_success "Website prod (riagri-website) started (PID: $pid, Port: $port)"
+
+    if [ "$bg" != "true" ]; then
+        wait_for_url "http://localhost:$port" "Website" || true
+    fi
+
+    return 0
+}
+
+stop_website() {
+    print_header "=== Stopping Website (riagri-website) ==="
+
+    cleanup_stale_pid "$SCRIPT_DIR/website.pid" "Website"
+    cleanup_stale_pid "$SCRIPT_DIR/website-prod.pid" "Website-prod"
+
+    if [ -f "$SCRIPT_DIR/website.pid" ]; then
+        local pid=$(cat "$SCRIPT_DIR/website.pid")
+        kill_process_safe "$pid" "nuxt" || true
+        rm -f "$SCRIPT_DIR/website.pid"
+    fi
+
+    if [ -f "$SCRIPT_DIR/website-prod.pid" ]; then
+        local pid=$(cat "$SCRIPT_DIR/website-prod.pid")
+        kill_process_safe "$pid" "node" || true
+        rm -f "$SCRIPT_DIR/website-prod.pid"
+    fi
+
+    local port=$(cat "$SCRIPT_DIR/website.port" 2>/dev/null || echo "$DEFAULT_WEBSITE_PORT")
+    stop_service_by_port "$port" "nuxt"
+    stop_service_by_port "$DEFAULT_WEBSITE_PORT" "nuxt"
+
+    local prod_port=$(cat "$SCRIPT_DIR/website-prod.port" 2>/dev/null || echo "$DEFAULT_WEBSITE_PREVIEW_PORT")
+    stop_service_by_port "$prod_port" "node"
+
+    rm -f "$SCRIPT_DIR/website.port" "$SCRIPT_DIR/website-prod.port"
+    print_success "Website stopped"
+}
+
+status_website() {
+    local port=$(cat "$SCRIPT_DIR/website.port" 2>/dev/null || echo "$DEFAULT_WEBSITE_PORT")
+    local prod_port=$(cat "$SCRIPT_DIR/website-prod.port" 2>/dev/null || echo "$DEFAULT_WEBSITE_PREVIEW_PORT")
+
+    if is_port_in_use "$port"; then
+        local pid=$(get_pid_by_port "$port")
+        print_success "Website riagri-website (dev): Running (PID: $pid, Port: $port)"
+    elif is_port_in_use "$prod_port"; then
+        local pid=$(get_pid_by_port "$prod_port")
+        print_success "Website riagri-website (prod): Running (PID: $pid, Port: $prod_port)"
+    else
+        print_warning "Website riagri-website: Not running"
+    fi
+}
+
+logs_website() {
+    local tail_flag="${1:-}"
+
+    if [ -f "$LOG_DIR/website.log" ]; then
+        if [ "$tail_flag" = "-f" ]; then
+            print_status "Tailing website logs (Ctrl+C to exit)..."
+            tail -f "$LOG_DIR/website.log"
+        else
+            tail -50 "$LOG_DIR/website.log"
+        fi
+    elif [ -f "$LOG_DIR/website-prod.log" ]; then
+        if [ "$tail_flag" = "-f" ]; then
+            print_status "Tailing website-prod logs (Ctrl+C to exit)..."
+            tail -f "$LOG_DIR/website-prod.log"
+        else
+            tail -50 "$LOG_DIR/website-prod.log"
+        fi
+    else
+        print_warning "Website log not found"
+    fi
+}
+
 # ============== All Services ==============
 start_all() {
     local mode=${1:-dev}
     local bg=${2:-false}
-    
+
     mkdir -p "$LOG_DIR"
-    
+
     start_backend 3000 "$mode" "$bg"
     sleep 2
-    
+
     if [ "$mode" = "prod" ]; then
         start_frontend_prod 4173 "$bg"
+        start_website_prod 3101 "$bg"
     else
         start_frontend_dev 5173 "$bg"
+        start_website_dev 3100 "$bg"
     fi
-    
+
     local be_port=$(cat "$SCRIPT_DIR/backend.port" 2>/dev/null || echo 3000)
     local fe_port=$(cat "$SCRIPT_DIR/frontend.port" 2>/dev/null || echo 5173)
     local fe_prod_port=$(cat "$SCRIPT_DIR/frontend-prod.port" 2>/dev/null || echo 4173)
-    
+    local ws_port=$(cat "$SCRIPT_DIR/website.port" 2>/dev/null || echo 3100)
+    local ws_prod_port=$(cat "$SCRIPT_DIR/website-prod.port" 2>/dev/null || echo 3101)
+
     echo ""
-    echo "=========================================="
-    echo "         LUME Services Started"
-    echo "=========================================="
-    echo "  Backend:      http://localhost:$be_port"
+    echo "============================================="
+    echo "           LUME Services Started"
+    echo "============================================="
+    echo "  Backend API:        http://localhost:$be_port"
     if [ "$mode" = "prod" ]; then
-        echo "  Frontend:     http://localhost:$fe_prod_port"
+        echo "  Admin Panel:        http://localhost:$fe_prod_port  (web-lume)"
+        echo "  Public Website:     http://localhost:$ws_prod_port  (riagri-website)"
     else
-        echo "  Frontend:     http://localhost:$fe_port"
+        echo "  Admin Panel:        http://localhost:$fe_port  (web-lume)"
+        echo "  Public Website:     http://localhost:$ws_port  (riagri-website)"
     fi
-    echo "=========================================="
+    echo "============================================="
 }
 
 stop_all() {
     print_header "=== Stopping All Services ==="
     stop_backend
     stop_frontend
+    stop_website
     print_success "All services stopped"
 }
 
@@ -560,6 +734,7 @@ status_all() {
     print_header "=== Service Status ==="
     status_backend
     status_frontend
+    status_website
 }
 
 logs_backend() {
@@ -602,7 +777,7 @@ logs_frontend() {
 logs() {
     local service="${1:-}"
     local tail_flag="${2:-}"
-    
+
     case "$service" in
         backend|be)
             logs_backend "$tail_flag"
@@ -610,65 +785,78 @@ logs() {
         frontend|fe)
             logs_frontend "$tail_flag"
             ;;
+        website|ws)
+            logs_website "$tail_flag"
+            ;;
         -f)
             logs_backend "-f"
             echo ""
             logs_frontend "-f"
+            echo ""
+            logs_website "-f"
             ;;
         "")
             echo "=== Backend Logs ==="
             logs_backend
             echo ""
-            echo "=== Frontend Logs ==="
+            echo "=== Admin Panel Logs (web-lume) ==="
             logs_frontend
+            echo ""
+            echo "=== Website Logs (riagri-website) ==="
+            logs_website
             ;;
         *)
-            print_error "Unknown service: $service. Use: backend, frontend, or no argument for all"
+            print_error "Unknown service: $service. Use: backend, frontend, website, or no argument for all"
             ;;
     esac
 }
 
 # ============== Help ==============
 show_help() {
-    echo -e "${CYAN}============================================${NC}"
-    echo -e "${CYAN}         LUME Management Script${NC}"
-    echo -e "${CYAN}============================================${NC}"
+    echo -e "${CYAN}=============================================${NC}"
+    echo -e "${CYAN}          LUME Management Script${NC}"
+    echo -e "${CYAN}=============================================${NC}"
     echo ""
-    echo "Usage: $0 <command> [options]"
+    echo "Usage: $0 <command> [service] [options]"
+    echo ""
+    echo -e "${YELLOW}Services:${NC}"
+    echo "  backend   (be)   Express API                  :3000"
+    echo "  frontend  (fe)   Admin panel  (web-lume)      :5173"
+    echo "  website   (ws)   Public site  (riagri-website) :3100"
     echo ""
     echo -e "${YELLOW}Commands:${NC}"
-    echo "  start [dev|prod]       Start services (default: dev)"
-    echo "  stop                    Stop all services"
-    echo "  restart [dev|prod]     Restart services"
-    echo "  status                  Show service status"
-    echo "  logs [service] [-f]     Show logs (use -f to tail, service: backend/frontend)"
-    echo "  install                 Install all dependencies"
-    echo "  build                   Build frontend"
-    echo "  check                   Check dependencies"
-    echo "  help                    Show this help"
-    echo ""
-    echo -e "${YELLOW}Service Commands:${NC}"
-    echo "  start backend [port]    Start only backend"
-    echo "  start frontend [port]   Start only frontend"
-    echo "  stop backend            Stop only backend"
-    echo "  stop frontend           Stop only frontend"
+    echo "  start [service] [dev|prod]   Start services (default: all, dev)"
+    echo "  stop  [service]              Stop services (default: all)"
+    echo "  restart [service] [dev|prod] Restart services"
+    echo "  status [service]             Show service status"
+    echo "  logs [service] [-f]          Show logs (-f to tail)"
+    echo "  install [service]            Install dependencies"
+    echo "  build [service]              Build for production"
+    echo "  check                        Check prerequisites"
+    echo "  help                         Show this help"
     echo ""
     echo -e "${YELLOW}Options:${NC}"
-    echo "  -b, --background       Run in background"
-    echo "  -p, --port PORT        Specify port"
-    echo "  -h, --help            Show help"
+    echo "  -b, --background    Run in background"
+    echo "  -p, --port PORT     Specify port"
+    echo "  -h, --help          Show help"
     echo ""
     echo -e "${YELLOW}Examples:${NC}"
-    echo "  $0 start                   # Start dev servers"
-    echo "  $0 start prod             # Start production"
-    echo "  $0 start backend 3001     # Start backend on port 3001"
-    echo "  $0 start frontend        # Start only frontend"
-    echo "  $0 start -b              # Start in background"
-    echo "  $0 stop                  # Stop all"
-    echo "  $0 restart               # Restart dev"
-    echo "  $0 logs                  # View all logs"
-    echo "  $0 logs backend -f       # Tail backend logs"
-    echo "  $0 logs frontend         # View frontend logs"
+    echo "  $0 start                      # Start all (backend + admin + website)"
+    echo "  $0 start prod                 # Start all in production mode"
+    echo "  $0 start backend              # Start only backend"
+    echo "  $0 start frontend             # Start only admin panel (web-lume)"
+    echo "  $0 start website              # Start only public site (riagri-website)"
+    echo "  $0 start backend 3001         # Start backend on port 3001"
+    echo "  $0 start -b                   # Start all in background"
+    echo "  $0 stop                       # Stop all"
+    echo "  $0 stop website               # Stop only public site"
+    echo "  $0 restart website            # Restart public site"
+    echo "  $0 status                     # Show all service status"
+    echo "  $0 logs                       # View all logs"
+    echo "  $0 logs website -f            # Tail website logs"
+    echo "  $0 logs backend -f            # Tail backend logs"
+    echo "  $0 install website            # Install riagri-website deps only"
+    echo "  $0 build website              # Build riagri-website for production"
     echo ""
 }
 
@@ -691,6 +879,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         frontend|fe)
             SUBCOMMAND="frontend"
+            shift
+            ;;
+        website|ws)
+            SUBCOMMAND="website"
             shift
             ;;
         dev|prod)
@@ -737,15 +929,31 @@ case $COMMAND in
         ;;
     install)
         mkdir -p "$LOG_DIR"
-        install_backend
-        install_frontend
+        if [ "$SUBCOMMAND" = "backend" ]; then
+            install_backend
+        elif [ "$SUBCOMMAND" = "frontend" ]; then
+            install_frontend
+        elif [ "$SUBCOMMAND" = "website" ]; then
+            install_website
+        else
+            install_backend
+            install_frontend
+            install_website
+        fi
         ;;
     build)
         mkdir -p "$LOG_DIR"
-        build_frontend
+        if [ "$SUBCOMMAND" = "frontend" ]; then
+            build_frontend
+        elif [ "$SUBCOMMAND" = "website" ]; then
+            build_website
+        else
+            build_frontend
+            build_website
+        fi
         ;;
     start)
-        # Handle subcommands
+        mkdir -p "$LOG_DIR"
         if [ "$SUBCOMMAND" = "backend" ]; then
             start_backend "${PORT:-3000}" "$MODE" "$BACKGROUND"
         elif [ "$SUBCOMMAND" = "frontend" ]; then
@@ -753,6 +961,12 @@ case $COMMAND in
                 start_frontend_prod "${PORT:-4173}" "$BACKGROUND"
             else
                 start_frontend_dev "${PORT:-5173}" "$BACKGROUND"
+            fi
+        elif [ "$SUBCOMMAND" = "website" ]; then
+            if [ "$MODE" = "prod" ]; then
+                start_website_prod "${PORT:-3101}" "$BACKGROUND"
+            else
+                start_website_dev "${PORT:-3100}" "$BACKGROUND"
             fi
         else
             if [ "$MODE" = "prod" ]; then
@@ -767,6 +981,8 @@ case $COMMAND in
             stop_backend
         elif [ "$SUBCOMMAND" = "frontend" ]; then
             stop_frontend
+        elif [ "$SUBCOMMAND" = "website" ]; then
+            stop_website
         else
             stop_all
         fi
@@ -784,6 +1000,14 @@ case $COMMAND in
             else
                 start_frontend_dev "${PORT:-5173}" "$BACKGROUND"
             fi
+        elif [ "$SUBCOMMAND" = "website" ]; then
+            stop_website
+            sleep 2
+            if [ "$MODE" = "prod" ]; then
+                start_website_prod "${PORT:-3101}" "$BACKGROUND"
+            else
+                start_website_dev "${PORT:-3100}" "$BACKGROUND"
+            fi
         else
             stop_all
             sleep 2
@@ -795,6 +1019,8 @@ case $COMMAND in
             status_backend
         elif [ "$SUBCOMMAND" = "frontend" ]; then
             status_frontend
+        elif [ "$SUBCOMMAND" = "website" ]; then
+            status_website
         else
             status_all
         fi
