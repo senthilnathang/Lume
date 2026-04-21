@@ -1,18 +1,18 @@
 {
-  "extends": "./.nuxt/tsconfig.json",
+  "extends": "./packages/@lume/tsconfig/base.json",
   "compilerOptions": {
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+    "baseUrl": ".",
     "paths": {
-      "~/*": ["./*"],
-      "@/*": ["./app/*"],
-      "#server/*": ["./server/*"]
+      "@lume/*": ["packages/@lume/*/src"],
+      "@backend/*": ["backend/src/*"],
+      "@modules/*": ["backend/src/modules/*"]
     }
-  }
+  },
+  "include": [
+    "backend/**/*.ts",
+    "apps/**/*.ts",
+    "apps/**/*.vue",
+    "packages/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
 }
