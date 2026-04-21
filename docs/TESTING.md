@@ -216,3 +216,155 @@ npm run test:coverage
 ```
 
 Coverage is collected from all `src/**/*.js` files, excluding entry points and scripts.
+
+---
+
+## Integration Testing (Phase 7)
+
+Integration tests verify complete workflows across multiple systems (API, database, authentication, caching).
+
+### Location
+
+```
+backend/tests/integration/
+├── auth-workflow.test.js          # Authentication workflows
+├── website-workflow.test.js        # CMS page and menu management
+└── performance-benchmark.test.js   # Performance SLA validation
+```
+
+### Running Integration Tests
+
+```bash
+cd backend
+
+# Run all integration tests
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration
+
+# Run specific integration test file
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/auth-workflow.test.js
+
+# Run integration tests with timeout extension (60 seconds)
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration --testTimeout=60000
+```
+
+### Integration Test Suites
+
+#### 1. Authentication Workflow (`auth-workflow.test.js`)
+
+Tests complete user authentication lifecycle:
+
+- **Registration** → Create new user account
+- **Login** → Authenticate and receive JWT + refresh token
+- **Protected Access** → Use token to access secured endpoints
+- **Token Refresh** → Request new token with refresh token
+- **Rate Limiting** → Verify brute-force protection on auth endpoints
+
+```bash
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/auth-workflow.test.js
+```
+
+#### 2. Website Module Workflow (`website-workflow.test.js`)
+
+Tests CMS functionality (Pages, Menus, Settings):
+
+- **Page Creation** → Create new pages with TipTap content
+- **Page Updates** → Modify page content and metadata
+- **List Pagination** → Fetch pages with pagination
+- **Menu Management** → Create and reorder menu items
+- **Public API** → Access content without authentication
+
+```bash
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/website-workflow.test.js
+```
+
+#### 3. Performance Benchmarks (`performance-benchmark.test.js`)
+
+Validates response time SLAs and system performance:
+
+**Response Time SLAs:**
+- Health check: < 50ms
+- Public config: < 100ms
+- List endpoints: < 500ms
+- Single record fetch: < 200ms
+
+**Caching Efficiency:**
+- Cache HIT on subsequent requests
+- Cached responses faster than cache misses
+
+**Throughput:**
+- 50 concurrent health checks: < 2 seconds
+- 20 concurrent login requests: < 5 seconds
+
+**Trace IDs & Error Tracking:**
+- All responses include `X-Trace-ID` header
+- Error counts by type are tracked
+
+```bash
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/performance-benchmark.test.js
+```
+
+### Integration Test Best Practices
+
+✅ **Do:**
+- Test complete workflows end-to-end
+- Use real database (or test database) for data persistence
+- Clean up test data after each test
+- Verify cache headers and metrics
+- Test both success and failure paths
+- Use descriptive test names
+- Include setup/teardown for test isolation
+
+❌ **Don't:**
+- Mock everything (defeats purpose of integration testing)
+- Depend on test execution order
+- Leave test data in database
+- Test third-party libraries
+- Create long-running tests (target < 30s each)
+
+### Test Database Setup
+
+Integration tests use a dedicated test database:
+
+```bash
+# Create test database
+mysql -u root -p -e "CREATE DATABASE lume_test;"
+
+# Set in .env or .env.test
+NODE_ENV=test
+DATABASE_URL="mysql://user:pass@localhost/lume_test"
+```
+
+### Debugging Integration Tests
+
+```bash
+# Run single test with verbose output
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/auth-workflow.test.js --verbose
+
+# Enable debug logging
+DEBUG=* NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration
+
+# Run in watch mode for iterative development
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration --watch
+```
+
+### CI/CD Integration
+
+Integration tests run on every commit to the `framework` branch:
+
+```yaml
+# Example GitHub Actions workflow
+- name: Run integration tests
+  run: |
+    cd backend
+    NODE_OPTIONS='--experimental-vm-modules' npm run test -- tests/integration
+```
+
+### Performance Regression Prevention
+
+The performance benchmark tests prevent regressions by verifying:
+- Response times don't exceed SLA thresholds
+- Cache hit rates are consistent
+- Error rates remain low
+- System can handle concurrent load
+
+Review performance reports after each test run to catch degradation early.
