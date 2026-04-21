@@ -12,25 +12,6 @@ const LOGIN_PATH = '/login';
 const DEFAULT_HOME_PATH = '/dashboard';
 
 /**
- * Cached public config from backend.
- * Determines whether the website module is installed
- * and where to redirect unauthenticated users.
- */
-let publicConfig: { websiteInstalled: boolean; publicUrl: string | null } | null = null;
-
-async function fetchPublicConfig() {
-  if (publicConfig) return publicConfig;
-  try {
-    const res = await fetch('/api/public/config');
-    const json = await res.json();
-    publicConfig = json.data || { websiteInstalled: false, publicUrl: null };
-  } catch {
-    publicConfig = { websiteInstalled: false, publicUrl: null };
-  }
-  return publicConfig;
-}
-
-/**
  * Custom view registry
  * Maps route paths to dedicated Vue components instead of the generic ModuleView
  */
@@ -304,15 +285,6 @@ function setupAccessGuard() {
 
     // Check authentication for protected routes
     if (!authStore.isAuthenticated) {
-      // If navigating to root '/', check if website module is installed
-      // and redirect to the public website instead of login
-      if (to.path === '/') {
-        const config = await fetchPublicConfig();
-        if (config.websiteInstalled && config.publicUrl) {
-          window.location.href = config.publicUrl;
-          return false;
-        }
-      }
       return {
         path: LOGIN_PATH,
         query: { redirect: to.fullPath !== DEFAULT_HOME_PATH && to.fullPath !== '/' ? to.fullPath : undefined },
