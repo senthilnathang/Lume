@@ -1,25 +1,32 @@
-# Lume Framework
+# Lume Framework v2.0.0
 
 **A modular, enterprise-grade web application framework built with Node.js, Express, Vue 3, and a Hybrid ORM (Prisma + Drizzle).**
 
-Lume provides a complete foundation for building business applications with a pluggable module system, advanced RBAC, automation engine, real-time features, and a polished admin UI out of the box.
+Lume provides a complete foundation for building business applications with a pluggable module system, advanced RBAC, automation engine, real-time features, observability, and a polished admin UI out of the box.
+
+**Current Version:** 2.0.0 (Released: 2026-04-22) | **[Release Notes](docs/RELEASE_NOTES.md)** | **[v1.0 → v2.0 Migration](docs/MIGRATION_GUIDE.md)**
 
 ---
 
-## Tech Stack
+## Tech Stack (v2.0)
 
 | Layer | Technology |
 |-------|-----------|
-| **Backend** | Node.js 18+, Express.js, ES Modules |
-| **Frontend** | Vue 3, TypeScript, Vite, Ant Design Vue, Tailwind CSS |
-| **Database** | MySQL (primary), PostgreSQL (supported) |
-| **ORM** | Prisma (core tables) + Drizzle (module tables) — Hybrid ORM |
+| **Backend** | Node.js 20.12.0+, Express.js 4.21, ES Modules |
+| **Frontend** | Vue 3.5+, TypeScript 5.6+, Vite 5.4, Ant Design Vue 4.2 |
+| **CSS** | Tailwind CSS 4.2 with CSS Variables |
+| **Database** | MySQL 8.0+ (primary), PostgreSQL 14+ (supported) |
+| **ORM** | Prisma 5.18 (core) + Drizzle 0.45 (modules) — Hybrid ORM |
+| **Package Manager** | pnpm 10.28+ (monorepo) |
+| **Build** | Turbo v2.0 (orchestration), Vite 5.4, Nuxt 3.15 |
 | **Auth** | JWT with refresh tokens, 2FA/TOTP, API keys |
 | **Real-time** | WebSocket (ws) with JWT auth |
 | **Email** | Nodemailer with HTML templates |
 | **Scheduling** | node-cron for background tasks |
-| **Cache** | Redis (planned) |
-| **Testing** | Jest (backend), Vitest + Playwright (frontend) |
+| **Cache** | Redis (optional), in-memory storage |
+| **Testing** | Jest 29.7 (ESM), Vitest 2.1 (frontend), Playwright 1.49 (E2E) |
+| **Observability** | Winston 3.14 (logging), built-in tracing & metrics |
+| **Security** | Helmet 7.1, express-rate-limit 7.1, CORS, API key auth |
 
 ---
 

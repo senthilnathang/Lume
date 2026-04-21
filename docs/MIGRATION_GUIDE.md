@@ -1,8 +1,167 @@
 # Lume Framework — Migration & Upgrade Guide
 
-## Upgrading Lume
+## v1.0.0 → v2.0.0 Major Upgrade
 
-### Standard Upgrade Procedure
+### What's New in v2.0.0
+
+This is a major version update with significant improvements and architectural changes:
+
+**✨ Highlights:**
+- **Monorepo Structure** - pnpm workspace + Turbo build orchestration
+- **Tailwind CSS 4** - Modern CSS variables, reduced config duplication
+- **Modern Tooling** - Jest 30, Vitest 4.1, Playwright 1.49
+- **Security Hardened** - Helmet 7.1, rate limiting, response caching
+- **Observability** - Request tracing, metrics, structured logging
+- **Performance** - Response caching, query optimization, benchmarks
+- **Node.js 20.12.0+** - Latest LTS features and improvements
+
+### Breaking Changes
+
+1. **Node.js Requirement:** v1.0 required 18.0.0+, v2.0 requires 20.12.0+
+   ```bash
+   # Check your Node version
+   node --version  # Must be v20.12.0 or higher
+   ```
+
+2. **Package Manager:** v2.0 uses pnpm exclusively
+   ```bash
+   # Install pnpm if you don't have it
+   npm install -g pnpm@10.28.2
+   ```
+
+3. **Monorepo Structure:** Directory layout has changed
+   ```
+   v1.0:
+   - backend/
+   - frontend/apps/web-lume/
+   - frontend/apps/riagri-website/
+
+   v2.0:
+   - backend/                    (same)
+   - apps/web-lume/             (moved from frontend/apps)
+   - apps/riagri-website/        (moved from frontend/apps)
+   - packages/@lume/*/           (shared config packages)
+   ```
+
+4. **Tailwind CSS 4:** Config format updated, CSS variables now required
+   - Custom CSS files use `@layer base` instead of `@apply`
+   - Theme configuration moved to shared package
+   - See [Tailwind 4 Migration](#tailwind-4-migration) below
+
+5. **Environment Variables:** New vars for caching, observability, tracing
+   ```env
+   # New in v2.0
+   REDIS_URL=redis://localhost:6379  # Optional, for response caching
+   LOG_LEVEL=info                     # Control logging verbosity
+   ENABLE_RATE_LIMIT=true             # Rate limiting in development
+   ```
+
+### Migration Checklist
+
+- [ ] Backup database and uploads
+- [ ] Update Node.js to 20.12.0+
+- [ ] Install pnpm 10.28.2+
+- [ ] Pull v2.0.0 code from repository
+- [ ] Install root dependencies: `pnpm install`
+- [ ] Update database schema (Prisma/Drizzle)
+- [ ] Update environment variables
+- [ ] Rebuild frontend apps with new Tailwind 4
+- [ ] Run tests: `pnpm test`
+- [ ] Test all modules in admin UI
+
+### Step-by-Step Upgrade
+
+```bash
+# 1. Backup everything (CRITICAL)
+mysqldump -u gawdesy -pgawdesy lume > backup_$(date +%Y%m%d_%H%M%S).sql.gz
+tar -czf uploads_backup_$(date +%Y%m%d_%H%M%S).tar.gz backend/uploads/
+
+# 2. Update Node.js (if needed)
+node --version  # Should be v20.12.0+
+nvm install 20.12.0  # If using nvm
+
+# 3. Fetch v2.0.0
+git fetch origin
+git checkout v2.0.0  # Check out the tag
+
+# 4. Install all dependencies (monorepo)
+pnpm install
+
+# 5. Update database schema
+cd backend
+npx prisma generate
+npx prisma db push
+npx drizzle-kit push  # For module tables
+
+# 6. Rebuild frontend apps
+pnpm run build
+
+# 7. Verify tests pass
+pnpm run test
+
+# 8. Start services
+pnpm run dev
+```
+
+---
+
+## Tailwind CSS 4 Migration
+
+### CSS Variables in Globals
+
+Tailwind 4 uses CSS variables for theming. Update your global styles:
+
+```css
+/* Before (v1.0) */
+body {
+  @apply bg-white dark:bg-slate-900 text-black dark:text-white;
+}
+
+/* After (v2.0) */
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.6%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 0 0% 3.6%;
+    --foreground: 0 0% 98%;
+  }
+}
+```
+
+### Shared Config Package
+
+The shared config package (`packages/@lume/tailwind-config/`) defines:
+- Base theme (colors, spacing, typography)
+- Animations and transitions
+- Custom utilities
+
+All apps extend this config:
+
+```javascript
+// apps/web-lume/tailwind.config.js
+import baseConfig from '@lume/tailwind-config';
+
+export default {
+  ...baseConfig,
+  content: [
+    './src/**/*.{vue,js,ts}',
+    '../../../backend/src/modules/**/static/**/*.{vue,js,ts}'
+  ]
+};
+```
+
+---
+
+## Standard Upgrade Procedure (v1.x → v1.y patch)
 
 ```bash
 # 1. Pull the latest changes
