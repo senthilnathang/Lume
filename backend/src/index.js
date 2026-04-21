@@ -13,6 +13,8 @@ import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js
 import { requestLogger } from './core/middleware/requestLogger.js';
 import { ipAccessMiddleware } from './core/middleware/ipAccess.js';
 import { responseCache } from './core/middleware/cacheControl.js';
+import { requestTracing } from './core/middleware/requestTracing.js';
+import { metricsMiddleware, errorTracker, getHealthMetrics } from './core/middleware/metrics.js';
 
 // ORM adapters
 import prisma from './core/db/prisma.js';
@@ -105,6 +107,10 @@ if (process.env.NODE_ENV !== 'test') {
 app.use(requestLogger);
 app.use(ipAccessMiddleware);
 app.use(limiter);
+
+// ─── Observability: Request Tracing & Metrics ────────────────────────────────
+app.use(requestTracing);
+app.use(metricsMiddleware);
 
 // ─── Security: Authentication Middleware ──────────────────────────────────────
 // Paths that never require authentication
@@ -204,15 +210,16 @@ app.use(async (req, res, next) => {
 // Cache GET responses for frequently accessed routes (settings, menus, templates)
 app.use(responseCache);
 
-// Health check
+// Health check with observability metrics
 app.get('/health', (req, res) => {
   res.json({
     success: true,
     message: 'Lume Framework is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
+    version: '2.0.0',
     framework: 'Lume',
-    modular: true
+    modular: true,
+    metrics: getHealthMetrics()
   });
 });
 
@@ -776,6 +783,7 @@ const startServer = async () => {
 
     // Register error handlers AFTER module routes (so module routes aren't shadowed)
     app.use(notFoundHandler);
+    app.use(errorTracker);  // Track errors for observability
     app.use(errorHandler);
 
     // Create HTTP server and initialize WebSocket
