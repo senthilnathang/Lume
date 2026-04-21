@@ -1,0 +1,41 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["NODE_ENV"],
+  "globalDependencies": ["**/package.json"],
+  "pipeline": {
+    "typecheck": {
+      "cache": false,
+      "outputs": []
+    },
+    "lint": {
+      "cache": true,
+      "outputs": [".eslintcache"]
+    },
+    "lint:fix": {
+      "cache": false,
+      "outputs": []
+    },
+    "test": {
+      "cache": true,
+      "outputs": ["coverage/**", ".nyc_output/**"],
+      "inputs": ["src/**/*.{ts,js,vue}", "tests/**/*.{ts,js}"]
+    },
+    "test:coverage": {
+      "cache": true,
+      "outputs": ["coverage/**"]
+    },
+    "build": {
+      "cache": true,
+      "outputs": ["dist/**", ".next/**", ".nuxt/**"],
+      "inputs": ["src/**/*.{ts,js,vue,tsx,jsx}", "public/**/*"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "interactive": true
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

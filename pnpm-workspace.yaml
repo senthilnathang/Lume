@@ -1,8 +1,4 @@
-packages: []
-# Uncomment when Vben Pro packages are properly set up:
-# - 'packages/*'
-# - 'packages/@core/*'
-# - 'packages/@core/base/*'
-# - 'packages/@core/ui-kit/*'
-# - 'packages/effects/*'
-# - 'internal/*'
+packages:
+  - 'packages/*'
+  - 'backend'
+  - 'apps/*'
