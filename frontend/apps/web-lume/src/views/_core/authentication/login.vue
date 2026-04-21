@@ -190,7 +190,7 @@ const handleLogin = async () => {
     });
 
     if (success) {
-      const redirect = route.query.redirect as string || '/';
+      const redirect = route.query.redirect as string || '/dashboard';
       router.push(redirect);
     } else {
       errorMessage.value = 'Invalid email or password';
