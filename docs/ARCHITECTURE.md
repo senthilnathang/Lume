@@ -1,4 +1,23 @@
-# Lume Framework — Architecture
+# Lume Framework v2.0 — Architecture
+
+This document describes the system architecture of Lume Framework v2.0, a comprehensive modernization covering monorepo structure, build tooling, dependency upgrades, testing infrastructure, security hardening, and observability enhancements.
+
+**Latest Version:** 2.0.0 (Release Date: 2026-04-22)
+**Previous Version:** 1.0.0 → 2.0.0 (Migration Guide: [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md))
+
+### Key Improvements in v2.0
+
+- **Monorepo Architecture:** pnpm workspace + Turbo build orchestration
+- **Tailwind 4 Migration:** CSS variables for theming, reduced config duplication
+- **Modern Tooling:** Jest 30 backend, Vitest 4.1 frontend, Playwright 1.49 E2E
+- **Security Hardened:** Helmet 7.1, Express Rate Limit 7.1, response caching
+- **Observability:** Request tracing, metrics collection, structured logging
+- **Performance:** Response caching with Redis, query optimization, benchmarking
+- **Testing:** Unit tests (577+), integration tests, performance benchmarks
+- **Node.js 20.12.0+:** Modern JavaScript features, better performance
+- **Documentation:** PERFORMANCE.md, OBSERVABILITY.md, updated TESTING.md
+
+---
 
 This document describes the system architecture of the Lume Framework, covering the technology decisions, data flow, module system, hybrid ORM strategy, visual page builder, and public website rendering.
 
