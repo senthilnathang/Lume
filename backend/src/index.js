@@ -12,6 +12,7 @@ import { responseUtil, jwtUtil } from './shared/utils/index.js';
 import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
 import { requestLogger } from './core/middleware/requestLogger.js';
 import { ipAccessMiddleware } from './core/middleware/ipAccess.js';
+import { responseCache } from './core/middleware/cacheControl.js';
 
 // ORM adapters
 import prisma from './core/db/prisma.js';
@@ -198,6 +199,10 @@ app.use(async (req, res, next) => {
 
   next();
 });
+
+// ─── Performance: Response Caching ────────────────────────────────────────────
+// Cache GET responses for frequently accessed routes (settings, menus, templates)
+app.use(responseCache);
 
 // Health check
 app.get('/health', (req, res) => {

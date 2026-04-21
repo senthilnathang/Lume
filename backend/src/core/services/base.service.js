@@ -2,6 +2,13 @@
  * BaseService - Generic CRUD service class
  * Works with any ORM adapter (Prisma or Drizzle).
  *
+ * Query Optimization Tips:
+ * 1. Use `include` parameter to eager-load related data, preventing N+1 queries
+ *    Example: service.search({ include: ['user', 'category'] })
+ * 2. Always pass `domain` filters to reduce result sets early
+ * 3. Use pagination (page, limit) for large datasets
+ * 4. Prefer list queries with filters over fetching all then filtering in-memory
+ *
  * Usage:
  *   import { BaseService } from '../../core/services/base.service.js';
  *   import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
