@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import path from 'path';
 
 import { responseUtil, jwtUtil } from './shared/utils/index.js';
 import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
@@ -746,6 +747,36 @@ const startServer = async () => {
     const moduleContext = { app };
     await initializeModuleSystem(modulesDir, moduleContext);
     console.log('✅ Module system initialized');
+
+    // Initialize entity sync service (code-first loading of entity definitions)
+    try {
+      const { SyncService } = await import('./core/services/sync.service.js');
+      const { DrizzleAdapter } = await import('./core/db/adapters/drizzle-adapter.js');
+      const { EntityService } = await import('./core/services/entity.service.js');
+      const { getDrizzle } = await import('./core/db/drizzle.js');
+      const { customEntities, entityFields, entityViews, entitySyncHistory } = await import('./modules/base/models/schema.js');
+
+      const db = getDrizzle();
+      const entityAdapter = new DrizzleAdapter(customEntities);
+      const fieldsAdapter = new DrizzleAdapter(entityFields);
+      const entityService = new EntityService(entityAdapter, fieldsAdapter);
+      const syncService = new SyncService(entityService, db, entityViews, entitySyncHistory);
+
+      const entitiesDir = path.join(__dirname, 'entities');
+      const codeDefs = await syncService.loadCodeDefinitions(entitiesDir);
+
+      if (codeDefs.length > 0) {
+        const syncResult = await syncService.syncToDb(codeDefs);
+        console.log(`✅ Entity sync complete: ${syncResult.created} created, ${syncResult.updated} updated`);
+        if (syncResult.errors.length > 0) {
+          console.warn('⚠️  Entity sync errors:', syncResult.errors);
+        }
+      } else {
+        console.log('ℹ️  No entity definitions found to sync');
+      }
+    } catch (error) {
+      console.warn('⚠️  Entity sync skipped or failed:', error.message);
+    }
 
     // Sync module state to installed_modules table via Prisma
     for (const mod of getAllModules()) {

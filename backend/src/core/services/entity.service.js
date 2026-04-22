@@ -349,6 +349,72 @@ export class EntityService {
     const result = await this.fieldsAdapter.destroy(Number(fieldId));
     return result;
   }
+
+  /**
+   * Publish a publishable entity.
+   *
+   * Checks if entity is publishable before publishing.
+   * Sets isPublished=true on the entity.
+   *
+   * @param {number} id - Entity ID
+   * @returns {Promise<Object|null>} Updated entity or null if not found
+   * @throws {Error} If entity is not publishable
+   */
+  async publishEntity(id) {
+    // Get entity first
+    const entity = await this.getEntity(id);
+    if (!entity) {
+      return null;
+    }
+
+    // Check if publishable
+    if (!entity.isPublishable) {
+      const err = new Error('Entity is not publishable');
+      err.code = 'NOT_PUBLISHABLE';
+      throw err;
+    }
+
+    // Set isPublished=true
+    return this.adapter.update(id, {
+      isPublished: true,
+    });
+  }
+
+  /**
+   * Unpublish an entity.
+   *
+   * Sets isPublished=false on the entity.
+   *
+   * @param {number} id - Entity ID
+   * @returns {Promise<Object|null>} Updated entity or null if not found
+   */
+  async unpublishEntity(id) {
+    return this.adapter.update(id, {
+      isPublished: false,
+    });
+  }
+
+  /**
+   * Get all published entities.
+   *
+   * Returns only entities where isPublished=true AND deletedAt=null.
+   * No pagination.
+   *
+   * @returns {Promise<Array>} Array of published, non-deleted entities
+   */
+  async getPublishedEntities() {
+    const { rows } = await this.adapter.findAll({
+      where: [
+        ['isPublished', '=', true],
+        ['deletedAt', '=', null],
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: 10000,
+      offset: 0,
+    });
+
+    return rows;
+  }
 }
 
 export default EntityService;
