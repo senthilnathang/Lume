@@ -9,6 +9,7 @@ import { NotificationService } from './notification.service.js';
 import { SchedulerService } from './scheduler.service.js';
 import { RuleEngineService } from './rule-engine.service.js';
 import { PasswordPolicyService } from './password-policy.service.js';
+import { AccessControlService } from './access-control.service.js';
 
 export {
     BaseService,
@@ -21,5 +22,6 @@ export {
     NotificationService,
     SchedulerService,
     RuleEngineService,
-    PasswordPolicyService
+    PasswordPolicyService,
+    AccessControlService
 };
