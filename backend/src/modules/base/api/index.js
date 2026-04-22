@@ -10,6 +10,7 @@ import createEntityRoutes from './entity.routes.js';
 import createFieldRoutes from './field.routes.js';
 import createEntityRecordsRoutes from './entity-records.routes.js';
 import createEntityViewsRoutes from './entity-views.routes.js';
+import createQueueRoutes from './queue.routes.js';
 
 const createRoutes = (models, services) => {
   const router = Router();
@@ -117,6 +118,9 @@ const createRoutes = (models, services) => {
 
   // Field routes (can also be accessed directly via /entity-fields/:fieldId)
   router.use('/entity-fields', createFieldRoutes());
+
+  // Queue management routes
+  router.use('/queue', createQueueRoutes());
 
   return router;
 };

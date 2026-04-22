@@ -817,6 +817,26 @@ const startServer = async () => {
     app.use(errorTracker);  // Track errors for observability
     app.use(errorHandler);
 
+    // Initialize BullMQ job queues
+    try {
+      const { initializeQueues } = await import('./core/queue/queue-init.js');
+      await initializeQueues();
+      console.log('✅ Job queue system initialized');
+
+      // Setup Bull Board UI dashboard
+      try {
+        const { setupBullBoard, getBullBoardAdapter } = await import('./core/queue/bull-board-setup.js');
+        setupBullBoard();
+        const bullBoardAdapter = getBullBoardAdapter();
+        app.use('/admin/queues', bullBoardAdapter.getRouter());
+        console.log('✅ Bull Board UI available at http://localhost:3000/admin/queues');
+      } catch (bbErr) {
+        console.warn('⚠️ Bull Board UI setup skipped:', bbErr.message);
+      }
+    } catch (queueErr) {
+      console.warn('⚠️ Queue system initialization failed:', queueErr.message);
+    }
+
     // Create HTTP server and initialize WebSocket
     const server = createServer(app);
 
@@ -835,9 +855,28 @@ const startServer = async () => {
       console.log(`║  Server:        http://localhost:${PORT}                  ║`);
       console.log(`║  API Base:      http://localhost:${PORT}/api               ║`);
       console.log(`║  WebSocket:     ws://localhost:${PORT}/ws                  ║`);
+      console.log(`║  Job Queues:    http://localhost:${PORT}/admin/queues      ║`);
       console.log(`║  Modules:       ${String(getAllModules().length).padEnd(28)}║`);
       console.log(`╚════════════════════════════════════════════════════════════╝\n`);
     });
+
+    // Graceful shutdown for queues on process termination
+    const gracefulShutdown = async (signal) => {
+      console.log(`\n⏹️  Received ${signal}, shutting down gracefully...`);
+      try {
+        const { shutdownQueues } = await import('./core/queue/queue-init.js');
+        await shutdownQueues();
+      } catch (err) {
+        console.warn('⚠️ Queue shutdown warning:', err.message);
+      }
+      server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+      });
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
