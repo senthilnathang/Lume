@@ -817,6 +817,96 @@ model User {
   @@map("users")
 }
 
+model Entity {
+  id                Int       @id @default(autoincrement())
+  name              String    @unique
+  label             String
+  description       String?   @db.Text
+  moduleId          Int?
+  createdBy         Int
+  createdAt         DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  deletedAt         DateTime? @map("deleted_at") @db.DateTime(0)
+
+  fields            EntityField[]
+  views             EntityView[]
+  records           EntityRecord[]
+
+  @@index([moduleId], map: "entities_module_id")
+  @@index([deletedAt], map: "entities_deleted_at")
+
+  @@map("entities")
+}
+
+model EntityField {
+  id                Int       @id @default(autoincrement())
+  entityId          Int       @map("entity_id")
+  entity            Entity    @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "entity_fields_ibfk_1")
+
+  name              String    @db.VarChar(255)
+  label             String    @db.VarChar(255)
+  type              String    @db.VarChar(100)
+  required          Boolean   @default(false)
+  unique            Boolean   @default(false)
+  defaultValue      String?   @db.Text @map("default_value")
+  helpText          String?   @db.Text @map("help_text")
+
+  selectOptions     String?   @db.LongText @map("select_options")
+  lookupEntityId    Int?      @map("lookup_entity_id")
+  lookupField       String?   @db.VarChar(255) @map("lookup_field")
+  formulaExpression String?   @db.Text @map("formula_expression")
+
+  createdAt         DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  deletedAt         DateTime? @map("deleted_at") @db.DateTime(0)
+  sequence          Int       @default(0)
+
+  @@unique([entityId, name], map: "entity_fields_entity_id_name")
+  @@index([entityId], map: "entity_fields_entity_id")
+  @@index([lookupEntityId], map: "entity_fields_lookup_entity_id")
+  @@index([deletedAt], map: "entity_fields_deleted_at")
+
+  @@map("entity_fields")
+}
+
+model EntityView {
+  id                Int       @id @default(autoincrement())
+  entityId          Int       @map("entity_id")
+  entity            Entity    @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "entity_views_ibfk_1")
+
+  name              String    @db.VarChar(255)
+  type              String    @db.VarChar(100)
+  isDefault         Boolean   @default(false) @map("is_default")
+
+  config            String?   @db.LongText
+
+  createdAt         DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+
+  @@unique([entityId, name], map: "entity_views_entity_id_name")
+  @@index([entityId], map: "entity_views_entity_id")
+
+  @@map("entity_views")
+}
+
+model EntityRecord {
+  id                Int       @id @default(autoincrement())
+  entityId          Int       @map("entity_id")
+  entity            Entity    @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "entity_records_ibfk_1")
+
+  data              String    @db.LongText
+
+  createdBy         Int       @map("created_by")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  deletedAt         DateTime? @map("deleted_at") @db.DateTime(0)
+
+  @@index([entityId], map: "entity_records_entity_id")
+  @@index([createdAt], map: "entity_records_created_at")
+
+  @@map("entity_records")
+}
+
 model webhook_logs {
   id              Int                  @id @default(autoincrement())
   webhook_id      Int
