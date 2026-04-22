@@ -8,7 +8,7 @@ const idCol = int;
  * Entity - Entity definitions created via the entity builder UI
  * Matches Prisma model Entity exactly
  */
-export const entities = table('entities', {
+export const customEntities = table('entities', {
   id: int('id').primaryKey().autoincrement(),
   name: varchar('name', { length: 255 }).notNull().unique(),
   label: varchar('label', { length: 255 }).notNull(),
@@ -27,7 +27,7 @@ export const entities = table('entities', {
  */
 export const entityFields = table('entity_fields', {
   id: int('id').primaryKey().autoincrement(),
-  entityId: int('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
+  entityId: int('entity_id').notNull().references(() => customEntities.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
   label: varchar('label', { length: 255 }).notNull(),
   type: varchar('type', { length: 100 }).notNull(),
@@ -52,7 +52,7 @@ export const entityFields = table('entity_fields', {
  */
 export const entityViews = table('entity_views', {
   id: int('id').primaryKey().autoincrement(),
-  entityId: int('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
+  entityId: int('entity_id').notNull().references(() => customEntities.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
   type: varchar('type', { length: 100 }).notNull(),
   isDefault: boolean('is_default').default(false),
@@ -68,7 +68,7 @@ export const entityViews = table('entity_views', {
  */
 export const entityRecords = table('entity_records', {
   id: int('id').primaryKey().autoincrement(),
-  entityId: int('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
+  entityId: int('entity_id').notNull().references(() => customEntities.id, { onDelete: 'cascade' }),
   data: text('data').notNull(),
   createdBy: int('created_by').notNull(),
   createdAt: datetime('created_at', { mode: 'date', fsp: 0 }).default(new Date()),
