@@ -1,0 +1,48 @@
+# Prometheus Configuration for Lume Staging
+
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  external_labels:
+    monitor: 'lume-staging'
+    environment: 'staging'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules
+rule_files:
+  - '/etc/prometheus/alert_rules.yml'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Lume Backend API
+  - job_name: 'lume-backend'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:3000']
+        labels:
+          service: 'backend'
+          environment: 'staging'
+
+  # MySQL Database
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['mysql:3306']
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  # Docker Containers
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['localhost:8080']
