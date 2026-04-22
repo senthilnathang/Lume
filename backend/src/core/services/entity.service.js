@@ -7,12 +7,13 @@
  * Usage:
  *   import { EntityService } from '../services/entity.service.js';
  *   import { DrizzleAdapter } from '../db/adapters/drizzle-adapter.js';
- *   import { customEntities } from '../../modules/base/models/schema.js';
+ *   import { customEntities, entityFields } from '../../modules/base/models/schema.js';
  *
  *   const adapter = new DrizzleAdapter(customEntities);
- *   const service = new EntityService(adapter);
+ *   const fieldsAdapter = new DrizzleAdapter(entityFields);
+ *   const service = new EntityService(adapter, fieldsAdapter);
  *
- *   // Create
+ *   // Create entity
  *   const entity = await service.createEntity({
  *     name: 'Product',
  *     slug: 'product',
@@ -22,28 +23,50 @@
  *     isPublishable: true,
  *   });
  *
- *   // Read
- *   const entity = await service.getEntity(1);
- *
- *   // List
- *   const { items, total, page, limit, totalPages } = await service.listEntities({
- *     page: 1,
- *     limit: 20,
+ *   // Create field
+ *   const field = await service.createField(entity.id, {
+ *     slug: 'product-name',
+ *     name: 'productName',
+ *     type: 'text',
+ *     label: 'Product Name',
+ *     required: true,
+ *     position: 1,
  *   });
  *
- *   // Update
- *   const updated = await service.updateEntity(1, { name: 'Updated Product' });
+ *   // Get fields for entity
+ *   const fields = await service.getFieldsByEntity(entity.id);
  *
- *   // Delete (soft delete)
- *   const deleted = await service.deleteEntity(1);
+ *   // Update field
+ *   const updated = await service.updateField(field.id, { label: 'Updated Label' });
+ *
+ *   // Delete field
+ *   const deleted = await service.deleteField(field.id);
  */
+
+// Valid field types for entity fields
+const VALID_FIELD_TYPES = [
+  'text',
+  'email',
+  'phone',
+  'number',
+  'date',
+  'datetime',
+  'boolean',
+  'select',
+  'multi-select',
+  'rich-text',
+  'url',
+  'color',
+];
 
 export class EntityService {
   /**
    * @param {DrizzleAdapter} adapter - DrizzleAdapter instance for customEntities table
+   * @param {DrizzleAdapter} [fieldsAdapter] - DrizzleAdapter instance for entityFields table
    */
-  constructor(adapter) {
+  constructor(adapter, fieldsAdapter) {
     this.adapter = adapter;
+    this.fieldsAdapter = fieldsAdapter;
   }
 
   /**
@@ -174,6 +197,157 @@ export class EntityService {
     return this.adapter.update(id, {
       deletedAt: new Date(),
     });
+  }
+
+  /**
+   * Validate field data.
+   * Throws an error with .errors object if validation fails.
+   *
+   * Checks:
+   * - name: required, non-empty string
+   * - label: required, non-empty string
+   * - type: required, must be one of VALID_FIELD_TYPES
+   * - slug: if provided, must be lowercase alphanumeric/hyphens/underscores
+   *
+   * @param {Object} field - Field data to validate
+   * @throws {Error} Validation error with .errors property
+   */
+  validateField(field) {
+    const errors = {};
+
+    // Validate name
+    if (!field.name || typeof field.name !== 'string' || field.name.trim() === '') {
+      errors.name = 'Name is required and must be a non-empty string';
+    }
+
+    // Validate label
+    if (!field.label || typeof field.label !== 'string' || field.label.trim() === '') {
+      errors.label = 'Label is required and must be a non-empty string';
+    }
+
+    // Validate type
+    if (!field.type || typeof field.type !== 'string') {
+      errors.type = 'Type is required and must be a string';
+    } else if (!VALID_FIELD_TYPES.includes(field.type)) {
+      errors.type = `Type must be one of: ${VALID_FIELD_TYPES.join(', ')}`;
+    }
+
+    // Validate slug if provided
+    if (field.slug && typeof field.slug === 'string') {
+      if (!/^[a-z0-9_-]+$/.test(field.slug)) {
+        errors.slug = 'Slug must contain only lowercase letters, numbers, hyphens, and underscores';
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      const err = new Error('Field validation failed');
+      err.errors = errors;
+      throw err;
+    }
+  }
+
+  /**
+   * Create a new field for an entity.
+   *
+   * @param {number} entityId - Entity ID
+   * @param {Object} field - Field data
+   * @param {string} field.slug - URL-friendly slug (lowercase alphanumeric/hyphens/underscores)
+   * @param {string} field.name - Field name (camelCase or snake_case)
+   * @param {string} field.type - Field type (one of VALID_FIELD_TYPES)
+   * @param {string} field.label - Human-readable label
+   * @param {string} [field.description] - Field description
+   * @param {boolean} [field.required] - Whether field is required
+   * @param {boolean} [field.unique] - Whether field must be unique
+   * @param {string} [field.validation] - JSON validation rules
+   * @param {number} [field.position] - Field position/order (0 by default)
+   * @param {string} [field.defaultValue] - Default value for field
+   * @returns {Promise<Object>} Created field with entityId
+   * @throws {Error} Validation error or database error
+   */
+  async createField(entityId, field) {
+    // Lowercase slug before validation
+    const normalizedField = {
+      ...field,
+      slug: field.slug ? field.slug.toLowerCase() : field.slug,
+    };
+
+    // Validate normalized field
+    this.validateField(normalizedField);
+
+    // Prepare field data
+    const fieldData = {
+      entityId: Number(entityId),
+      slug: normalizedField.slug,
+      name: normalizedField.name,
+      type: normalizedField.type,
+      label: normalizedField.label,
+      description: normalizedField.description || null,
+      required: normalizedField.required || false,
+      unique: normalizedField.unique || false,
+      validation: normalizedField.validation ? JSON.stringify(normalizedField.validation) : null,
+      position: normalizedField.position || 0,
+      defaultValue: normalizedField.defaultValue || null,
+    };
+
+    return this.fieldsAdapter.create(fieldData);
+  }
+
+  /**
+   * Get all fields for an entity, ordered by position.
+   *
+   * @param {number} entityId - Entity ID
+   * @returns {Promise<Array>} Array of fields ordered by position ascending
+   */
+  async getFieldsByEntity(entityId) {
+    const { rows } = await this.fieldsAdapter.findAll({
+      where: [['entityId', '=', Number(entityId)]],
+      order: [['position', 'ASC']],
+      limit: 1000, // No pagination for fields
+      offset: 0,
+    });
+
+    // Parse validation JSON if present
+    return rows.map(field => ({
+      ...field,
+      validation: field.validation ? JSON.parse(field.validation) : null,
+    }));
+  }
+
+  /**
+   * Update field metadata.
+   *
+   * @param {number} fieldId - Field ID
+   * @param {Object} data - Fields to update (partial)
+   * @returns {Promise<Object|null>} Updated field or null if not found
+   */
+  async updateField(fieldId, data) {
+    const updateData = { ...data };
+
+    // Parse validation if it's a string, stringify if it's an object
+    if (updateData.validation !== undefined) {
+      if (typeof updateData.validation === 'object' && updateData.validation !== null) {
+        updateData.validation = JSON.stringify(updateData.validation);
+      }
+    }
+
+    const updated = await this.fieldsAdapter.update(Number(fieldId), updateData);
+
+    if (updated && updated.validation) {
+      updated.validation = JSON.parse(updated.validation);
+    }
+
+    return updated;
+  }
+
+  /**
+   * Delete field.
+   *
+   * @param {number} fieldId - Field ID
+   * @returns {Promise<Object|boolean>} Deleted field or true if successful
+   */
+  async deleteField(fieldId) {
+    const result = await this.fieldsAdapter.destroy(Number(fieldId));
+    return result;
   }
 }
 

@@ -409,4 +409,426 @@ describe('EntityService', () => {
       expect(result.name).toBe('Test Entity');
     });
   });
+
+  describe('Field Management', () => {
+    let fieldsAdapter;
+
+    beforeEach(() => {
+      // Create a real fields adapter with mocked getDrizzle
+      fieldsAdapter = new DrizzleAdapter(entityFields);
+      entityService = new EntityService(adapter, fieldsAdapter);
+    });
+
+    describe('validateField', () => {
+      test('should throw error when name is missing', () => {
+        const field = {
+          label: 'Test Field',
+          type: 'text',
+          slug: 'test-field',
+        };
+
+        expect(() => {
+          entityService.validateField(field);
+        }).toThrow();
+
+        try {
+          entityService.validateField(field);
+        } catch (err) {
+          expect(err.errors).toBeDefined();
+          expect(err.errors.name).toBeDefined();
+        }
+      });
+
+      test('should throw error when label is missing', () => {
+        const field = {
+          name: 'testField',
+          type: 'text',
+          slug: 'test-field',
+        };
+
+        expect(() => {
+          entityService.validateField(field);
+        }).toThrow();
+
+        try {
+          entityService.validateField(field);
+        } catch (err) {
+          expect(err.errors).toBeDefined();
+          expect(err.errors.label).toBeDefined();
+        }
+      });
+
+      test('should throw error when type is missing', () => {
+        const field = {
+          name: 'testField',
+          label: 'Test Field',
+          slug: 'test-field',
+        };
+
+        expect(() => {
+          entityService.validateField(field);
+        }).toThrow();
+
+        try {
+          entityService.validateField(field);
+        } catch (err) {
+          expect(err.errors).toBeDefined();
+          expect(err.errors.type).toBeDefined();
+        }
+      });
+
+      test('should throw error when type is invalid', () => {
+        const field = {
+          name: 'testField',
+          label: 'Test Field',
+          type: 'invalid-type',
+          slug: 'test-field',
+        };
+
+        expect(() => {
+          entityService.validateField(field);
+        }).toThrow();
+
+        try {
+          entityService.validateField(field);
+        } catch (err) {
+          expect(err.errors).toBeDefined();
+          expect(err.errors.type).toBeDefined();
+          expect(err.errors.type).toContain('text');
+        }
+      });
+
+      test('should accept valid field data', () => {
+        const field = {
+          name: 'testField',
+          label: 'Test Field',
+          type: 'text',
+          slug: 'test-field',
+          description: 'A test field',
+          required: true,
+          unique: false,
+          position: 1,
+        };
+
+        expect(() => {
+          entityService.validateField(field);
+        }).not.toThrow();
+      });
+
+      test('should accept all valid field types', () => {
+        const validTypes = [
+          'text',
+          'email',
+          'phone',
+          'number',
+          'date',
+          'datetime',
+          'boolean',
+          'select',
+          'multi-select',
+          'rich-text',
+          'url',
+          'color',
+        ];
+
+        validTypes.forEach(type => {
+          const field = {
+            name: 'testField',
+            label: 'Test Field',
+            type,
+            slug: 'test-field',
+          };
+
+          expect(() => {
+            entityService.validateField(field);
+          }).not.toThrow();
+        });
+      });
+
+      test('should throw error when slug has invalid format', () => {
+        const field = {
+          name: 'testField',
+          label: 'Test Field',
+          type: 'text',
+          slug: 'Test Field!@#',
+        };
+
+        expect(() => {
+          entityService.validateField(field);
+        }).toThrow();
+
+        try {
+          entityService.validateField(field);
+        } catch (err) {
+          expect(err.errors).toBeDefined();
+          expect(err.errors.slug).toBeDefined();
+        }
+      });
+    });
+
+    describe('createField', () => {
+      test('should create field for entity with lowercase slug', async () => {
+        const fieldData = {
+          slug: 'PRODUCT-NAME',
+          name: 'productName',
+          type: 'text',
+          label: 'Product Name',
+          required: true,
+          position: 1,
+        };
+
+        const createdField = {
+          id: 1,
+          entityId: 5,
+          slug: 'product-name',
+          name: 'productName',
+          type: 'text',
+          label: 'Product Name',
+          required: true,
+          unique: false,
+          description: null,
+          validation: null,
+          position: 1,
+          defaultValue: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        fieldsAdapter.create = jest.fn(() => Promise.resolve(createdField));
+
+        const result = await entityService.createField(5, fieldData);
+
+        expect(result).toBeDefined();
+        expect(result.id).toBe(1);
+        expect(result.entityId).toBe(5);
+        expect(result.slug).toBe('product-name');
+        expect(fieldsAdapter.create).toHaveBeenCalled();
+
+        // Verify slug was lowercased
+        const callArgs = fieldsAdapter.create.mock.calls[0];
+        expect(callArgs[0].slug).toBe('product-name');
+      });
+
+      test('should throw validation error on invalid field', async () => {
+        const fieldData = {
+          slug: 'invalid-field',
+          // Missing name and label
+          type: 'text',
+        };
+
+        await expect(entityService.createField(5, fieldData)).rejects.toThrow();
+      });
+
+      test('should set default values for optional fields', async () => {
+        const fieldData = {
+          slug: 'test-field',
+          name: 'testField',
+          type: 'text',
+          label: 'Test Field',
+        };
+
+        const createdField = {
+          id: 1,
+          entityId: 5,
+          ...fieldData,
+          required: false,
+          unique: false,
+          description: null,
+          validation: null,
+          position: 0,
+          defaultValue: null,
+        };
+
+        fieldsAdapter.create = jest.fn(() => Promise.resolve(createdField));
+
+        const result = await entityService.createField(5, fieldData);
+
+        const callArgs = fieldsAdapter.create.mock.calls[0];
+        expect(callArgs[0].required).toBe(false);
+        expect(callArgs[0].unique).toBe(false);
+        expect(callArgs[0].position).toBe(0);
+        expect(result).toBeDefined();
+      });
+    });
+
+    describe('getFieldsByEntity', () => {
+      test('should get fields ordered by position', async () => {
+        const mockFields = [
+          {
+            id: 1,
+            entityId: 5,
+            slug: 'field-1',
+            name: 'field1',
+            type: 'text',
+            label: 'Field 1',
+            position: 1,
+            validation: null,
+          },
+          {
+            id: 2,
+            entityId: 5,
+            slug: 'field-2',
+            name: 'field2',
+            type: 'email',
+            label: 'Field 2',
+            position: 2,
+            validation: null,
+          },
+          {
+            id: 3,
+            entityId: 5,
+            slug: 'field-3',
+            name: 'field3',
+            type: 'number',
+            label: 'Field 3',
+            position: 0,
+            validation: null,
+          },
+        ];
+
+        fieldsAdapter.findAll = jest.fn(() =>
+          Promise.resolve({
+            rows: mockFields,
+            count: 3,
+          })
+        );
+
+        const result = await entityService.getFieldsByEntity(5);
+
+        expect(result).toBeDefined();
+        expect(result).toHaveLength(3);
+        expect(fieldsAdapter.findAll).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: [['entityId', '=', 5]],
+            order: [['position', 'ASC']],
+          })
+        );
+      });
+
+      test('should parse validation JSON', async () => {
+        const mockFields = [
+          {
+            id: 1,
+            entityId: 5,
+            slug: 'field-1',
+            name: 'field1',
+            type: 'text',
+            label: 'Field 1',
+            position: 1,
+            validation: '{"minLength": 5, "maxLength": 100}',
+          },
+        ];
+
+        fieldsAdapter.findAll = jest.fn(() =>
+          Promise.resolve({
+            rows: mockFields,
+            count: 1,
+          })
+        );
+
+        const result = await entityService.getFieldsByEntity(5);
+
+        expect(result[0].validation).toEqual({ minLength: 5, maxLength: 100 });
+      });
+
+      test('should return empty array if no fields found', async () => {
+        fieldsAdapter.findAll = jest.fn(() =>
+          Promise.resolve({
+            rows: [],
+            count: 0,
+          })
+        );
+
+        const result = await entityService.getFieldsByEntity(5);
+
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('updateField', () => {
+      test('should update field metadata', async () => {
+        const updateData = {
+          label: 'Updated Label',
+          description: 'Updated description',
+          position: 2,
+        };
+
+        const updatedField = {
+          id: 1,
+          entityId: 5,
+          slug: 'test-field',
+          name: 'testField',
+          type: 'text',
+          ...updateData,
+          validation: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        fieldsAdapter.update = jest.fn(() => Promise.resolve(updatedField));
+
+        const result = await entityService.updateField(1, updateData);
+
+        expect(result).toBeDefined();
+        expect(result.label).toBe('Updated Label');
+        expect(result.description).toBe('Updated description');
+        expect(fieldsAdapter.update).toHaveBeenCalledWith(1, updateData);
+      });
+
+      test('should handle validation JSON stringify', async () => {
+        const updateData = {
+          validation: { minLength: 10, maxLength: 50 },
+        };
+
+        const updatedField = {
+          id: 1,
+          entityId: 5,
+          slug: 'test-field',
+          name: 'testField',
+          type: 'text',
+          label: 'Test Field',
+          validation: '{"minLength":10,"maxLength":50}',
+        };
+
+        fieldsAdapter.update = jest.fn(() => Promise.resolve(updatedField));
+
+        const result = await entityService.updateField(1, updateData);
+
+        expect(result).toBeDefined();
+        expect(result.validation).toEqual({ minLength: 10, maxLength: 50 });
+
+        const callArgs = fieldsAdapter.update.mock.calls[0];
+        // Verify validation was stringified (exact format may vary)
+        expect(typeof callArgs[1].validation).toBe('string');
+        expect(JSON.parse(callArgs[1].validation)).toEqual({ minLength: 10, maxLength: 50 });
+      });
+
+      test('should return null if field not found', async () => {
+        fieldsAdapter.update = jest.fn(() => Promise.resolve(null));
+
+        const result = await entityService.updateField(999, { label: 'Test' });
+
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('deleteField', () => {
+      test('should delete field', async () => {
+        fieldsAdapter.destroy = jest.fn(() => Promise.resolve(true));
+
+        const result = await entityService.deleteField(1);
+
+        expect(result).toBe(true);
+        expect(fieldsAdapter.destroy).toHaveBeenCalledWith(1);
+      });
+
+      test('should return false if field not found', async () => {
+        fieldsAdapter.destroy = jest.fn(() => Promise.resolve(false));
+
+        const result = await entityService.deleteField(999);
+
+        expect(result).toBe(false);
+      });
+    });
+  });
 });
