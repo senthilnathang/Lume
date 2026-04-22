@@ -831,4 +831,159 @@ describe('EntityService', () => {
       });
     });
   });
+
+  describe('publishEntity', () => {
+    test('should publish publishable entity', async () => {
+      const publishableEntity = {
+        id: 1,
+        name: 'Test Entity',
+        slug: 'test-entity',
+        isPublishable: true,
+        isPublished: false,
+        deletedAt: null,
+      };
+
+      adapter.findById = jest.fn(() => Promise.resolve(publishableEntity));
+
+      const publishedEntity = {
+        ...publishableEntity,
+        isPublished: true,
+      };
+
+      adapter.update = jest.fn(() => Promise.resolve(publishedEntity));
+
+      const result = await entityService.publishEntity(1);
+
+      expect(result).toBeDefined();
+      expect(result.isPublished).toBe(true);
+      expect(adapter.update).toHaveBeenCalledWith(1, { isPublished: true });
+    });
+
+    test('should throw error when trying to publish non-publishable entity', async () => {
+      const nonPublishableEntity = {
+        id: 1,
+        name: 'Test Entity',
+        slug: 'test-entity',
+        isPublishable: false,
+        isPublished: false,
+        deletedAt: null,
+      };
+
+      adapter.findById = jest.fn(() => Promise.resolve(nonPublishableEntity));
+
+      await expect(entityService.publishEntity(1)).rejects.toThrow('Entity is not publishable');
+
+      try {
+        await entityService.publishEntity(1);
+      } catch (err) {
+        expect(err.code).toBe('NOT_PUBLISHABLE');
+      }
+    });
+
+    test('should return null if entity not found', async () => {
+      adapter.findById = jest.fn(() => Promise.resolve(null));
+
+      const result = await entityService.publishEntity(999);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('unpublishEntity', () => {
+    test('should unpublish entity', async () => {
+      const unpublishedEntity = {
+        id: 1,
+        name: 'Test Entity',
+        slug: 'test-entity',
+        isPublished: false,
+      };
+
+      adapter.update = jest.fn(() => Promise.resolve(unpublishedEntity));
+
+      const result = await entityService.unpublishEntity(1);
+
+      expect(result).toBeDefined();
+      expect(result.isPublished).toBe(false);
+      expect(adapter.update).toHaveBeenCalledWith(1, { isPublished: false });
+    });
+
+    test('should return null if entity not found', async () => {
+      adapter.update = jest.fn(() => Promise.resolve(null));
+
+      const result = await entityService.unpublishEntity(999);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('getPublishedEntities', () => {
+    test('should return only published entities', async () => {
+      const mockEntities = [
+        {
+          id: 1,
+          name: 'Published Entity 1',
+          slug: 'published-1',
+          isPublished: true,
+          deletedAt: null,
+        },
+        {
+          id: 3,
+          name: 'Published Entity 2',
+          slug: 'published-2',
+          isPublished: true,
+          deletedAt: null,
+        },
+      ];
+
+      adapter.findAll = jest.fn(() =>
+        Promise.resolve({
+          rows: mockEntities,
+          count: 2,
+        })
+      );
+
+      const result = await entityService.getPublishedEntities();
+
+      expect(result).toHaveLength(2);
+      expect(result.every(e => e.isPublished === true)).toBe(true);
+      expect(adapter.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: [
+            ['isPublished', '=', true],
+            ['deletedAt', '=', null],
+          ],
+        })
+      );
+    });
+
+    test('should return empty array if no published entities', async () => {
+      adapter.findAll = jest.fn(() =>
+        Promise.resolve({
+          rows: [],
+          count: 0,
+        })
+      );
+
+      const result = await entityService.getPublishedEntities();
+
+      expect(result).toEqual([]);
+    });
+
+    test('should exclude deleted entities from published list', async () => {
+      // This test verifies the behavior through the findAll call
+      // The actual filtering is done in the database query
+      adapter.findAll = jest.fn(() =>
+        Promise.resolve({
+          rows: [],
+          count: 0,
+        })
+      );
+
+      await entityService.getPublishedEntities();
+
+      // Verify deletedAt=null is in the query
+      const callArgs = adapter.findAll.mock.calls[0][0];
+      expect(callArgs.where).toContainEqual(['deletedAt', '=', null]);
+    });
+  });
 });

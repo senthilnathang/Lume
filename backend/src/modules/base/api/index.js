@@ -6,6 +6,8 @@ import { Router } from 'express';
 import prisma from '../../../core/db/prisma.js';
 import { createCrudRouter } from '../../../core/router/crud-router.js';
 import { PrismaAdapter } from '../../../core/db/adapters/prisma-adapter.js';
+import createEntityRoutes from './entity.routes.js';
+import createFieldRoutes from './field.routes.js';
 
 const createRoutes = (models, services) => {
   const router = Router();
@@ -97,6 +99,14 @@ const createRoutes = (models, services) => {
       res.status(400).json({ success: false, error: error.message });
     }
   });
+
+  // Entity routes (admin CRUD API)
+  const entityRoutes = createEntityRoutes();
+  router.use('/entities', entityRoutes);
+  router.use('/entities/:entityId/fields', createFieldRoutes());
+
+  // Field routes (can also be accessed directly via /entity-fields/:fieldId)
+  router.use('/entity-fields', createFieldRoutes());
 
   return router;
 };
