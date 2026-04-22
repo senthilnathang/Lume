@@ -987,3 +987,243 @@ StorageAdapter (abstract)
 6. **Progressive Enhancement** — Start with MySQL + local storage; add Redis, S3, PostgreSQL as needed
 7. **Visual Content Editing** — TipTap-based page builder with 30+ reusable widget blocks
 8. **SSR Public Site** — Nuxt 3 for SEO-optimized public pages, separate from admin SPA
+
+---
+
+## Entity Builder Migration Architecture
+
+### Overview
+
+The **Entity Builder System** represents a fundamental architectural shift from static database schema to dynamic, user-configurable entities. This allows end-users to create custom data structures without code changes.
+
+### Core Entity Builder Tables
+
+```
+entities (id, name, label, description, moduleId, createdBy, createdAt, updatedAt, deletedAt)
+  │
+  ├─ entity_fields (id, entityId, name, label, type, required, unique, sequence)
+  │   ├─ Types: text, number, email, url, date, select, lookup, formula, etc.
+  │   └─ Features: required, unique, defaultValue, helpText, selectOptions
+  │
+  ├─ entity_views (id, entityId, name, type, isDefault, config, createdAt, updatedAt)
+  │   ├─ Types: list, kanban, calendar, map, gallery, etc.
+  │   └─ Config: filters, sorts, grouping, column visibility, etc.
+  │
+  └─ entity_records (id, entityId, data, createdBy, createdAt, updatedAt, deletedAt)
+      └─ data: JSON object with field values
+```
+
+### Entity Record Data Storage
+
+```json
+{
+  "entity_records": {
+    "id": 1,
+    "entityId": 5,
+    "data": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "status": "active",
+      "tags": ["vip", "verified"],
+      "linkedEntity": { "id": 10, "label": "Organization" },
+      "metadata": { "source": "api", "importId": "12345" }
+    },
+    "createdBy": 1,
+    "createdAt": "2026-04-22T10:00:00Z"
+  }
+}
+```
+
+### Migration Architecture (Phase 2-4)
+
+#### Phase 1: Infrastructure (COMPLETE)
+- CI/CD pipeline with GitHub Actions
+- Docker containerization (9 services)
+- Monitoring with Prometheus + Grafana
+- Automated backups with encryption
+
+#### Phase 2: Staging Migration (PREPARED)
+```
+Legacy Tables (49+) 
+    ↓ [Auto-discovery via INFORMATION_SCHEMA]
+Entity Definitions (1 per legacy table)
+    ↓ [Column mapping]
+Entity Fields (mapping legacy columns to field types)
+    ↓ [Data transfer]
+Entity Records (legacy rows → Entity Builder records)
+    ↓ [9-point validation]
+✓ Data integrity verified
+    ↓ [30 UAT tests + 4-level load testing]
+✓ Ready for Phase 3
+```
+
+**Timeline**: 3-4 hours execution + 2-3 days testing (Week of Apr 29)
+
+#### Phase 3: Security & A/B Testing (PREPARED)
+```
+Security Validation
+├─ RBAC testing (role-based access control)
+├─ Company data isolation
+├─ Audit logging verification
+├─ Penetration testing (OWASP ZAP, SQLMap)
+└─ TLS/HTTPS configuration
+
+Extended Load Testing
+├─ Sustained 500 RPS for 8+ hours
+├─ Memory leak detection
+├─ Database connection stability
+└─ Performance metrics collection
+
+A/B Testing (Parallel Deployment)
+├─ 10% → 25% → 50% → 75% → 100% traffic shift
+├─ Comparison metrics collected
+├─ Both systems running simultaneously
+└─ Business team UAT validation
+
+Integration Testing
+├─ All 23 modules with Entity Builder
+├─ Background job processing (BullMQ)
+├─ Webhook and external integrations
+└─ Multi-entity relationships
+```
+
+**Timeline**: 5-7 days (Week of May 5)
+
+#### Phase 4: Production Go-Live (PREPARED)
+```
+Cutover Window: May 11, 02:00-06:00 UTC (4 hours)
+
+02:00 UTC: Maintenance mode enabled
+02:05 UTC: Migration script executes
+03:00 UTC: Data validation & verification
+03:30 UTC: Maintenance page removed, system online
+05:00 UTC: Users notified
+06:00 UTC: Cutover complete
+
+Post-Cutover:
+├─ 24/7 monitoring (first 48 hours)
+├─ Quick rollback capability ready
+├─ Error rate tracking
+└─ User support team active
+```
+
+**Rollback Capability**: < 60 seconds recovery time
+
+### Migration Data Flow
+
+```
+┌─────────────────────────────────────────────────────┐
+│ LEGACY SYSTEM (Staging Clone)                       │
+│ ├─ activities (1000 rows)                           │
+│ ├─ donations (500 rows)                             │
+│ ├─ team_members (200 rows)                          │
+│ └─ ... (49+ tables)                                 │
+└────────────────┬────────────────────────────────────┘
+                 │
+                 ▼ [migrate-to-entity-builder.js]
+                 │ Auto-discover tables
+                 │ Map column types
+                 │ Create Entity records
+                 │
+┌────────────────▼────────────────────────────────────┐
+│ ENTITY BUILDER (Staging)                            │
+│ ├─ Entity: activities                               │
+│ │  ├─ Fields: title, description, status, date...  │
+│ │  └─ Records: 1000 rows transferred                │
+│ ├─ Entity: donations                                │
+│ │  ├─ Fields: donor_id, amount, date...             │
+│ │  └─ Records: 500 rows transferred                 │
+│ └─ ... (49+ entities)                               │
+│                                                     │
+│ ✓ validate-migration.js confirms:                   │
+│   ├─ Entity count = legacy table count              │
+│   ├─ Record count preserved                         │
+│   ├─ Field types valid                              │
+│   ├─ No orphaned relationships                      │
+│   └─ Data integrity verified                        │
+└─────────────────────────────────────────────────────┘
+                 │
+                 ▼ [A/B Testing]
+                 │ Run both systems
+                 │ Compare behavior
+                 │ 100% traffic shift
+                 │
+┌────────────────▼────────────────────────────────────┐
+│ PRODUCTION (Live)                                   │
+│ ├─ Full Entity Builder system                       │
+│ ├─ 49+ entities live                                │
+│ └─ All features enabled                             │
+└─────────────────────────────────────────────────────┘
+```
+
+### Entity Field Type Mapping
+
+| Legacy Type | Entity Field Type | Notes |
+|------------|------------------|-------|
+| VARCHAR(255) | text | Standard text input |
+| INT | number | Integer field |
+| DECIMAL(10,2) | number | Decimal with precision |
+| DATETIME | date | Date/time picker |
+| BOOLEAN | select | Binary choice |
+| TEXT | textarea | Long text field |
+| JSON | json | Unstructured data |
+| INT (FK) | lookup | Relationship to another entity |
+
+### Validation & Testing (Phase 2)
+
+**9-Point Validation Suite**:
+1. Entity count matches legacy table count
+2. Record count preserved from each table
+3. All field types valid and mapped correctly
+4. No orphaned relationships
+5. Audit trail complete and accurate
+6. Company scoping intact (multi-tenancy)
+7. Soft deletes preserved (deleted_at)
+8. Field permissions valid
+9. Data integrity check passed
+
+**30 UAT Test Cases**:
+- Entity Management (4 tests)
+- Record Operations (4 tests)
+- Filtering & Sorting (3 tests)
+- Relationships (2 tests)
+- Views (2 tests)
+- Data Integrity (3 tests)
+- Security & Access (3 tests)
+- Performance (3 tests)
+- Error Handling (2 tests)
+- Data Export (2 tests)
+
+**Load Testing** (4 levels):
+- Level 1: 50 RPS for 1 minute
+- Level 2: 100 RPS for 5 minutes
+- Level 3: 250 RPS for 15 minutes
+- Level 4: 500 RPS for 15+ minutes (stress test)
+
+### Success Metrics
+
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Migration Duration | < 1 hour | TBD | Phase 2 |
+| Data Loss | 0 records | TBD | Phase 2 |
+| UAT Pass Rate | 30/30 (100%) | TBD | Phase 2 |
+| P95 Latency | < 500ms | TBD | Phase 2 |
+| Error Rate | < 1% | TBD | Phase 2 |
+| Rollback Time | < 60 seconds | TBD | Phase 2 |
+| Security Issues | 0 critical | TBD | Phase 3 |
+| Performance P99 | < 1000ms @ 500 RPS | TBD | Phase 3 |
+
+### Migration Documentation
+
+- **Quick Start**: `PHASE_2_QUICK_START.md` (320 lines)
+- **Detailed Guide**: `PHASE_2_STAGING_EXECUTION.md` (461 lines)
+- **Master Checklist**: `PHASE_2_MASTER_CHECKLIST.md` (477 lines)
+- **Complete Overview**: `MIGRATION_JOURNEY.md` (486 lines)
+- **Phase 3 Guide**: `PHASE_3_QUICK_START.md` (508 lines)
+
+### Automation Scripts
+
+- `scripts/staging-migration-setup.sh` — Environment preparation
+- `scripts/staging-migration-execute.sh` — Migration + validation
+- `scripts/staging-uat-tests.sh` — 30 automated test cases
+- `scripts/staging-rollback-test.sh` — Rollback verification
