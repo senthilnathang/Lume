@@ -13,6 +13,12 @@
 - **[MIGRATION_STATUS.md](MIGRATION_STATUS.md)** - Current progress and timeline
 - **[ENTITY_BUILDER_COMPLETE.md](ENTITY_BUILDER_COMPLETE.md)** - Feature overview and API reference
 
+### 🎬 Phase 2: Staging Migration (Quick Access)
+- **[../PHASE_2_QUICK_START.md](../PHASE_2_QUICK_START.md)** - 5-command execution path (3-4 hours)
+- **[../PHASE_2_STAGING_EXECUTION.md](../PHASE_2_STAGING_EXECUTION.md)** - Detailed step-by-step guide (461 lines)
+- **[../PHASE_2_MASTER_CHECKLIST.md](../PHASE_2_MASTER_CHECKLIST.md)** - Day-by-day checklist for teams (477 lines)
+- **[../PHASE_2_PREPARATION_COMPLETE.md](../PHASE_2_PREPARATION_COMPLETE.md)** - Preparation inventory & status
+
 ### 🏗️ Infrastructure & Deployment
 
 | Document | Purpose | Audience |
