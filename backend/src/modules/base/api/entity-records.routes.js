@@ -5,22 +5,26 @@
  * All routes return JSON with format: { success: boolean, data?: any, message?: string, errors?: object }
  *
  * Routes:
- *   POST   /entities/:id/records              - Create record
- *   GET    /entities/:id/records              - List records with pagination
- *   GET    /entities/:id/records/:recordId    - Get record by ID
- *   PUT    /entities/:id/records/:recordId    - Update record
- *   DELETE /entities/:id/records/:recordId    - Delete record
+ *   POST   /entities/:id/records                            - Create record
+ *   GET    /entities/:id/records                            - List records with pagination
+ *   GET    /entities/:id/records/:recordId                  - Get record by ID
+ *   PUT    /entities/:id/records/:recordId                  - Update record
+ *   DELETE /entities/:id/records/:recordId                  - Delete record
+ *   POST   /entities/:id/records/:recordId/relationships    - Link records
+ *   DELETE /entities/:id/records/:recordId/relationships    - Unlink records
  */
 
 import { Router } from 'express';
 import prisma from '../../../core/db/prisma.js';
 import { RecordService } from '../services/record.service.js';
+import { RelationshipService } from '../../../core/services/relationship.service.js';
 
 const createEntityRecordsRoutes = () => {
   const router = Router({ mergeParams: true });
 
-  // Initialize service
+  // Initialize services
   const recordService = new RecordService(prisma);
+  const relationshipService = new RelationshipService(prisma);
 
   // Middleware to extract companyId from request
   router.use((req, res, next) => {
@@ -194,6 +198,76 @@ const createEntityRecordsRoutes = () => {
       res.json({
         success: true,
         message: 'Record deleted successfully'
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // POST /entities/:id/records/:recordId/relationships - Link records
+  router.post('/:id/records/:recordId/relationships', async (req, res) => {
+    try {
+      const recordId = parseInt(req.params.recordId);
+      const { relationshipId, targetRecordId } = req.body;
+
+      if (!relationshipId || !targetRecordId) {
+        return res.status(400).json({
+          success: false,
+          message: 'relationshipId and targetRecordId are required'
+        });
+      }
+
+      const link = await relationshipService.linkRecords(
+        relationshipId,
+        recordId,
+        targetRecordId
+      );
+
+      res.status(201).json({
+        success: true,
+        data: link,
+        message: 'Records linked successfully'
+      });
+    } catch (error) {
+      if (error.message.includes('circular')) {
+        return res.status(400).json({
+          success: false,
+          message: error.message
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  });
+
+  // DELETE /entities/:id/records/:recordId/relationships - Unlink records
+  router.delete('/:id/records/:recordId/relationships', async (req, res) => {
+    try {
+      const recordId = parseInt(req.params.recordId);
+      const { relationshipId, targetRecordId } = req.body;
+
+      if (!relationshipId || !targetRecordId) {
+        return res.status(400).json({
+          success: false,
+          message: 'relationshipId and targetRecordId are required'
+        });
+      }
+
+      await relationshipService.unlinkRecords(
+        relationshipId,
+        recordId,
+        targetRecordId
+      );
+
+      res.json({
+        success: true,
+        message: 'Records unlinked successfully'
       });
     } catch (error) {
       res.status(500).json({
