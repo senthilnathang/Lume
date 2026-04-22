@@ -1,80 +1,77 @@
-import { mysqlTable as table, int, varchar, text, boolean, json, timestamp } from 'drizzle-orm/mysql-core';
+import { mysqlTable as table, int, varchar, text, boolean, json, datetime } from 'drizzle-orm/mysql-core';
 import { baseColumns, withSoftDelete } from '../../../core/db/drizzle-helpers.js';
 
 // Use int for MySQL
 const idCol = int;
 
 /**
- * Custom Entities - Entity definitions created via the entity builder UI
- * Tracks custom entity types with metadata for rendering and validation
+ * Entity - Entity definitions created via the entity builder UI
+ * Matches Prisma model Entity exactly
  */
-export const customEntities = table('custom_entities', {
-  ...baseColumns(),
-  ...withSoftDelete(),
-  slug: varchar('slug', { length: 100 }).notNull().unique(),
-  name: varchar('name', { length: 255 }).notNull(),
+export const entities = table('entities', {
+  id: int('id').primaryKey().autoincrement(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  label: varchar('label', { length: 255 }).notNull(),
   description: text('description'),
-  icon: varchar('icon', { length: 100 }),
-  color: varchar('color', { length: 20 }),
-  isPublishable: boolean('is_publishable').default(false),
-  isPublished: boolean('is_published').default(false),
-  createdBy: idCol('created_by'),
+  moduleId: int('module_id'),
+  createdBy: int('created_by').notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 0 }).default(new Date()),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 0 }).default(new Date()),
+  deletedAt: datetime('deleted_at', { mode: 'date', fsp: 0 }),
 });
 
 /**
- * Entity Fields - Field definitions for custom entities
- * One-to-many relationship with customEntities
+ * Entity Fields - Field definitions for entities
+ * Matches Prisma model EntityField exactly
+ * One-to-many relationship with entities
  */
 export const entityFields = table('entity_fields', {
-  ...baseColumns(),
-  entityId: idCol('entity_id').notNull().references(() => customEntities.id, { onDelete: 'cascade' }),
-  slug: varchar('slug', { length: 100 }).notNull(),
+  id: int('id').primaryKey().autoincrement(),
+  entityId: int('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
-  type: varchar('type', { length: 50 }).notNull(),
   label: varchar('label', { length: 255 }).notNull(),
-  description: text('description'),
+  type: varchar('type', { length: 100 }).notNull(),
   required: boolean('required').default(false),
   unique: boolean('unique').default(false),
-  validation: text('validation'),
-  position: idCol('position').default(0),
   defaultValue: text('default_value'),
+  helpText: text('help_text'),
+  selectOptions: text('select_options'),
+  lookupEntityId: int('lookup_entity_id'),
+  lookupField: varchar('lookup_field', { length: 255 }),
+  formulaExpression: text('formula_expression'),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 0 }).default(new Date()),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 0 }).default(new Date()),
+  deletedAt: datetime('deleted_at', { mode: 'date', fsp: 0 }),
+  sequence: int('sequence').default(0),
 });
 
 /**
  * Entity Views - View configurations for entities
- * One-to-many relationship with customEntities
+ * Matches Prisma model EntityView exactly
+ * One-to-many relationship with entities
  */
 export const entityViews = table('entity_views', {
-  ...baseColumns(),
-  entityId: idCol('entity_id').notNull().references(() => customEntities.id, { onDelete: 'cascade' }),
+  id: int('id').primaryKey().autoincrement(),
+  entityId: int('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
-  type: varchar('type', { length: 50 }).notNull(),
+  type: varchar('type', { length: 100 }).notNull(),
   isDefault: boolean('is_default').default(false),
-  config: json('config').$type().default({}),
-});
-
-/**
- * Entity Sync History - Track synchronization between code-defined and UI-created entities
- * Records create/update/delete operations and conflict states
- */
-export const entitySyncHistory = table('entity_sync_history', {
-  ...baseColumns(),
-  entityId: idCol('entity_id').references(() => customEntities.id, { onDelete: 'set null' }),
-  source: varchar('source', { length: 50 }).notNull(),
-  action: varchar('action', { length: 50 }).notNull(),
-  changes: json('changes').$type().default({}),
-  syncedAt: timestamp('synced_at'),
-  status: varchar('status', { length: 50 }).notNull(),
+  config: text('config'),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 0 }).default(new Date()),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 0 }).default(new Date()),
 });
 
 /**
  * Entity Records - Data records for dynamically created entities
+ * Matches Prisma model EntityRecord exactly
  * Stores actual entity instance data as JSON
  */
 export const entityRecords = table('entity_records', {
-  ...baseColumns(),
-  ...withSoftDelete(),
-  entityId: idCol('entity_id').notNull(),
-  data: text('data').notNull(), // JSON stringified data
-  createdBy: idCol('created_by').notNull(),
+  id: int('id').primaryKey().autoincrement(),
+  entityId: int('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
+  data: text('data').notNull(),
+  createdBy: int('created_by').notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 0 }).default(new Date()),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 0 }).default(new Date()),
+  deletedAt: datetime('deleted_at', { mode: 'date', fsp: 0 }),
 });

@@ -18,31 +18,34 @@ import {
 
 /**
  * Map entity field types to Drizzle column types
+ * Returns a column builder function, not yet called
  */
-function getDrizzleColumnType(fieldType, fieldConfig = {}) {
+function getDrizzleColumnType(fieldType, fieldName, fieldConfig = {}) {
+  const columnName = fieldName.toLowerCase().replace(/\s+/g, '_');
+
   switch (fieldType) {
     case 'text':
     case 'email':
-      return varchar('value', { length: 255 });
+      return () => varchar(columnName, { length: 255 });
     case 'textarea':
-      return text('value');
+      return () => text(columnName);
     case 'number':
-      return decimal('value', { precision: 12, scale: 2 });
+      return () => decimal(columnName, { precision: 12, scale: 2 });
     case 'boolean':
-      return boolean('value');
+      return () => boolean(columnName);
     case 'date':
-      return datetime('value', { mode: 'date' });
+      return () => datetime(columnName, { mode: 'date' });
     case 'datetime':
-      return datetime('value', { mode: 'date', fsp: 0 });
+      return () => datetime(columnName, { mode: 'date', fsp: 0 });
     case 'select':
     case 'multiselect':
-      return varchar('value', { length: 500 });
+      return () => varchar(columnName, { length: 500 });
     case 'lookup':
     case 'formula':
     case 'count':
-      return text('value');
+      return () => text(columnName);
     default:
-      return varchar('value', { length: 255 });
+      return () => varchar(columnName, { length: 255 });
   }
 }
 
@@ -91,28 +94,66 @@ export function generateEntityRecordSchema(entity, fields = []) {
   const columns = {
     id: int('id').primaryKey().autoincrement(),
     entityId: int('entity_id').notNull(),
-    data: text('data').notNull(), // JSON stringified data
+    data: text('data').notNull(),
     createdBy: int('created_by').notNull(),
-    createdAt: datetime('created_at', { mode: 'date', fsp: 0 }).defaultNow(),
-    updatedAt: datetime('updated_at', { mode: 'date', fsp: 0 }).defaultNow(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 0 }),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 0 }),
     deletedAt: datetime('deleted_at', { mode: 'date', fsp: 0 }),
   };
 
   // Add individual field columns for indexing/filtering
   fields.forEach((field) => {
     const columnName = field.name.toLowerCase().replace(/\s+/g, '_');
-    const columnType = getDrizzleColumnType(field.type, field);
+    const columnBuilder = getDrizzleColumnType(field.type, field.name, field);
 
-    // Add the field column
-    columns[columnName] = columnType;
+    // Build the column - nullable if not required
+    let column = columnBuilder();
 
-    // Make it nullable since not all records will have all fields
-    if (columns[columnName].notNull) {
-      columns[columnName] = columns[columnName].notNull().default(null);
+    if (!field.required) {
+      column = column.notNull(false);
+    } else {
+      column = column.notNull();
     }
+
+    columns[columnName] = column;
   });
 
   return table(tableName, columns);
+}
+
+/**
+ * Format a default value for SQL based on field type
+ * @param {string} fieldType - The field type
+ * @param {string|number|boolean} value - The default value
+ * @returns {string} SQL formatted default value
+ */
+function formatDefaultValue(fieldType, value) {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+
+  switch (fieldType) {
+    case 'number':
+      return `DEFAULT ${Number(value)}`;
+    case 'boolean':
+      return `DEFAULT ${value ? 'TRUE' : 'FALSE'}`;
+    case 'date':
+    case 'datetime':
+      // Ensure ISO format
+      return `DEFAULT '${String(value).substring(0, 10)}'`;
+    case 'text':
+    case 'email':
+    case 'textarea':
+    case 'select':
+    case 'multiselect':
+    case 'lookup':
+    case 'formula':
+    case 'count':
+    default:
+      // Escape single quotes by doubling them
+      const escaped = String(value).replace(/'/g, "''");
+      return `DEFAULT '${escaped}'`;
+  }
 }
 
 /**
@@ -139,12 +180,12 @@ export function generateCreateTableSQL(entity, fields = []) {
   lines.push('  `deleted_at` DATETIME(0) NULL,');
 
   // Add individual field columns
-  fields.forEach((field, index) => {
+  fields.forEach((field) => {
     const columnName = field.name.toLowerCase().replace(/\s+/g, '_');
     const columnType = getMySQLColumnType(field.type, field);
     const nullable = field.required ? '' : ' NULL';
     const unique = field.unique ? ' UNIQUE' : '';
-    const defaultValue = field.defaultValue ? ` DEFAULT '${field.defaultValue}'` : '';
+    const defaultValue = field.defaultValue ? ` ${formatDefaultValue(field.type, field.defaultValue)}` : '';
 
     lines.push(`  \`${columnName}\` ${columnType}${nullable}${unique}${defaultValue},`);
   });
