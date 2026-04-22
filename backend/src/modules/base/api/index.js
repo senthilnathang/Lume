@@ -8,6 +8,7 @@ import { createCrudRouter } from '../../../core/router/crud-router.js';
 import { PrismaAdapter } from '../../../core/db/adapters/prisma-adapter.js';
 import createEntityRoutes from './entity.routes.js';
 import createFieldRoutes from './field.routes.js';
+import createEntityRecordsRoutes from './entity-records.routes.js';
 
 const createRoutes = (models, services) => {
   const router = Router();
@@ -99,6 +100,10 @@ const createRoutes = (models, services) => {
       res.status(400).json({ success: false, error: error.message });
     }
   });
+
+  // Entity records routes (must be mounted before /entities to work with /:id/records paths)
+  const recordsRoutes = createEntityRecordsRoutes();
+  router.use('/entities', recordsRoutes);
 
   // Entity routes (admin CRUD API)
   const entityRoutes = createEntityRoutes();
