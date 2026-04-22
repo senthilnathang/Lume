@@ -17,7 +17,9 @@
 ### 🎬 Phase 3 & 4 Complete Execution (Comprehensive Guides)
 - **[../PHASE_3_4_COMPLETE_EXECUTION.md](../PHASE_3_4_COMPLETE_EXECUTION.md)** - Complete Phase 3 & 4 (1,279 lines) with all procedures, commands, and success criteria
 - **[../PHASE_3_DETAILED_EXECUTION.md](../PHASE_3_DETAILED_EXECUTION.md)** - Day-by-day Phase 3 with curl commands, load test profiles, A/B routing config
+- **[../PHASE_3_EXECUTION_CHECKLIST.md](../PHASE_3_EXECUTION_CHECKLIST.md)** - Detailed execution checklist for May 5-10 with security, load testing, A/B rollout, integration & UAT procedures
 - **[../PHASE_3_EXECUTION_SUMMARY.md](../PHASE_3_EXECUTION_SUMMARY.md)** - Quick reference for Phase 3 testing procedures
+- **[../PHASE_4_EXECUTION_CHECKLIST.md](../PHASE_4_EXECUTION_CHECKLIST.md)** - Complete 4-hour production cutover (May 11, 02:00-06:00 UTC) with validation, smoke tests, monitoring, and rollback
 
 ### 🚀 Getting Started
 - **[MIGRATION_COMPLETE.md](MIGRATION_COMPLETE.md)** - Executive summary of entire 4-phase roadmap
@@ -82,11 +84,13 @@ docs/
 └─ MIGRATION_STATUS.md              (100+ pages) ✅ Tracker
 
 Root directory:
-├─ PHASE_3_4_COMPLETE_EXECUTION.md (1,279 lines) ✅ COMPLETE - All procedures
-├─ PHASE_3_DETAILED_EXECUTION.md   (1,060 lines) ✅ COMPLETE - Day-by-day guide
-├─ PHASE_3_EXECUTION_SUMMARY.md    (400 lines)   ✅ COMPLETE - Quick reference
-├─ COMPLETE_ROADMAP_PHASES_2_5.md  (701 lines)   ✅ COMPLETE - Full 10-week roadmap
-└─ FINAL_PREPARATION_SUMMARY.md    (471 lines)   ✅ COMPLETE - Execution ready status
+├─ PHASE_3_4_COMPLETE_EXECUTION.md   (1,279 lines) ✅ COMPLETE - All procedures
+├─ PHASE_3_DETAILED_EXECUTION.md     (1,060 lines) ✅ COMPLETE - Day-by-day guide
+├─ PHASE_3_EXECUTION_SUMMARY.md      (400 lines)   ✅ COMPLETE - Quick reference
+├─ PHASE_3_EXECUTION_CHECKLIST.md    (2,000+ lines) ✅ COMPLETE - May 5-10 execution checklist
+├─ PHASE_4_EXECUTION_CHECKLIST.md    (1,364 lines) ✅ COMPLETE - May 11 production cutover checklist
+├─ COMPLETE_ROADMAP_PHASES_2_5.md    (701 lines)   ✅ COMPLETE - Full 10-week roadmap
+└─ FINAL_PREPARATION_SUMMARY.md      (471 lines)   ✅ COMPLETE - Execution ready status
 ```
 
 ### Feature Documentation
