@@ -66,3 +66,15 @@ export const entitySyncHistory = table('entity_sync_history', {
   syncedAt: timestamp('synced_at'),
   status: varchar('status', { length: 50 }).notNull(),
 });
+
+/**
+ * Entity Records - Data records for dynamically created entities
+ * Stores actual entity instance data as JSON
+ */
+export const entityRecords = table('entity_records', {
+  ...baseColumns(),
+  ...withSoftDelete(),
+  entityId: idCol('entity_id').notNull(),
+  data: text('data').notNull(), // JSON stringified data
+  createdBy: idCol('created_by').notNull(),
+});
