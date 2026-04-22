@@ -657,6 +657,7 @@ model Role {
   updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.DateTime(0)
   role_permissions RolePermission[]
   users            User[]
+  fieldPermissions EntityFieldPermission[]
 
   @@index([isActive], map: "roles_is_active")
   @@index([name], map: "roles_name")
@@ -820,9 +821,11 @@ model Entity {
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
   deletedAt   DateTime? @map("deleted_at") @db.DateTime(0)
 
-  fields      EntityField[]
-  views       EntityView[]
-  records     EntityRecord[]
+  fields                    EntityField[]
+  views                     EntityView[]
+  records                   EntityRecord[]
+  relationshipsAsSource     EntityRelationship[] @relation("SourceEntity")
+  relationshipsAsTarget     EntityRelationship[] @relation("TargetEntity")
 
   @@index([moduleId], map: "entities_module_id")
   @@index([deletedAt], map: "entities_deleted_at")
@@ -853,6 +856,8 @@ model EntityField {
   formulaExpression String? @db.Text @map("formula_expression")
   deletedAt    DateTime? @map("deleted_at") @db.DateTime(0)
   sequence     Int      @default(0)
+
+  permissions  EntityFieldPermission[]
 
   @@index([entityId], map: "entity_fields_entity_id")
   @@index([lookupEntityId], map: "entity_fields_lookup_entity_id")
@@ -886,10 +891,65 @@ model EntityRecord {
   createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
   deletedAt DateTime? @map("deleted_at") @db.DateTime(0)
+  companyId Int?     @map("company_id")
+  visibility String  @default("private") @db.VarChar(50)
 
   @@index([entityId], map: "entity_records_entity_id")
   @@index([createdAt], map: "entity_records_created_at")
+  @@index([companyId], map: "entity_records_company_id")
   @@map("entity_records")
+}
+
+model EntityRelationship {
+  id                   Int                        @id @default(autoincrement())
+  sourceEntityId       Int                        @map("source_entity_id")
+  targetEntityId       Int                        @map("target_entity_id")
+  type                 String                     @db.VarChar(50)
+  name                 String                     @db.VarChar(255)
+  label                String                     @db.VarChar(255)
+  reverseLabel         String?                    @map("reverse_label") @db.VarChar(255)
+  cascadeDelete        Boolean?                   @default(false) @map("cascade_delete")
+  createdAt            DateTime                   @default(now()) @map("created_at") @db.DateTime(0)
+
+  sourceEntity         Entity                     @relation("SourceEntity", fields: [sourceEntityId], references: [id], onDelete: Cascade, map: "entity_relationships_source_entity_id")
+  targetEntity         Entity                     @relation("TargetEntity", fields: [targetEntityId], references: [id], onDelete: Cascade, map: "entity_relationships_target_entity_id")
+  relationshipRecords  EntityRelationshipRecord[]
+
+  @@index([sourceEntityId], map: "entity_relationships_source_entity_id")
+  @@index([targetEntityId], map: "entity_relationships_target_entity_id")
+  @@map("entity_relationships")
+}
+
+model EntityRelationshipRecord {
+  id                Int                 @id @default(autoincrement())
+  relationshipId    Int                 @map("relationship_id")
+  sourceRecordId    Int                 @map("source_record_id")
+  targetRecordId    Int                 @map("target_record_id")
+  createdAt         DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+
+  relationship      EntityRelationship  @relation(fields: [relationshipId], references: [id], onDelete: Cascade, map: "entity_relationship_records_relationship_id")
+
+  @@index([relationshipId], map: "entity_relationship_records_relationship_id")
+  @@index([sourceRecordId], map: "entity_relationship_records_source_record_id")
+  @@index([targetRecordId], map: "entity_relationship_records_target_record_id")
+  @@map("entity_relationship_records")
+}
+
+model EntityFieldPermission {
+  id        Int       @id @default(autoincrement())
+  fieldId   Int       @map("field_id")
+  roleId    Int       @map("role_id")
+  canRead   Boolean?  @default(true) @map("can_read")
+  canWrite  Boolean?  @default(false) @map("can_write")
+  createdAt DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+
+  field     EntityField @relation(fields: [fieldId], references: [id], onDelete: Cascade, map: "entity_field_permissions_field_id")
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Cascade, map: "entity_field_permissions_role_id")
+
+  @@unique([fieldId, roleId], map: "entity_field_permissions_field_id_role_id")
+  @@index([fieldId], map: "entity_field_permissions_field_id")
+  @@index([roleId], map: "entity_field_permissions_role_id")
+  @@map("entity_field_permissions")
 }
 
 model webhook_logs {
