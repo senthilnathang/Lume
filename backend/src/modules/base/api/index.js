@@ -9,6 +9,7 @@ import { PrismaAdapter } from '../../../core/db/adapters/prisma-adapter.js';
 import createEntityRoutes from './entity.routes.js';
 import createFieldRoutes from './field.routes.js';
 import createEntityRecordsRoutes from './entity-records.routes.js';
+import createEntityViewsRoutes from './entity-views.routes.js';
 
 const createRoutes = (models, services) => {
   const router = Router();
@@ -104,6 +105,10 @@ const createRoutes = (models, services) => {
   // Entity records routes (must be mounted before /entities to work with /:id/records paths)
   const recordsRoutes = createEntityRecordsRoutes();
   router.use('/entities', recordsRoutes);
+
+  // Entity views routes (render view definitions)
+  const viewsRoutes = createEntityViewsRoutes();
+  router.use('/entities', viewsRoutes);
 
   // Entity routes (admin CRUD API)
   const entityRoutes = createEntityRoutes();
