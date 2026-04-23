@@ -4,7 +4,7 @@ import { PrismaService } from './prisma.service';
 @Injectable()
 export class RbacService {
   // 147 core permissions (sample - full list in production)
-  private readonly permissionsMap = {
+  private readonly permissionsMap: Record<string, { module: string; action: string }> = {
     'create_user': { module: 'users', action: 'create' },
     'read_user': { module: 'users', action: 'read' },
     'update_user': { module: 'users', action: 'update' },
@@ -55,9 +55,9 @@ export class RbacService {
       // Check role_permission junction table
       const roleHasPermission = await this.prisma.rolePermission.findMany({
         where: {
-          role_id: userRole.id,
+          roleId: userRole.id,
           permission: {
-            code: permissionCode,
+            name: permissionCode,
           },
         },
       });
@@ -76,11 +76,11 @@ export class RbacService {
   async getRolePermissions(roleId: number): Promise<string[]> {
     try {
       const rolePermissions = await this.prisma.rolePermission.findMany({
-        where: { role_id: roleId },
+        where: { roleId: roleId },
         include: { permission: true },
       });
 
-      return rolePermissions.map((rp) => rp.permission.code);
+      return rolePermissions.map((rp) => rp.permission.name);
     } catch (error) {
       return [];
     }

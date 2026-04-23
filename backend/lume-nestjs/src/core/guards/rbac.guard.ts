@@ -10,7 +10,7 @@ export class RbacGuard implements CanActivate {
     const handler = context.getHandler();
 
     // Get required permissions from handler metadata
-    const requiredPermissions = handler.__permissions__ || [];
+    const requiredPermissions = (handler as any).__permissions__ || [];
 
     if (requiredPermissions.length === 0) {
       return true; // No permissions required

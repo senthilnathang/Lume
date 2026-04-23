@@ -1,10 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
-  constructor(@Inject(JwtService) private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) {}
 
   generateAccessToken(payload: any): string {
     return this.jwtService.sign(payload, {
