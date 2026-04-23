@@ -54,8 +54,8 @@ describe('RbacService', () => {
 
   it('should get role permissions', async () => {
     const mockRolePermissions = [
-      { permission: { code: 'create_user' } },
-      { permission: { code: 'delete_user' } },
+      { permission: { name: 'create_user' } },
+      { permission: { name: 'delete_user' } },
     ] as any;
 
     (prismaService.rolePermission.findMany as jest.Mock).mockResolvedValue(mockRolePermissions);
