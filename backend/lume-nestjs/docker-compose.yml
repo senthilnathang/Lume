@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: lume-nestjs
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: gawdesy
+      DB_PASS: gawdesy
+      DB_NAME: lume
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: dev-secret
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./src:/app/src
+
+  db:
+    image: mysql:8.0
+    container_name: lume-db
+    environment:
+      MYSQL_ROOT_PASSWORD: gawdesy
+      MYSQL_DATABASE: lume
+      MYSQL_USER: gawdesy
+      MYSQL_PASSWORD: gawdesy
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: lume-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mysql_data:
+  redis_data:
