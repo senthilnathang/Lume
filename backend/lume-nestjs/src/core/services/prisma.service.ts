@@ -38,7 +38,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     }
 
     if (obj !== null && obj.constructor === Object) {
-      const camelCased = {};
+      const camelCased: Record<string, any> = {};
       for (const key in obj) {
         const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
         camelCased[camelKey] = this._toCamelCase(obj[key]);
