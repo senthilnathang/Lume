@@ -12,6 +12,9 @@ import { DrizzleService } from '@core/services/drizzle.service';
 // Pipes & Filters
 import { ValidatePipe } from '@core/pipes/validation.pipe';
 
+// Modules
+import { AuthModule } from './modules/auth/auth.module';
+
 // Controllers (Health check)
 import { HealthController } from './health.controller';
 
@@ -21,6 +24,7 @@ import { HealthController } from './health.controller';
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
     }),
+    AuthModule,
   ],
   controllers: [HealthController],
   providers: [
