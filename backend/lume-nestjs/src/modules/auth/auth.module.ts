@@ -12,7 +12,7 @@ import { AuthService as JwtAuthService } from '@core/services/jwt.service';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_EXPIRY || '7d' },
+      signOptions: { expiresIn: '7d' },
     }),
   ],
   controllers: [AuthController],
