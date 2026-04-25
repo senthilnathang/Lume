@@ -37,9 +37,10 @@ export class UsersService {
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
-        name: dto.name,
-        password_hash: passwordHash,
-        role_id: dto.role_id || 2, // Default to 'user' role
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        password: passwordHash,
+        role_id: dto.role_id || 5, // Default to 'user' role
       },
       include: { role: true },
     });
@@ -51,12 +52,14 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException(`User #${id} not found`);
 
+    const updateData: any = {};
+    if (dto.firstName) updateData.firstName = dto.firstName;
+    if (dto.lastName) updateData.lastName = dto.lastName;
+    if (dto.role_id) updateData.role_id = dto.role_id;
+
     const updated = await this.prisma.user.update({
       where: { id },
-      data: {
-        name: dto.name || user.name,
-        role_id: dto.role_id || user.role_id,
-      },
+      data: updateData,
       include: { role: true },
     });
 
@@ -93,9 +96,9 @@ export class UsersService {
       data: [
         { name: 'id', type: 'integer', editable: false },
         { name: 'email', type: 'email', editable: true },
-        { name: 'name', type: 'string', editable: true },
+        { name: 'firstName', type: 'string', editable: true },
+        { name: 'lastName', type: 'string', editable: true },
         { name: 'role_id', type: 'integer', editable: true },
-        { name: 'created_at', type: 'datetime', editable: false },
       ],
     };
   }
