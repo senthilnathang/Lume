@@ -14,6 +14,7 @@ import { ValidatePipe } from '@core/pipes/validation.pipe';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 
 // Controllers (Health check)
 import { HealthController } from './health.controller';
@@ -25,6 +26,7 @@ import { HealthController } from './health.controller';
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
     }),
     AuthModule,
+    UsersModule,
   ],
   controllers: [HealthController],
   providers: [
