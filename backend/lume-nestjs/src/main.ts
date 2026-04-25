@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { LoggerService } from '@core/services/logger.service';
 
@@ -6,6 +7,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const logger = app.get(LoggerService);
+
+  // Security headers
+  app.use(helmet());
 
   // Enable CORS
   const corsOrigins: (string | RegExp)[] = [

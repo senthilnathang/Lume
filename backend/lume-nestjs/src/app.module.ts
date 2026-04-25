@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 // Core services
 import { PrismaService } from '@core/services/prisma.service';
@@ -25,6 +26,12 @@ import { HealthController } from './health.controller';
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute
+        limit: 5, // 5 requests per minute
+      },
+    ]),
     AuthModule,
     UsersModule,
   ],
