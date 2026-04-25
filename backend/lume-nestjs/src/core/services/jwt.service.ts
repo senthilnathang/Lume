@@ -7,24 +7,18 @@ export class AuthService {
   constructor(private jwtService: JwtService) {}
 
   generateAccessToken(payload: any): string {
-    return this.jwtService.sign(payload, {
-      expiresIn: process.env.JWT_EXPIRY || '7d',
-      secret: process.env.JWT_SECRET,
-    });
+    return this.jwtService.sign(payload);
   }
 
   generateRefreshToken(payload: any): string {
     return this.jwtService.sign(payload, {
       expiresIn: '30d',
-      secret: process.env.JWT_SECRET,
     });
   }
 
   verifyToken(token: string): any {
     try {
-      return this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
-      });
+      return this.jwtService.verify(token);
     } catch (error) {
       return null;
     }
