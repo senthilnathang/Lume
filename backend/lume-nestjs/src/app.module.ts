@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_PIPE } from '@nestjs/core';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { JwtModule } from '@nestjs/jwt';
 
 // Core services
 import { PrismaService } from '@core/services/prisma.service';
@@ -26,6 +27,11 @@ import { HealthController } from './health.controller';
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
     }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '7d' },
+      global: true,
+    }),
     ThrottlerModule.forRoot([
       {
         ttl: 60000, // 1 minute
@@ -42,6 +48,10 @@ import { HealthController } from './health.controller';
     LoggerService,
     RbacService,
     DrizzleService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_PIPE,
       useClass: ValidatePipe,
