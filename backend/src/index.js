@@ -41,11 +41,28 @@ const PORT = process.env.PORT || 3000;
 
 // ─── Security: JWT Secret Validation ─────────────────────────────────────────
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'jwt-secret') {
-  console.warn('⚠️  WARNING: JWT_SECRET is not set or uses default value. Set a strong secret in production!');
+  if (isProduction) {
+    console.error('❌ FATAL: JWT_SECRET is not set or uses default value. This is a security vulnerability in production!');
+    console.error('   Set JWT_SECRET to a random 32+ character string in your .env file');
+    console.error('   Example: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+    process.exit(1);
+  } else {
+    console.warn('⚠️  WARNING: JWT_SECRET is not set or uses default value. Set a strong secret before deploying to production!');
+  }
+}
+
+// ─── Security: Additional Secret Validation ─────────────────────────────────
+if (isProduction && (!process.env.JWT_REFRESH_SECRET || process.env.JWT_REFRESH_SECRET === 'your-refresh-secret-change-in-production')) {
+  console.error('❌ FATAL: JWT_REFRESH_SECRET is not set or uses default value!');
+  process.exit(1);
+}
+
+if (isProduction && (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'your-session-secret-change-in-production')) {
+  console.error('❌ FATAL: SESSION_SECRET is not set or uses default value!');
+  process.exit(1);
 }
 
 // ─── Security: Rate Limiting ─────────────────────────────────────────────────
-const isProduction = process.env.NODE_ENV === 'production';
 const enableRateLimit = isProduction || process.env.ENABLE_RATE_LIMIT === 'true';
 
 const limiter = enableRateLimit ? rateLimit({
@@ -86,10 +103,22 @@ app.use(helmet({
 }));
 
 // ─── Security: CORS ──────────────────────────────────────────────────────────
-const corsEnv = process.env.CORS_ORIGIN || (isProduction ? '' : '*');
+// In production, CORS_ORIGIN MUST be explicitly set (no default to '*' or '')
+// In development, default to common localhost ports for frontend apps
+const defaultCorsOrigins = isProduction
+  ? '' // Production requires explicit env var
+  : 'http://localhost:5173,http://localhost:5174,http://localhost:3100,http://localhost:3004';
+
+const corsEnv = process.env.CORS_ORIGIN || defaultCorsOrigins;
+
+// Validate CORS in production
+if (isProduction && !process.env.CORS_ORIGIN) {
+  console.warn('⚠️  WARNING: CORS_ORIGIN not set in production. Defaulting to no CORS origins (only same-origin requests).');
+}
+
 // Support comma-separated origins (e.g. "http://localhost:5173,http://localhost:3100")
 const corsOrigin = corsEnv === '*' ? true : corsEnv.includes(',')
-  ? corsEnv.split(',').map(o => o.trim())
+  ? corsEnv.split(',').map(o => o.trim()).filter(o => o)
   : corsEnv || false;
 app.use(cors({
   origin: corsOrigin,
