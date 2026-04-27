@@ -52,7 +52,6 @@ Quick start guides and step-by-step instructions.
 - **[PERFORMANCE.md](PERFORMANCE.md)** — Performance tuning guidelines
 - **[PERFORMANCE_TUNING.md](PERFORMANCE_TUNING.md)** — Detailed performance optimization strategies
 - **[OBSERVABILITY.md](OBSERVABILITY.md)** — Monitoring and observability setup
-- **[OBSERVABILITY.md](OBSERVABILITY.md)** — Logging, monitoring, and observability
 - **[TEAM_RUNBOOKS.md](TEAM_RUNBOOKS.md)** — Team operational runbooks and procedures
 - **[INCIDENT_RESPONSE_PLAYBOOK.md](INCIDENT_RESPONSE_PLAYBOOK.md)** — Incident response procedures
 - **[RELEASE_NOTES.md](RELEASE_NOTES.md)** — Version release notes and changelog
