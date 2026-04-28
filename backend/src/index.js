@@ -38,6 +38,7 @@ config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
 
 // ─── Security: JWT Secret Validation ─────────────────────────────────────────
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'jwt-secret') {
