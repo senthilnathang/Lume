@@ -9,7 +9,8 @@
  * - Report generation and exports
  */
 
-import { Queue, Worker, QueueScheduler } from 'bullmq';
+import pkg from 'bullmq';
+const { Queue, Worker, QueueScheduler } = pkg;
 import Redis from 'ioredis';
 
 const redis = new Redis({
