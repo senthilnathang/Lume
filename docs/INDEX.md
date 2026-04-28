@@ -14,6 +14,11 @@ Welcome to the Lume Framework documentation. This guide helps you navigate the o
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** — Developer guide for creating modules, views, blocks, and testing
 - **[INSTALLATION.md](INSTALLATION.md)** — Setup guide for all three servers (backend, admin panel, public site)
 - **[TESTING.md](TESTING.md)** — Test configuration and patterns for Jest + ESM
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** — Complete API reference with all endpoints and examples
+
+### Security
+- **[SECURITY_HARDENING_GUIDE.md](/SECURITY_HARDENING_GUIDE.md)** — Comprehensive security best practices (OWASP Top 10)
+- **[SECURITY_INTEGRATION_SUMMARY.md](/SECURITY_INTEGRATION_SUMMARY.md)** — Security module implementation guide
 
 ### Architecture Documentation
 Core system design and technical specifications.
