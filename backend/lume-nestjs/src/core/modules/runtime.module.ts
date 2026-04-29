@@ -10,6 +10,7 @@ import { WorkflowExecutorService } from '@core/workflow/workflow-executor.servic
 import { VersioningService } from '@core/versioning/versioning.service';
 import { AIAdapterService } from '@core/ai/ai-adapter.service';
 import { AskQueryService } from '@core/ai/ask-query.service';
+import { PluginRegistryService } from '@core/plugin/plugin-registry.service';
 
 @Module({
   imports: [EventEmitterModule.forRoot()],
@@ -24,6 +25,7 @@ import { AskQueryService } from '@core/ai/ask-query.service';
     VersioningService,
     AIAdapterService,
     AskQueryService,
+    PluginRegistryService,
   ],
   exports: [
     MetadataRegistryService,
@@ -36,6 +38,7 @@ import { AskQueryService } from '@core/ai/ask-query.service';
     VersioningService,
     AIAdapterService,
     AskQueryService,
+    PluginRegistryService,
   ],
 })
 export class RuntimeModule {}
