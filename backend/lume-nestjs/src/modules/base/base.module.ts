@@ -3,12 +3,14 @@ import { SharedModule } from '@core/modules/shared.module';
 import { EntityRegistryService } from '@core/entity/entity-registry.service';
 import { setEntityRegistry } from '@core/entity/extend-entity';
 import { WorkflowExecutorService } from '@core/workflow/workflow-executor.service';
+import { QueryBuilderService } from '@core/query/query-builder.service';
 
 // Controllers
 import { EntityController } from './controllers/entity.controller';
 import { EntityRecordsController } from './controllers/entity-records.controller';
 import { EntityViewsController } from './controllers/entity-views.controller';
 import { QueueController } from './controllers/queue.controller';
+import { QueryController } from './controllers/query.controller';
 
 // Services
 import { EntityService } from './services/entity.service';
@@ -32,7 +34,7 @@ import { LeadAssignmentWorkflow, LeadScoringSendNotification } from './workflows
 
 @Module({
   imports: [SharedModule],
-  controllers: [EntityController, EntityRecordsController, EntityViewsController, QueueController],
+  controllers: [EntityController, EntityRecordsController, EntityViewsController, QueueController, QueryController],
   providers: [
     EntityService,
     RecordService,
@@ -46,6 +48,7 @@ import { LeadAssignmentWorkflow, LeadScoringSendNotification } from './workflows
     CascadeService,
     LookupResolverService,
     EntityRegistryService,
+    QueryBuilderService,
   ],
   exports: [
     EntityService,
@@ -60,6 +63,7 @@ import { LeadAssignmentWorkflow, LeadScoringSendNotification } from './workflows
     CascadeService,
     LookupResolverService,
     EntityRegistryService,
+    QueryBuilderService,
   ],
 })
 export class BaseModule implements OnModuleInit {
