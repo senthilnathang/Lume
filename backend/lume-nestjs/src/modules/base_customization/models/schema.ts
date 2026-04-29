@@ -1,4 +1,4 @@
-import { table, int, integer, varchar, boolean, json, text } from '@core/db/dialect';
+import { table, int, integer, varchar, boolean, json, text, timestamp } from '@core/db/dialect';
 import { baseColumns } from '@core/db/drizzle-helpers';
 
 const idCol = int || integer;
@@ -42,6 +42,15 @@ export const formLayouts = table('form_layouts', {
   layout: json('layout').$type<any>().default({}),
   isDefault: boolean('is_default').default(false),
   status: varchar('status', { length: 20 }).default('active'),
+});
+
+export const formLayoutRevisions = table('form_layout_revisions', {
+  ...baseColumns(),
+  layoutId: idCol('layout_id').notNull(),
+  layoutSnapshot: json('layout_snapshot').$type<any>().notNull(),
+  changedBy: idCol('changed_by'),
+  changeNote: varchar('change_note', { length: 255 }),
+  revisionNumber: idCol('revision_number').default(1),
 });
 
 export const listConfigs = table('list_configs', {
