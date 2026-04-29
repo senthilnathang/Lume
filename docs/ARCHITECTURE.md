@@ -2,7 +2,8 @@
 
 This document describes the system architecture of Lume Framework v2.0, a comprehensive modernization covering monorepo structure, build tooling, dependency upgrades, testing infrastructure, security hardening, and observability enhancements.
 
-**Latest Version:** 2.0.0 (Release Date: 2026-04-22)
+**Latest Version:** 2.0.0 (Release Date: 2026-04-28)  
+**Patch Update:** 2.0.1 - Security hardening & bug fixes (2026-04-28)  
 **Previous Version:** 1.0.0 → 2.0.0 (Migration Guide: [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md))
 
 ### Key Improvements in v2.0
@@ -10,12 +11,13 @@ This document describes the system architecture of Lume Framework v2.0, a compre
 - **Monorepo Architecture:** pnpm workspace + Turbo build orchestration
 - **Tailwind 4 Migration:** CSS variables for theming, reduced config duplication
 - **Modern Tooling:** Jest 30 backend, Vitest 4.1 frontend, Playwright 1.49 E2E
-- **Security Hardened:** Helmet 7.1, Express Rate Limit 7.1, response caching
+- **Security Hardened:** Helmet 7.1, Express Rate Limit 7.1, response caching, OWASP Top 10 scanning
+- **Security Audit Module:** Comprehensive vulnerability scanning, OWASP compliance checking, API security assessment
 - **Observability:** Request tracing, metrics collection, structured logging
 - **Performance:** Response caching with Redis, query optimization, benchmarking
-- **Testing:** Unit tests (577+), integration tests, performance benchmarks
+- **Testing:** Unit tests (577+), integration tests, performance benchmarks (97.3% pass rate)
 - **Node.js 20.12.0+:** Modern JavaScript features, better performance
-- **Documentation:** PERFORMANCE.md, OBSERVABILITY.md, updated TESTING.md
+- **Documentation:** PERFORMANCE.md, OBSERVABILITY.md, updated TESTING.md, SECURITY_HARDENING_GUIDE.md
 
 ---
 
@@ -27,18 +29,19 @@ This document describes the system architecture of the Lume Framework, covering 
 
 1. [System Overview](#system-overview)
 2. [High-Level Architecture](#high-level-architecture)
-3. [Backend Architecture](#backend-architecture)
-4. [Hybrid ORM (Prisma + Drizzle)](#hybrid-orm-prisma--drizzle)
-5. [Module System](#module-system)
-6. [Authentication & Authorization](#authentication--authorization)
-7. [Real-Time Layer](#real-time-layer)
-8. [Frontend Architecture](#frontend-architecture)
-9. [Editor Module & Visual Page Builder](#editor-module--visual-page-builder)
-10. [Website Module & CMS](#website-module--cms)
-11. [Public Website (Nuxt 3)](#public-website-nuxt-3)
-12. [Request Lifecycle](#request-lifecycle)
-13. [Database Schema](#database-schema)
-14. [Planned Architecture](#planned-architecture)
+3. [Metadata-Driven Runtime Kernel](#metadata-driven-runtime-kernel)
+4. [Backend Architecture](#backend-architecture)
+5. [Hybrid ORM (Prisma + Drizzle)](#hybrid-orm-prisma--drizzle)
+6. [Module System](#module-system)
+7. [Authentication & Authorization](#authentication--authorization)
+8. [Real-Time Layer](#real-time-layer)
+9. [Frontend Architecture](#frontend-architecture)
+10. [Editor Module & Visual Page Builder](#editor-module--visual-page-builder)
+11. [Website Module & CMS](#website-module--cms)
+12. [Public Website (Nuxt 3)](#public-website-nuxt-3)
+13. [Request Lifecycle](#request-lifecycle)
+14. [Database Schema](#database-schema)
+15. [Planned Architecture](#planned-architecture)
 
 ---
 
@@ -64,8 +67,8 @@ This document describes the system architecture of the Lume Framework, covering 
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      EXPRESS.JS SERVER                            │
-│                      (Node.js 18+ ESM)                          │
+│                      NESTJS SERVER                               │
+│                      (Node.js 20.12+ TypeScript)               │
 │                                                                  │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │                  MIDDLEWARE PIPELINE                        │  │
@@ -74,10 +77,10 @@ This document describes the system architecture of the Lume Framework, covering 
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                  │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │                    MODULE SYSTEM (23 modules)              │  │
-│  │  ┌──────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌─────────┐  │  │
-│  │  │ Base │ │Security│ │ Editor │ │Website │ │Donations│  │  │
-│  │  └──┬───┘ └──┬─────┘ └──┬─────┘ └──┬─────┘ └──┬──────┘  │  │
+│  │                    MODULE SYSTEM (24 modules)              │  │
+│  │  ┌──────┐ ┌────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ │  │
+│  │  │ Base │ │Security│ │Sec Audit │ │ Editor   │ │Website │ │  │
+│  │  └──┬───┘ └──┬─────┘ └────┬─────┘ └────┬─────┘ └──┬─────┘ │  │
 │  │     │        │          │          │          │           │  │
 │  │     ▼        ▼          ▼          ▼          ▼           │  │
 │  │  ┌────────────────────────────────────────────────────┐   │  │
@@ -113,6 +116,209 @@ This document describes the system architecture of the Lume Framework, covering 
 │  └──────────────────┘    └───────────────────┘                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Metadata-Driven Runtime Kernel
+
+The Lume v2.0 runtime is built on a metadata-driven kernel that allows every entity, workflow, view, and policy to be defined declaratively at runtime. This enables powerful extensibility without code changes.
+
+### Kernel Architecture (5 Layers)
+
+```
+┌────────────────────────────────────────────────────┐
+│ Layer 4: AI + Plugins                              │
+│ AIAdapterService · PluginRegistry · Sandbox        │
+├────────────────────────────────────────────────────┤
+│ Layer 3: Data + UI                                 │
+│ DataGridEngine · ViewEngine · QueryBuilder         │
+├────────────────────────────────────────────────────┤
+│ Layer 2: Platform Capabilities                     │
+│ ModuleEngine · WorkflowEngine · PermissionEngine   │
+├────────────────────────────────────────────────────┤
+│ Layer 1: Foundation                                │
+│ EntityEngine · VersioningSystem                    │
+├────────────────────────────────────────────────────┤
+│ Layer 0: Runtime Kernel (ALL layers register here) │
+│ MetadataRegistry · ExecutionPipeline · EventBus    │
+└────────────────────────────────────────────────────┘
+```
+
+### Declarative APIs
+
+Lume provides five core declarative APIs for defining framework entities:
+
+```typescript
+// Define an entity with fields, computed properties, and hooks
+export const LeadEntity = defineEntity('Lead', {
+  name: 'Lead',
+  label: 'Sales Lead',
+  fields: {
+    firstName: { type: 'string', label: 'First Name', required: true },
+    lastName: { type: 'string', label: 'Last Name' },
+    email: { type: 'email', label: 'Email', isIndexed: true },
+    status: { type: 'select', options: ['new', 'contacted', 'qualified', 'closed'] },
+  },
+  computed: {
+    fullName: { formula: '{{firstName}} {{lastName}}' },
+    leadScore: { 
+      formula: 'IF(status=="qualified", 100, IF(status=="contacted", 50, 0))',
+      type: 'number'
+    },
+  },
+  hooks: {
+    beforeCreate: async (data, ctx) => {
+      data.status = 'new';
+      return data;
+    },
+    afterCreate: async (record, ctx) => {
+      await emit('lead.created', { lead: record });
+    },
+  },
+  permissions: {
+    read: [{ roles: ['admin', 'sales'] }],
+    write: [{ roles: ['admin', 'sales'], conditions: ['owner == $userId'] }],
+  },
+});
+
+// Define a module with entities, workflows, and views
+export const CRMModule = defineModule({
+  name: 'crm',
+  version: '1.0.0',
+  depends: ['base'],
+  entities: [LeadEntity, ContactEntity, OpportunityEntity],
+  workflows: [LeadScoringWorkflow, AutoAssignmentWorkflow],
+  permissions: ['crm.leads.read', 'crm.leads.write', 'crm.contacts.read'],
+  hooks: {
+    onInstall: async (db) => { /* migrations */ },
+  },
+});
+
+// Define a workflow with conditional logic and multiple step types
+export const LeadScoringWorkflow = defineWorkflow({
+  name: 'lead_scoring',
+  entity: 'Lead',
+  trigger: { type: 'record.updated', field: 'status' },
+  steps: [
+    {
+      type: 'condition',
+      if: { field: 'status', operator: '==', value: 'qualified' },
+      then: [
+        { type: 'set_field', field: 'leadScore', value: 100 },
+        { type: 'ai', prompt: 'Suggest next action for qualified lead', outputField: 'nextAction' },
+        { type: 'send_notification', to: 'assigned_user', template: 'lead_qualified' },
+      ],
+    },
+  ],
+});
+
+// Define an ABAC policy
+export const LeadOwnerPolicy = definePolicy({
+  name: 'lead_owner_access',
+  entity: 'Lead',
+  actions: ['read', 'update', 'delete'],
+  conditions: [{ field: 'owner', operator: '==', value: '$userId' }],
+  roles: ['sales'], // policy applies to sales role
+});
+
+// Define a view
+export const LeadKanbanView = defineView({
+  name: 'leads_kanban',
+  entity: 'Lead',
+  type: 'kanban',
+  label: 'Leads Board',
+  config: {
+    groupByField: 'status',
+    cardTitle: '{{firstName}} {{lastName}}',
+    cardDescription: '{{email}}',
+  },
+});
+```
+
+### MetadataRegistry
+
+The MetadataRegistry is a central store for all definitions:
+
+```typescript
+interface MetadataRegistry {
+  // Entity management
+  registerEntity(def: EntityDefinition): void
+  extend(entityName: string, ext: Partial<EntityDefinition>): void
+  getEntity(name: string): EntityDefinition | undefined
+  listEntities(): EntityDefinition[]
+  resolveEntity(name: string): ResolvedEntityDefinition // merges base + extensions
+
+  // Module management
+  registerModule(def: ModuleDefinition): void
+  getModule(name: string): ModuleDefinition | undefined
+  listModules(): ModuleDefinition[]
+
+  // Workflow management
+  registerWorkflow(def: WorkflowDefinition): void
+  getWorkflow(name: string): WorkflowDefinition | undefined
+  listWorkflows(entityName?: string): WorkflowDefinition[]
+
+  // Permission management
+  registerPolicy(def: PolicyDefinition): void
+  getPolicy(name: string): PolicyDefinition | undefined
+  listPolicies(entityName?: string): PolicyDefinition[]
+
+  // View management
+  registerView(def: ViewDefinition): void
+  getView(name: string): ViewDefinition | undefined
+  listViewsForEntity(entityName: string): ViewDefinition[]
+}
+```
+
+### ExecutionPipeline
+
+The ExecutionPipeline is a middleware chain for entity operations:
+
+```typescript
+type PipelineMiddleware = (ctx: ExecutionContext, next: () => Promise<any>) => Promise<any>
+
+interface ExecutionContext {
+  operation: 'create' | 'read' | 'update' | 'delete'
+  entity: string
+  data?: any
+  user: User
+  timestamp: Date
+}
+
+class ExecutionPipelineService {
+  use(middleware: PipelineMiddleware): void  // Register a middleware
+  execute(ctx: ExecutionContext): Promise<any> // Execute through all middleware
+}
+```
+
+### EventBus
+
+All framework events flow through a typed event bus:
+
+```typescript
+type LumeEvent<T> = {
+  type: string
+  data: T
+  timestamp: Date
+  userId: number
+}
+
+class EventBusService {
+  emit<T>(event: LumeEvent<T>): void
+  on<T>(eventType: string, handler: (e: LumeEvent<T>) => Promise<void>): void
+  once<T>(eventType: string, handler: (e: LumeEvent<T>) => Promise<void>): void
+  off(eventType: string, handler: Function): void
+}
+```
+
+**Built-in Events:**
+- `entity.created` — After record creation
+- `entity.updated` — After record update
+- `entity.deleted` — After record deletion
+- `workflow.started` — Workflow execution started
+- `workflow.completed` — Workflow execution completed
+- `workflow.failed` — Workflow execution failed
+- `policy.evaluated` — Permission check completed
 
 ---
 
@@ -169,7 +375,7 @@ backend/src/
 ```
 ┌────────────────────────────────────────────────────┐
 │                   API LAYER                         │
-│  Express Routes (auto-generated CRUD + custom)     │
+│  NestJS Controllers (auto-generated CRUD + custom) │
 ├────────────────────────────────────────────────────┤
 │                 SERVICE LAYER                       │
 │  BaseService (generic CRUD) + domain services      │
@@ -331,7 +537,7 @@ For each module (in order):
     │   ├── Call __init__.js initialize(context)
     │   │   ├── Create ORM adapters (Prisma or Drizzle)
     │   │   ├── Instantiate services
-    │   │   ├── Register Express routes on app
+    │   │   ├── Register NestJS controllers/routes
     │   │   └── Return { models, services }
     │   ├── Register menus from manifest
     │   ├── Register permissions from manifest
@@ -367,7 +573,7 @@ modules/{name}/
 ├── services/
 │   └── *.service.js         # Business logic classes
 │
-├── *.routes.js              # Express router factory
+├── *.controller.ts          # NestJS controller (routes & handlers)
 │
 └── static/                  # Frontend code (served via Vite @modules alias)
     ├── views/               # Vue SFC components
@@ -873,7 +1079,7 @@ BlockRenderer wraps each block in EditableBlock overlay
 Complete flow for an authenticated API request:
 
 ```
-1. HTTP Request arrives at Express
+1. HTTP Request arrives at NestJS
    │
 2. Helmet (security headers)
    │
@@ -896,7 +1102,7 @@ Complete flow for an authenticated API request:
    │
 9. Route handler (module API endpoint)
    │  ├── authorize(module, action) — permission check
-   │  ├── Input validation (express-validator)
+   │  ├── Input validation (class-validator DTOs)
    │  ├── Service method call
    │  │   ├── Adapter method (findAll, create, update, etc.)
    │  │   ├── Prisma/Drizzle query execution
@@ -938,7 +1144,7 @@ Complete flow for an authenticated API request:
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   Express    │────►│    Redis     │────►│   MySQL/PG   │
+│   NestJS     │────►│    Redis     │────►│   MySQL/PG   │
 │   Server     │     │   Cache      │     │   Database   │
 └──────────────┘     └──────────────┘     └──────────────┘
 
@@ -987,3 +1193,243 @@ StorageAdapter (abstract)
 6. **Progressive Enhancement** — Start with MySQL + local storage; add Redis, S3, PostgreSQL as needed
 7. **Visual Content Editing** — TipTap-based page builder with 30+ reusable widget blocks
 8. **SSR Public Site** — Nuxt 3 for SEO-optimized public pages, separate from admin SPA
+
+---
+
+## Entity Builder Migration Architecture
+
+### Overview
+
+The **Entity Builder System** represents a fundamental architectural shift from static database schema to dynamic, user-configurable entities. This allows end-users to create custom data structures without code changes.
+
+### Core Entity Builder Tables
+
+```
+entities (id, name, label, description, moduleId, createdBy, createdAt, updatedAt, deletedAt)
+  │
+  ├─ entity_fields (id, entityId, name, label, type, required, unique, sequence)
+  │   ├─ Types: text, number, email, url, date, select, lookup, formula, etc.
+  │   └─ Features: required, unique, defaultValue, helpText, selectOptions
+  │
+  ├─ entity_views (id, entityId, name, type, isDefault, config, createdAt, updatedAt)
+  │   ├─ Types: list, kanban, calendar, map, gallery, etc.
+  │   └─ Config: filters, sorts, grouping, column visibility, etc.
+  │
+  └─ entity_records (id, entityId, data, createdBy, createdAt, updatedAt, deletedAt)
+      └─ data: JSON object with field values
+```
+
+### Entity Record Data Storage
+
+```json
+{
+  "entity_records": {
+    "id": 1,
+    "entityId": 5,
+    "data": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "status": "active",
+      "tags": ["vip", "verified"],
+      "linkedEntity": { "id": 10, "label": "Organization" },
+      "metadata": { "source": "api", "importId": "12345" }
+    },
+    "createdBy": 1,
+    "createdAt": "2026-04-22T10:00:00Z"
+  }
+}
+```
+
+### Migration Architecture (Phase 2-4)
+
+#### Phase 1: Infrastructure (COMPLETE)
+- CI/CD pipeline with GitHub Actions
+- Docker containerization (9 services)
+- Monitoring with Prometheus + Grafana
+- Automated backups with encryption
+
+#### Phase 2: Staging Migration (PREPARED)
+```
+Legacy Tables (49+) 
+    ↓ [Auto-discovery via INFORMATION_SCHEMA]
+Entity Definitions (1 per legacy table)
+    ↓ [Column mapping]
+Entity Fields (mapping legacy columns to field types)
+    ↓ [Data transfer]
+Entity Records (legacy rows → Entity Builder records)
+    ↓ [9-point validation]
+✓ Data integrity verified
+    ↓ [30 UAT tests + 4-level load testing]
+✓ Ready for Phase 3
+```
+
+**Timeline**: 3-4 hours execution + 2-3 days testing (Week of Apr 29)
+
+#### Phase 3: Security & A/B Testing (PREPARED)
+```
+Security Validation
+├─ RBAC testing (role-based access control)
+├─ Company data isolation
+├─ Audit logging verification
+├─ Penetration testing (OWASP ZAP, SQLMap)
+└─ TLS/HTTPS configuration
+
+Extended Load Testing
+├─ Sustained 500 RPS for 8+ hours
+├─ Memory leak detection
+├─ Database connection stability
+└─ Performance metrics collection
+
+A/B Testing (Parallel Deployment)
+├─ 10% → 25% → 50% → 75% → 100% traffic shift
+├─ Comparison metrics collected
+├─ Both systems running simultaneously
+└─ Business team UAT validation
+
+Integration Testing
+├─ All 23 modules with Entity Builder
+├─ Background job processing (BullMQ)
+├─ Webhook and external integrations
+└─ Multi-entity relationships
+```
+
+**Timeline**: 5-7 days (Week of May 5)
+
+#### Phase 4: Production Go-Live (PREPARED)
+```
+Cutover Window: May 11, 02:00-06:00 UTC (4 hours)
+
+02:00 UTC: Maintenance mode enabled
+02:05 UTC: Migration script executes
+03:00 UTC: Data validation & verification
+03:30 UTC: Maintenance page removed, system online
+05:00 UTC: Users notified
+06:00 UTC: Cutover complete
+
+Post-Cutover:
+├─ 24/7 monitoring (first 48 hours)
+├─ Quick rollback capability ready
+├─ Error rate tracking
+└─ User support team active
+```
+
+**Rollback Capability**: < 60 seconds recovery time
+
+### Migration Data Flow
+
+```
+┌─────────────────────────────────────────────────────┐
+│ LEGACY SYSTEM (Staging Clone)                       │
+│ ├─ activities (1000 rows)                           │
+│ ├─ donations (500 rows)                             │
+│ ├─ team_members (200 rows)                          │
+│ └─ ... (49+ tables)                                 │
+└────────────────┬────────────────────────────────────┘
+                 │
+                 ▼ [migrate-to-entity-builder.js]
+                 │ Auto-discover tables
+                 │ Map column types
+                 │ Create Entity records
+                 │
+┌────────────────▼────────────────────────────────────┐
+│ ENTITY BUILDER (Staging)                            │
+│ ├─ Entity: activities                               │
+│ │  ├─ Fields: title, description, status, date...  │
+│ │  └─ Records: 1000 rows transferred                │
+│ ├─ Entity: donations                                │
+│ │  ├─ Fields: donor_id, amount, date...             │
+│ │  └─ Records: 500 rows transferred                 │
+│ └─ ... (49+ entities)                               │
+│                                                     │
+│ ✓ validate-migration.js confirms:                   │
+│   ├─ Entity count = legacy table count              │
+│   ├─ Record count preserved                         │
+│   ├─ Field types valid                              │
+│   ├─ No orphaned relationships                      │
+│   └─ Data integrity verified                        │
+└─────────────────────────────────────────────────────┘
+                 │
+                 ▼ [A/B Testing]
+                 │ Run both systems
+                 │ Compare behavior
+                 │ 100% traffic shift
+                 │
+┌────────────────▼────────────────────────────────────┐
+│ PRODUCTION (Live)                                   │
+│ ├─ Full Entity Builder system                       │
+│ ├─ 49+ entities live                                │
+│ └─ All features enabled                             │
+└─────────────────────────────────────────────────────┘
+```
+
+### Entity Field Type Mapping
+
+| Legacy Type | Entity Field Type | Notes |
+|------------|------------------|-------|
+| VARCHAR(255) | text | Standard text input |
+| INT | number | Integer field |
+| DECIMAL(10,2) | number | Decimal with precision |
+| DATETIME | date | Date/time picker |
+| BOOLEAN | select | Binary choice |
+| TEXT | textarea | Long text field |
+| JSON | json | Unstructured data |
+| INT (FK) | lookup | Relationship to another entity |
+
+### Validation & Testing (Phase 2)
+
+**9-Point Validation Suite**:
+1. Entity count matches legacy table count
+2. Record count preserved from each table
+3. All field types valid and mapped correctly
+4. No orphaned relationships
+5. Audit trail complete and accurate
+6. Company scoping intact (multi-tenancy)
+7. Soft deletes preserved (deleted_at)
+8. Field permissions valid
+9. Data integrity check passed
+
+**30 UAT Test Cases**:
+- Entity Management (4 tests)
+- Record Operations (4 tests)
+- Filtering & Sorting (3 tests)
+- Relationships (2 tests)
+- Views (2 tests)
+- Data Integrity (3 tests)
+- Security & Access (3 tests)
+- Performance (3 tests)
+- Error Handling (2 tests)
+- Data Export (2 tests)
+
+**Load Testing** (4 levels):
+- Level 1: 50 RPS for 1 minute
+- Level 2: 100 RPS for 5 minutes
+- Level 3: 250 RPS for 15 minutes
+- Level 4: 500 RPS for 15+ minutes (stress test)
+
+### Success Metrics
+
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Migration Duration | < 1 hour | TBD | Phase 2 |
+| Data Loss | 0 records | TBD | Phase 2 |
+| UAT Pass Rate | 30/30 (100%) | TBD | Phase 2 |
+| P95 Latency | < 500ms | TBD | Phase 2 |
+| Error Rate | < 1% | TBD | Phase 2 |
+| Rollback Time | < 60 seconds | TBD | Phase 2 |
+| Security Issues | 0 critical | TBD | Phase 3 |
+| Performance P99 | < 1000ms @ 500 RPS | TBD | Phase 3 |
+
+### Migration Documentation
+
+- **Quick Start**: `PHASE_2_QUICK_START.md` (320 lines)
+- **Detailed Guide**: `PHASE_2_STAGING_EXECUTION.md` (461 lines)
+- **Master Checklist**: `PHASE_2_MASTER_CHECKLIST.md` (477 lines)
+- **Complete Overview**: `MIGRATION_JOURNEY.md` (486 lines)
+- **Phase 3 Guide**: `PHASE_3_QUICK_START.md` (508 lines)
+
+### Automation Scripts
+
+- `scripts/staging-migration-setup.sh` — Environment preparation
+- `scripts/staging-migration-execute.sh` — Migration + validation
+- `scripts/staging-uat-tests.sh` — 30 automated test cases
+- `scripts/staging-rollback-test.sh` — Rollback verification

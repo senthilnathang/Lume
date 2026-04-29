@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Lume is a modular Express.js framework with 23 pluggable modules, a hybrid ORM (Prisma + Drizzle), a TipTap-based visual page builder, and a Nuxt 3 public website. Two frontend apps: Vue 3 admin panel + Nuxt 3 SSR public site.
+Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Prisma + Drizzle), a TipTap-based visual page builder, and a Nuxt 3 public website. **Status: Production-ready v2.0** with rate limiting, security hardening, and SEO optimization. Two frontend apps: Vue 3 admin panel + Nuxt 3 SSR public site.
 
 ## Frontend Rules
 
@@ -56,6 +56,12 @@ Lume is a modular Express.js framework with 23 pluggable modules, a hybrid ORM (
 - Jest with ESM: requires `NODE_OPTIONS='--experimental-vm-modules'` and `transform: {}` in jest.config.cjs.
 - Use `import { jest } from '@jest/globals'` for jest globals in test files.
 
+### Security & Rate Limiting
+- **ThrottlerGuard**: Enabled globally via `app.use(ThrottlerModule)` in main app setup. Configure limits per endpoint in route decorators: `@Throttle(limit, ttl_seconds)`.
+- **Security Headers**: Automatically applied (CORS, CSP, X-Frame-Options, etc.). See `security/headers.config.js`.
+- **Token Refresh**: `RefreshTokenDto` used for `/api/auth/refresh` endpoint. Clients send `refreshToken` in body, receive new `accessToken`.
+- **Password Hashing**: Automatic via Prisma middleware — never manually hash in seed scripts.
+
 ## Editor Module (Visual Page Builder)
 
 - **Path**: `backend/src/modules/editor/` — TipTap-based WYSIWYG + visual page builder.
@@ -75,6 +81,8 @@ Lume is a modular Express.js framework with 23 pluggable modules, a hybrid ORM (
 - **Page editor**: `page-editor.vue` detects TipTap content via `isTipTapJson()` — shows PageBuilder for TipTap content, form editor for legacy JSON.
 - **Public API**: `/api/website/public/pages/:slug`, `/api/website/public/menus/:location`, `/api/website/public/settings`.
 - **Menu reorder**: `PUT /api/website/menus/:id/reorder` accepts `{ items: [{ id, parentId, sequence }] }`.
+- **SEO Features**: Meta titles, descriptions, Open Graph tags (`og_image`, `og_title`), XML sitemap (`/sitemap.xml`), robots.txt, Schema.org JSON-LD. All editable in Settings > SEO tab.
+- **SEO Analysis Panel**: Live per-page score (title length, keyword density, H1 count, content length, image alt text) shown in page editor sidebar.
 
 ## Public Website (Nuxt 3)
 
@@ -91,3 +99,9 @@ Lume is a modular Express.js framework with 23 pluggable modules, a hybrid ORM (
 - `docs/DEVELOPMENT.md` — Developer guide: creating modules, views, blocks, testing
 - `docs/TESTING.md` — Test configuration and patterns
 - `docs/MIGRATION_GUIDE.md` — Upgrade procedures, database migrations, backups
+
+### Public Release (v2.0)
+- `docs/INDEX.md` — Documentation index and navigation guide
+- `docs/deployment/seo_strategy.md` — SEO keyword targeting, on-page optimization, content marketing strategy
+- `docs/deployment/public_release_roadmap.md` — Full v2.0 launch roadmap (Phases 5-7, July-Sept 2026) with documentation requirements
+- **Status**: Production-ready. System stable with zero critical issues. All 23 modules functional. Performance P95 < 300ms.

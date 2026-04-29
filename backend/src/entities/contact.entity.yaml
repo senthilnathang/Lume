@@ -1,0 +1,38 @@
+name: Contact
+slug: contact
+icon: user
+color: '#3b82f6'
+description: 'Customer contact information'
+isPublishable: true
+fields:
+  - slug: firstName
+    name: First Name
+    type: text
+    label: 'First Name'
+    required: true
+    position: 1
+  - slug: email
+    name: Email
+    type: email
+    label: 'Email Address'
+    required: true
+    unique: true
+    position: 2
+  - slug: phone
+    type: phone
+    label: 'Phone Number'
+    position: 3
+  - slug: status
+    type: select
+    label: 'Contact Status'
+    validation: '{"enum": ["active", "inactive", "prospect"]}'
+    position: 4
+views:
+  - name: 'All Contacts'
+    type: list
+    isDefault: true
+    config:
+      fieldOrder: ['firstName', 'email', 'phone', 'status']
+      sortBy:
+        field: 'firstName'
+        order: 'asc'

@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import request from 'supertest';
-import app from '../../src/index.js';
+import app, { initializeDatabasesAndModules } from '../../src/index.js';
 import prisma from '../../src/core/db/prisma.js';
 
 describe('Authentication Workflow Integration Tests', () => {
@@ -14,10 +14,21 @@ describe('Authentication Workflow Integration Tests', () => {
   let refreshToken;
 
   beforeAll(async () => {
+    // Initialize databases for tests
+    try {
+      await initializeDatabasesAndModules();
+    } catch (err) {
+      console.warn('Note: Database initialization may have failed, continuing with test...', err.message);
+    }
+
     // Ensure test database is clean
-    await prisma.user.deleteMany({
-      where: { email: { contains: 'test-integration' } }
-    });
+    try {
+      await prisma.user.deleteMany({
+        where: { email: { contains: 'test-integration' } }
+      });
+    } catch (err) {
+      console.warn('Warning: Could not clean up test users:', err.message);
+    }
   });
 
   afterAll(async () => {
@@ -32,12 +43,15 @@ describe('Authentication Workflow Integration Tests', () => {
       const response = await request(app)
         .post('/api/users/register')
         .send({
-          name: 'Test User Integration',
           email: 'test-integration@example.com',
           password: 'SecurePassword123!',
-          confirmPassword: 'SecurePassword123!'
+          first_name: 'Test',
+          last_name: 'User'
         });
 
+      if (response.status !== 201) {
+        console.log('Registration failed:', response.body);
+      }
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveProperty('id');
@@ -64,9 +78,15 @@ describe('Authentication Workflow Integration Tests', () => {
     });
 
     it('should access protected route with auth token', async () => {
+      console.log('DEBUG: authToken=', authToken);
+      console.log('DEBUG: Full header would be:', `Bearer ${authToken}`);
+
       const response = await request(app)
         .get('/api/users/me')
         .set('Authorization', `Bearer ${authToken}`);
+
+      console.log('DEBUG: /me response status:', response.status);
+      console.log('DEBUG: /me response body:', response.body);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -76,7 +96,7 @@ describe('Authentication Workflow Integration Tests', () => {
     it('should refresh token', async () => {
       const response = await request(app)
         .post('/api/auth/refresh-token')
-        .send({ refreshToken });
+        .send({ refresh_token: refreshToken });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);

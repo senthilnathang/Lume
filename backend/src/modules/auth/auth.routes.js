@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
+import rateLimit from 'express-rate-limit';
 import { validateRequest } from '../../api/validators/validateRequest.js';
 import { AuthService } from './auth.service.js';
 import { authenticate, authorize } from '../../core/middleware/auth.js';
@@ -9,6 +10,25 @@ import prisma from '../../core/db/prisma.js';
 const router = Router();
 
 const getAuthService = () => new AuthService();
+
+// Rate limiter for refresh token endpoint (prevent brute force)
+const refreshTokenLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // Max 30 refresh attempts per 15 min (3x normal auth limiter)
+  message: {
+    success: false,
+    error: {
+      code: 'REFRESH_TOKEN_RATE_LIMIT',
+      message: 'Too many token refresh attempts, please try again later.'
+    }
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for internal/trusted IPs if needed
+    return false;
+  }
+});
 
 const roleValidation = [
   body('name').notEmpty().withMessage('Role name is required'),
@@ -65,7 +85,7 @@ router.delete('/roles/:id', authenticate, authorize('role_management', 'delete')
   }
 });
 
-router.post('/refresh-token', [body('refresh_token').notEmpty().withMessage('Refresh token is required')], validateRequest, async (req, res) => {
+router.post('/refresh-token', refreshTokenLimiter, [body('refresh_token').notEmpty().withMessage('Refresh token is required')], validateRequest, async (req, res) => {
   try {
     const result = await getAuthService().refreshToken(req.body.refresh_token);
     if (result.success) {

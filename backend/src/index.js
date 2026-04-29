@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import path from 'path';
 
 import { responseUtil, jwtUtil } from './shared/utils/index.js';
 import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
@@ -37,14 +38,32 @@ config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
 
 // ─── Security: JWT Secret Validation ─────────────────────────────────────────
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'jwt-secret') {
-  console.warn('⚠️  WARNING: JWT_SECRET is not set or uses default value. Set a strong secret in production!');
+  if (isProduction) {
+    console.error('❌ FATAL: JWT_SECRET is not set or uses default value. This is a security vulnerability in production!');
+    console.error('   Set JWT_SECRET to a random 32+ character string in your .env file');
+    console.error('   Example: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+    process.exit(1);
+  } else {
+    console.warn('⚠️  WARNING: JWT_SECRET is not set or uses default value. Set a strong secret before deploying to production!');
+  }
+}
+
+// ─── Security: Additional Secret Validation ─────────────────────────────────
+if (isProduction && (!process.env.JWT_REFRESH_SECRET || process.env.JWT_REFRESH_SECRET === 'your-refresh-secret-change-in-production')) {
+  console.error('❌ FATAL: JWT_REFRESH_SECRET is not set or uses default value!');
+  process.exit(1);
+}
+
+if (isProduction && (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'your-session-secret-change-in-production')) {
+  console.error('❌ FATAL: SESSION_SECRET is not set or uses default value!');
+  process.exit(1);
 }
 
 // ─── Security: Rate Limiting ─────────────────────────────────────────────────
-const isProduction = process.env.NODE_ENV === 'production';
 const enableRateLimit = isProduction || process.env.ENABLE_RATE_LIMIT === 'true';
 
 const limiter = enableRateLimit ? rateLimit({
@@ -85,10 +104,22 @@ app.use(helmet({
 }));
 
 // ─── Security: CORS ──────────────────────────────────────────────────────────
-const corsEnv = process.env.CORS_ORIGIN || (isProduction ? '' : '*');
+// In production, CORS_ORIGIN MUST be explicitly set (no default to '*' or '')
+// In development, default to common localhost ports for frontend apps
+const defaultCorsOrigins = isProduction
+  ? '' // Production requires explicit env var
+  : 'http://localhost:5173,http://localhost:5174,http://localhost:3100,http://localhost:3004';
+
+const corsEnv = process.env.CORS_ORIGIN || defaultCorsOrigins;
+
+// Validate CORS in production
+if (isProduction && !process.env.CORS_ORIGIN) {
+  console.warn('⚠️  WARNING: CORS_ORIGIN not set in production. Defaulting to no CORS origins (only same-origin requests).');
+}
+
 // Support comma-separated origins (e.g. "http://localhost:5173,http://localhost:3100")
 const corsOrigin = corsEnv === '*' ? true : corsEnv.includes(',')
-  ? corsEnv.split(',').map(o => o.trim())
+  ? corsEnv.split(',').map(o => o.trim()).filter(o => o)
   : corsEnv || false;
 app.use(cors({
   origin: corsOrigin,
@@ -691,7 +722,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
 });
 
 // Mount core module routes (users, auth, etc.)
-app.use('/api/users', (await import('./modules/user/index.js')).userRoutes);
+app.use('/api/users', authLimiter, (await import('./modules/user/index.js')).userRoutes);
 app.use('/api/auth', authLimiter, (await import('./modules/auth/index.js')).authRoutes);
 
 // Mount other module routes
@@ -728,11 +759,9 @@ app.use('/api/search', (await import('./core/api/search.js')).default);
 // Error handling — registered after module system init in startServer()
 // (moved to end of startServer so module-registered routes aren't shadowed)
 
-// Start server
-const startServer = async () => {
+// Initialize databases and modules (can be called before startServer for testing)
+export const initializeDatabasesAndModules = async () => {
   try {
-    console.log('🚀 Starting Lume Modular Backend...');
-
     // Initialize Prisma (core tables)
     await prisma.$connect();
     console.log('✅ Prisma connected (core tables)');
@@ -741,11 +770,56 @@ const startServer = async () => {
     await initDrizzle();
     console.log('✅ Drizzle connected (module tables)');
 
+    return true;
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error.message);
+    throw error;
+  }
+};
+
+// Start server
+const startServer = async () => {
+  try {
+    console.log('🚀 Starting Lume Modular Backend...');
+
+    // Initialize databases and modules
+    await initializeDatabasesAndModules();
+
     // Initialize module system (base module creates models, services, routes via __init__.js)
     const modulesDir = join(__dirname, 'modules');
     const moduleContext = { app };
     await initializeModuleSystem(modulesDir, moduleContext);
     console.log('✅ Module system initialized');
+
+    // Initialize entity sync service (code-first loading of entity definitions)
+    try {
+      const { SyncService } = await import('./core/services/sync.service.js');
+      const { DrizzleAdapter } = await import('./core/db/adapters/drizzle-adapter.js');
+      const { EntityService } = await import('./core/services/entity.service.js');
+      const { getDrizzle } = await import('./core/db/drizzle.js');
+      const { customEntities, entityFields, entityViews, entitySyncHistory } = await import('./modules/base/models/schema.js');
+
+      const db = getDrizzle();
+      const entityAdapter = new DrizzleAdapter(customEntities);
+      const fieldsAdapter = new DrizzleAdapter(entityFields);
+      const entityService = new EntityService(entityAdapter, fieldsAdapter);
+      const syncService = new SyncService(entityService, db, entityViews, entitySyncHistory);
+
+      const entitiesDir = path.join(__dirname, 'entities');
+      const codeDefs = await syncService.loadCodeDefinitions(entitiesDir);
+
+      if (codeDefs.length > 0) {
+        const syncResult = await syncService.syncToDb(codeDefs);
+        console.log(`✅ Entity sync complete: ${syncResult.created} created, ${syncResult.updated} updated`);
+        if (syncResult.errors.length > 0) {
+          console.warn('⚠️  Entity sync errors:', syncResult.errors);
+        }
+      } else {
+        console.log('ℹ️  No entity definitions found to sync');
+      }
+    } catch (error) {
+      console.warn('⚠️  Entity sync skipped or failed:', error.message);
+    }
 
     // Sync module state to installed_modules table via Prisma
     for (const mod of getAllModules()) {
@@ -786,6 +860,26 @@ const startServer = async () => {
     app.use(errorTracker);  // Track errors for observability
     app.use(errorHandler);
 
+    // Initialize BullMQ job queues
+    try {
+      const { initializeQueues } = await import('./core/queue/queue-init.js');
+      await initializeQueues();
+      console.log('✅ Job queue system initialized');
+
+      // Setup Bull Board UI dashboard
+      try {
+        const { setupBullBoard, getBullBoardAdapter } = await import('./core/queue/bull-board-setup.js');
+        setupBullBoard();
+        const bullBoardAdapter = getBullBoardAdapter();
+        app.use('/admin/queues', bullBoardAdapter.getRouter());
+        console.log('✅ Bull Board UI available at http://localhost:3000/admin/queues');
+      } catch (bbErr) {
+        console.warn('⚠️ Bull Board UI setup skipped:', bbErr.message);
+      }
+    } catch (queueErr) {
+      console.warn('⚠️ Queue system initialization failed:', queueErr.message);
+    }
+
     // Create HTTP server and initialize WebSocket
     const server = createServer(app);
 
@@ -804,15 +898,38 @@ const startServer = async () => {
       console.log(`║  Server:        http://localhost:${PORT}                  ║`);
       console.log(`║  API Base:      http://localhost:${PORT}/api               ║`);
       console.log(`║  WebSocket:     ws://localhost:${PORT}/ws                  ║`);
+      console.log(`║  Job Queues:    http://localhost:${PORT}/admin/queues      ║`);
       console.log(`║  Modules:       ${String(getAllModules().length).padEnd(28)}║`);
       console.log(`╚════════════════════════════════════════════════════════════╝\n`);
     });
+
+    // Graceful shutdown for queues on process termination
+    const gracefulShutdown = async (signal) => {
+      console.log(`\n⏹️  Received ${signal}, shutting down gracefully...`);
+      try {
+        const { shutdownQueues } = await import('./core/queue/queue-init.js');
+        await shutdownQueues();
+      } catch (err) {
+        console.warn('⚠️ Queue shutdown warning:', err.message);
+      }
+      server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+      });
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };
 
-startServer();
+// Only start server if this file is run directly (not imported for testing)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  startServer();
+}
 
 export default app;
+export { startServer };

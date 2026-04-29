@@ -1,0 +1,165 @@
+version: '3.9'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: lume-staging-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-lume_staging}
+      MYSQL_USER: ${MYSQL_USER:-lume_staging}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-staging123}
+    volumes:
+      - mysql_data_staging:/var/lib/mysql
+      - ./scripts/db-init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lume_staging
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: lume-staging-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-staging123}
+    volumes:
+      - redis_data_staging:/data
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lume_staging
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lume-staging-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: staging
+      PORT: 3000
+      DATABASE_URL: mysql://lume_staging:${MYSQL_PASSWORD:-staging123}@mysql:3306/lume_staging
+      REDIS_URL: redis://:${REDIS_PASSWORD:-staging123}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-staging-secret-key-min-32-chars}
+      SESSION_SECRET: ${SESSION_SECRET:-staging-session-key-min-32}
+      LOG_LEVEL: debug
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/logs:/app/logs
+      - lume_storage_staging:/var/lume/storage
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/api/base/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - lume_staging
+
+  # Frontend Admin Panel
+  frontend:
+    build:
+      context: ./frontend/apps/web-lume
+      dockerfile: Dockerfile
+    container_name: lume-staging-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: https://staging.lume.dev/api
+      NODE_ENV: staging
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/apps/web-lume/src:/app/src
+    networks:
+      - lume_staging
+
+  # Nginx Reverse Proxy & Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: lume-staging-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.staging.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl/staging:/etc/nginx/ssl:ro
+      - nginx_logs_staging:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - lume_staging
+
+  # BullMQ Monitoring Dashboard
+  bull-board:
+    image: node:20-alpine
+    container_name: lume-staging-bull-board
+    restart: unless-stopped
+    working_dir: /app
+    command: npm run bull-board
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD:-staging123}@redis:6379/0
+      PORT: 3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app
+    networks:
+      - lume_staging
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lume-staging-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.staging.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_staging:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - lume_staging
+
+volumes:
+  mysql_data_staging:
+    driver: local
+  redis_data_staging:
+    driver: local
+  lume_storage_staging:
+    driver: local
+  nginx_logs_staging:
+    driver: local
+  prometheus_data_staging:
+    driver: local
+
+networks:
+  lume_staging:
+    driver: bridge

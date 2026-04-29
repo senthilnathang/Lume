@@ -105,17 +105,32 @@ export const authenticate = async (req, res, next) => {
       return res.status(403).json(responseUtil.forbidden(MESSAGES.ACCOUNT_DEACTIVATED));
     }
 
-    // Validate session is still active
+    // Validate session is still active (required in production)
+    const isProduction = process.env.NODE_ENV === 'production';
     try {
       const sessAdapter = await getSessionAdapter();
       const session = await sessAdapter.findOne([['token', '=', token], ['status', '=', 'active']]);
-      if (session) {
+      if (!session) {
+        // Session not found or revoked
+        if (isProduction) {
+          // In production, require active session (prevents use of revoked tokens)
+          return res.status(401).json(responseUtil.unauthorized('Session not found or revoked. Please log in again.'));
+        }
+        // In development, allow backward compatibility for tokens issued before sessions table existed
+      } else {
         // Update last activity (fire-and-forget)
         sessAdapter.update(session.id, { lastActivityAt: new Date() }).catch(() => {});
       }
-      // Note: if no session record found, we still allow access (backward compat for tokens issued before sessions)
     } catch (err) {
-      // Session validation is non-blocking — don't reject auth if session table fails
+      // Session validation failure
+      if (isProduction) {
+        // In production, fail closed (don't allow auth if we can't verify session)
+        console.error('Session validation error (production, failing closed):', err.message);
+        return res.status(503).json(responseUtil.error('Session service unavailable. Please try again later.'));
+      } else {
+        // In development, continue (may be new table, backward compat)
+        console.warn('Session validation warning (development, continuing):', err.message);
+      }
     }
 
     // Look up role name from roles table via FK

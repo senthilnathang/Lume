@@ -1,0 +1,1642 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model activities {
+  id                Int                @id @default(autoincrement())
+  title             String             @db.VarChar(255)
+  slug              String             @unique(map: "slug") @db.VarChar(255)
+  description       String?            @db.Text
+  short_description String?            @db.VarChar(500)
+  category          String?            @db.VarChar(100)
+  status            activities_status? @default(draft)
+  start_date        DateTime?          @db.DateTime(0)
+  end_date          DateTime?          @db.DateTime(0)
+  location          String?            @db.VarChar(255)
+  cover_image       String?            @db.VarChar(500)
+  gallery           String?            @db.LongText
+  capacity          Int?
+  registered_count  Int?               @default(0)
+  is_featured       Boolean?           @default(false)
+  metadata          String?            @db.LongText
+  created_by        Int?
+  published_at      DateTime?          @db.DateTime(0)
+  created_at        DateTime           @default(now()) @db.DateTime(0)
+  updated_at        DateTime           @default(now()) @updatedAt @db.DateTime(0)
+  users             User?              @relation(fields: [created_by], references: [id], map: "activities_ibfk_1")
+
+  @@index([category], map: "activities_category")
+  @@index([is_featured], map: "activities_is_featured")
+  @@index([slug], map: "activities_slug")
+  @@index([start_date], map: "activities_start_date")
+  @@index([status], map: "activities_status")
+  @@index([created_by], map: "created_by")
+}
+
+model api_keys {
+  id           Int              @id @default(autoincrement())
+  name         String           @db.VarChar(100)
+  key          String           @unique(map: "key") @db.VarChar(255)
+  prefix       String           @db.VarChar(20)
+  user_id      Int?
+  expires_at   DateTime?        @db.DateTime(0)
+  last_used_at DateTime?        @db.DateTime(0)
+  status       api_keys_status? @default(active)
+  scopes       String?          @db.LongText
+  created_at   DateTime         @default(now()) @db.DateTime(0)
+  updated_at   DateTime         @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model attachments {
+  id              Int      @id @default(autoincrement())
+  file_name       String   @db.VarChar(255)
+  file_path       String   @db.VarChar(500)
+  file_size       Int?
+  mime_type       String?  @db.VarChar(100)
+  attachable_type String   @db.VarChar(100)
+  attachable_id   Int
+  uploaded_by     Int?
+  created_at      DateTime @default(now()) @db.DateTime(0)
+  updated_at      DateTime @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model AuditLog {
+  id        Int               @id @default(autoincrement())
+  action    audit_logs_action
+  model     String?           @db.VarChar(100)
+  recordId  String?           @map("record_id") @db.VarChar(100)
+  oldValues String?           @map("old_values") @db.LongText
+  newValues String?           @map("new_values") @db.LongText
+  userId    Int?              @map("user_id")
+  ipAddress String?           @map("ip_address") @db.VarChar(45)
+  userAgent String?           @map("user_agent") @db.Text
+  createdAt DateTime?         @map("created_at") @db.DateTime(0)
+  updatedAt DateTime?         @map("updated_at") @db.DateTime(0)
+
+  @@index([action], map: "audit_logs_action")
+  @@index([userId], map: "audit_logs_user_id")
+  @@map("audit_logs")
+}
+
+model automation_approval_chains {
+  id          Int                                @id @default(autoincrement())
+  name        String                             @db.VarChar(100)
+  model       String                             @db.VarChar(100)
+  description String?                            @db.Text
+  steps       String?                            @db.LongText
+  condition   String?                            @db.LongText
+  status      automation_approval_chains_status? @default(active)
+  created_at  DateTime                           @default(now()) @db.DateTime(0)
+  updated_at  DateTime                           @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model automation_assignment_rules {
+  id          Int                                    @id @default(autoincrement())
+  name        String                                 @db.VarChar(100)
+  model       String                                 @db.VarChar(100)
+  description String?                                @db.Text
+  assign_to   automation_assignment_rules_assign_to? @default(user)
+  assignee_id Int?
+  condition   String?                                @db.LongText
+  priority    Int?                                   @default(10)
+  status      automation_assignment_rules_status?    @default(active)
+  created_at  DateTime                               @default(now()) @db.DateTime(0)
+  updated_at  DateTime                               @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model automation_business_rules {
+  id          Int                               @id @default(autoincrement())
+  name        String                            @db.VarChar(100)
+  model       String                            @db.VarChar(100)
+  field       String                            @db.VarChar(100)
+  description String?                           @db.Text
+  condition   String?                           @db.LongText
+  action      String?                           @db.LongText
+  priority    Int?                              @default(10)
+  status      automation_business_rules_status? @default(active)
+  created_at  DateTime                          @default(now()) @db.DateTime(0)
+  updated_at  DateTime                          @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model automation_flows {
+  id          Int                       @id @default(autoincrement())
+  name        String                    @db.VarChar(100)
+  model       String                    @db.VarChar(100)
+  description String?                   @db.Text
+  nodes       String?                   @db.LongText
+  edges       String?                   @db.LongText
+  trigger     automation_flows_trigger? @default(manual)
+  status      automation_flows_status?  @default(draft)
+  created_at  DateTime                  @default(now()) @db.DateTime(0)
+  updated_at  DateTime                  @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model automation_rollup_fields {
+  id               Int                                 @id @default(autoincrement())
+  name             String                              @db.VarChar(100)
+  parent_model     String                              @db.VarChar(100)
+  child_model      String                              @db.VarChar(100)
+  rollup_field     String                              @db.VarChar(100)
+  target_field     String                              @db.VarChar(100)
+  operation        automation_rollup_fields_operation? @default(sum)
+  filter_condition String?                             @db.LongText
+  description      String?                             @db.Text
+  status           automation_rollup_fields_status?    @default(active)
+  created_at       DateTime                            @default(now()) @db.DateTime(0)
+  updated_at       DateTime                            @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model automation_scheduled_actions {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(100)
+  model           String?   @db.VarChar(100)
+  description     String?   @db.Text
+  action_type     String?   @default("code") @db.VarChar(30)
+  config          String?   @db.LongText
+  cron_expression String?   @db.VarChar(100)
+  interval        Int?
+  interval_unit   String?   @default("hours") @db.VarChar(20)
+  last_run_at     DateTime? @db.DateTime(0)
+  next_run_at     DateTime? @db.DateTime(0)
+  status          String?   @default("active") @db.VarChar(20)
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model automation_validation_rules {
+  id            Int                                    @id @default(autoincrement())
+  name          String                                 @db.VarChar(100)
+  model         String                                 @db.VarChar(100)
+  field         String?                                @db.VarChar(100)
+  description   String?                                @db.Text
+  rule_type     automation_validation_rules_rule_type? @default(required)
+  config        String?                                @db.LongText
+  error_message String?                                @db.VarChar(255)
+  priority      Int?                                   @default(10)
+  status        automation_validation_rules_status?    @default(active)
+  created_at    DateTime                               @default(now()) @db.DateTime(0)
+  updated_at    DateTime                               @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model automation_workflows {
+  id            Int                          @id @default(autoincrement())
+  name          String                       @db.VarChar(100)
+  model         String                       @db.VarChar(100)
+  description   String?                      @db.Text
+  states        String?                      @db.LongText
+  transitions   String?                      @db.LongText
+  initial_state String?                      @db.VarChar(50)
+  status        automation_workflows_status? @default(draft)
+  created_at    DateTime                     @default(now()) @db.DateTime(0)
+  updated_at    DateTime                     @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model backups {
+  id         Int             @id @default(autoincrement())
+  name       String          @db.VarChar(255)
+  type       backups_type?   @default(full)
+  file_path  String?         @db.VarChar(500)
+  file_size  BigInt?
+  tables     String?         @db.LongText
+  status     backups_status? @default(pending)
+  created_by Int?
+  created_at DateTime        @default(now()) @db.DateTime(0)
+  updated_at DateTime        @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model campaigns {
+  id            Int               @id @default(autoincrement())
+  name          String            @db.VarChar(255)
+  slug          String            @unique(map: "slug") @db.VarChar(255)
+  description   String?           @db.Text
+  goal_amount   Decimal?          @db.Decimal(12, 2)
+  raised_amount Decimal?          @default(0.00) @db.Decimal(12, 2)
+  start_date    DateTime?         @db.DateTime(0)
+  end_date      DateTime?         @db.DateTime(0)
+  status        campaigns_status? @default(draft)
+  cover_image   String?           @db.VarChar(500)
+  is_featured   Boolean?          @default(false)
+  metadata      String?           @db.LongText
+  created_at    DateTime          @default(now()) @db.DateTime(0)
+  updated_at    DateTime          @default(now()) @updatedAt @db.DateTime(0)
+  donations     donations[]
+
+  @@index([slug], map: "campaigns_slug")
+  @@index([status], map: "campaigns_status")
+}
+
+model comments {
+  id               Int      @id @default(autoincrement())
+  body             String   @db.Text
+  commentable_type String   @db.VarChar(100)
+  commentable_id   Int
+  parent_id        Int?
+  user_id          Int
+  created_at       DateTime @default(now()) @db.DateTime(0)
+  updated_at       DateTime @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model custom_fields {
+  id            Int                       @id @default(autoincrement())
+  name          String                    @db.VarChar(100)
+  label         String                    @db.VarChar(100)
+  model         String                    @db.VarChar(100)
+  field_type    custom_fields_field_type? @default(text)
+  options       String?                   @db.LongText
+  default_value String?                   @db.VarChar(255)
+  required      Boolean?                  @default(false)
+  unique        Boolean?                  @default(false)
+  help_text     String?                   @db.VarChar(255)
+  placeholder   String?                   @db.VarChar(255)
+  sequence      Int?                      @default(10)
+  group         String?                   @db.VarChar(100)
+  status        custom_fields_status?     @default(active)
+  created_at    DateTime                  @default(now()) @db.DateTime(0)
+  updated_at    DateTime                  @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model custom_views {
+  id         Int                     @id @default(autoincrement())
+  name       String                  @db.VarChar(100)
+  model      String                  @db.VarChar(100)
+  view_type  custom_views_view_type? @default(list)
+  config     String?                 @db.LongText
+  filters    String?                 @db.LongText
+  sort_by    String?                 @db.LongText
+  columns    String?                 @db.LongText
+  is_default Boolean?                @default(false)
+  is_shared  Boolean?                @default(false)
+  created_by Int?
+  status     custom_views_status?    @default(active)
+  created_at DateTime                @default(now()) @db.DateTime(0)
+  updated_at DateTime                @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model dashboard_widgets {
+  id               Int                            @id @default(autoincrement())
+  name             String                         @db.VarChar(100)
+  widget_type      dashboard_widgets_widget_type? @default(counter)
+  model            String?                        @db.VarChar(100)
+  config           String?                        @db.LongText
+  position         String?                        @db.LongText
+  refresh_interval Int?                           @default(0)
+  roles            String?                        @db.LongText
+  status           dashboard_widgets_status?      @default(active)
+  created_at       DateTime                       @default(now()) @db.DateTime(0)
+  updated_at       DateTime                       @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model data_exports {
+  id           Int                  @id @default(autoincrement())
+  name         String               @db.VarChar(255)
+  model        String               @db.VarChar(100)
+  filters      String?              @db.LongText
+  fields       String?              @db.LongText
+  format       data_exports_format? @default(csv)
+  file_path    String?              @db.VarChar(500)
+  file_size    Int?
+  record_count Int?                 @default(0)
+  status       data_exports_status? @default(pending)
+  exported_by  Int?
+  created_at   DateTime             @default(now()) @db.DateTime(0)
+  updated_at   DateTime             @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model data_imports {
+  id             Int                  @id @default(autoincrement())
+  name           String               @db.VarChar(255)
+  model          String               @db.VarChar(100)
+  file_name      String?              @db.VarChar(255)
+  file_path      String?              @db.VarChar(500)
+  mapping        String?              @db.LongText
+  total_rows     Int?                 @default(0)
+  processed_rows Int?                 @default(0)
+  success_rows   Int?                 @default(0)
+  failed_rows    Int?                 @default(0)
+  errors         String?              @db.LongText
+  status         data_imports_status? @default(pending)
+  imported_by    Int?
+  created_at     DateTime             @default(now()) @db.DateTime(0)
+  updated_at     DateTime             @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model documents {
+  id            Int             @id @default(autoincrement())
+  title         String          @db.VarChar(255)
+  filename      String          @db.VarChar(255)
+  original_name String?         @db.VarChar(255)
+  mime_type     String?         @db.VarChar(100)
+  size          Int?
+  type          documents_type? @default(document)
+  category      String?         @db.VarChar(100)
+  path          String          @db.VarChar(500)
+  url           String?         @db.VarChar(500)
+  description   String?         @db.Text
+  tags          String?         @db.LongText
+  uploaded_by   Int?
+  is_public     Boolean?        @default(false)
+  downloads     Int?            @default(0)
+  metadata      String?         @db.LongText
+  created_at    DateTime        @default(now()) @db.DateTime(0)
+  updated_at    DateTime        @default(now()) @updatedAt @db.DateTime(0)
+  users         User?           @relation(fields: [uploaded_by], references: [id], map: "documents_ibfk_1")
+
+  @@index([category], map: "documents_category")
+  @@index([is_public], map: "documents_is_public")
+  @@index([type], map: "documents_type")
+  @@index([uploaded_by], map: "documents_uploaded_by")
+}
+
+model donations {
+  id              Int                       @id @default(autoincrement())
+  donor_id        Int?
+  amount          Decimal                   @db.Decimal(10, 2)
+  currency        String?                   @default("USD") @db.VarChar(3)
+  status          donations_status?         @default(pending)
+  payment_method  donations_payment_method?
+  transaction_id  String?                   @db.VarChar(255)
+  payment_gateway String?                   @db.VarChar(50)
+  campaign_id     Int?
+  activity_id     Int?
+  designation     String?                   @db.VarChar(255)
+  is_recurring    Boolean?                  @default(false)
+  frequency       donations_frequency?      @default(one_time)
+  receipt_sent    Boolean?                  @default(false)
+  receipt_sent_at DateTime?                 @db.DateTime(0)
+  notes           String?                   @db.Text
+  anonymous       Boolean?                  @default(false)
+  metadata        String?                   @db.LongText
+  created_at      DateTime                  @default(now()) @db.DateTime(0)
+  updated_at      DateTime                  @default(now()) @updatedAt @db.DateTime(0)
+  donors          donors?                   @relation(fields: [donor_id], references: [id], map: "donations_ibfk_1")
+  campaigns       campaigns?                @relation(fields: [campaign_id], references: [id], map: "donations_ibfk_2")
+
+  @@index([campaign_id], map: "campaign_id")
+  @@index([created_at], map: "donations_created_at")
+  @@index([donor_id], map: "donations_donor_id")
+  @@index([status], map: "donations_status")
+  @@index([transaction_id], map: "donations_transaction_id")
+}
+
+model donors {
+  id            Int         @id @default(autoincrement())
+  first_name    String      @db.VarChar(100)
+  last_name     String      @db.VarChar(100)
+  email         String      @db.VarChar(255)
+  phone         String?     @db.VarChar(20)
+  address       String?     @db.Text
+  city          String?     @db.VarChar(100)
+  state         String?     @db.VarChar(100)
+  country       String?     @db.VarChar(100)
+  postal_code   String?     @db.VarChar(20)
+  is_anonymous  Boolean?    @default(false)
+  is_subscribed Boolean?    @default(true)
+  notes         String?     @db.Text
+  metadata      String?     @db.LongText
+  created_at    DateTime    @default(now()) @db.DateTime(0)
+  updated_at    DateTime    @default(now()) @updatedAt @db.DateTime(0)
+  donations     donations[]
+
+  @@index([email], map: "donors_email")
+  @@index([first_name, last_name], map: "donors_first_name_last_name")
+}
+
+model feature_flags {
+  id           Int       @id @default(autoincrement())
+  name         String    @unique(map: "name") @db.VarChar(100)
+  key          String    @unique(map: "key") @db.VarChar(100)
+  description  String?   @db.Text
+  enabled      Boolean?  @default(false)
+  enabled_for  String?   @db.LongText
+  disabled_for String?   @db.LongText
+  config       String?   @db.LongText
+  expires_at   DateTime? @db.DateTime(0)
+  sequence     Int?      @default(10)
+  created_at   DateTime  @default(now()) @db.DateTime(0)
+  updated_at   DateTime  @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model form_layouts {
+  id         Int                  @id @default(autoincrement())
+  name       String               @db.VarChar(100)
+  model      String               @db.VarChar(100)
+  layout     String?              @db.LongText
+  is_default Boolean?             @default(false)
+  status     form_layouts_status? @default(active)
+  created_at DateTime             @default(now()) @db.DateTime(0)
+  updated_at DateTime             @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model Group {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique(map: "name") @db.VarChar(100)
+  description String?   @db.Text
+  isActive    Boolean?  @default(true) @map("is_active")
+  createdAt   DateTime? @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime? @map("updated_at") @db.DateTime(0)
+
+  @@map("groups")
+}
+
+model InstalledModule {
+  id            Int                     @id @default(autoincrement())
+  name          String                  @unique(map: "name") @db.VarChar(100)
+  displayName   String                  @map("display_name") @db.VarChar(200)
+  version       String                  @default("1.0.0") @db.VarChar(50)
+  state         installed_modules_state @default(uninstalled)
+  depends       String                  @db.LongText
+  manifestCache String?                 @map("manifest_cache") @db.LongText
+  modulePath    String?                 @map("module_path") @db.VarChar(500)
+  installedAt   DateTime?               @map("installed_at") @db.DateTime(0)
+  updatedAt     DateTime?               @map("updated_at") @db.DateTime(0)
+  sequence      Int?
+  createdAt     DateTime?               @map("created_at") @db.DateTime(0)
+
+  @@index([name], map: "installed_modules_name")
+  @@index([sequence], map: "installed_modules_sequence")
+  @@index([state], map: "installed_modules_state")
+  @@map("installed_modules")
+}
+
+model ip_access {
+  id          Int               @id @default(autoincrement())
+  ip_address  String            @unique(map: "ip_address") @db.VarChar(45)
+  description String?           @db.VarChar(255)
+  type        ip_access_type
+  status      ip_access_status? @default(active)
+  created_at  DateTime          @default(now()) @db.DateTime(0)
+  updated_at  DateTime          @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model list_configs {
+  id              Int                  @id @default(autoincrement())
+  name            String               @db.VarChar(100)
+  model           String               @db.VarChar(100)
+  columns         String?              @db.LongText
+  default_sort    String?              @db.LongText
+  default_filters String?              @db.LongText
+  page_size       Int?                 @default(20)
+  is_default      Boolean?             @default(false)
+  created_by      Int?
+  status          list_configs_status? @default(active)
+  created_at      DateTime             @default(now()) @db.DateTime(0)
+  updated_at      DateTime             @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model media_library {
+  id            Int                 @id @default(autoincrement())
+  title         String              @db.VarChar(255)
+  description   String?             @db.Text
+  filename      String              @db.VarChar(255)
+  original_name String?             @db.VarChar(255)
+  mime_type     String?             @db.VarChar(100)
+  size          Int?
+  type          media_library_type? @default(document)
+  category      String?             @db.VarChar(100)
+  path          String              @db.VarChar(500)
+  url           String?             @db.VarChar(500)
+  thumbnail_url String?             @db.VarChar(500)
+  alt_text      String?             @db.VarChar(255)
+  caption       String?             @db.VarChar(500)
+  width         Int?
+  height        Int?
+  uploaded_by   Int?
+  downloads     Int?                @default(0)
+  views         Int?                @default(0)
+  is_public     Boolean?            @default(true)
+  is_featured   Boolean?            @default(false)
+  metadata      String?             @db.LongText
+  created_at    DateTime            @default(now()) @db.DateTime(0)
+  updated_at    DateTime            @default(now()) @updatedAt @db.DateTime(0)
+
+  @@index([category], map: "media_library_category")
+  @@index([is_featured], map: "media_library_is_featured")
+  @@index([is_public], map: "media_library_is_public")
+  @@index([type], map: "media_library_type")
+  @@index([uploaded_by], map: "media_library_uploaded_by")
+}
+
+model Menu {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(100)
+  title      String?   @db.VarChar(200)
+  path       String    @db.VarChar(500)
+  icon       String?   @db.VarChar(100)
+  parentId   Int?      @map("parent_id")
+  sequence   Int?      @default(10)
+  module     String    @db.VarChar(100)
+  permission String?   @db.VarChar(200)
+  viewName   String?   @map("view_name") @db.VarChar(100)
+  hideInMenu Boolean?  @default(false) @map("hide_in_menu")
+  isActive   Boolean?  @default(true) @map("is_active")
+  createdAt  DateTime? @map("created_at") @db.DateTime(0)
+  updatedAt  DateTime? @map("updated_at") @db.DateTime(0)
+  parent     Menu?     @relation("MenuHierarchy", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "menus_ibfk_1")
+  children   Menu[]    @relation("MenuHierarchy")
+
+  @@index([parentId], map: "parent_id")
+  @@map("menus")
+}
+
+model messages {
+  id              Int                @id @default(autoincrement())
+  subject         String?            @db.VarChar(255)
+  content         String             @db.Text
+  sender_name     String?            @db.VarChar(255)
+  sender_email    String             @db.VarChar(255)
+  sender_phone    String?            @db.VarChar(20)
+  recipient_email String?            @db.VarChar(255)
+  type            messages_type?     @default(contact)
+  status          messages_status?   @default(new)
+  priority        messages_priority? @default(normal)
+  is_starred      Boolean?           @default(false)
+  metadata        String?            @db.LongText
+  read_at         DateTime?          @db.DateTime(0)
+  replied_at      DateTime?          @db.DateTime(0)
+  assigned_to     Int?
+  created_at      DateTime           @default(now()) @db.DateTime(0)
+  updated_at      DateTime           @default(now()) @updatedAt @db.DateTime(0)
+
+  @@index([created_at], map: "messages_created_at")
+  @@index([priority], map: "messages_priority")
+  @@index([sender_email], map: "messages_sender_email")
+  @@index([status], map: "messages_status")
+  @@index([type], map: "messages_type")
+}
+
+model notification_channels {
+  id           Int                                @id @default(autoincrement())
+  name         String                             @db.VarChar(100)
+  channel_type notification_channels_channel_type
+  config       String?                            @db.LongText
+  is_default   Boolean?                           @default(false)
+  status       notification_channels_status?      @default(active)
+  created_at   DateTime                           @default(now()) @db.DateTime(0)
+  updated_at   DateTime                           @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model notifications {
+  id            Int                    @id @default(autoincrement())
+  user_id       Int
+  title         String                 @db.VarChar(255)
+  message       String?                @db.Text
+  type          notifications_type?    @default(info)
+  channel       notifications_channel? @default(in_app)
+  related_model String?                @db.VarChar(100)
+  related_id    Int?
+  action_url    String?                @db.VarChar(500)
+  read_at       DateTime?              @db.DateTime(0)
+  status        notifications_status?  @default(unread)
+  created_at    DateTime               @default(now()) @db.DateTime(0)
+  updated_at    DateTime               @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model Permission {
+  id               Int              @id @default(autoincrement())
+  name             String           @unique(map: "name") @db.VarChar(100)
+  display_name     String           @db.VarChar(100)
+  description      String?          @db.VarChar(255)
+  category         String           @default("general") @db.VarChar(50)
+  isActive         Boolean?         @default(true) @map("is_active")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.DateTime(0)
+  role_permissions RolePermission[]
+
+  @@index([category], map: "permissions_category")
+  @@index([isActive], map: "permissions_is_active")
+  @@index([name], map: "permissions_name")
+  @@map("permissions")
+}
+
+model RecordRule {
+  id        Int                 @id @default(autoincrement())
+  name      String              @db.VarChar(200)
+  modelName String              @map("model_name") @db.VarChar(100)
+  action    record_rules_action
+  domain    String              @db.LongText
+  groups    String?             @db.LongText
+  users     String?             @db.LongText
+  isActive  Boolean?            @default(true) @map("is_active")
+  sequence  Int?                @default(10)
+  createdAt DateTime?           @map("created_at") @db.DateTime(0)
+  updatedAt DateTime?           @map("updated_at") @db.DateTime(0)
+
+  @@map("record_rules")
+}
+
+model RolePermission {
+  id           Int                     @id @default(autoincrement())
+  roleId       Int                     @map("role_id")
+  permissionId Int                     @map("permission_id")
+  action       role_permissions_action @default(read)
+  createdAt    DateTime                @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt    DateTime                @default(now()) @updatedAt @map("updated_at") @db.DateTime(0)
+  role         Role                    @relation(fields: [roleId], references: [id], onDelete: NoAction, map: "role_permissions_ibfk_1")
+  permission   Permission              @relation(fields: [permissionId], references: [id], onDelete: NoAction, map: "role_permissions_ibfk_2")
+
+  @@unique([roleId, permissionId], map: "role_permissions_role_id_permission_id")
+  @@index([permissionId], map: "role_permissions_permission_id")
+  @@index([roleId], map: "role_permissions_role_id")
+  @@map("role_permissions")
+}
+
+model Role {
+  id               Int              @id @default(autoincrement())
+  name             String           @unique(map: "name") @db.VarChar(50)
+  display_name     String           @db.VarChar(100)
+  description      String?          @db.VarChar(255)
+  isActive         Boolean?         @default(true) @map("is_active")
+  is_system        Boolean?         @default(false)
+  metadata         String?          @db.LongText
+  createdAt        DateTime         @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.DateTime(0)
+  role_permissions RolePermission[]
+  users            User[]
+  fieldPermissions EntityFieldPermission[]
+
+  @@index([isActive], map: "roles_is_active")
+  @@index([name], map: "roles_name")
+  @@map("roles")
+}
+
+model security_logs {
+  id         Int                   @id @default(autoincrement())
+  user_id    Int?
+  event      String                @db.VarChar(100)
+  ip_address String?               @db.VarChar(45)
+  user_agent String?               @db.VarChar(500)
+  details    String?               @db.LongText
+  status     security_logs_status? @default(success)
+  created_at DateTime              @default(now()) @db.DateTime(0)
+  updated_at DateTime              @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model Sequence {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique(map: "name") @db.VarChar(100)
+  code       String    @unique(map: "code") @db.VarChar(50)
+  prefix     String?   @db.VarChar(20)
+  suffix     String?   @db.VarChar(20)
+  padding    Int?      @default(5)
+  nextNumber Int?      @default(1) @map("next_number")
+  increment  Int?      @default(1)
+  modelName  String?   @map("model_name") @db.VarChar(100)
+  fieldName  String?   @map("field_name") @db.VarChar(100)
+  isActive   Boolean?  @default(true) @map("is_active")
+  createdAt  DateTime? @map("created_at") @db.DateTime(0)
+  updatedAt  DateTime? @map("updated_at") @db.DateTime(0)
+
+  @@map("sequences")
+}
+
+model sessions {
+  id               Int              @id @default(autoincrement())
+  user_id          Int
+  token            String           @unique(map: "token") @db.VarChar(500)
+  ip_address       String?          @db.VarChar(45)
+  user_agent       String?          @db.VarChar(500)
+  expires_at       DateTime         @db.DateTime(0)
+  last_activity_at DateTime?        @db.DateTime(0)
+  status           sessions_status? @default(active)
+  created_at       DateTime         @default(now()) @db.DateTime(0)
+  updated_at       DateTime         @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model Setting {
+  id          Int            @id @default(autoincrement())
+  key         String         @unique(map: "key") @db.VarChar(100)
+  value       String?        @db.Text
+  type        settings_type? @default(string)
+  category    String?        @default("general") @db.VarChar(50)
+  description String?        @db.VarChar(255)
+  isEncrypted Boolean?       @default(false) @map("is_encrypted")
+  isPublic    Boolean?       @default(false) @map("is_public")
+  metadata    String?        @db.LongText
+  created_at  DateTime       @default(now()) @db.DateTime(0)
+  updated_at  DateTime       @default(now()) @updatedAt @db.DateTime(0)
+
+  @@index([category], map: "settings_category")
+  @@index([key], map: "settings_key")
+  @@map("settings")
+}
+
+model taggings {
+  id            Int      @id @default(autoincrement())
+  tag_id        Int
+  taggable_type String   @db.VarChar(100)
+  taggable_id   Int
+  created_at    DateTime @default(now()) @db.DateTime(0)
+  updated_at    DateTime @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model tags {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique(map: "name") @db.VarChar(100)
+  color       String?  @default("#1890ff") @db.VarChar(20)
+  description String?  @db.VarChar(255)
+  category    String?  @db.VarChar(100)
+  created_at  DateTime @default(now()) @db.DateTime(0)
+  updated_at  DateTime @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model team_members {
+  id           Int      @id @default(autoincrement())
+  first_name   String   @db.VarChar(100)
+  last_name    String   @db.VarChar(100)
+  email        String   @unique(map: "email") @db.VarChar(255)
+  phone        String?  @db.VarChar(20)
+  position     String?  @db.VarChar(100)
+  department   String?  @db.VarChar(100)
+  bio          String?  @db.Text
+  photo        String?  @db.VarChar(500)
+  order        Int?     @default(0)
+  is_active    Boolean? @default(true)
+  is_leader    Boolean? @default(false)
+  social_links String?  @db.LongText
+  metadata     String?  @db.LongText
+  created_at   DateTime @default(now()) @db.DateTime(0)
+  updated_at   DateTime @default(now()) @updatedAt @db.DateTime(0)
+
+  @@index([department], map: "team_members_department")
+  @@index([email], map: "team_members_email")
+  @@index([is_active], map: "team_members_is_active")
+  @@index([order], map: "team_members_order")
+}
+
+model two_factor {
+  id           Int       @id @default(autoincrement())
+  user_id      Int       @unique(map: "user_id")
+  secret       String    @db.VarChar(255)
+  backup_codes String?   @db.LongText
+  enabled      Boolean?  @default(false)
+  verified_at  DateTime? @db.DateTime(0)
+  created_at   DateTime  @default(now()) @db.DateTime(0)
+  updated_at   DateTime  @default(now()) @updatedAt @db.DateTime(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model User {
+  id                     Int          @id @default(autoincrement())
+  email                  String       @unique(map: "email") @db.VarChar(255)
+  password               String       @db.VarChar(255)
+  firstName              String       @map("first_name") @db.VarChar(100)
+  lastName               String       @map("last_name") @db.VarChar(100)
+  phone                  String?      @db.VarChar(20)
+  avatar                 String?      @db.VarChar(500)
+  role_id                Int          @default(5)
+  isActive               Boolean?     @default(true) @map("is_active")
+  is_email_verified      Boolean?     @default(false)
+  lastLogin              DateTime?    @map("last_login") @db.DateTime(0)
+  login_attempts         Int?         @default(0)
+  lock_until             DateTime?    @db.DateTime(0)
+  refresh_token          String?      @db.VarChar(500)
+  password_reset_token   String?      @db.VarChar(255)
+  password_reset_expires DateTime?    @db.DateTime(0)
+  metadata               String?      @db.LongText
+  createdAt              DateTime     @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt              DateTime     @default(now()) @updatedAt @map("updated_at") @db.DateTime(0)
+  activities             activities[]
+  documents              documents[]
+  role                   Role         @relation(fields: [role_id], references: [id], onDelete: NoAction, map: "users_ibfk_1")
+
+  @@index([email], map: "users_email")
+  @@index([isActive], map: "users_is_active")
+  @@index([role_id], map: "users_role_id")
+  @@map("users")
+}
+
+model Entity {
+  id              Int       @id @default(autoincrement())
+  name            String    @unique
+  label           String
+  description     String?   @db.Text
+  moduleId        Int?      @map("module_id")
+  createdBy       Int       @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  deletedAt       DateTime? @map("deleted_at") @db.DateTime(0)
+  isPublishable   Boolean?  @default(false) @map("is_publishable")
+  isPublished     Boolean?  @default(false) @map("is_published")
+  publishedAt     DateTime? @map("published_at") @db.DateTime(0)
+
+  fields                    EntityField[]
+  views                     EntityView[]
+  records                   EntityRecord[]
+  relationshipsAsSource     EntityRelationship[] @relation("SourceEntity")
+  relationshipsAsTarget     EntityRelationship[] @relation("TargetEntity")
+
+  @@index([moduleId], map: "entities_module_id")
+  @@index([deletedAt], map: "entities_deleted_at")
+
+  @@map("entities")
+}
+
+model EntityField {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  entityId     Int      @map("entity_id")
+  entity       Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "entity_fields_ibfk_1")
+  slug         String   @db.VarChar(100)
+  name         String   @db.VarChar(255)
+  type         String   @db.VarChar(50)
+  label        String   @db.VarChar(255)
+  description  String?  @db.Text
+  required     Boolean? @default(false)
+  unique       Boolean? @default(false)
+  validation   String?  @db.Text
+  position     Int?     @default(0)
+  defaultValue String?  @map("default_value") @db.Text
+  helpText     String?  @db.Text @map("help_text")
+  selectOptions String? @db.LongText @map("select_options")
+  lookupEntityId Int?   @map("lookup_entity_id")
+  lookupField  String?  @db.VarChar(255) @map("lookup_field")
+  formulaExpression String? @db.Text @map("formula_expression")
+  isStored     Boolean? @default(false) @map("is_stored")
+  formulaType  String?  @db.VarChar(20) @map("formula_type")
+  deletedAt    DateTime? @map("deleted_at") @db.DateTime(0)
+  sequence     Int      @default(0)
+
+  permissions  EntityFieldPermission[]
+
+  @@index([entityId], map: "entity_fields_entity_id")
+  @@index([lookupEntityId], map: "entity_fields_lookup_entity_id")
+  @@index([deletedAt], map: "entity_fields_deleted_at")
+  @@unique([entityId, name], map: "entity_fields_entity_id_name")
+  @@map("entity_fields")
+}
+
+model EntityView {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  entityId  Int      @map("entity_id")
+  entity    Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "entity_views_ibfk_1")
+  name      String   @db.VarChar(255)
+  type      String   @db.VarChar(50)
+  isDefault Boolean? @default(false) @map("is_default")
+  config    String?  @default("{}") @db.LongText
+
+  @@index([entityId], map: "entity_views_entity_id")
+  @@unique([entityId, name], map: "entity_views_entity_id_name")
+  @@map("entity_views")
+}
+
+model EntityRecord {
+  id        Int      @id @default(autoincrement())
+  entityId  Int      @map("entity_id")
+  entity    Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "entity_records_ibfk_1")
+  data      String   @db.LongText
+  createdBy Int      @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.DateTime(0)
+  deletedAt DateTime? @map("deleted_at") @db.DateTime(0)
+  companyId Int?     @map("company_id")
+  visibility String  @default("private") @db.VarChar(50)
+
+  @@index([entityId], map: "entity_records_entity_id")
+  @@index([createdAt], map: "entity_records_created_at")
+  @@index([companyId], map: "entity_records_company_id")
+  @@map("entity_records")
+}
+
+model EntityRelationship {
+  id                   Int                        @id @default(autoincrement())
+  sourceEntityId       Int                        @map("source_entity_id")
+  targetEntityId       Int                        @map("target_entity_id")
+  type                 String                     @db.VarChar(50)
+  name                 String                     @db.VarChar(255)
+  label                String                     @db.VarChar(255)
+  reverseLabel         String?                    @map("reverse_label") @db.VarChar(255)
+  cascadeDelete        Boolean?                   @default(false) @map("cascade_delete")
+  createdAt            DateTime                   @default(now()) @map("created_at") @db.DateTime(0)
+
+  sourceEntity         Entity                     @relation("SourceEntity", fields: [sourceEntityId], references: [id], onDelete: Cascade, map: "entity_relationships_source_entity_id")
+  targetEntity         Entity                     @relation("TargetEntity", fields: [targetEntityId], references: [id], onDelete: Cascade, map: "entity_relationships_target_entity_id")
+  relationshipRecords  EntityRelationshipRecord[]
+
+  @@index([sourceEntityId], map: "entity_relationships_source_entity_id")
+  @@index([targetEntityId], map: "entity_relationships_target_entity_id")
+  @@map("entity_relationships")
+}
+
+model EntityRelationshipRecord {
+  id                Int                 @id @default(autoincrement())
+  relationshipId    Int                 @map("relationship_id")
+  sourceRecordId    Int                 @map("source_record_id")
+  targetRecordId    Int                 @map("target_record_id")
+  createdAt         DateTime            @default(now()) @map("created_at") @db.DateTime(0)
+
+  relationship      EntityRelationship  @relation(fields: [relationshipId], references: [id], onDelete: Cascade, map: "entity_relationship_records_relationship_id")
+
+  @@index([relationshipId], map: "entity_relationship_records_relationship_id")
+  @@index([sourceRecordId], map: "entity_relationship_records_source_record_id")
+  @@index([targetRecordId], map: "entity_relationship_records_target_record_id")
+  @@map("entity_relationship_records")
+}
+
+model EntityFieldPermission {
+  id        Int       @id @default(autoincrement())
+  fieldId   Int       @map("field_id")
+  roleId    Int       @map("role_id")
+  canRead   Boolean?  @default(true) @map("can_read")
+  canWrite  Boolean?  @default(false) @map("can_write")
+  isMasked  Boolean?  @default(false) @map("is_masked")
+  maskChar  String?   @default("*") @map("mask_char") @db.VarChar(5)
+  createdAt DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+
+  field     EntityField @relation(fields: [fieldId], references: [id], onDelete: Cascade, map: "entity_field_permissions_field_id")
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Cascade, map: "entity_field_permissions_role_id")
+
+  @@unique([fieldId, roleId], map: "entity_field_permissions_field_id_role_id")
+  @@index([fieldId], map: "entity_field_permissions_field_id")
+  @@index([roleId], map: "entity_field_permissions_role_id")
+  @@map("entity_field_permissions")
+}
+
+model webhook_logs {
+  id              Int                  @id @default(autoincrement())
+  webhook_id      Int
+  event           String               @db.VarChar(100)
+  payload         String?              @db.LongText
+  response_status Int?
+  response_body   String?              @db.Text
+  duration        Int?
+  status          webhook_logs_status? @default(pending)
+  created_at      DateTime             @default(now()) @db.DateTime(0)
+  updated_at      DateTime             @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model webhooks {
+  id                Int              @id @default(autoincrement())
+  name              String           @db.VarChar(100)
+  url               String           @db.VarChar(500)
+  events            String?          @db.LongText
+  headers           String?          @db.LongText
+  secret            String?          @db.VarChar(255)
+  model             String?          @db.VarChar(100)
+  retry_count       Int?             @default(3)
+  last_triggered_at DateTime?        @db.DateTime(0)
+  last_status       String?          @db.VarChar(20)
+  status            webhooks_status? @default(active)
+  created_at        DateTime         @default(now()) @db.DateTime(0)
+  updated_at        DateTime         @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model custom_entities {
+  id             Int       @id @default(autoincrement())
+  created_at     DateTime  @default(now()) @db.Timestamp(0)
+  updated_at     DateTime  @default(now()) @db.Timestamp(0)
+  deleted_at     DateTime? @db.Timestamp(0)
+  slug           String    @unique(map: "custom_entities_slug_unique") @db.VarChar(100)
+  name           String    @db.VarChar(255)
+  description    String?   @db.Text
+  icon           String?   @db.VarChar(100)
+  color          String?   @db.VarChar(20)
+  is_publishable Boolean?  @default(false)
+  is_published   Boolean?  @default(false)
+  created_by     Int?
+}
+
+model editor_presets {
+  id            Int       @id @default(autoincrement())
+  block_type    String    @db.VarChar(100)
+  name          String    @db.VarChar(255)
+  attributes    String?   @db.LongText
+  thumbnail_url String?   @db.VarChar(500)
+  created_by    Int?
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+  deleted_at    DateTime? @db.Timestamp(0)
+}
+
+model editor_snippets {
+  id            Int       @id @default(autoincrement())
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+  updated_at    DateTime  @default(now()) @db.Timestamp(0)
+  deleted_at    DateTime? @db.Timestamp(0)
+  name          String    @db.VarChar(255)
+  content       String?   @db.LongText
+  category      String?   @default("general") @db.VarChar(100)
+  icon          String?   @db.VarChar(100)
+  shortcut      String?   @db.VarChar(50)
+  created_by    Int?
+  thumbnail_url String?   @db.VarChar(500)
+  is_global     Boolean?  @default(false)
+  usage_count   Int?      @default(0)
+}
+
+model editor_templates {
+  id            Int       @id @default(autoincrement())
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+  updated_at    DateTime  @default(now()) @db.Timestamp(0)
+  deleted_at    DateTime? @db.Timestamp(0)
+  name          String    @db.VarChar(255)
+  description   String?   @db.Text
+  content       String?   @db.LongText
+  category      String?   @default("general") @db.VarChar(100)
+  is_default    Boolean?  @default(false)
+  thumbnail_url String?   @db.VarChar(500)
+  created_by    Int?
+}
+
+model entity_sync_history {
+  id         Int       @id @default(autoincrement())
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime  @default(now()) @db.Timestamp(0)
+  entity_id  Int?
+  source     String    @db.VarChar(50)
+  action     String    @db.VarChar(50)
+  changes    String?   @default("{}") @db.LongText
+  synced_at  DateTime? @db.Timestamp(0)
+  status     String    @db.VarChar(50)
+
+  @@index([entity_id], map: "entity_sync_history_entity_id_custom_entities_id_fk")
+}
+
+model website_categories {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  slug        String    @unique(map: "slug") @db.VarChar(255)
+  description String?   @db.Text
+  parent_id   Int?
+  sequence    Int?      @default(0)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.Timestamp(0)
+  deleted_at  DateTime? @db.Timestamp(0)
+}
+
+model website_custom_fonts {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(255)
+  family     String    @db.VarChar(255)
+  weight     Int?      @default(400)
+  style      String?   @default("normal") @db.VarChar(20)
+  file_url   String    @db.VarChar(500)
+  format     String?   @default("woff2") @db.VarChar(20)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model website_custom_icons {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  set_name    String?   @default("custom") @db.VarChar(100)
+  svg_content String    @db.LongText
+  tags        String?   @db.VarChar(500)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model website_form_submissions {
+  id         Int       @id @default(autoincrement())
+  form_id    Int
+  data       String?   @db.LongText
+  ip_address String?   @db.VarChar(45)
+  user_agent String?   @db.Text
+  is_read    Boolean?  @default(false)
+  page_slug  String?   @db.VarChar(255)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([form_id], map: "idx_sub_form")
+}
+
+model website_forms {
+  id               Int       @id @default(autoincrement())
+  name             String    @db.VarChar(255)
+  fields           String?   @db.LongText
+  settings         String?   @db.LongText
+  is_active        Boolean?  @default(true)
+  submission_count Int?      @default(0)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+  updated_at       DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model website_media {
+  id            Int      @id @default(autoincrement())
+  created_at    DateTime @default(now()) @db.Timestamp(0)
+  updated_at    DateTime @default(now()) @db.Timestamp(0)
+  filename      String   @db.VarChar(255)
+  original_name String?  @db.VarChar(255)
+  path          String   @db.VarChar(500)
+  url           String?  @db.VarChar(500)
+  mime_type     String?  @db.VarChar(100)
+  size          Int?
+  width         Int?
+  height        Int?
+  alt_text      String?  @db.VarChar(255)
+  caption       String?  @db.Text
+  folder        String?  @default("general") @db.VarChar(255)
+  uploaded_by   Int?
+}
+
+model website_menu_items {
+  id          Int      @id @default(autoincrement())
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+  updated_at  DateTime @default(now()) @db.Timestamp(0)
+  menu_id     Int
+  label       String   @db.VarChar(150)
+  url         String?  @db.VarChar(500)
+  page_id     Int?
+  target      String?  @default("_self") @db.VarChar(10)
+  icon        String?  @db.VarChar(100)
+  parent_id   Int?
+  sequence    Int?     @default(0)
+  is_active   Boolean? @default(true)
+  css_class   String?  @db.VarChar(255)
+  description String?  @db.Text
+
+  @@index([menu_id], map: "idx_menu_id")
+}
+
+model website_menus {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @db.Timestamp(0)
+  name       String   @db.VarChar(100)
+  location   String?  @default("header") @db.VarChar(20)
+  is_active  Boolean? @default(true)
+}
+
+model website_page_categories {
+  page_id     Int
+  category_id Int
+
+  @@id([page_id, category_id])
+}
+
+model website_page_revisions {
+  id                 Int       @id @default(autoincrement())
+  page_id            Int
+  content            String?   @db.LongText
+  content_html       String?   @db.LongText
+  revision_number    Int?      @default(1)
+  change_description String?   @db.VarChar(255)
+  created_by         Int?
+  is_auto_save       Boolean?  @default(false)
+  created_at         DateTime? @default(now()) @db.Timestamp(0)
+  updated_at         DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([page_id], map: "idx_rev_page")
+}
+
+model website_page_tags {
+  page_id Int
+  tag_id  Int
+
+  @@id([page_id, tag_id])
+}
+
+model website_pages {
+  id               Int       @id @default(autoincrement())
+  created_at       DateTime  @default(now()) @db.Timestamp(0)
+  updated_at       DateTime  @default(now()) @db.Timestamp(0)
+  deleted_at       DateTime? @db.Timestamp(0)
+  title            String    @db.VarChar(255)
+  slug             String    @unique(map: "idx_slug") @db.VarChar(255)
+  content          String?   @db.LongText
+  content_html     String?   @db.LongText
+  excerpt          String?   @db.Text
+  template         String?   @default("default") @db.VarChar(50)
+  page_type        String?   @default("page") @db.VarChar(20)
+  featured_image   String?   @db.VarChar(500)
+  meta_title       String?   @db.VarChar(255)
+  meta_description String?   @db.Text
+  meta_keywords    String?   @db.VarChar(500)
+  focus_keyword    String?   @db.VarChar(255)
+  og_title         String?   @db.VarChar(255)
+  og_description   String?   @db.Text
+  og_image         String?   @db.VarChar(500)
+  canonical_url    String?   @db.VarChar(500)
+  no_index         Boolean?  @default(false)
+  no_follow        Boolean?  @default(false)
+  is_published     Boolean?  @default(false)
+  published_at     DateTime? @db.Timestamp(0)
+  parent_id        Int?
+  sequence         Int?      @default(0)
+  show_in_menu     Boolean?  @default(false)
+  custom_css       String?   @db.Text
+  head_scripts     String?   @db.Text
+  body_scripts     String?   @db.Text
+  created_by       Int?
+  publish_at       DateTime? @db.Timestamp(0)
+  expire_at        DateTime? @db.Timestamp(0)
+  visibility       String?   @default("public") @db.VarChar(20)
+  password_hash    String?   @db.VarChar(255)
+  locked_by        Int?
+  locked_at        DateTime? @db.Timestamp(0)
+}
+
+model website_popups {
+  id            Int       @id @default(autoincrement())
+  name          String    @db.VarChar(255)
+  content       String?   @db.LongText
+  content_html  String?   @db.LongText
+  trigger_type  String?   @default("page-load") @db.VarChar(20)
+  trigger_value String?   @db.VarChar(100)
+  position      String?   @default("center") @db.VarChar(20)
+  width         String?   @default("md") @db.VarChar(20)
+  overlay_close Boolean?  @default(true)
+  show_once     Boolean?  @default(true)
+  conditions    String?   @db.LongText
+  is_active     Boolean?  @default(false)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model website_redirects {
+  id          Int       @id @default(autoincrement())
+  source_path String    @db.VarChar(500)
+  target_path String    @db.VarChar(500)
+  status_code Int?      @default(301)
+  hits        Int?      @default(0)
+  is_active   Boolean?  @default(true)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime  @default(now()) @db.Timestamp(0)
+  deleted_at  DateTime? @db.Timestamp(0)
+}
+
+model website_settings {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @db.Timestamp(0)
+  key        String   @unique(map: "idx_key") @db.VarChar(100)
+  value      String?  @db.Text
+  type       String?  @default("string") @db.VarChar(20)
+}
+
+model website_tags {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(255)
+  slug       String    @unique(map: "slug") @db.VarChar(255)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+  deleted_at DateTime? @db.Timestamp(0)
+}
+
+model website_theme_templates {
+  id           Int       @id @default(autoincrement())
+  name         String    @db.VarChar(255)
+  type         String?   @default("header") @db.VarChar(20)
+  content      String?   @db.LongText
+  content_html String?   @db.LongText
+  conditions   String?   @db.LongText
+  priority     Int?      @default(10)
+  is_active    Boolean?  @default(true)
+  created_at   DateTime? @default(now()) @db.Timestamp(0)
+  updated_at   DateTime? @default(now()) @db.Timestamp(0)
+}
+
+enum audit_logs_action {
+  create
+  update
+  delete
+  login
+  logout
+  export
+}
+
+enum backups_type {
+  full
+  partial
+  incremental
+}
+
+enum notification_channels_channel_type {
+  email
+  sms
+  push
+  slack
+  webhook
+}
+
+enum dashboard_widgets_widget_type {
+  counter
+  chart
+  table
+  list
+  progress
+  custom
+}
+
+enum settings_type {
+  string
+  number
+  boolean
+  json
+  array
+}
+
+enum custom_views_view_type {
+  list
+  kanban
+  calendar
+  gallery
+  chart
+}
+
+enum ip_access_type {
+  whitelist
+  blacklist
+}
+
+enum record_rules_action {
+  create
+  read
+  write
+  unlink
+}
+
+enum role_permissions_action {
+  read
+  write
+  delete
+  admin
+}
+
+enum custom_fields_field_type {
+  text
+  number
+  date
+  datetime
+  boolean
+  select
+  multiselect
+  textarea
+  email
+  url
+  phone
+  currency
+  json
+}
+
+enum installed_modules_state {
+  uninstalled
+  installed
+  to_upgrade
+  to_remove
+  error
+}
+
+enum donations_status {
+  pending
+  completed
+  failed
+  refunded
+}
+
+enum automation_assignment_rules_assign_to {
+  user
+  role
+  group
+  round_robin
+}
+
+enum ip_access_status {
+  active
+  inactive
+}
+
+enum notifications_type {
+  info
+  success
+  warning
+  error
+  action
+}
+
+enum data_exports_format {
+  csv
+  json
+  xlsx
+}
+
+enum notification_channels_status {
+  active
+  inactive
+}
+
+enum donations_payment_method {
+  cash
+  cheque
+  bank_transfer
+  online
+  other
+}
+
+enum form_layouts_status {
+  active
+  inactive
+}
+
+enum automation_validation_rules_rule_type {
+  required
+  format
+  range
+  unique
+  custom
+  regex
+}
+
+enum notifications_channel {
+  in_app
+  email
+  sms
+  push
+}
+
+enum security_logs_status {
+  success
+  failed
+  blocked
+}
+
+enum automation_approval_chains_status {
+  active
+  inactive
+}
+
+enum activities_status {
+  draft
+  published
+  completed
+  cancelled
+}
+
+enum documents_type {
+  image
+  video
+  document
+  audio
+  other
+}
+
+enum backups_status {
+  pending
+  in_progress
+  completed
+  failed
+}
+
+enum automation_rollup_fields_operation {
+  sum
+  count
+  avg
+  min
+  max
+}
+
+enum automation_flows_trigger {
+  on_create
+  on_update
+  on_delete
+  manual
+  scheduled
+}
+
+enum api_keys_status {
+  active
+  inactive
+  expired
+}
+
+enum webhook_logs_status {
+  success
+  failed
+  pending
+}
+
+enum messages_type {
+  contact
+  inquiry
+  support
+  feedback
+  other
+}
+
+enum media_library_type {
+  image
+  video
+  document
+  audio
+  other
+}
+
+enum automation_workflows_status {
+  active
+  inactive
+  draft
+}
+
+enum automation_flows_status {
+  active
+  inactive
+  draft
+}
+
+enum sessions_status {
+  active
+  expired
+  revoked
+}
+
+enum messages_status {
+  new
+  read
+  replied
+  archived
+}
+
+enum dashboard_widgets_status {
+  active
+  inactive
+}
+
+enum automation_business_rules_status {
+  active
+  inactive
+}
+
+enum automation_assignment_rules_status {
+  active
+  inactive
+}
+
+enum campaigns_status {
+  draft
+  active
+  completed
+  cancelled
+}
+
+enum messages_priority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum data_exports_status {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum automation_validation_rules_status {
+  active
+  inactive
+}
+
+enum automation_rollup_fields_status {
+  active
+  inactive
+}
+
+enum list_configs_status {
+  active
+  inactive
+}
+
+enum webhooks_status {
+  active
+  inactive
+  error
+}
+
+enum notifications_status {
+  unread
+  read
+  dismissed
+}
+
+enum custom_views_status {
+  active
+  inactive
+}
+
+enum data_imports_status {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum donations_frequency {
+  one_time
+  weekly
+  monthly
+  quarterly
+  annually
+}
+
+enum custom_fields_status {
+  active
+  inactive
+}

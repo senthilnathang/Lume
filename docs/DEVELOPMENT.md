@@ -25,7 +25,7 @@ This guide covers day-to-day development workflows, coding conventions, and how 
 
 | Tool | Version | Notes |
 |------|---------|-------|
-| Node.js | 18+ | LTS recommended |
+| Node.js | 20.12+ | LTS recommended |
 | MySQL | 8.0+ | Primary database |
 | pnpm | 8+ | Package manager (monorepo) |
 | Git | 2.30+ | Version control |
@@ -69,7 +69,7 @@ CORS_ORIGIN="http://localhost:5173"
 
 ```env
 VITE_API_URL=/api
-VITE_PUBLIC_SITE_URL=http://localhost:3007
+VITE_PUBLIC_SITE_URL=http://localhost:3001
 ```
 
 ---
@@ -80,9 +80,9 @@ You need three servers running for full development:
 
 | Server | Directory | Command | Port | Purpose |
 |--------|-----------|---------|------|---------|
-| Backend | `backend/` | `npm run dev` | 3000 | Express API |
+| Backend | `backend/` | `npm run dev` | 3000 | NestJS API |
 | Admin Panel | `frontend/apps/web-lume/` | `npm run dev` | 5173 | Vue 3 SPA |
-| Public Site | `frontend/apps/riagri-website/` | `npm run dev` | 3007 | Nuxt 3 SSR |
+| Public Site | `frontend/apps/riagri-website/` | `npm run dev` | 3001 | Nuxt 3 SSR |
 
 **Login credentials**: `admin@lume.dev` / `admin123`
 
@@ -90,9 +90,232 @@ The admin panel's Vite dev server proxies `/api` requests to `http://localhost:3
 
 ---
 
-## Creating a New Module
+## Creating a New Module (Metadata-Driven Approach)
 
-### 1. Create the Directory Structure
+### Using defineModule and defineEntity
+
+The modern way to create modules in Lume v2.0+ is using declarative APIs. Here's a complete example:
+
+### 1. Define Entities
+
+**File: `backend/src/modules/contacts/entities/contact.entity.ts`**
+
+```typescript
+import { defineEntity } from '@core/entity/define-entity.js'
+
+export const ContactEntity = defineEntity('Contact', {
+  name: 'Contact',
+  label: 'Contact',
+  description: 'A contact person associated with a company',
+  icon: 'users',
+  fields: {
+    firstName: {
+      type: 'string',
+      label: 'First Name',
+      required: true,
+      isIndexed: true,
+    },
+    lastName: {
+      type: 'string',
+      label: 'Last Name',
+      required: true,
+      isIndexed: true,
+    },
+    email: {
+      type: 'email',
+      label: 'Email',
+      required: true,
+      isIndexed: true,
+      unique: true,
+    },
+    phone: {
+      type: 'phone',
+      label: 'Phone Number',
+    },
+    companyId: {
+      type: 'lookup',
+      label: 'Company',
+      references: 'Company',
+      required: true,
+    },
+    title: {
+      type: 'string',
+      label: 'Job Title',
+    },
+    status: {
+      type: 'select',
+      label: 'Status',
+      options: ['active', 'inactive', 'archived'],
+      defaultValue: 'active',
+    },
+    tags: {
+      type: 'multiselect',
+      label: 'Tags',
+      options: ['key_decision_maker', 'technical', 'financial'],
+    },
+    notes: {
+      type: 'text',
+      label: 'Notes',
+    },
+    createdAt: {
+      type: 'datetime',
+      label: 'Created',
+      readOnly: true,
+    },
+    updatedAt: {
+      type: 'datetime',
+      label: 'Updated',
+      readOnly: true,
+    },
+  },
+  computed: {
+    fullName: {
+      formula: '{{firstName}} {{lastName}}',
+      type: 'string',
+    },
+  },
+  indexes: [
+    { fields: ['email'], unique: true },
+    { fields: ['companyId', 'status'] },
+  ],
+  hooks: {
+    beforeCreate: async (data, ctx) => {
+      // Validate email format
+      if (!data.email?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        throw new Error('Invalid email format')
+      }
+      return data
+    },
+    afterCreate: async (record, ctx) => {
+      // Log contact creation
+      console.log(`Contact created: ${record.fullName}`)
+    },
+    beforeUpdate: async (id, data, ctx) => {
+      // Prevent email change after creation
+      if (data.email) {
+        const existing = await getContact(id)
+        if (existing.email !== data.email) {
+          throw new Error('Email cannot be changed')
+        }
+      }
+      return data
+    },
+  },
+  permissions: {
+    read: [
+      { roles: ['admin', 'sales_manager', 'sales'] },
+    ],
+    write: [
+      { roles: ['admin', 'sales_manager'] },
+      {
+        roles: ['sales'],
+        conditions: [{ field: 'companyId', operator: '==', value: '$userCompanyId' }],
+      },
+    ],
+    delete: [{ roles: ['admin', 'sales_manager'] }],
+  },
+  aiMetadata: {
+    description: 'A contact person at a company with name, email, phone, job title, and status',
+    sensitiveFields: ['email', 'phone'],
+    summarizeWith: 'Return contact name, company, title, and status',
+  },
+})
+```
+
+### 2. Define Workflows
+
+**File: `backend/src/modules/contacts/workflows/notification.workflow.ts`**
+
+```typescript
+import { defineWorkflow } from '@core/workflow/define-workflow.js'
+
+export const ContactNotificationWorkflow = defineWorkflow({
+  name: 'contact_notification',
+  version: '1.0.0',
+  entity: 'Contact',
+  trigger: { type: 'record.created' },
+  steps: [
+    {
+      type: 'send_notification',
+      to: 'admin',
+      template: 'contact_created',
+    },
+    {
+      type: 'set_field',
+      field: 'status',
+      value: 'active',
+    },
+  ],
+  onError: 'continue',
+  timeout: 30000,
+})
+```
+
+### 3. Define Module
+
+**File: `backend/src/modules/contacts/contacts.module.definition.ts`**
+
+```typescript
+import { defineModule } from '@core/module/define-module.js'
+import { ContactEntity } from './entities/contact.entity.js'
+import { ContactNotificationWorkflow } from './workflows/notification.workflow.js'
+
+export const ContactsModule = defineModule({
+  name: 'contacts',
+  version: '1.0.0',
+  description: 'Contact management module for CRM',
+  depends: ['base'],
+  
+  entities: [ContactEntity],
+  
+  workflows: [ContactNotificationWorkflow],
+  
+  permissions: [
+    'contacts.contacts.read',
+    'contacts.contacts.write',
+    'contacts.contacts.delete',
+  ],
+  
+  hooks: {
+    async onInstall(db) {
+      // Run any migrations or setup
+      console.log('Installing Contacts module')
+    },
+    async onLoad() {
+      // Module is loaded and ready
+      console.log('Contacts module loaded')
+    },
+    async onUninstall(db) {
+      // Cleanup
+      console.log('Uninstalling Contacts module')
+    },
+  },
+  
+  frontend: {
+    views: [
+      { path: 'contacts', component: 'ContactsListView' },
+      { path: 'contacts/:id', component: 'ContactDetailView' },
+    ],
+  },
+})
+```
+
+### 4. Register Module in Bootstrap
+
+In your server's bootstrap code:
+
+```typescript
+import { ModuleLoaderService } from '@core/module/module-loader.service.js'
+import { ContactsModule } from '@modules/contacts/contacts.module.definition.js'
+
+// During app initialization:
+const moduleLoader = app.get(ModuleLoaderService)
+await moduleLoader.loadModule(ContactsModule)
+```
+
+### Legacy: Directory Structure (for non-metadata modules)
+
+If migrating legacy code, the directory structure is:
 
 ```bash
 mkdir -p backend/src/modules/my_module/{models,services,static/{views,api,components}}

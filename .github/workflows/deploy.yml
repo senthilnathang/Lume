@@ -1,0 +1,341 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - framework
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  NODE_VERSION: 20.12.0
+  MYSQL_VERSION: 8.0
+
+jobs:
+  # Test Backend
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: lume_test
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: backend
+        run: npm run lint --if-present
+
+      - name: Run tests
+        working-directory: backend
+        env:
+          DATABASE_URL: mysql://root:root@localhost:3306/lume_test
+          NODE_ENV: test
+        run: npm test
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v3
+        with:
+          directory: backend/coverage
+          flags: backend
+          fail_ci_if_error: false
+
+  # Test Frontend
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/apps/web-lume/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend/apps/web-lume
+        run: npm ci
+
+      - name: Run linter
+        working-directory: frontend/apps/web-lume
+        run: npm run lint --if-present
+
+      - name: Build frontend
+        working-directory: frontend/apps/web-lume
+        run: npm run build
+
+      - name: Run tests
+        working-directory: frontend/apps/web-lume
+        run: npm test --if-present
+
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v3
+        with:
+          directory: frontend/apps/web-lume/coverage
+          flags: frontend
+          fail_ci_if_error: false
+
+  # Build and Push Docker Images
+  build-and-push:
+    name: Build and Push Docker Images
+    needs: [test-backend, test-frontend]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: github.actor != 'dependabot[bot]'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=semver,pattern={{version}}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: ${{ github.actor != 'dependabot[bot]' }}
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/apps/web-lume
+          file: ./frontend/apps/web-lume/Dockerfile
+          push: ${{ github.actor != 'dependabot[bot]' }}
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    needs: build-and-push
+    if: github.ref == 'refs/heads/framework' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        env:
+          DEPLOY_KEY: ${{ secrets.STAGING_DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.STAGING_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STAGING_DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" << 'EOF'
+          cd "${{ env.DEPLOY_PATH }}"
+          export IMAGE_TAG="${{ env.IMAGE_TAG }}"
+          docker-compose -f docker-compose.staging.yml pull
+          docker-compose -f docker-compose.staging.yml up -d
+          EOF
+
+      - name: Health check
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+        run: |
+          for i in {1..30}; do
+            if curl -f "${{ env.STAGING_URL }}/api/base/health" 2>/dev/null | grep -q "ok"; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i/30 waiting for service..."
+            sleep 10
+          done
+          echo "Health check failed"
+          exit 1
+
+      - name: Slack notification
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "Staging deployment failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Staging Deployment Failed*\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create database backup
+        env:
+          BACKUP_HOST: ${{ secrets.PROD_DB_HOST }}
+          BACKUP_USER: ${{ secrets.PROD_DB_USER }}
+          BACKUP_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+          BACKUP_DATABASE: ${{ secrets.PROD_DB_NAME }}
+          BACKUP_STORAGE: ${{ secrets.BACKUP_STORAGE_PATH }}
+        run: |
+          BACKUP_FILE="$BACKUP_STORAGE/lume_backup_$(date +%Y%m%d_%H%M%S).sql"
+          mkdir -p "$BACKUP_STORAGE"
+          mysqldump -h "$BACKUP_HOST" -u "$BACKUP_USER" -p"$BACKUP_PASSWORD" "$BACKUP_DATABASE" > "$BACKUP_FILE"
+          echo "BACKUP_FILE=$BACKUP_FILE" >> $GITHUB_ENV
+          echo "Backup created: $BACKUP_FILE"
+
+      - name: Deploy to production
+        env:
+          DEPLOY_KEY: ${{ secrets.PROD_DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.PROD_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.PROD_DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" << 'EOF'
+          cd "${{ env.DEPLOY_PATH }}"
+          export IMAGE_TAG="${{ env.IMAGE_TAG }}"
+
+          # Run migrations
+          docker-compose -f docker-compose.prod.yml run backend npx prisma migrate deploy
+
+          # Deploy
+          docker-compose -f docker-compose.prod.yml pull
+          docker-compose -f docker-compose.prod.yml up -d
+          EOF
+
+      - name: Health check
+        env:
+          PROD_URL: ${{ secrets.PROD_URL }}
+        run: |
+          for i in {1..60}; do
+            if curl -f "${{ env.PROD_URL }}/api/base/health" 2>/dev/null | grep -q "ok"; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i/60 waiting for service..."
+            sleep 10
+          done
+          echo "Health check failed - attempting rollback"
+          exit 1
+
+      - name: Post-deployment smoke test
+        env:
+          PROD_URL: ${{ secrets.PROD_URL }}
+        run: |
+          # Test API endpoints
+          curl -f "${{ env.PROD_URL }}/api/entities" || exit 1
+          curl -f "${{ env.PROD_URL }}/api/users" || exit 1
+          echo "Smoke tests passed"
+
+      - name: Slack notification - Success
+        if: success()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "Production deployment successful",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Production Deployment Successful* ✅\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nBackup: ${{ env.BACKUP_FILE }}"
+                  }
+                }
+              ]
+            }
+
+      - name: Slack notification - Failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "Production deployment failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Production Deployment Failed* ❌\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\nAction: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }

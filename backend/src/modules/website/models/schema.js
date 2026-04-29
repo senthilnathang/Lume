@@ -71,7 +71,6 @@ export const websiteMenuItems = table('website_menu_items', {
   isActive: boolean('is_active').default(true),
   cssClass: varchar('css_class', { length: 255 }),
   description: text('description'),
-  megaMenuContent: longtext('mega_menu_content').default(null),
 });
 
 /**
