@@ -17,6 +17,8 @@ import { ModuleService } from './services/module.service';
 import { SecurityService } from './services/security.service';
 import { FieldPermissionService } from './services/field-permission.service';
 import { FormulaService } from './services/formula.service';
+import { CascadeService } from './services/cascade.service';
+import { LookupResolverService } from './services/lookup-resolver.service';
 
 @Module({
   imports: [SharedModule],
@@ -31,6 +33,8 @@ import { FormulaService } from './services/formula.service';
     SecurityService,
     FieldPermissionService,
     FormulaService,
+    CascadeService,
+    LookupResolverService,
   ],
   exports: [
     EntityService,
@@ -42,6 +46,8 @@ import { FormulaService } from './services/formula.service';
     SecurityService,
     FieldPermissionService,
     FormulaService,
+    CascadeService,
+    LookupResolverService,
   ],
 })
 export class BaseModule {}
