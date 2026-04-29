@@ -1,9 +1,13 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@core/services/prisma.service';
+import { FormulaService } from './formula.service';
 
 @Injectable()
 export class RecordService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private formulaService: FormulaService,
+  ) {}
 
   /**
    * Create a new record for an entity
@@ -30,11 +34,14 @@ export class RecordService {
 
     this.validateRecordData(recordData, fields);
 
+    // Evaluate formula fields
+    const dataWithFormulas = await this.evaluateFormulaFields(recordData, fields);
+
     // Create record
     const record = await this.prisma.entityRecord.create({
       data: {
         entityId,
-        data: JSON.stringify(recordData),
+        data: JSON.stringify(dataWithFormulas),
         createdBy: userId,
         companyId,
         visibility: 'private',
@@ -160,11 +167,14 @@ export class RecordService {
 
     this.validateRecordData(mergedData, fields);
 
+    // Evaluate formula fields
+    const dataWithFormulas = await this.evaluateFormulaFields(mergedData, fields);
+
     // Update record
     const updated = await this.prisma.entityRecord.update({
       where: { id: recordId },
       data: {
-        data: JSON.stringify(mergedData),
+        data: JSON.stringify(dataWithFormulas),
       },
     });
 
@@ -204,6 +214,30 @@ export class RecordService {
   }
 
   /**
+   * Evaluate formula fields and return data with computed values
+   */
+  private async evaluateFormulaFields(
+    data: Record<string, any>,
+    fields: any[],
+  ): Promise<Record<string, any>> {
+    const resultData = { ...data };
+
+    for (const field of fields) {
+      if (field.type === 'formula' && field.formulaExpression && field.isStored) {
+        try {
+          const result = this.formulaService.evaluate(field.formulaExpression, resultData, fields);
+          resultData[field.name] = result;
+        } catch (error) {
+          // Log but don't fail on formula evaluation errors
+          console.error(`Formula evaluation failed for field ${field.name}: ${(error as Error).message}`);
+        }
+      }
+    }
+
+    return resultData;
+  }
+
+  /**
    * Validate record data against entity fields
    */
   private validateRecordData(data: Record<string, any>, fields: any[]): void {
@@ -218,7 +252,7 @@ export class RecordService {
       }
 
       // Type-specific validation
-      if (value !== undefined && value !== null) {
+      if (value !== undefined && value !== null && value !== '') {
         switch (field.type) {
           case 'email':
             if (!this.isValidEmail(value)) {
@@ -226,8 +260,12 @@ export class RecordService {
             }
             break;
           case 'number':
+          case 'integer':
+          case 'float':
             if (isNaN(Number(value))) {
-              errors[field.name] = 'Must be a number';
+              errors[field.name] = `${field.label} must be a number`;
+            } else if (field.type === 'integer' && !Number.isInteger(Number(value))) {
+              errors[field.name] = `${field.label} must be an integer`;
             }
             break;
           case 'date':
@@ -235,9 +273,50 @@ export class RecordService {
               errors[field.name] = 'Invalid date format';
             }
             break;
+          case 'datetime':
+            if (isNaN(Date.parse(value))) {
+              errors[field.name] = 'Invalid date/time format';
+            }
+            break;
           case 'url':
             if (!this.isValidUrl(value)) {
               errors[field.name] = 'Invalid URL format';
+            }
+            break;
+          case 'phone':
+            if (!this.isValidPhone(value)) {
+              errors[field.name] = 'Invalid phone number format';
+            }
+            break;
+          case 'select':
+            if (field.selectOptions && !field.selectOptions.includes(value)) {
+              errors[field.name] = `${field.label} value must be one of: ${field.selectOptions.join(', ')}`;
+            }
+            break;
+          case 'multiselect':
+            if (Array.isArray(value)) {
+              if (field.selectOptions) {
+                const invalidValues = value.filter((v: any) => !field.selectOptions.includes(v));
+                if (invalidValues.length > 0) {
+                  errors[field.name] = `${field.label} contains invalid values: ${invalidValues.join(', ')}`;
+                }
+              }
+            } else {
+              errors[field.name] = `${field.label} must be an array`;
+            }
+            break;
+          case 'boolean':
+            if (typeof value !== 'boolean' && value !== 'true' && value !== 'false' && value !== 0 && value !== 1) {
+              errors[field.name] = `${field.label} must be a boolean`;
+            }
+            break;
+          case 'json':
+            try {
+              if (typeof value === 'string') {
+                JSON.parse(value);
+              }
+            } catch {
+              errors[field.name] = `${field.label} must be valid JSON`;
             }
             break;
         }
@@ -270,5 +349,13 @@ export class RecordService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Validate phone number format
+   */
+  private isValidPhone(phone: string): boolean {
+    const phoneRegex = /^\+?[\d\s\-().]{7,20}$/;
+    return phoneRegex.test(phone);
   }
 }

@@ -811,15 +811,18 @@ model User {
 }
 
 model Entity {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  label       String
-  description String?   @db.Text
-  moduleId    Int?      @map("module_id")
-  createdBy   Int       @map("created_by")
-  createdAt   DateTime  @default(now()) @map("created_at") @db.DateTime(0)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
-  deletedAt   DateTime? @map("deleted_at") @db.DateTime(0)
+  id              Int       @id @default(autoincrement())
+  name            String    @unique
+  label           String
+  description     String?   @db.Text
+  moduleId        Int?      @map("module_id")
+  createdBy       Int       @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.DateTime(0)
+  deletedAt       DateTime? @map("deleted_at") @db.DateTime(0)
+  isPublishable   Boolean?  @default(false) @map("is_publishable")
+  isPublished     Boolean?  @default(false) @map("is_published")
+  publishedAt     DateTime? @map("published_at") @db.DateTime(0)
 
   fields                    EntityField[]
   views                     EntityView[]
@@ -854,6 +857,8 @@ model EntityField {
   lookupEntityId Int?   @map("lookup_entity_id")
   lookupField  String?  @db.VarChar(255) @map("lookup_field")
   formulaExpression String? @db.Text @map("formula_expression")
+  isStored     Boolean? @default(false) @map("is_stored")
+  formulaType  String?  @db.VarChar(20) @map("formula_type")
   deletedAt    DateTime? @map("deleted_at") @db.DateTime(0)
   sequence     Int      @default(0)
 
@@ -941,6 +946,8 @@ model EntityFieldPermission {
   roleId    Int       @map("role_id")
   canRead   Boolean?  @default(true) @map("can_read")
   canWrite  Boolean?  @default(false) @map("can_write")
+  isMasked  Boolean?  @default(false) @map("is_masked")
+  maskChar  String?   @default("*") @map("mask_char") @db.VarChar(5)
   createdAt DateTime  @default(now()) @map("created_at") @db.DateTime(0)
 
   field     EntityField @relation(fields: [fieldId], references: [id], onDelete: Cascade, map: "entity_field_permissions_field_id")

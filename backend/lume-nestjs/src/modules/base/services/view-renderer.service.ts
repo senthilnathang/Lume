@@ -31,11 +31,19 @@ export class ViewRendererService {
       fieldMap[f.name] = f;
     });
 
-    let columns: any[] = [];
+    let viewData: any = {
+      id: view.id,
+      name: view.name,
+      type: view.type,
+      isDefault: view.isDefault,
+      pageSize: config.pageSize || 20,
+      defaultSort: config.defaultSort || [{ field: 'createdAt', direction: 'desc' }],
+      filters: config.filters || [],
+    };
 
     if (view.type === 'list') {
       const columnNames = config.columns || fields.map((f) => f.name).slice(0, 5);
-      columns = columnNames
+      viewData.columns = columnNames
         .map((name: string) => {
           const field = fieldMap[name];
           if (!field) return null;
@@ -50,34 +58,54 @@ export class ViewRendererService {
         })
         .filter(Boolean);
     } else if (view.type === 'grid') {
-      columns = fields.map((f) => ({
+      viewData.columns = fields.map((f) => ({
         name: f.name,
         label: f.label,
         type: f.type,
       }));
     } else if (view.type === 'form') {
-      columns = fields.map((f) => ({
+      viewData.columns = fields.map((f) => ({
         name: f.name,
         label: f.label,
         type: f.type,
         required: f.required,
         helpText: f.helpText,
       }));
+    } else if (view.type === 'kanban') {
+      viewData.groupByField = config.groupByField;
+      viewData.cardFields = config.cardFields || [];
+      viewData.swimlaneField = config.swimlaneField || null;
+      viewData.colorByField = config.colorByField || null;
+      viewData.columns = this.extractKanbanColumns(fieldMap, config.groupByField);
+    } else if (view.type === 'calendar') {
+      viewData.startDateField = config.startDateField;
+      viewData.endDateField = config.endDateField;
+      viewData.titleField = config.titleField;
+      viewData.colorField = config.colorField || null;
     }
 
     return {
       success: true,
-      data: {
-        id: view.id,
-        name: view.name,
-        type: view.type,
-        isDefault: view.isDefault,
-        columns,
-        pageSize: config.pageSize || 20,
-        defaultSort: config.defaultSort || [{ field: 'createdAt', direction: 'desc' }],
-        filters: config.filters || [],
-      },
+      data: viewData,
     };
+  }
+
+  /**
+   * Extract kanban columns from the groupByField
+   */
+  private extractKanbanColumns(fieldMap: Record<string, any>, groupByField: string): any[] {
+    const field = fieldMap[groupByField];
+    if (!field) return [];
+
+    if (field.type === 'select' && field.selectOptions) {
+      return field.selectOptions.map((option: string) => ({
+        value: option,
+        label: option,
+        color: null,
+      }));
+    }
+
+    return [];
   }
 
   /**

@@ -15,6 +15,8 @@ import { QueueService } from './services/queue.service';
 import { RelationshipService } from './services/relationship.service';
 import { ModuleService } from './services/module.service';
 import { SecurityService } from './services/security.service';
+import { FieldPermissionService } from './services/field-permission.service';
+import { FormulaService } from './services/formula.service';
 
 @Module({
   imports: [SharedModule],
@@ -27,6 +29,8 @@ import { SecurityService } from './services/security.service';
     RelationshipService,
     ModuleService,
     SecurityService,
+    FieldPermissionService,
+    FormulaService,
   ],
   exports: [
     EntityService,
@@ -36,6 +40,8 @@ import { SecurityService } from './services/security.service';
     RelationshipService,
     ModuleService,
     SecurityService,
+    FieldPermissionService,
+    FormulaService,
   ],
 })
 export class BaseModule {}
