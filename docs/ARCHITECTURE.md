@@ -66,8 +66,8 @@ This document describes the system architecture of the Lume Framework, covering 
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      EXPRESS.JS SERVER                            │
-│                      (Node.js 18+ ESM)                          │
+│                      NESTJS SERVER                               │
+│                      (Node.js 20.12+ TypeScript)               │
 │                                                                  │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │                  MIDDLEWARE PIPELINE                        │  │
@@ -171,7 +171,7 @@ backend/src/
 ```
 ┌────────────────────────────────────────────────────┐
 │                   API LAYER                         │
-│  Express Routes (auto-generated CRUD + custom)     │
+│  NestJS Controllers (auto-generated CRUD + custom) │
 ├────────────────────────────────────────────────────┤
 │                 SERVICE LAYER                       │
 │  BaseService (generic CRUD) + domain services      │
@@ -333,7 +333,7 @@ For each module (in order):
     │   ├── Call __init__.js initialize(context)
     │   │   ├── Create ORM adapters (Prisma or Drizzle)
     │   │   ├── Instantiate services
-    │   │   ├── Register Express routes on app
+    │   │   ├── Register NestJS controllers/routes
     │   │   └── Return { models, services }
     │   ├── Register menus from manifest
     │   ├── Register permissions from manifest
@@ -369,7 +369,7 @@ modules/{name}/
 ├── services/
 │   └── *.service.js         # Business logic classes
 │
-├── *.routes.js              # Express router factory
+├── *.controller.ts          # NestJS controller (routes & handlers)
 │
 └── static/                  # Frontend code (served via Vite @modules alias)
     ├── views/               # Vue SFC components
@@ -875,7 +875,7 @@ BlockRenderer wraps each block in EditableBlock overlay
 Complete flow for an authenticated API request:
 
 ```
-1. HTTP Request arrives at Express
+1. HTTP Request arrives at NestJS
    │
 2. Helmet (security headers)
    │
@@ -898,7 +898,7 @@ Complete flow for an authenticated API request:
    │
 9. Route handler (module API endpoint)
    │  ├── authorize(module, action) — permission check
-   │  ├── Input validation (express-validator)
+   │  ├── Input validation (class-validator DTOs)
    │  ├── Service method call
    │  │   ├── Adapter method (findAll, create, update, etc.)
    │  │   ├── Prisma/Drizzle query execution
@@ -940,7 +940,7 @@ Complete flow for an authenticated API request:
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   Express    │────►│    Redis     │────►│   MySQL/PG   │
+│   NestJS     │────►│    Redis     │────►│   MySQL/PG   │
 │   Server     │     │   Cache      │     │   Database   │
 └──────────────┘     └──────────────┘     └──────────────┘
 

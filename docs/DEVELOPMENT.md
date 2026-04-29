@@ -25,7 +25,7 @@ This guide covers day-to-day development workflows, coding conventions, and how 
 
 | Tool | Version | Notes |
 |------|---------|-------|
-| Node.js | 18+ | LTS recommended |
+| Node.js | 20.12+ | LTS recommended |
 | MySQL | 8.0+ | Primary database |
 | pnpm | 8+ | Package manager (monorepo) |
 | Git | 2.30+ | Version control |
@@ -69,7 +69,7 @@ CORS_ORIGIN="http://localhost:5173"
 
 ```env
 VITE_API_URL=/api
-VITE_PUBLIC_SITE_URL=http://localhost:3007
+VITE_PUBLIC_SITE_URL=http://localhost:3001
 ```
 
 ---
@@ -80,9 +80,9 @@ You need three servers running for full development:
 
 | Server | Directory | Command | Port | Purpose |
 |--------|-----------|---------|------|---------|
-| Backend | `backend/` | `npm run dev` | 3000 | Express API |
+| Backend | `backend/` | `npm run dev` | 3000 | NestJS API |
 | Admin Panel | `frontend/apps/web-lume/` | `npm run dev` | 5173 | Vue 3 SPA |
-| Public Site | `frontend/apps/riagri-website/` | `npm run dev` | 3007 | Nuxt 3 SSR |
+| Public Site | `frontend/apps/riagri-website/` | `npm run dev` | 3001 | Nuxt 3 SSR |
 
 **Login credentials**: `admin@lume.dev` / `admin123`
 

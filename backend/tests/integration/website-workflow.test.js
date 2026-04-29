@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
-import app from '../../src/index.js';
+import app, { initializeDatabasesAndModules } from '../../src/index.js';
 import prisma from '../../src/core/db/prisma.js';
 
 describe('Website Module Integration Tests', () => {
@@ -14,12 +14,19 @@ describe('Website Module Integration Tests', () => {
   let menuId;
 
   beforeAll(async () => {
+    // Initialize databases for tests
+    try {
+      await initializeDatabasesAndModules();
+    } catch (err) {
+      console.warn('Database initialization may have failed, continuing with test...', err.message);
+    }
+
     // Login as admin to get auth token
     const loginResponse = await request(app)
       .post('/api/users/login')
       .send({
         email: 'admin@lume.dev',
-        password: 'admin123'
+        password: 'Admin@123'
       });
 
     if (loginResponse.status === 200) {

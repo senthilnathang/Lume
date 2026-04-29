@@ -722,7 +722,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
 });
 
 // Mount core module routes (users, auth, etc.)
-app.use('/api/users', (await import('./modules/user/index.js')).userRoutes);
+app.use('/api/users', authLimiter, (await import('./modules/user/index.js')).userRoutes);
 app.use('/api/auth', authLimiter, (await import('./modules/auth/index.js')).authRoutes);
 
 // Mount other module routes
@@ -759,11 +759,9 @@ app.use('/api/search', (await import('./core/api/search.js')).default);
 // Error handling — registered after module system init in startServer()
 // (moved to end of startServer so module-registered routes aren't shadowed)
 
-// Start server
-const startServer = async () => {
+// Initialize databases and modules (can be called before startServer for testing)
+export const initializeDatabasesAndModules = async () => {
   try {
-    console.log('🚀 Starting Lume Modular Backend...');
-
     // Initialize Prisma (core tables)
     await prisma.$connect();
     console.log('✅ Prisma connected (core tables)');
@@ -771,6 +769,21 @@ const startServer = async () => {
     // Initialize Drizzle (module tables)
     await initDrizzle();
     console.log('✅ Drizzle connected (module tables)');
+
+    return true;
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error.message);
+    throw error;
+  }
+};
+
+// Start server
+const startServer = async () => {
+  try {
+    console.log('🚀 Starting Lume Modular Backend...');
+
+    // Initialize databases and modules
+    await initializeDatabasesAndModules();
 
     // Initialize module system (base module creates models, services, routes via __init__.js)
     const modulesDir = join(__dirname, 'modules');
@@ -913,6 +926,10 @@ const startServer = async () => {
   }
 };
 
-startServer();
+// Only start server if this file is run directly (not imported for testing)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  startServer();
+}
 
 export default app;
+export { startServer };
