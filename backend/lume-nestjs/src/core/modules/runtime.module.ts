@@ -7,6 +7,7 @@ import { ModuleLoaderService } from '@core/module/module-loader.service';
 import { EntityRegistryService } from '@core/entity/entity-registry.service';
 import { PolicyEvaluatorService } from '@core/permission/policy-evaluator.service';
 import { WorkflowExecutorService } from '@core/workflow/workflow-executor.service';
+import { VersioningService } from '@core/versioning/versioning.service';
 
 @Module({
   imports: [EventEmitterModule.forRoot()],
@@ -18,6 +19,7 @@ import { WorkflowExecutorService } from '@core/workflow/workflow-executor.servic
     ModuleLoaderService,
     PolicyEvaluatorService,
     WorkflowExecutorService,
+    VersioningService,
   ],
   exports: [
     MetadataRegistryService,
@@ -27,6 +29,7 @@ import { WorkflowExecutorService } from '@core/workflow/workflow-executor.servic
     ModuleLoaderService,
     PolicyEvaluatorService,
     WorkflowExecutorService,
+    VersioningService,
   ],
 })
 export class RuntimeModule {}
