@@ -522,13 +522,15 @@ OUTPUT (Automatic):
 
 ## Part 6: Example: Ticket Management System
 
-See detailed example in docs covering:
-- Entity definition (TypeScript)
-- Auto-generated API endpoints
-- Auto-generated UI (Vue 3 components)
-- Zero-code workflows (visual + JSON)
-- Agent automation (escalation, auto-close)
-- Permission policies (RBAC + ABAC)
+Complete working example demonstrating all systems integrated:
+- **Entity definition (TypeScript)** — Fields, hooks, workflows, agents, permissions, views all defined in one place
+- **Auto-generated API endpoints** — CRUD, bulk, search, view-specific, field metadata endpoints
+- **Auto-generated UI (Vue 3)** — Table, Kanban, Calendar views with filtering, sorting, inline editing
+- **Zero-code workflows** — Visual workflow designer producing JSON, executed with retry logic
+- **Agent automation** — Scheduled escalation (overdue detection), auto-close, event-triggered reactions
+- **Permission policies** — RBAC (role-based) + ABAC (attribute-based) with field-level enforcement
+
+See `.superpowers/brainstorm/` artifacts for full code examples (entity definition, API routes, Vue components, workflow JSON).
 
 ---
 
