@@ -1,5 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { SharedModule } from '@core/modules/shared.module';
+import { EntityRegistryService } from '@core/entity/entity-registry.service';
+import { setEntityRegistry } from '@core/entity/extend-entity';
 
 // Controllers
 import { EntityController } from './controllers/entity.controller';
@@ -20,6 +22,10 @@ import { FormulaService } from './services/formula.service';
 import { CascadeService } from './services/cascade.service';
 import { LookupResolverService } from './services/lookup-resolver.service';
 
+// Entities
+import { LeadEntity } from './entities/lead.entity';
+import { TicketEntity } from './entities/ticket.entity';
+
 @Module({
   imports: [SharedModule],
   controllers: [EntityController, EntityRecordsController, EntityViewsController, QueueController],
@@ -35,6 +41,7 @@ import { LookupResolverService } from './services/lookup-resolver.service';
     FormulaService,
     CascadeService,
     LookupResolverService,
+    EntityRegistryService,
   ],
   exports: [
     EntityService,
@@ -48,6 +55,18 @@ import { LookupResolverService } from './services/lookup-resolver.service';
     FormulaService,
     CascadeService,
     LookupResolverService,
+    EntityRegistryService,
   ],
 })
-export class BaseModule {}
+export class BaseModule implements OnModuleInit {
+  constructor(private entityRegistry: EntityRegistryService) {}
+
+  onModuleInit(): void {
+    // Register example entities
+    this.entityRegistry.register(LeadEntity);
+    this.entityRegistry.register(TicketEntity);
+
+    // Initialize extendEntity() function
+    setEntityRegistry(this.entityRegistry);
+  }
+}
