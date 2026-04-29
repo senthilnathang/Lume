@@ -7,6 +7,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 
 // Core modules & services
 import { BaseModule } from '@core/modules/base.module';
+import { RuntimeModule } from '@core/modules/runtime.module';
 import { PrismaService } from '@core/services/prisma.service';
 import { LoggerService } from '@core/services/logger.service';
 import { RbacService } from '@core/services/rbac.service';
@@ -62,6 +63,7 @@ import { HealthController } from './health.controller';
       },
     ]),
     EventEmitterModule.forRoot(),
+    RuntimeModule,
     BaseModule,
     AuthModule,
     UsersModule,
@@ -106,6 +108,6 @@ import { HealthController } from './health.controller';
       useClass: ValidatePipe,
     },
   ],
-  exports: [PrismaService, LoggerService, RbacService, DrizzleService],
+  exports: [RuntimeModule, PrismaService, LoggerService, RbacService, DrizzleService],
 })
 export class AppModule {}
