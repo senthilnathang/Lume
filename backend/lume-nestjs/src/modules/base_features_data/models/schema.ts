@@ -56,3 +56,14 @@ export const backups = table('backups', {
   status: varchar('status', { length: 20 }).default('pending'),
   createdBy: idCol('created_by'),
 });
+
+export const featureFlagAuditLogs = table('feature_flag_audit_logs', {
+  ...baseColumns(),
+  flagId: idCol('flag_id'),
+  flagKey: varchar('flag_key', { length: 100 }).notNull(),
+  action: varchar('action', { length: 30 }).notNull(),
+  oldValue: json('old_value').$type<any>(),
+  newValue: json('new_value').$type<any>(),
+  changedBy: idCol('changed_by'),
+  ipAddress: varchar('ip_address', { length: 45 }),
+});

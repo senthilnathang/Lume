@@ -1,12 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '@core/services/prisma.service';
 import { FormulaService } from './formula.service';
+import { RecordCreatedEvent, RecordUpdatedEvent, RecordDeletedEvent } from '../events/record.events';
 
 @Injectable()
 export class RecordService {
   constructor(
     private prisma: PrismaService,
     private formulaService: FormulaService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -48,10 +51,14 @@ export class RecordService {
       },
     });
 
-    return {
+    const recordData = {
       ...record,
       data: JSON.parse(record.data),
     };
+
+    this.eventEmitter.emit('record.created', new RecordCreatedEvent(entityId, recordData, userId));
+
+    return recordData;
   }
 
   /**
@@ -178,10 +185,17 @@ export class RecordService {
       },
     });
 
-    return {
+    const updatedData = {
       ...updated,
       data: JSON.parse(updated.data),
     };
+
+    this.eventEmitter.emit(
+      'record.updated',
+      new RecordUpdatedEvent(existing.entityId, updatedData, existingData, existing.createdBy),
+    );
+
+    return updatedData;
   }
 
   /**
@@ -197,6 +211,9 @@ export class RecordService {
       return false;
     }
 
+    const userId = existing.createdBy;
+    const entityId = existing.entityId;
+
     if (softDelete) {
       // Soft delete
       await this.prisma.entityRecord.update({
@@ -209,6 +226,8 @@ export class RecordService {
         where: { id: recordId },
       });
     }
+
+    this.eventEmitter.emit('record.deleted', new RecordDeletedEvent(entityId, recordId, userId));
 
     return true;
   }

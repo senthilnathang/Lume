@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
-import { featureFlags, dataImports, dataExports } from '../models/schema';
+import { featureFlags, dataImports, dataExports, featureFlagAuditLogs } from '../models/schema';
 import {
   CreateFeatureFlagDto,
   UpdateFeatureFlagDto,
@@ -9,13 +9,20 @@ import {
   CreateDataExportDto,
   UpdateDataExportDto,
 } from '../dtos';
+import {
+  FeatureFlagEvaluatorService,
+  FeatureFlagContext,
+} from './feature-flag-evaluator.service';
 import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class FeaturesDataService {
   private db: any;
 
-  constructor(private drizzle: DrizzleService) {
+  constructor(
+    private drizzle: DrizzleService,
+    private evaluator: FeatureFlagEvaluatorService,
+  ) {
     this.db = drizzle.getDrizzle();
   }
 
@@ -58,17 +65,57 @@ export class FeaturesDataService {
     return { success: true, data: result[0] };
   }
 
-  async createFeatureFlag(dto: CreateFeatureFlagDto) {
+  /**
+   * Check if a feature flag is enabled for a given context
+   */
+  async isEnabledForContext(key: string, context: FeatureFlagContext): Promise<boolean> {
+    const result = await this.db
+      .select()
+      .from(featureFlags)
+      .where(eq(featureFlags.key, key));
+
+    if (!result.length) {
+      return false;
+    }
+
+    const flag = result[0];
+    return this.evaluator.evaluate(flag, context);
+  }
+
+  async createFeatureFlag(dto: CreateFeatureFlagDto, userId?: number, ipAddress?: string) {
     try {
       const result = await this.db.insert(featureFlags).values(dto);
-      return { success: true, data: { id: result.insertId, ...dto } };
+      const flagId = result.insertId;
+
+      await this.createAuditLog({
+        flagId,
+        flagKey: dto.key,
+        action: 'created',
+        oldValue: null,
+        newValue: dto,
+        changedBy: userId,
+        ipAddress,
+      });
+
+      return { success: true, data: { id: flagId, ...dto } };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
   }
 
-  async updateFeatureFlag(id: number, dto: UpdateFeatureFlagDto) {
+  async updateFeatureFlag(id: number, dto: UpdateFeatureFlagDto, userId?: number, ipAddress?: string) {
     try {
+      const oldResult = await this.db
+        .select()
+        .from(featureFlags)
+        .where(eq(featureFlags.id, id));
+
+      if (!oldResult.length) {
+        return { success: false, error: 'Feature flag not found' };
+      }
+
+      const oldValue = oldResult[0];
+
       await this.db
         .update(featureFlags)
         .set(dto)
@@ -79,9 +126,15 @@ export class FeaturesDataService {
         .from(featureFlags)
         .where(eq(featureFlags.id, id));
 
-      if (!result.length) {
-        return { success: false, error: 'Feature flag not found' };
-      }
+      await this.createAuditLog({
+        flagId: id,
+        flagKey: oldValue.key,
+        action: 'updated',
+        oldValue,
+        newValue: result[0],
+        changedBy: userId,
+        ipAddress,
+      });
 
       return { success: true, data: result[0] };
     } catch (error: any) {
@@ -89,7 +142,7 @@ export class FeaturesDataService {
     }
   }
 
-  async deleteFeatureFlag(id: number) {
+  async deleteFeatureFlag(id: number, userId?: number, ipAddress?: string) {
     try {
       const result = await this.db
         .select()
@@ -100,7 +153,19 @@ export class FeaturesDataService {
         return { success: false, error: 'Feature flag not found' };
       }
 
+      const flag = result[0];
+
       await this.db.delete(featureFlags).where(eq(featureFlags.id, id));
+
+      await this.createAuditLog({
+        flagId: id,
+        flagKey: flag.key,
+        action: 'deleted',
+        oldValue: flag,
+        newValue: null,
+        changedBy: userId,
+        ipAddress,
+      });
 
       return { success: true, message: 'Feature flag deleted' };
     } catch (error: any) {
@@ -108,7 +173,7 @@ export class FeaturesDataService {
     }
   }
 
-  async toggleFeatureFlag(key: string, enabled: boolean) {
+  async toggleFeatureFlag(key: string, enabled: boolean, userId?: number, ipAddress?: string) {
     try {
       const flag = await this.db
         .select()
@@ -119,6 +184,8 @@ export class FeaturesDataService {
         return { success: false, error: 'Feature flag not found' };
       }
 
+      const oldValue = flag[0];
+
       await this.db
         .update(featureFlags)
         .set({ enabled })
@@ -128,6 +195,16 @@ export class FeaturesDataService {
         .select()
         .from(featureFlags)
         .where(eq(featureFlags.key, key));
+
+      await this.createAuditLog({
+        flagId: oldValue.id,
+        flagKey: key,
+        action: 'toggled',
+        oldValue: { enabled: oldValue.enabled },
+        newValue: { enabled },
+        changedBy: userId,
+        ipAddress,
+      });
 
       return { success: true, data: updated[0] };
     } catch (error: any) {
@@ -291,6 +368,35 @@ export class FeaturesDataService {
     } catch (error: any) {
       return { success: false, error: error.message };
     }
+  }
+
+  // ── Audit Logging ─────────────────────────────────────────────
+
+  private async createAuditLog(data: {
+    flagId?: number;
+    flagKey: string;
+    action: string;
+    oldValue?: any;
+    newValue?: any;
+    changedBy?: number;
+    ipAddress?: string;
+  }) {
+    try {
+      await this.db.insert(featureFlagAuditLogs).values(data);
+    } catch (error: any) {
+      console.error(`Failed to create audit log for flag ${data.flagKey}: ${error.message}`);
+    }
+  }
+
+  async getAuditLogs(flagId?: number, limit = 50, offset = 0) {
+    let query = this.db.select().from(featureFlagAuditLogs);
+
+    if (flagId) {
+      query = query.where(eq(featureFlagAuditLogs.flagId, flagId));
+    }
+
+    const results = await query.limit(limit).offset(offset);
+    return { success: true, data: results };
   }
 
   // ── Import/Export Helpers ──────────────────────────────────────
