@@ -1,0 +1,1212 @@
+openapi: 3.0.0
+info:
+  title: Lume Metadata-Driven Framework API
+  description: |
+    # Lume Framework API Documentation
+
+    Complete REST API for the Lume metadata-driven enterprise framework with:
+    - Dynamic entity CRUD operations
+    - Declarative module, workflow, policy, and plugin management
+    - ABAC+RBAC permission system
+    - AI-powered natural language queries
+    - Multiple view types and rendering
+    - Complete record versioning and audit trails
+
+    ## Authentication
+
+    All endpoints require Bearer token authentication in the Authorization header:
+    ```
+    Authorization: Bearer <access_token>
+    ```
+
+    ## Response Format
+
+    All successful responses follow this structure:
+    ```json
+    {
+      "success": true,
+      "data": { /* response data */ }
+    }
+    ```
+
+    Error responses:
+    ```json
+    {
+      "success": false,
+      "message": "Error description"
+    }
+    ```
+  version: 2.0.0
+  contact:
+    name: Lume Framework Team
+    url: https://lumeframework.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.lumeframework.dev/api
+    description: Production server
+
+tags:
+  - name: Admin - Modules
+    description: Module management and lifecycle
+  - name: Admin - Workflows
+    description: Workflow definitions and execution
+  - name: Admin - Policies
+    description: Access control policies (ABAC+RBAC)
+  - name: Admin - Plugins
+    description: Plugin installation and management
+  - name: Entity Records
+    description: CRUD operations on entity records
+  - name: Entity Definitions
+    description: Entity schema and metadata
+  - name: Views
+    description: View definitions and rendering
+  - name: Queries
+    description: Advanced query builder
+  - name: Versioning
+    description: Record history and restoration
+  - name: AI
+    description: AI-powered features
+
+paths:
+  # ============================================================
+  # ADMIN - MODULES
+  # ============================================================
+
+  /admin/modules:
+    get:
+      summary: List all installed modules
+      operationId: listModules
+      tags:
+        - Admin - Modules
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: List of installed modules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Module'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/modules/{moduleName}:
+    get:
+      summary: Get module details
+      operationId: getModule
+      tags:
+        - Admin - Modules
+      parameters:
+        - name: moduleName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Module details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/ModuleDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/modules/{moduleName}/install:
+    post:
+      summary: Install a module
+      operationId: installModule
+      tags:
+        - Admin - Modules
+      parameters:
+        - name: moduleName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Module installed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '409':
+          description: Module already installed
+
+  /admin/modules/{moduleName}/reload:
+    post:
+      summary: Reload module definitions
+      operationId: reloadModule
+      tags:
+        - Admin - Modules
+      parameters:
+        - name: moduleName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Module reloaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /admin/modules/{moduleName}:
+    delete:
+      summary: Uninstall a module
+      operationId: uninstallModule
+      tags:
+        - Admin - Modules
+      parameters:
+        - name: moduleName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Module uninstalled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  # ============================================================
+  # ADMIN - WORKFLOWS
+  # ============================================================
+
+  /admin/workflows:
+    get:
+      summary: List all workflows
+      operationId: listWorkflows
+      tags:
+        - Admin - Workflows
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: List of workflows
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Workflow'
+
+  /admin/workflows/{workflowName}:
+    get:
+      summary: Get workflow details
+      operationId: getWorkflow
+      tags:
+        - Admin - Workflows
+      parameters:
+        - name: workflowName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Workflow details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/WorkflowDetail'
+
+  /admin/workflows/{workflowName}/execute:
+    post:
+      summary: Execute a workflow manually
+      operationId: executeWorkflow
+      tags:
+        - Admin - Workflows
+      parameters:
+        - name: workflowName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recordId:
+                  type: integer
+                data:
+                  type: object
+              required:
+                - recordId
+      responses:
+        '200':
+          description: Workflow executed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/WorkflowRun'
+
+  /admin/workflows/test/{workflowName}:
+    post:
+      summary: Test a workflow with sample data
+      operationId: testWorkflow
+      tags:
+        - Admin - Workflows
+      parameters:
+        - name: workflowName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sampleData:
+                  type: object
+      responses:
+        '200':
+          description: Workflow test results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+  # ============================================================
+  # ADMIN - POLICIES
+  # ============================================================
+
+  /admin/policies:
+    get:
+      summary: List all policies
+      operationId: listPolicies
+      tags:
+        - Admin - Policies
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: List of policies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Policy'
+
+    post:
+      summary: Create a new policy
+      operationId: createPolicy
+      tags:
+        - Admin - Policies
+      security:
+        - bearerAuth: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyInput'
+      responses:
+        '201':
+          description: Policy created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Policy'
+
+  /admin/policies/{policyName}:
+    get:
+      summary: Get policy details
+      operationId: getPolicy
+      tags:
+        - Admin - Policies
+      parameters:
+        - name: policyName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Policy'
+
+    put:
+      summary: Update a policy
+      operationId: updatePolicy
+      tags:
+        - Admin - Policies
+      parameters:
+        - name: policyName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyInput'
+      responses:
+        '200':
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Policy'
+
+    delete:
+      summary: Delete a policy
+      operationId: deletePolicy
+      tags:
+        - Admin - Policies
+      parameters:
+        - name: policyName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Policy deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /admin/policies/test:
+    post:
+      summary: Test a policy with sample context
+      operationId: testPolicy
+      tags:
+        - Admin - Policies
+      security:
+        - bearerAuth: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                policyName:
+                  type: string
+                userId:
+                  type: integer
+                roleId:
+                  type: integer
+                companyId:
+                  type: integer
+                action:
+                  type: string
+              required:
+                - policyName
+                - userId
+                - roleId
+                - action
+      responses:
+        '200':
+          description: Policy evaluation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      allowed:
+                        type: boolean
+                      context:
+                        type: object
+                      conditions:
+                        type: array
+
+  # ============================================================
+  # ADMIN - PLUGINS
+  # ============================================================
+
+  /admin/plugins:
+    get:
+      summary: List all plugins
+      operationId: listPlugins
+      tags:
+        - Admin - Plugins
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: List of plugins
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Plugin'
+
+  /admin/plugins/install:
+    post:
+      summary: Install a plugin
+      operationId: installPlugin
+      tags:
+        - Admin - Plugins
+      security:
+        - bearerAuth: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                manifestPath:
+                  type: string
+                  description: Path to plugin manifest.json file
+              required:
+                - manifestPath
+      responses:
+        '201':
+          description: Plugin installed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /admin/plugins/{pluginName}:
+    get:
+      summary: Get plugin details
+      operationId: getPlugin
+      tags:
+        - Admin - Plugins
+      parameters:
+        - name: pluginName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Plugin details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Plugin'
+
+  /admin/plugins/{pluginName}/enable:
+    post:
+      summary: Enable a plugin
+      operationId: enablePlugin
+      tags:
+        - Admin - Plugins
+      parameters:
+        - name: pluginName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Plugin enabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /admin/plugins/{pluginName}/disable:
+    post:
+      summary: Disable a plugin
+      operationId: disablePlugin
+      tags:
+        - Admin - Plugins
+      parameters:
+        - name: pluginName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Plugin disabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /admin/plugins/{pluginName}:
+    delete:
+      summary: Uninstall a plugin
+      operationId: uninstallPlugin
+      tags:
+        - Admin - Plugins
+      parameters:
+        - name: pluginName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [admin]
+      responses:
+        '200':
+          description: Plugin uninstalled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  # ============================================================
+  # ENTITY RECORDS
+  # ============================================================
+
+  /entities/{entityName}/records:
+    get:
+      summary: List records of an entity
+      operationId: listRecords
+      tags:
+        - Entity Records
+      parameters:
+        - name: entityName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+        - name: sort
+          in: query
+          schema:
+            type: string
+            example: 'createdAt:desc'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+
+    post:
+      summary: Create a new record
+      operationId: createRecord
+      tags:
+        - Entity Records
+      parameters:
+        - name: entityName
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Record created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+  /entities/{entityName}/records/{recordId}:
+    get:
+      summary: Get a single record
+      operationId: getRecord
+      tags:
+        - Entity Records
+      parameters:
+        - name: entityName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Record details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+    put:
+      summary: Update a record
+      operationId: updateRecord
+      tags:
+        - Entity Records
+      parameters:
+        - name: entityName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Record updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+
+    delete:
+      summary: Delete a record
+      operationId: deleteRecord
+      tags:
+        - Entity Records
+      parameters:
+        - name: entityName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Record deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  # ============================================================
+  # QUERIES
+  # ============================================================
+
+  /query:
+    post:
+      summary: Execute a query using the query builder
+      operationId: executeQuery
+      tags:
+        - Queries
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: Query results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  aggregations:
+                    type: object
+
+  # ============================================================
+  # AI
+  # ============================================================
+
+  /ai/ask:
+    post:
+      summary: Ask AI a natural language question about entities
+      operationId: askAI
+      tags:
+        - AI
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entity:
+                  type: string
+                  description: Entity name to query
+                question:
+                  type: string
+                  description: Natural language question
+              required:
+                - entity
+                - question
+      responses:
+        '200':
+          description: AI response with matching records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      answer:
+                        type: string
+                      records:
+                        type: array
+                        items:
+                          type: object
+                      confidence:
+                        type: number
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login endpoint
+
+  schemas:
+    Module:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        depends:
+          type: array
+          items:
+            type: string
+        entities:
+          type: integer
+          description: Count of entities in module
+        workflows:
+          type: integer
+        permissions:
+          type: integer
+
+    ModuleDetail:
+      allOf:
+        - $ref: '#/components/schemas/Module'
+        - type: object
+          properties:
+            entities:
+              type: array
+              items:
+                type: object
+            workflows:
+              type: array
+              items:
+                type: object
+            permissions:
+              type: array
+              items:
+                type: string
+            hooks:
+              type: array
+              items:
+                type: string
+
+    Workflow:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        entity:
+          type: string
+        trigger:
+          type: object
+        steps:
+          type: integer
+        onError:
+          type: string
+          enum: [stop, continue, retry]
+        maxRetries:
+          type: integer
+
+    WorkflowDetail:
+      allOf:
+        - $ref: '#/components/schemas/Workflow'
+        - type: object
+          properties:
+            trigger:
+              type: object
+            steps:
+              type: array
+              items:
+                type: object
+
+    WorkflowRun:
+      type: object
+      properties:
+        runId:
+          type: integer
+        status:
+          type: string
+          enum: [running, completed, failed, timeout]
+        stepsLog:
+          type: array
+
+    Policy:
+      type: object
+      properties:
+        name:
+          type: string
+        entity:
+          type: string
+        actions:
+          type: array
+          items:
+            type: string
+        conditions:
+          type: array
+          items:
+            type: object
+        roles:
+          type: array
+          items:
+            type: string
+        deny:
+          type: boolean
+
+    PolicyInput:
+      type: object
+      properties:
+        name:
+          type: string
+        entity:
+          type: string
+        actions:
+          type: array
+          items:
+            type: string
+        conditions:
+          type: array
+          items:
+            type: object
+        roles:
+          type: array
+          items:
+            type: string
+        deny:
+          type: boolean
+      required:
+        - name
+        - entity
+        - actions
+
+    Plugin:
+      type: object
+      properties:
+        name:
+          type: string
+        displayName:
+          type: string
+        version:
+          type: string
+        author:
+          type: string
+        description:
+          type: string
+        compatibility:
+          type: string
+        dependencies:
+          type: object
+        enabled:
+          type: boolean
+
+    QueryRequest:
+      type: object
+      properties:
+        entity:
+          type: string
+        filters:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              operator:
+                type: string
+              value:
+                type: string
+        search:
+          type: string
+        groupBy:
+          type: string
+        aggregations:
+          type: array
+          items:
+            type: string
+        orderBy:
+          type: array
+          items:
+            type: object
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+      required:
+        - entity
+
+  responses:
+    Forbidden:
+      description: Access forbidden (insufficient permissions)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+
+    BadRequest:
+      description: Bad request (invalid input)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
