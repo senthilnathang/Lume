@@ -4,6 +4,7 @@ import { validateRequest } from '../../api/validators/validateRequest.js';
 import { UserService } from './user.service.js';
 import { authenticate, authorize } from '../../core/middleware/auth.js';
 import { responseUtil } from '../../shared/utils/index.js';
+import prisma from '../../core/db/prisma.js';
 
 const router = Router();
 
@@ -30,6 +31,39 @@ const loginValidation = [
   body('password').notEmpty().withMessage('Password is required')
 ];
 
+// Get current user info (protected, no special permission needed)
+router.get('/me', authenticate, async (req, res) => {
+  try {
+    // req.user is set by authenticate middleware
+    if (!req.user) {
+      return res.status(401).json(responseUtil.error('Not authenticated'));
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        isActive: true,
+        createdAt: true,
+        role: { select: { name: true, display_name: true } }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json(responseUtil.error('User not found'));
+    }
+
+    res.json(responseUtil.success(user, 'Current user retrieved'));
+  } catch (error) {
+    console.error('Get current user error:', error.message);
+    console.error('Get current user full error:', error);
+    res.status(500).json(responseUtil.error('Failed to fetch user', { errorDetails: error.message }));
+  }
+});
+
 // Public routes
 router.post('/login', loginValidation, validateRequest, async (req, res) => {
   try {
@@ -46,7 +80,7 @@ router.post('/login', loginValidation, validateRequest, async (req, res) => {
       res.status(result.error.code === 'UNAUTHORIZED' ? 401 : 400).json(result);
     }
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error:', error.message, error.stack);
     res.status(500).json(responseUtil.error('Login failed'));
   }
 });

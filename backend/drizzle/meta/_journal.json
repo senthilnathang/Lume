@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1776827193031,
+      "tag": "0000_rich_kat_farrell",
+      "breakpoints": true
+    }
+  ]
+}

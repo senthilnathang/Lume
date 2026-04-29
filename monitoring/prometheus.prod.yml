@@ -1,0 +1,83 @@
+# Prometheus Configuration for Lume Production
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'lume-prod'
+    environment: 'production'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules
+rule_files:
+  - '/etc/prometheus/alert_rules.yml'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Lume Backend API
+  - job_name: 'lume-backend'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:3000']
+        labels:
+          service: 'backend'
+          environment: 'production'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # MySQL Database
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['mysql:3306']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'mysql_global_status_threads_connected|mysql_global_status_questions|mysql_global_status_slow_queries|mysql_global_status_aborted_clients'
+        action: 'keep'
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'redis_connected_clients|redis_used_memory|redis_commands_processed_total|redis_keyspace'
+        action: 'keep'
+
+  # Docker Containers (via cAdvisor)
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['localhost:8080']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'container_cpu_usage_seconds_total|container_memory_usage_bytes|container_network_receive_bytes_total|container_network_transmit_bytes_total'
+        action: 'keep'
+
+  # Nginx
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['localhost:9113']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'nginx_up|nginx_http_requests_total|nginx_http_request_duration_seconds_bucket'
+        action: 'keep'
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'node_cpu_seconds_total|node_memory_MemAvailable_bytes|node_memory_MemTotal_bytes|node_filesystem_avail_bytes|node_network_receive_bytes_total|node_network_transmit_bytes_total|node_load1|node_load5|node_load15'
+        action: 'keep'

@@ -91,3 +91,4 @@ lume-deploy.zip
 
 # Turbo cache
 .turbo/
+.worktrees

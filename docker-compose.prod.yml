@@ -1,0 +1,234 @@
+version: '3.9'
+
+services:
+  # MySQL Database with Backup Automation
+  mysql:
+    image: mysql:8.0
+    container_name: lume-prod-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-lume}
+      MYSQL_USER: ${MYSQL_USER:-lume_prod}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_INITDB_SKIP_TZINFO: 1
+      MYSQL_ROOT_HOST: '%'
+    volumes:
+      - mysql_data_prod:/var/lib/mysql
+      - ./scripts/db-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - lume_prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis Cluster for Production
+  redis:
+    image: redis:7-alpine
+    container_name: lume-prod-redis
+    restart: always
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data_prod:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "--raw", "incr", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - lume_prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Backend API
+  backend:
+    image: ${DOCKER_REGISTRY}/lume/backend:${IMAGE_TAG:-latest}
+    container_name: lume-prod-backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      DATABASE_POOL_MIN: 10
+      DATABASE_POOL_MAX: 30
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET}
+      LOG_LEVEL: info
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    expose:
+      - "3000"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/api/base/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - lume_prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=backend"
+
+  # Frontend Admin Panel
+  frontend:
+    image: ${DOCKER_REGISTRY}/lume/frontend:${IMAGE_TAG:-latest}
+    container_name: lume-prod-frontend
+    restart: always
+    environment:
+      VITE_API_URL: https://lume.dev/api
+      NODE_ENV: production
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - lume_prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx Reverse Proxy with SSL/TLS
+  nginx:
+    image: nginx:alpine
+    container_name: lume-prod-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl/prod:/etc/nginx/ssl:ro
+      - nginx_cache_prod:/var/cache/nginx
+      - nginx_logs_prod:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - lume_prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lume-prod-prometheus
+    restart: always
+    volumes:
+      - ./monitoring/prometheus.prod.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data_prod:/prometheus
+    expose:
+      - "9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--retention.time=90d'
+    networks:
+      - lume_prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lume-prod-grafana
+    restart: always
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SERVER_ROOT_URL: https://lume.dev/grafana
+    volumes:
+      - grafana_data_prod:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    expose:
+      - "3000"
+    depends_on:
+      - prometheus
+    networks:
+      - lume_prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # BullMQ Dashboard (Protected)
+  bull-board:
+    image: node:20-alpine
+    container_name: lume-prod-bull-board
+    restart: always
+    working_dir: /app
+    command: npm run bull-board
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      PORT: 3002
+      AUTH_PASSWORD: ${BULL_BOARD_PASSWORD}
+    expose:
+      - "3002"
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app
+    networks:
+      - lume_prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mysql_data_prod:
+    driver: local
+  redis_data_prod:
+    driver: local
+  nginx_cache_prod:
+    driver: local
+  nginx_logs_prod:
+    driver: local
+  prometheus_data_prod:
+    driver: local
+  grafana_data_prod:
+    driver: local
+
+networks:
+  lume_prod:
+    driver: bridge

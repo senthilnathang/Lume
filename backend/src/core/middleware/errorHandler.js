@@ -2,7 +2,15 @@ import { responseUtil } from '../../shared/utils/index.js';
 import { HTTP_STATUS } from '../../shared/constants/index.js';
 
 export const errorHandler = (err, req, res, next) => {
-  console.error('Error:', err);
+  // Log error details differently in production vs development
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction) {
+    // Production: log message + code only (hide stack trace)
+    console.error(`Error [${err.code || 'ERROR'}]: ${err.message}`);
+  } else {
+    // Development: log full error with stack for debugging
+    console.error('Error:', err);
+  }
 
   if (err.name === 'ValidationError') {
     const errors = Object.values(err.errors).map(e => ({
