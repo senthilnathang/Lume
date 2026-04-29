@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsBoolean, IsArray, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsArray, MinLength, IsEnum, IsNumber } from 'class-validator';
+import { EntityFieldType } from '../constants/field-types.enum';
 
 export class CreateFieldDto {
   @IsString()
@@ -9,8 +10,8 @@ export class CreateFieldDto {
   @MinLength(1)
   label!: string;
 
-  @IsString()
-  type!: string;
+  @IsEnum(EntityFieldType)
+  type!: EntityFieldType;
 
   @IsOptional()
   @IsBoolean()
@@ -27,4 +28,20 @@ export class CreateFieldDto {
   @IsOptional()
   @IsString()
   defaultValue?: string;
+
+  @IsOptional()
+  @IsNumber()
+  lookupEntityId?: number;
+
+  @IsOptional()
+  @IsString()
+  lookupField?: string;
+
+  @IsOptional()
+  @IsString()
+  formulaExpression?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isStored?: boolean;
 }

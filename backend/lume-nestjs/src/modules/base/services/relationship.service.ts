@@ -15,11 +15,11 @@ export class RelationshipService {
     }
 
     // Create the relationship link
-    const link = await this.prisma.entityRecordRelationship.create({
+    const link = await this.prisma.entityRelationshipRecord.create({
       data: {
         relationshipId,
-        fromRecordId: recordId,
-        toRecordId: targetRecordId,
+        sourceRecordId: recordId,
+        targetRecordId: targetRecordId,
       },
     });
 
@@ -34,11 +34,11 @@ export class RelationshipService {
    * Unlink two records
    */
   async unlinkRecords(relationshipId: number, recordId: number, targetRecordId: number): Promise<any> {
-    await this.prisma.entityRecordRelationship.deleteMany({
+    await this.prisma.entityRelationshipRecord.deleteMany({
       where: {
         relationshipId,
-        fromRecordId: recordId,
-        toRecordId: targetRecordId,
+        sourceRecordId: recordId,
+        targetRecordId: targetRecordId,
       },
     });
 
@@ -52,9 +52,9 @@ export class RelationshipService {
    * Get all relationships for a record
    */
   async getRecordRelationships(recordId: number): Promise<any> {
-    const relationships = await this.prisma.entityRecordRelationship.findMany({
+    const relationships = await this.prisma.entityRelationshipRecord.findMany({
       where: {
-        fromRecordId: recordId,
+        sourceRecordId: recordId,
       },
       include: {
         relationship: true,
@@ -68,13 +68,13 @@ export class RelationshipService {
    * Get linked records for a specific relationship
    */
   async getLinkedRecords(recordId: number, relationshipId: number): Promise<any> {
-    const links = await this.prisma.entityRecordRelationship.findMany({
+    const links = await this.prisma.entityRelationshipRecord.findMany({
       where: {
-        fromRecordId: recordId,
+        sourceRecordId: recordId,
         relationshipId,
       },
     });
 
-    return links.map((link) => link.toRecordId);
+    return links.map((link) => link.targetRecordId);
   }
 }

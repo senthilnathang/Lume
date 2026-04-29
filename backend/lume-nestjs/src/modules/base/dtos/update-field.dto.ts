@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsArray, IsNumber } from 'class-validator';
 
 export class UpdateFieldDto {
   @IsOptional()
@@ -20,4 +20,20 @@ export class UpdateFieldDto {
   @IsOptional()
   @IsString()
   defaultValue?: string;
+
+  @IsOptional()
+  @IsNumber()
+  lookupEntityId?: number;
+
+  @IsOptional()
+  @IsString()
+  lookupField?: string;
+
+  @IsOptional()
+  @IsString()
+  formulaExpression?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isStored?: boolean;
 }
