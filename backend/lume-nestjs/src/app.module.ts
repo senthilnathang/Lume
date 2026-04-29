@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { JwtModule } from '@nestjs/jwt';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 // Core modules & services
 import { BaseModule } from '@core/modules/base.module';
@@ -13,6 +14,7 @@ import { DrizzleService } from '@core/services/drizzle.service';
 
 // Pipes & Filters
 import { ValidatePipe } from '@core/pipes/validation.pipe';
+import { FeatureFlagGuard } from '@core/guards/feature-flag.guard';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -59,6 +61,7 @@ import { HealthController } from './health.controller';
         limit: 5, // 5 requests per minute
       },
     ]),
+    EventEmitterModule.forRoot(),
     BaseModule,
     AuthModule,
     UsersModule,
@@ -93,6 +96,10 @@ import { HealthController } from './health.controller';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: FeatureFlagGuard,
     },
     {
       provide: APP_PIPE,
