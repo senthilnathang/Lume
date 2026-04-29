@@ -11,6 +11,7 @@ import { EntityRecordsController } from './controllers/entity-records.controller
 import { EntityViewsController } from './controllers/entity-views.controller';
 import { QueueController } from './controllers/queue.controller';
 import { QueryController } from './controllers/query.controller';
+import { AIController } from './controllers/ai.controller';
 
 // Services
 import { EntityService } from './services/entity.service';
@@ -34,7 +35,7 @@ import { LeadAssignmentWorkflow, LeadScoringSendNotification } from './workflows
 
 @Module({
   imports: [SharedModule],
-  controllers: [EntityController, EntityRecordsController, EntityViewsController, QueueController, QueryController],
+  controllers: [EntityController, EntityRecordsController, EntityViewsController, QueueController, QueryController, AIController],
   providers: [
     EntityService,
     RecordService,

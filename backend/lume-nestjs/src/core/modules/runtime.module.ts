@@ -8,6 +8,8 @@ import { EntityRegistryService } from '@core/entity/entity-registry.service';
 import { PolicyEvaluatorService } from '@core/permission/policy-evaluator.service';
 import { WorkflowExecutorService } from '@core/workflow/workflow-executor.service';
 import { VersioningService } from '@core/versioning/versioning.service';
+import { AIAdapterService } from '@core/ai/ai-adapter.service';
+import { AskQueryService } from '@core/ai/ask-query.service';
 
 @Module({
   imports: [EventEmitterModule.forRoot()],
@@ -20,6 +22,8 @@ import { VersioningService } from '@core/versioning/versioning.service';
     PolicyEvaluatorService,
     WorkflowExecutorService,
     VersioningService,
+    AIAdapterService,
+    AskQueryService,
   ],
   exports: [
     MetadataRegistryService,
@@ -30,6 +34,8 @@ import { VersioningService } from '@core/versioning/versioning.service';
     PolicyEvaluatorService,
     WorkflowExecutorService,
     VersioningService,
+    AIAdapterService,
+    AskQueryService,
   ],
 })
 export class RuntimeModule {}
