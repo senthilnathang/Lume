@@ -66,8 +66,8 @@ describe('UsersModule', () => {
   describe('findAll', () => {
     it('should return list of users', async () => {
       const mockUsers = [
-        { id: 1, email: 'user1@lume.dev', name: 'User 1', role_id: 1, role: { name: 'admin' } },
-        { id: 2, email: 'user2@lume.dev', name: 'User 2', role_id: 2, role: { name: 'user' } },
+        { id: 1, email: 'user1@lume.dev', firstName: 'User', lastName: '1', role_id: 1, role: { name: 'admin' } },
+        { id: 2, email: 'user2@lume.dev', firstName: 'User', lastName: '2', role_id: 2, role: { name: 'user' } },
       ];
 
       jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(mockUsers);
@@ -81,7 +81,7 @@ describe('UsersModule', () => {
 
     it('should filter by role', async () => {
       const mockUsers = [
-        { id: 1, email: 'admin@lume.dev', name: 'Admin', role_id: 1, role: { name: 'admin' } },
+        { id: 1, email: 'admin@lume.dev', firstName: 'Admin', lastName: 'User', role_id: 1, role: { name: 'admin' } },
       ];
 
       jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(mockUsers);
@@ -111,7 +111,8 @@ describe('UsersModule', () => {
     it('should create new user', async () => {
       const createDto: CreateUserDto = {
         email: 'newuser@lume.dev',
-        name: 'New User',
+        firstName: 'New',
+        lastName: 'User',
         password: 'password123',
         role_id: 2,
       };
@@ -119,8 +120,9 @@ describe('UsersModule', () => {
       const mockUser = {
         id: 3,
         email: createDto.email,
-        name: createDto.name,
-        password_hash: 'hashed-password',
+        firstName: createDto.firstName,
+        lastName: createDto.lastName,
+        password: 'hashed-password',
         role_id: 2,
         role: { id: 2, name: 'user' },
       };
@@ -138,7 +140,8 @@ describe('UsersModule', () => {
     it('should reject duplicate email', async () => {
       const createDto: CreateUserDto = {
         email: 'existing@lume.dev',
-        name: 'Existing',
+        firstName: 'Existing',
+        lastName: 'User',
         password: 'password123',
       };
 
@@ -155,17 +158,19 @@ describe('UsersModule', () => {
     it('should assign default role if not provided', async () => {
       const createDto: CreateUserDto = {
         email: 'newuser@lume.dev',
-        name: 'New User',
+        firstName: 'New',
+        lastName: 'User',
         password: 'password123',
       };
 
       const mockUser = {
         id: 3,
         email: createDto.email,
-        name: createDto.name,
-        password_hash: 'hashed-password',
-        role_id: 2,
-        role: { id: 2, name: 'user' },
+        firstName: createDto.firstName,
+        lastName: createDto.lastName,
+        password: 'hashed-password',
+        role_id: 5,
+        role: { id: 5, name: 'user' },
       };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(null);
@@ -176,9 +181,10 @@ describe('UsersModule', () => {
       expect(prismaService.user.create).toHaveBeenCalledWith({
         data: {
           email: createDto.email,
-          name: createDto.name,
-          password_hash: 'hashed-password',
-          role_id: 2,
+          firstName: createDto.firstName,
+          lastName: createDto.lastName,
+          password: 'hashed-password',
+          role_id: 5,
         },
         include: { role: true },
       });
@@ -187,7 +193,7 @@ describe('UsersModule', () => {
 
   describe('findOne', () => {
     it('should return user by id', async () => {
-      const mockUser = { id: 1, email: 'user@lume.dev', name: 'User', role_id: 2, role: { name: 'user' } };
+      const mockUser = { id: 1, email: 'user@lume.dev', firstName: 'User', lastName: 'Test', role_id: 2, role: { name: 'user' } };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
 
@@ -211,9 +217,9 @@ describe('UsersModule', () => {
 
   describe('update', () => {
     it('should update user', async () => {
-      const updateDto = { name: 'Updated User' };
-      const mockUser = { id: 1, email: 'user@lume.dev', name: 'User', role_id: 2 };
-      const mockUpdated = { ...mockUser, name: 'Updated User', role: { id: 2, name: 'user' } };
+      const updateDto = { firstName: 'Updated' };
+      const mockUser = { id: 1, email: 'user@lume.dev', firstName: 'User', lastName: 'Test', role_id: 2 };
+      const mockUpdated = { ...mockUser, firstName: 'Updated', role: { id: 2, name: 'user' } };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
       jest.spyOn(prismaService.user, 'update').mockResolvedValue(mockUpdated as any);
@@ -221,13 +227,13 @@ describe('UsersModule', () => {
       const result = await controller.update(1, updateDto);
 
       expect(result.success).toBe(true);
-      expect(result.data.name).toBe('Updated User');
+      expect(result.data.firstName).toBe('Updated');
     });
   });
 
   describe('remove', () => {
     it('should delete user', async () => {
-      const mockUser = { id: 1, email: 'user@lume.dev', name: 'User', role_id: 2 };
+      const mockUser = { id: 1, email: 'user@lume.dev', firstName: 'User', lastName: 'Test', role_id: 2 };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
       jest.spyOn(prismaService.user, 'delete').mockResolvedValue(mockUser as any);
@@ -242,13 +248,13 @@ describe('UsersModule', () => {
   describe('bulkCreate', () => {
     it('should create multiple users', async () => {
       const dtos: CreateUserDto[] = [
-        { email: 'user1@lume.dev', name: 'User 1', password: 'pass123', role_id: 2 },
-        { email: 'user2@lume.dev', name: 'User 2', password: 'pass123', role_id: 2 },
+        { email: 'user1@lume.dev', firstName: 'User', lastName: '1', password: 'pass123', role_id: 2 },
+        { email: 'user2@lume.dev', firstName: 'User', lastName: '2', password: 'pass123', role_id: 2 },
       ];
 
       const mockUsers = [
-        { id: 1, email: 'user1@lume.dev', name: 'User 1', role_id: 2, role: { id: 2, name: 'user' } },
-        { id: 2, email: 'user2@lume.dev', name: 'User 2', role_id: 2, role: { id: 2, name: 'user' } },
+        { id: 1, email: 'user1@lume.dev', firstName: 'User', lastName: '1', role_id: 2, role: { id: 2, name: 'user' } },
+        { id: 2, email: 'user2@lume.dev', firstName: 'User', lastName: '2', role_id: 2, role: { id: 2, name: 'user' } },
       ];
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(null);
@@ -279,7 +285,8 @@ describe('UsersModule', () => {
       expect(result.success).toBe(true);
       expect(result.data).toContainEqual({ name: 'id', type: 'integer', editable: false });
       expect(result.data).toContainEqual({ name: 'email', type: 'email', editable: true });
-      expect(result.data).toContainEqual({ name: 'name', type: 'string', editable: true });
+      expect(result.data).toContainEqual({ name: 'firstName', type: 'string', editable: true });
+      expect(result.data).toContainEqual({ name: 'lastName', type: 'string', editable: true });
     });
   });
 });

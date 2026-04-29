@@ -71,34 +71,35 @@ Lume is a framework that ships with **23 pre-built modules** covering everything
 ## 🏗️ Architecture at a Glance
 
 ```
-┌──────────────────────────────────┐
-│  Vue 3 Admin UI (Browser)        │
-│  (50+ custom views)              │
-└────────────────┬─────────────────┘
-                 │
-                 ▼
-┌──────────────────────────────────┐
-│  Express Backend (Node 20)       │
-│  ┌────────────────────────────┐  │
-│  │ Module System (23 modules) │  │
-│  │ • Auth, RBAC, CMS          │  │
-│  │ • Workflows, Webhooks      │  │
-│  │ • Audit, Notifications     │  │
-│  └────────────────────────────┘  │
-└────────────────┬─────────────────┘
-                 │
-    ┌────────────┴────────────┐
-    ▼                         ▼
-┌──────────────┐     ┌───────────────┐
-│  Prisma ORM  │     │  Drizzle ORM  │
-│  (Core)      │     │  (Modules)    │
-└──────────────┘     └───────────────┘
-    │                         │
-    └────────────┬────────────┘
-                 ▼
-    ┌──────────────────────────┐
-    │  MySQL / PostgreSQL      │
-    └──────────────────────────┘
+┌──────────────────────────┐    ┌──────────────────────────┐
+│  Vue 3 Admin Panel       │    │  Nuxt 3 Public Website   │
+│  (50+ custom views)      │    │  (SSR + client-side)     │
+└────────────┬─────────────┘    └────────────┬─────────────┘
+             │                               │
+             └───────────────┬───────────────┘
+                             ▼
+                ┌──────────────────────────────┐
+                │  NestJS Backend (Node 20)    │
+                │  ┌────────────────────────┐  │
+                │  │ Module System (23)     │  │
+                │  │ • Auth, RBAC, CMS      │  │
+                │  │ • Workflows, Webhooks  │  │
+                │  │ • Audit, Notifications │  │
+                │  └────────────────────────┘  │
+                └────────────┬─────────────────┘
+                             │
+                ┌────────────┴────────────┐
+                ▼                         ▼
+            ┌──────────────┐     ┌───────────────┐
+            │  Prisma ORM  │     │  Drizzle ORM  │
+            │  (Core)      │     │  (Modules)    │
+            └──────────────┘     └───────────────┘
+                │                         │
+                └────────────┬────────────┘
+                             ▼
+                ┌──────────────────────────┐
+                │  MySQL / PostgreSQL      │
+                └──────────────────────────┘
 ```
 
 **Why this architecture?**
@@ -127,8 +128,12 @@ cd backend
 npm install
 npx prisma generate
 
-# Frontend
-cd ../apps/web-lume
+# Admin Panel (Vue 3)
+cd ../frontend/apps/web-lume
+npm install
+
+# Public Website (Nuxt 3)
+cd ../riagri-website
 npm install
 ```
 
@@ -154,22 +159,32 @@ npm run db:init
 ### 4. Start Development Servers
 
 ```bash
-# Terminal 1: Backend
+# Terminal 1: Backend (NestJS)
 cd backend
 npm run dev
 # → http://localhost:3000/api
 
-# Terminal 2: Frontend
-cd apps/web-lume
+# Terminal 2: Admin Panel (Vue 3)
+cd frontend/apps/web-lume
 npm run dev
 # → http://localhost:5173
+
+# Terminal 3: Public Website (Nuxt 3)
+cd frontend/apps/riagri-website
+npm run dev
+# → http://localhost:3001
 ```
 
-### 5. Access Admin Panel
+### 5. Access Applications
 
+**Admin Panel (Vue 3)**
 - **URL:** http://localhost:5173
 - **Email:** admin@lume.dev
 - **Password:** admin123
+
+**Public Website (Nuxt 3)**
+- **URL:** http://localhost:3001
+- Open to test pages, menus, and CMS content rendering
 
 That's it. Admin UI, authentication, and 23 modules are ready to use.
 
@@ -198,8 +213,9 @@ That's it. Admin UI, authentication, and 23 modules are ready to use.
 
 | Layer | Technology |
 |-------|-----------|
-| **Backend** | Node.js 20.12.0+, Express.js 4.21, ES Modules |
-| **Frontend** | Vue 3.6+, TypeScript 5.7+, Vite 5.6, Ant Design Vue 4.3 |
+| **Backend** | Node.js 20.12.0+, NestJS 10.x, TypeScript 5.7+, ES Modules |
+| **Admin Panel** | Vue 3.6+, TypeScript 5.7+, Vite 5.6, Ant Design Vue 4.3 |
+| **Public Website** | Nuxt 3.15+, Vue 3.6+, TypeScript 5.7+, SSR ready |
 | **CSS** | Tailwind CSS 4.2 with CSS Variables |
 | **Database** | MySQL 8.0+ (primary), PostgreSQL 14+ (supported) |
 | **ORM** | Prisma 5.24 (core) + Drizzle 0.46 (modules) |
@@ -208,7 +224,7 @@ That's it. Admin UI, authentication, and 23 modules are ready to use.
 | **Auth** | JWT with refresh tokens, 2FA/TOTP, API keys |
 | **Real-time** | WebSocket (ws) with JWT auth |
 | **Testing** | Jest 30 (backend ESM), Vitest 2.3 (frontend), Playwright 1.50 (E2E) |
-| **Security** | Helmet 7.2, express-rate-limit 7.3, CORS, IP access control |
+| **Security** | Helmet 7.2, ThrottlerModule rate-limiting, CORS, IP access control |
 
 ---
 
@@ -241,7 +257,7 @@ Lume/
 │
 ├── backend/
 │   ├── src/
-│   │   ├── index.js            # Express server
+│   │   ├── main.ts             # NestJS application
 │   │   ├── core/               # Framework core
 │   │   ├── modules/            # 23 pluggable modules
 │   │   └── shared/             # Shared utilities
@@ -253,11 +269,16 @@ Lume/
 │       ├── API.md
 │       └── SECURITY.md
 │
-└── apps/
-    └── web-lume/
-        ├── src/                # Vue 3 admin UI
-        ├── tailwind.config.js
-        └── vite.config.ts
+└── frontend/
+    ├── apps/web-lume/          # Vue 3 admin panel
+    │   ├── src/
+    │   ├── tailwind.config.js
+    │   └── vite.config.ts
+    │
+    └── apps/riagri-website/    # Nuxt 3 public website (SSR)
+        ├── app.vue
+        ├── nuxt.config.ts
+        └── pages/
 ```
 
 ---

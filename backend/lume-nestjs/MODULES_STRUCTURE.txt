@@ -1,0 +1,53 @@
+NestJS Content Modules - File Structure
+========================================
+
+src/modules/activities/
+├── activities.module.ts
+├── controllers/
+│   └── activities.controller.ts
+├── services/
+│   └── activities.service.ts
+└── dtos/
+    ├── create-activity.dto.ts
+    ├── update-activity.dto.ts
+    ├── query-activities.dto.ts
+    └── index.ts
+
+src/modules/documents/
+├── documents.module.ts
+├── controllers/
+│   └── documents.controller.ts
+├── services/
+│   └── documents.service.ts
+└── dtos/
+    ├── create-document.dto.ts
+    ├── update-document.dto.ts
+    ├── query-documents.dto.ts
+    └── index.ts
+
+src/modules/team/
+├── team.module.ts
+├── controllers/
+│   └── team.controller.ts
+├── services/
+│   └── team.service.ts
+└── dtos/
+    ├── create-team-member.dto.ts
+    ├── update-team-member.dto.ts
+    ├── query-team-members.dto.ts
+    ├── reorder-team-members.dto.ts
+    └── index.ts
+
+File Count: 25 files
+- Modules: 3
+- Controllers: 3
+- Services: 3
+- DTOs: 16
+
+All modules follow NestJS best practices:
+- Dependency injection via constructor
+- DTO-based validation
+- Guard-based authorization
+- Service-based business logic
+- Controller-based routing
+- Drizzle ORM integration

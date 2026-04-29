@@ -24,7 +24,7 @@ describe('AuthService (JWT)', () => {
 
     const token = service.generateAccessToken(payload);
     expect(token).toBe('token123');
-    expect(mockJwtService.sign).toHaveBeenCalledWith(payload, expect.any(Object));
+    expect(mockJwtService.sign).toHaveBeenCalledWith(payload);
   });
 
   it('should hash password with bcrypt', async () => {

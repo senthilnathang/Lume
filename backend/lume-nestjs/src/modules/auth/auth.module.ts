@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { SharedModule } from '@core/modules/shared.module';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { PrismaService } from '@core/services/prisma.service';
-import { AuthService as JwtAuthService } from '@core/services/jwt.service';
 
 @Module({
   imports: [
+    SharedModule,
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
@@ -16,7 +16,7 @@ import { AuthService as JwtAuthService } from '@core/services/jwt.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, PrismaService, JwtAuthService],
+  providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

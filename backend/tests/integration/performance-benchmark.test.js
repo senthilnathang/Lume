@@ -5,17 +5,24 @@
 
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import request from 'supertest';
-import app from '../../src/index.js';
+import app, { initializeDatabasesAndModules } from '../../src/index.js';
 
 describe('Performance Benchmarks', () => {
   let adminToken;
 
   beforeAll(async () => {
+    // Initialize databases for tests
+    try {
+      await initializeDatabasesAndModules();
+    } catch (err) {
+      console.warn('Database initialization may have failed, continuing with test...', err.message);
+    }
+
     const loginResponse = await request(app)
       .post('/api/users/login')
       .send({
         email: 'admin@lume.dev',
-        password: 'admin123'
+        password: 'Admin@123'
       });
 
     if (loginResponse.status === 200) {

@@ -140,7 +140,7 @@ Lume is not suitable for:
 └──────────────────┬──────────────────────────────────┘
                    │ REST API / WebSocket
 ┌──────────────────▼──────────────────────────────────┐
-│     Backend (Node.js/Express - Port 3000)           │
+│     Backend (Node.js/NestJS - Port 3000)            │
 │  ┌────────────────────────────────────────────┐    │
 │  │  23 Pluggable Modules (authentication,     │    │
 │  │  CRM, page builder, CMS, automation, etc)  │    │
@@ -712,7 +712,7 @@ Lume is available as an npm package for teams who want to use it as a dependency
 npm install @lume/framework
 ```
 
-**Note**: The npm package provides the core backend and ORM layers. For a complete, ready-to-use system, **use Docker or source code installation**. The npm package is for advanced developers integrating Lume into existing Node.js/Express applications.
+**Note**: The npm package provides the core backend and ORM layers. For a complete, ready-to-use system, **use Docker or source code installation**. The npm package is for advanced developers integrating Lume into existing Node.js/NestJS applications.
 
 ---
 

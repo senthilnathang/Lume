@@ -256,6 +256,12 @@ export class UserService {
 
     const refreshToken = jwtUtil.generateRefreshToken(user.id);
 
+    // Store refresh token in database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refresh_token: refreshToken }
+    });
+
     // Create session record
     try {
       const sessAdapter = getSessionAdapter();
@@ -343,6 +349,12 @@ export class UserService {
     });
 
     const refreshToken = jwtUtil.generateRefreshToken(user.id);
+
+    // Store refresh token in database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refresh_token: refreshToken }
+    });
 
     // Create session
     try {

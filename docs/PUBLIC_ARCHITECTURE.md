@@ -74,7 +74,7 @@ Lume v2.0 is a modular, self-hosted CRM and database builder built on modern ope
 - Nuxt 3 SSR public website for SEO optimization
 - REST API for programmatic access
 
-**API Servers (Node.js/Express ESM):**
+**API Servers (Node.js/NestJS TypeScript):**
 - 24 pluggable modules
 - 100+ REST endpoints
 - WebSocket real-time updates
@@ -96,8 +96,8 @@ Lume v2.0 is a modular, self-hosted CRM and database builder built on modern ope
 
 ### Backend
 
-- **Runtime:** Node.js v18+ LTS (ESM modules)
-- **Framework:** Express.js (lightweight, not NestJS)
+- **Runtime:** Node.js v20.12+ LTS (TypeScript)
+- **Framework:** NestJS 10.x (modular, type-safe)
 - **ORM:** Prisma (core) + Drizzle (modules)
 - **Authentication:** JWT with refresh tokens
 - **Database:** MySQL 8.0+ / PostgreSQL 13+
