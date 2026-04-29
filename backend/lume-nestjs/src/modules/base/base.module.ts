@@ -2,6 +2,7 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { SharedModule } from '@core/modules/shared.module';
 import { EntityRegistryService } from '@core/entity/entity-registry.service';
 import { setEntityRegistry } from '@core/entity/extend-entity';
+import { WorkflowExecutorService } from '@core/workflow/workflow-executor.service';
 
 // Controllers
 import { EntityController } from './controllers/entity.controller';
@@ -25,6 +26,9 @@ import { LookupResolverService } from './services/lookup-resolver.service';
 // Entities
 import { LeadEntity } from './entities/lead.entity';
 import { TicketEntity } from './entities/ticket.entity';
+
+// Workflows
+import { LeadAssignmentWorkflow, LeadScoringSendNotification } from './workflows/lead-assignment.workflow';
 
 @Module({
   imports: [SharedModule],
@@ -59,12 +63,23 @@ import { TicketEntity } from './entities/ticket.entity';
   ],
 })
 export class BaseModule implements OnModuleInit {
-  constructor(private entityRegistry: EntityRegistryService) {}
+  constructor(
+    private entityRegistry: EntityRegistryService,
+    private workflowExecutor: WorkflowExecutorService,
+  ) {}
 
   onModuleInit(): void {
     // Register example entities
     this.entityRegistry.register(LeadEntity);
     this.entityRegistry.register(TicketEntity);
+
+    // Register workflows
+    this.workflowExecutor.registerCustomHandler(
+      'log_existing_lead',
+      async (ctx, step) => {
+        console.log(`Lead ${ctx.record.id} is already assigned`);
+      },
+    );
 
     // Initialize extendEntity() function
     setEntityRegistry(this.entityRegistry);
