@@ -29,18 +29,19 @@ This document describes the system architecture of the Lume Framework, covering 
 
 1. [System Overview](#system-overview)
 2. [High-Level Architecture](#high-level-architecture)
-3. [Backend Architecture](#backend-architecture)
-4. [Hybrid ORM (Prisma + Drizzle)](#hybrid-orm-prisma--drizzle)
-5. [Module System](#module-system)
-6. [Authentication & Authorization](#authentication--authorization)
-7. [Real-Time Layer](#real-time-layer)
-8. [Frontend Architecture](#frontend-architecture)
-9. [Editor Module & Visual Page Builder](#editor-module--visual-page-builder)
-10. [Website Module & CMS](#website-module--cms)
-11. [Public Website (Nuxt 3)](#public-website-nuxt-3)
-12. [Request Lifecycle](#request-lifecycle)
-13. [Database Schema](#database-schema)
-14. [Planned Architecture](#planned-architecture)
+3. [Metadata-Driven Runtime Kernel](#metadata-driven-runtime-kernel)
+4. [Backend Architecture](#backend-architecture)
+5. [Hybrid ORM (Prisma + Drizzle)](#hybrid-orm-prisma--drizzle)
+6. [Module System](#module-system)
+7. [Authentication & Authorization](#authentication--authorization)
+8. [Real-Time Layer](#real-time-layer)
+9. [Frontend Architecture](#frontend-architecture)
+10. [Editor Module & Visual Page Builder](#editor-module--visual-page-builder)
+11. [Website Module & CMS](#website-module--cms)
+12. [Public Website (Nuxt 3)](#public-website-nuxt-3)
+13. [Request Lifecycle](#request-lifecycle)
+14. [Database Schema](#database-schema)
+15. [Planned Architecture](#planned-architecture)
 
 ---
 
@@ -115,6 +116,209 @@ This document describes the system architecture of the Lume Framework, covering 
 │  └──────────────────┘    └───────────────────┘                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Metadata-Driven Runtime Kernel
+
+The Lume v2.0 runtime is built on a metadata-driven kernel that allows every entity, workflow, view, and policy to be defined declaratively at runtime. This enables powerful extensibility without code changes.
+
+### Kernel Architecture (5 Layers)
+
+```
+┌────────────────────────────────────────────────────┐
+│ Layer 4: AI + Plugins                              │
+│ AIAdapterService · PluginRegistry · Sandbox        │
+├────────────────────────────────────────────────────┤
+│ Layer 3: Data + UI                                 │
+│ DataGridEngine · ViewEngine · QueryBuilder         │
+├────────────────────────────────────────────────────┤
+│ Layer 2: Platform Capabilities                     │
+│ ModuleEngine · WorkflowEngine · PermissionEngine   │
+├────────────────────────────────────────────────────┤
+│ Layer 1: Foundation                                │
+│ EntityEngine · VersioningSystem                    │
+├────────────────────────────────────────────────────┤
+│ Layer 0: Runtime Kernel (ALL layers register here) │
+│ MetadataRegistry · ExecutionPipeline · EventBus    │
+└────────────────────────────────────────────────────┘
+```
+
+### Declarative APIs
+
+Lume provides five core declarative APIs for defining framework entities:
+
+```typescript
+// Define an entity with fields, computed properties, and hooks
+export const LeadEntity = defineEntity('Lead', {
+  name: 'Lead',
+  label: 'Sales Lead',
+  fields: {
+    firstName: { type: 'string', label: 'First Name', required: true },
+    lastName: { type: 'string', label: 'Last Name' },
+    email: { type: 'email', label: 'Email', isIndexed: true },
+    status: { type: 'select', options: ['new', 'contacted', 'qualified', 'closed'] },
+  },
+  computed: {
+    fullName: { formula: '{{firstName}} {{lastName}}' },
+    leadScore: { 
+      formula: 'IF(status=="qualified", 100, IF(status=="contacted", 50, 0))',
+      type: 'number'
+    },
+  },
+  hooks: {
+    beforeCreate: async (data, ctx) => {
+      data.status = 'new';
+      return data;
+    },
+    afterCreate: async (record, ctx) => {
+      await emit('lead.created', { lead: record });
+    },
+  },
+  permissions: {
+    read: [{ roles: ['admin', 'sales'] }],
+    write: [{ roles: ['admin', 'sales'], conditions: ['owner == $userId'] }],
+  },
+});
+
+// Define a module with entities, workflows, and views
+export const CRMModule = defineModule({
+  name: 'crm',
+  version: '1.0.0',
+  depends: ['base'],
+  entities: [LeadEntity, ContactEntity, OpportunityEntity],
+  workflows: [LeadScoringWorkflow, AutoAssignmentWorkflow],
+  permissions: ['crm.leads.read', 'crm.leads.write', 'crm.contacts.read'],
+  hooks: {
+    onInstall: async (db) => { /* migrations */ },
+  },
+});
+
+// Define a workflow with conditional logic and multiple step types
+export const LeadScoringWorkflow = defineWorkflow({
+  name: 'lead_scoring',
+  entity: 'Lead',
+  trigger: { type: 'record.updated', field: 'status' },
+  steps: [
+    {
+      type: 'condition',
+      if: { field: 'status', operator: '==', value: 'qualified' },
+      then: [
+        { type: 'set_field', field: 'leadScore', value: 100 },
+        { type: 'ai', prompt: 'Suggest next action for qualified lead', outputField: 'nextAction' },
+        { type: 'send_notification', to: 'assigned_user', template: 'lead_qualified' },
+      ],
+    },
+  ],
+});
+
+// Define an ABAC policy
+export const LeadOwnerPolicy = definePolicy({
+  name: 'lead_owner_access',
+  entity: 'Lead',
+  actions: ['read', 'update', 'delete'],
+  conditions: [{ field: 'owner', operator: '==', value: '$userId' }],
+  roles: ['sales'], // policy applies to sales role
+});
+
+// Define a view
+export const LeadKanbanView = defineView({
+  name: 'leads_kanban',
+  entity: 'Lead',
+  type: 'kanban',
+  label: 'Leads Board',
+  config: {
+    groupByField: 'status',
+    cardTitle: '{{firstName}} {{lastName}}',
+    cardDescription: '{{email}}',
+  },
+});
+```
+
+### MetadataRegistry
+
+The MetadataRegistry is a central store for all definitions:
+
+```typescript
+interface MetadataRegistry {
+  // Entity management
+  registerEntity(def: EntityDefinition): void
+  extend(entityName: string, ext: Partial<EntityDefinition>): void
+  getEntity(name: string): EntityDefinition | undefined
+  listEntities(): EntityDefinition[]
+  resolveEntity(name: string): ResolvedEntityDefinition // merges base + extensions
+
+  // Module management
+  registerModule(def: ModuleDefinition): void
+  getModule(name: string): ModuleDefinition | undefined
+  listModules(): ModuleDefinition[]
+
+  // Workflow management
+  registerWorkflow(def: WorkflowDefinition): void
+  getWorkflow(name: string): WorkflowDefinition | undefined
+  listWorkflows(entityName?: string): WorkflowDefinition[]
+
+  // Permission management
+  registerPolicy(def: PolicyDefinition): void
+  getPolicy(name: string): PolicyDefinition | undefined
+  listPolicies(entityName?: string): PolicyDefinition[]
+
+  // View management
+  registerView(def: ViewDefinition): void
+  getView(name: string): ViewDefinition | undefined
+  listViewsForEntity(entityName: string): ViewDefinition[]
+}
+```
+
+### ExecutionPipeline
+
+The ExecutionPipeline is a middleware chain for entity operations:
+
+```typescript
+type PipelineMiddleware = (ctx: ExecutionContext, next: () => Promise<any>) => Promise<any>
+
+interface ExecutionContext {
+  operation: 'create' | 'read' | 'update' | 'delete'
+  entity: string
+  data?: any
+  user: User
+  timestamp: Date
+}
+
+class ExecutionPipelineService {
+  use(middleware: PipelineMiddleware): void  // Register a middleware
+  execute(ctx: ExecutionContext): Promise<any> // Execute through all middleware
+}
+```
+
+### EventBus
+
+All framework events flow through a typed event bus:
+
+```typescript
+type LumeEvent<T> = {
+  type: string
+  data: T
+  timestamp: Date
+  userId: number
+}
+
+class EventBusService {
+  emit<T>(event: LumeEvent<T>): void
+  on<T>(eventType: string, handler: (e: LumeEvent<T>) => Promise<void>): void
+  once<T>(eventType: string, handler: (e: LumeEvent<T>) => Promise<void>): void
+  off(eventType: string, handler: Function): void
+}
+```
+
+**Built-in Events:**
+- `entity.created` — After record creation
+- `entity.updated` — After record update
+- `entity.deleted` — After record deletion
+- `workflow.started` — Workflow execution started
+- `workflow.completed` — Workflow execution completed
+- `workflow.failed` — Workflow execution failed
+- `policy.evaluated` — Permission check completed
 
 ---
 
