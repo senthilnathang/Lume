@@ -12,6 +12,10 @@ import { EntityViewsController } from './controllers/entity-views.controller';
 import { QueueController } from './controllers/queue.controller';
 import { QueryController } from './controllers/query.controller';
 import { AIController } from './controllers/ai.controller';
+import { AdminModulesController } from './controllers/admin-modules.controller';
+import { AdminWorkflowsController } from './controllers/admin-workflows.controller';
+import { AdminPoliciesController } from './controllers/admin-policies.controller';
+import { AdminPluginsController } from './controllers/admin-plugins.controller';
 
 // Services
 import { EntityService } from './services/entity.service';
@@ -35,7 +39,18 @@ import { LeadAssignmentWorkflow, LeadScoringSendNotification } from './workflows
 
 @Module({
   imports: [SharedModule],
-  controllers: [EntityController, EntityRecordsController, EntityViewsController, QueueController, QueryController, AIController],
+  controllers: [
+    EntityController,
+    EntityRecordsController,
+    EntityViewsController,
+    QueueController,
+    QueryController,
+    AIController,
+    AdminModulesController,
+    AdminWorkflowsController,
+    AdminPoliciesController,
+    AdminPluginsController,
+  ],
   providers: [
     EntityService,
     RecordService,
