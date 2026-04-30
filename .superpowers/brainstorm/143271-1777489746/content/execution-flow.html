@@ -1,0 +1,198 @@
+<h2>Runtime Execution Flow</h2>
+<p class="subtitle">Step-by-step: How a request flows through the pipeline</p>
+
+<div class="mockup">
+  <div class="mockup-header">Example: Creating a Ticket Record</div>
+  <div class="mockup-body">
+    <div style="font-family: monospace; font-size: 0.9rem; line-height: 1.8; background: #f9f9f9; padding: 1rem; border-radius: 4px;">
+
+<pre>CLIENT REQUEST:
+┌─ POST /api/tickets
+├─ body: { title: "Login broken", description: "Users can't log in" }
+└─ headers: { Authorization: "Bearer token...", X-Org-Id: "org123" }
+
+        │
+        ▼
+
+STEP 1: LOAD EXECUTION CONTEXT
+├─ Extract user from JWT token → userId: "user123"
+├─ Extract org from header → orgId: "org123"
+├─ Load user roles/permissions from database
+└─ Result: ExecutionContext { userId, orgId, roles, permissions }
+
+        │
+        ▼
+
+STEP 2: FETCH METADATA
+├─ Registry.getEntityMetadata('ticket')
+├─ Returns: EntityDefinition {
+│   slug: 'ticket',
+│   orm: 'drizzle',
+│   tableName: 'tickets',
+│   fields: [...],
+│   hooks: {...},
+│   workflows: {...}
+│ }
+└─ All config loaded into memory (cached)
+
+        │
+        ▼
+
+STEP 3: BUILD OPERATION REQUEST
+├─ OperationRequest {
+│   context: ExecutionContext,
+│   entity: 'ticket',
+│   action: 'create',
+│   data: { title: "...", description: "..." },
+│   options: { includeRelations: [] }
+│ }
+└─ Normalized request ready for pipeline
+
+        │
+        ▼
+
+STEP 4: RUN INTERCEPTOR PIPELINE (8 stages)
+│
+├─ [10] AuthInterceptor
+│   ├─ Check: Is user authenticated?
+│   ├─ Result: ✓ Allowed (user token valid)
+│   └─ Pass to next interceptor
+│
+├─ [20] PermissionInterceptor (RBAC/ABAC)
+│   ├─ Policy: "Can user 'user123' CREATE tickets?"
+│   ├─ Check: role='support_agent' has permission 'ticket.create'
+│   ├─ Result: ✓ Allowed
+│   └─ Store in context.permissions
+│
+├─ [30] SchemaValidator
+│   ├─ Validate: title (required, text) → "Login broken" ✓
+│   ├─ Validate: description (text) → "Users can't log in" ✓
+│   ├─ Result: ✓ Valid
+│   └─ Errors: none
+│
+├─ [40] PreHooks
+│   ├─ Execute: entity.hooks.beforeCreate()
+│   ├─ Custom logic: Call ticket.service.assignToAvailableRep()
+│   ├─ Mutates record: Add assignedTo: "rep456"
+│   └─ Result: Transformed record ready to persist
+│
+├─ [50] OrmSelector
+│   ├─ Check: entity.orm = 'drizzle'
+│   ├─ Load: DrizzleAdapter instance
+│   └─ Result: Ready to execute
+│
+├─ [60] QueryExecutor
+│   ├─ ORM: drizzle.insert(tickets).values({...})
+│   ├─ Database: INSERT INTO tickets (title, description, assignedTo) VALUES (...)
+│   ├─ Result: { id: "ticket_123", title: "...", assignedTo: "rep456", createdAt: now }
+│   └─ Persisted record returned
+│
+├─ [70] PostHooks
+│   ├─ Execute: entity.hooks.afterCreate()
+│   ├─ Custom logic: Update rep's workload, send notification
+│   └─ Result: Side effects completed
+│
+└─ [80] EventEmitter
+    ├─ Emit event: { type: 'ticket.created', data: { id: "ticket_123", ... } }
+    ├─ Event bus (BullMQ): Queue async work
+    ├─ Triggers: ['auto-assign', 'send-notification'] workflows
+    └─ Result: Events queued for async processing
+
+        │
+        ▼
+
+STEP 5: BUILD RESPONSE
+├─ OperationResult {
+│   success: true,
+│   data: { id: "ticket_123", title: "...", assignedTo: "rep456" },
+│   metadata: {
+│     executedAt: "2024-04-30T10:30:00Z",
+│     duration: "45ms",
+│     permissions: [{ check: 'ticket.create', allowed: true }]
+│   }
+│ }
+└─ Return to client
+
+        │
+        ▼
+
+CLIENT RECEIVES:
+├─ 200 OK
+├─ { success: true, data: {...} }
+└─ UI updates immediately
+
+        │
+        ▼
+
+STEP 6: ASYNC WORKFLOWS (Background)
+├─ Event bus processes queued events
+├─ Workflow 'send-notification':
+│   ├─ Load email template
+│   ├─ Render with record data
+│   ├─ Send email to customer
+│   └─ Mark complete
+├─ Workflow 'auto-assign':
+│   ├─ Check escalation rules
+│   ├─ Update ticket priority if needed
+│   └─ Notify assigned rep
+└─ Workflows complete independently, don't block response</pre>
+
+    </div>
+
+    <div style="margin-top: 1.5rem; padding: 1rem; background: #e8f4f8; border-left: 4px solid #0288d1; border-radius: 4px;">
+      <h4 style="margin-top: 0;">Key Points</h4>
+      <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+        <li><strong>Synchronous response:</strong> Client gets result in ~50ms (steps 1-5)</li>
+        <li><strong>Asynchronous workflows:</strong> Notifications, escalations run in background (step 6)</li>
+        <li><strong>Single flow:</strong> Every operation (create, update, delete, read) follows same 8-stage pipeline</li>
+        <li><strong>Metadata-driven:</strong> All behavior (hooks, workflows, permissions) defined in EntityDefinition</li>
+        <li><strong>Extensible:</strong> Custom interceptors can be inserted at any stage</li>
+        <li><strong>Auditable:</strong> Every decision (auth check, permission check) logged in metadata</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top: 1.5rem;">
+  <div class="mockup-header">Error Handling Path</div>
+  <div class="mockup-body">
+    <div style="font-family: monospace; font-size: 0.9rem; line-height: 1.8; background: #f9f9f9; padding: 1rem; border-radius: 4px;">
+
+<pre>If any interceptor rejects the request:
+
+├─ [20] PermissionInterceptor: User lacks 'ticket.create' permission
+│   ├─ Call: interceptor.abort(new PermissionDeniedError(...))
+│   └─ Result: Execution stops, jump to error response
+│
+├─ [30] SchemaValidator: Required field 'title' missing
+│   ├─ Call: interceptor.abort(new ValidationError(...))
+│   └─ Result: 400 Bad Request with field errors
+│
+├─ [60] QueryExecutor: Database constraint violation (unique email)
+│   ├─ Call: interceptor.abort(new DatabaseError(...))
+│   └─ Result: 409 Conflict with specific constraint info
+│
+└─ Final Response:
+    {
+      success: false,
+      errors: [
+        { field: 'email', message: 'Email already exists' }
+      ],
+      metadata: {
+        failedAt: 'SchemaValidator',
+        duration: '15ms'
+      }
+    }</pre>
+
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 2rem; padding: 1rem; background: #f3e5f5; border-left: 4px solid #7b1fa2; border-radius: 4px;">
+  <strong>Questions for you:</strong>
+  <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+    <li>Should metadata (EntityDefinition) be cached in-memory with TTL, or fetched fresh each time?</li>
+    <li>For async workflows: should we support transaction rollback if a workflow fails?</li>
+    <li>Should the response include which interceptors ran and their results?</li>
+  </ul>
+</div>
