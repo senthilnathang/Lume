@@ -1,0 +1,155 @@
+# OpenTelemetry Collector Configuration for Lume Local Development
+# Receives telemetry (traces, metrics, logs) from applications and forwards to backends
+
+receivers:
+  # OTLP receiver - receives traces, metrics, and logs via gRPC and HTTP
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # Prometheus receiver - scrapes Prometheus endpoints
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['localhost:8888']
+
+  # Jaeger receiver - receives traces in Jaeger format
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:14250
+      thrift_http:
+        endpoint: 0.0.0.0:14268
+      thrift_compact:
+        endpoint: 0.0.0.0:6831
+
+  # Zipkin receiver - receives traces in Zipkin format
+  zipkin:
+    endpoint: 0.0.0.0:9411
+
+processors:
+  # Batch processor - batches spans/metrics for more efficient processing
+  batch:
+    send_batch_size: 1000
+    timeout: 10s
+
+  # Memory limiter - prevents memory exhaustion
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  # Attributes processor - adds attributes to spans (for enrichment)
+  attributes:
+    actions:
+      - key: service.name
+        value: lume-backend
+        action: upsert
+      - key: environment
+        value: development
+        action: upsert
+
+  # Resource processor - modifies resource attributes
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: development
+        action: upsert
+
+  # Span processor - processes and filters spans
+  span:
+    name:
+      to_attributes:
+        rules:
+          - ^/api/(?P<path>.*?)$
+          - ^/?(?P<path>.*?)$
+
+  # Sampling processor - applies sampling policies
+  tail_sampling:
+    policies:
+      - name: error-traces
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: slow-traces
+        type: latency
+        latency:
+          threshold_ms: 1000
+      - name: probabilistic
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+
+exporters:
+  # Jaeger exporter - sends traces to Jaeger
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+
+  # Prometheus exporter - exports metrics in Prometheus format
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  # OTLP exporter - sends telemetry to OTLP backend
+  otlp:
+    endpoint: localhost:4317
+    tls:
+      insecure: true
+
+  # Logging exporter - logs all telemetry for debugging
+  logging:
+    loglevel: debug
+
+  # Loki exporter - sends logs to Loki
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled: true
+
+extensions:
+  # Health check extension
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+  # Performance profiler extension
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+  # Zpages extension - in-process metrics
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+service:
+  extensions: [health_check, pprof, zpages]
+
+  pipelines:
+    # Traces pipeline - receives and exports traces
+    traces:
+      receivers: [otlp, jaeger, zipkin]
+      processors: [memory_limiter, batch, attributes, resource, span, tail_sampling]
+      exporters: [jaeger, logging]
+
+    # Metrics pipeline - receives and exports metrics
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, batch, attributes, resource]
+      exporters: [prometheus, logging]
+
+    # Logs pipeline - receives and exports logs
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes, resource]
+      exporters: [loki, logging]
+
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      level: detailed
+      address: 0.0.0.0:8888

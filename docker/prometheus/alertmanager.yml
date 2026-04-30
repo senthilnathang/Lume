@@ -1,0 +1,173 @@
+# AlertManager Configuration for Lume Local Development
+# Handles alert routing, grouping, and notification
+
+global:
+  # Default timeout for sending alerts
+  resolve_timeout: 5m
+
+  # Slack webhook for notifications (optional)
+  # slack_api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
+
+# Routes define how alerts are grouped and notified
+route:
+  # Default receiver for all alerts
+  receiver: 'console'
+
+  # Group alerts by labels to reduce spam
+  group_by: ['alertname', 'cluster', 'service']
+
+  # Initial wait time before sending notification (allows grouping)
+  group_wait: 10s
+
+  # How long to wait before sending a new notification for the same alert
+  group_interval: 10s
+
+  # How long to wait before considering the alert resolved
+  repeat_interval: 5m
+
+  # Child routes for specific alert patterns
+  routes:
+    # Critical alerts - send immediately
+    - match:
+        severity: critical
+      receiver: 'console'
+      group_wait: 0s
+      repeat_interval: 1m
+
+    # High severity alerts - group for 1 minute
+    - match:
+        severity: high
+      receiver: 'console'
+      group_wait: 1m
+      repeat_interval: 5m
+
+    # Medium severity alerts - group for 5 minutes
+    - match:
+        severity: medium
+      receiver: 'console'
+      group_wait: 5m
+      repeat_interval: 10m
+
+    # Low priority alerts - no notifications
+    - match:
+        severity: low
+      receiver: 'null'
+      group_wait: 5m
+
+# Inhibition rules prevent certain alerts from being sent
+inhibit_rules:
+  # Don't send low-severity alerts if a high-severity alert is already firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    # If both have the same alertname, suppress the warning
+    equal: ['alertname', 'cluster', 'service']
+
+  # Don't notify about 4xx/5xx errors if service is down (higher priority alert)
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match:
+      alertname: 'HighErrorRate'
+    equal: ['service']
+
+# Receivers define how to send notifications
+receivers:
+  # Console receiver - prints to stdout for development
+  - name: 'console'
+    webhook_configs:
+      - url: 'http://localhost:9001/alerts'
+        send_resolved: true
+
+  # Slack receiver - sends to Slack channel
+  # - name: 'slack'
+  #   slack_configs:
+  #     - api_url: 'https://hooks.slack.com/services/YOUR/WEBHOOK/URL'
+  #       channel: '#lume-alerts'
+  #       title: 'Alert: {{ .GroupLabels.alertname }}'
+  #       text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+  #       send_resolved: true
+
+  # Email receiver - sends to email address
+  # - name: 'email'
+  #   email_configs:
+  #     - to: 'ops-team@example.com'
+  #       from: 'alertmanager@lume.dev'
+  #       smarthost: 'smtp.gmail.com:587'
+  #       auth_username: 'your-email@gmail.com'
+  #       auth_password: 'your-app-password'
+  #       headers:
+  #         Subject: '[{{ .GroupLabels.severity }}] {{ .GroupLabels.alertname }}'
+
+  # PagerDuty receiver - integrates with PagerDuty for on-call management
+  # - name: 'pagerduty'
+  #   pagerduty_configs:
+  #     - service_key: 'your-pagerduty-service-key'
+  #       client: 'Lume Alert Manager'
+  #       description: '{{ .GroupLabels.alertname }}'
+
+  # Null receiver - silently drops alerts
+  - name: 'null'
+
+# ============================================================================
+# ALERT NOTIFICATION EXAMPLES
+# ============================================================================
+
+# SLACK EXAMPLE (uncomment and configure):
+# receivers:
+#   - name: 'slack'
+#     slack_configs:
+#       - api_url: '${SLACK_WEBHOOK_URL}'
+#         channel: '#monitoring'
+#         title: 'Lume Alert'
+#         text: |
+#           Alert: {{ .GroupLabels.alertname }}
+#           Severity: {{ .GroupLabels.severity }}
+#           Service: {{ .GroupLabels.service }}
+#           {{ range .Alerts }}
+#           Description: {{ .Annotations.description }}
+#           {{ end }}
+#         send_resolved: true
+#         color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+
+# PAGERDUTY EXAMPLE (uncomment and configure):
+# receivers:
+#   - name: 'pagerduty'
+#     pagerduty_configs:
+#       - service_key: '${PAGERDUTY_SERVICE_KEY}'
+#         client: 'Lume Alert Manager'
+#         client_url: 'http://grafana.local:3000'
+#         description: '{{ .GroupLabels.alertname }}: {{ (index .Alerts 0).Annotations.description }}'
+#         details:
+#           AlertName: '{{ .GroupLabels.alertname }}'
+#           Service: '{{ .GroupLabels.service }}'
+#           Environment: '{{ .GroupLabels.environment }}'
+#           Severity: '{{ .GroupLabels.severity }}'
+
+# ============================================================================
+# TESTING ALERTS
+# ============================================================================
+
+# To send a test alert to AlertManager:
+#
+# curl -XPOST http://localhost:9093/api/v1/alerts \
+#   -H 'Content-Type: application/json' \
+#   -d '[{
+#     "labels": {
+#       "alertname": "TestAlert",
+#       "severity": "critical",
+#       "service": "backend"
+#     },
+#     "annotations": {
+#       "summary": "This is a test alert",
+#       "description": "This alert is for testing notification delivery"
+#     }
+#   }]'
+
+# ============================================================================
+# DEBUGGING
+# ============================================================================
+
+# View all alerts: http://localhost:9093
+# View alert history: http://localhost:9093/#/status
+# Reload configuration: curl -X POST http://localhost:9093/-/reload
