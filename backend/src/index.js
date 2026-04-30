@@ -12,6 +12,7 @@ import path from 'path';
 import { responseUtil, jwtUtil } from './shared/utils/index.js';
 import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
 import { requestLogger } from './core/middleware/requestLogger.js';
+import { loggingMiddleware } from './core/middleware/logging.middleware.js';
 import { ipAccessMiddleware } from './core/middleware/ipAccess.js';
 import { responseCache } from './core/middleware/cacheControl.js';
 import { requestTracing } from './core/middleware/requestTracing.js';
@@ -136,6 +137,7 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('combined'));
 }
 app.use(requestLogger);
+app.use(loggingMiddleware);
 app.use(ipAccessMiddleware);
 app.use(limiter);
 
