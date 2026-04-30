@@ -20,10 +20,19 @@ export class PermissionCache {
   /**
    * Initialize the permission cache
    * @param {CacheConfig} config - Cache configuration
+   * @throws {Error} If maxSize <= 0 or defaultTTL < 0
    */
   constructor(config = {}) {
     this.maxSize = config.maxSize ?? 1000;
     this.defaultTTL = config.defaultTTL ?? 300;
+
+    // Validate parameters
+    if (this.maxSize <= 0) {
+      throw new Error(`Invalid cache maxSize: ${this.maxSize}, must be greater than 0`);
+    }
+    if (this.defaultTTL < 0) {
+      throw new Error(`Invalid defaultTTL: ${this.defaultTTL}, must be non-negative`);
+    }
 
     /** @type {Map<string, CacheEntry>} */
     this.cache = new Map();
