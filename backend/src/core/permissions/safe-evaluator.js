@@ -123,6 +123,21 @@ export class SafeExpressionEvaluator {
       }
     }
 
+    // CRITICAL FIX #1: Block IIFE patterns - (function...) and (async function...)
+    if (/\(\s*function\s*[\(\{]/.test(expression) || /\(\s*async\s+function\s*[\(\{]/.test(expression)) {
+      return false;
+    }
+
+    // CRITICAL FIX #2: Block arrow functions - () => or (x) => or x =>
+    if (/=>\s*[\{\(]?/.test(expression)) {
+      return false;
+    }
+
+    // CRITICAL FIX #3: Block template literals that might contain expressions
+    if (/\$\{/.test(expression)) {
+      return false;
+    }
+
     // Check for unsafe properties and methods
     for (const unsafeProperty of this.unsafeProperties) {
       if (expression.includes(unsafeProperty)) {
@@ -151,8 +166,13 @@ export class SafeExpressionEvaluator {
       throw new Error(`Unsafe expression detected: ${expression}`);
     }
 
-    // Extract variable names from context
+    // CRITICAL FIX #4: Type-check context - reject function types
     const contextKeys = Object.keys(context);
+    for (const key of contextKeys) {
+      if (typeof context[key] === 'function') {
+        throw new Error(`Context contains function '${key}' - functions not allowed in ABAC conditions`);
+      }
+    }
 
     // Remove string literals from the expression to avoid false positives
     const exprWithoutStrings = this.removeStringLiterals(expression);
@@ -228,15 +248,76 @@ export class SafeExpressionEvaluator {
 
   /**
    * Remove string literals from an expression to avoid false positives in variable detection
+   * CRITICAL FIX #5: Properly parse escaped quotes in string literals
    * @param {string} expression - The expression to process
    * @returns {string} - Expression with string literals replaced with spaces
    */
   removeStringLiterals(expression) {
-    // Replace single-quoted strings, double-quoted strings, and backtick strings with spaces
-    return expression
-      .replace(/'[^']*'/g, ' ')      // Single-quoted strings
-      .replace(/"[^"]*"/g, ' ')      // Double-quoted strings
-      .replace(/`[^`]*`/g, ' ');     // Template literals
+    let result = '';
+    let i = 0;
+
+    while (i < expression.length) {
+      const char = expression[i];
+
+      // Handle single-quoted strings
+      if (char === "'") {
+        result += ' ';
+        i++;
+        while (i < expression.length) {
+          if (expression[i] === '\\' && i + 1 < expression.length) {
+            // Skip escaped character
+            i += 2;
+          } else if (expression[i] === "'") {
+            i++;
+            break;
+          } else {
+            i++;
+          }
+        }
+        continue;
+      }
+
+      // Handle double-quoted strings
+      if (char === '"') {
+        result += ' ';
+        i++;
+        while (i < expression.length) {
+          if (expression[i] === '\\' && i + 1 < expression.length) {
+            // Skip escaped character
+            i += 2;
+          } else if (expression[i] === '"') {
+            i++;
+            break;
+          } else {
+            i++;
+          }
+        }
+        continue;
+      }
+
+      // Handle backtick strings (template literals)
+      if (char === '`') {
+        result += ' ';
+        i++;
+        while (i < expression.length) {
+          if (expression[i] === '\\' && i + 1 < expression.length) {
+            // Skip escaped character
+            i += 2;
+          } else if (expression[i] === '`') {
+            i++;
+            break;
+          } else {
+            i++;
+          }
+        }
+        continue;
+      }
+
+      result += char;
+      i++;
+    }
+
+    return result;
   }
 
   /**

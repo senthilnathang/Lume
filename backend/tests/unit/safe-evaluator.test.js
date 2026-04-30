@@ -92,4 +92,28 @@ describe('SafeExpressionEvaluator', () => {
       expect(evaluator.validate('async function test() {}')).toBe(false);
     });
   });
+
+  describe('CRITICAL SECURITY TESTS', () => {
+    it('should throw on IIFE expressions', () => {
+      expect(() => evaluator.evaluate({}, '(function() { return 1; })()')).toThrow(/Unsafe expression detected/);
+    });
+
+    it('should throw on arrow functions', () => {
+      expect(() => evaluator.evaluate({}, '() => 1')).toThrow(/Unsafe expression detected/);
+    });
+
+    it('should throw if context contains functions', () => {
+      const context = { dangerous: () => 'execute' };
+      expect(() => evaluator.evaluate(context, 'dangerous()')).toThrow(/functions not allowed/);
+    });
+
+    it('should reject template literals with expressions', () => {
+      expect(evaluator.validate('`value: ${x}`')).toBe(false);
+    });
+
+    it('should handle escaped quotes in strings correctly', () => {
+      const context = { text: 'te"st' };
+      expect(evaluator.evaluate(context, 'text === "te\\"st"')).toBe(true);
+    });
+  });
 });
