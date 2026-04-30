@@ -1,0 +1,217 @@
+# Prometheus Alert Rules for Lume Framework
+# This file defines alerting rules that fire when metrics cross thresholds
+
+groups:
+  - name: http_alerts
+    interval: 30s
+    rules:
+      # High P95 Latency
+      - alert: HighP95Latency
+        expr: histogram_quantile(0.95, http_request_duration_seconds) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High P95 latency detected"
+          description: "P95 latency is {{ $value | humanizeDuration }} (threshold: 500ms)"
+          runbook_url: "https://docs.lume.dev/runbooks/high-latency"
+
+      # High P99 Latency
+      - alert: HighP99Latency
+        expr: histogram_quantile(0.99, http_request_duration_seconds) > 1.0
+        for: 5m
+        labels:
+          severity: critical
+          category: performance
+        annotations:
+          summary: "Critical P99 latency detected"
+          description: "P99 latency is {{ $value | humanizeDuration }} (threshold: 1000ms)"
+          runbook_url: "https://docs.lume.dev/runbooks/high-latency"
+
+  - name: error_rate_alerts
+    interval: 30s
+    rules:
+      # Low Error Rate Warning
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status_group="5xx"}[5m])) /
+            sum(rate(http_requests_total[5m]))
+          ) * 100 > 1
+        for: 5m
+        labels:
+          severity: warning
+          category: error_rate
+        annotations:
+          summary: "Elevated error rate detected"
+          description: "Error rate is {{ $value | humanize }}% (threshold: 1%)"
+          runbook_url: "https://docs.lume.dev/runbooks/error-rate"
+
+      # High Error Rate Critical
+      - alert: CriticalErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status_group="5xx"}[2m])) /
+            sum(rate(http_requests_total[2m]))
+          ) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+          category: error_rate
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate is {{ $value | humanize }}% (threshold: 5%)"
+          runbook_url: "https://docs.lume.dev/runbooks/error-rate"
+
+  - name: resource_alerts
+    interval: 30s
+    rules:
+      # Disk Usage High
+      - alert: HighDiskUsage
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 20
+        for: 10m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "Disk space running low"
+          description: "Disk usage is {{ $value | humanize }}% (threshold: 80%)"
+          runbook_url: "https://docs.lume.dev/runbooks/disk-usage"
+
+      # Memory Usage High
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "Memory usage elevated"
+          description: "Memory usage is {{ $value | humanize }}% (threshold: 85%)"
+          runbook_url: "https://docs.lume.dev/runbooks/memory-usage"
+
+      # CPU Usage High
+      - alert: HighCpuUsage
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "CPU usage critical"
+          description: "CPU usage is {{ $value | humanize }}% (threshold: 90%)"
+          runbook_url: "https://docs.lume.dev/runbooks/cpu-usage"
+
+  - name: database_alerts
+    interval: 30s
+    rules:
+      # High Active Connections
+      - alert: HighDatabaseConnections
+        expr: db_connections_active / 10 > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Database connection pool near capacity"
+          description: "Active connections: {{ $value | humanize }} (80% of max: 8)"
+          runbook_url: "https://docs.lume.dev/runbooks/db-connections"
+
+      # Query Latency High
+      - alert: HighQueryLatency
+        expr: histogram_quantile(0.95, db_query_duration_seconds) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Database query latency elevated"
+          description: "P95 query latency is {{ $value | humanizeDuration }} (threshold: 1s)"
+          runbook_url: "https://docs.lume.dev/runbooks/query-latency"
+
+      # Slow Query Rate High
+      - alert: HighSlowQueryRate
+        expr: rate(db_slow_queries_total[1m]) > 0.1667
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Slow query rate elevated"
+          description: "Slow queries: {{ $value | humanize }}/sec (threshold: 10/min)"
+          runbook_url: "https://docs.lume.dev/runbooks/slow-queries"
+
+  - name: module_alerts
+    interval: 30s
+    rules:
+      # Module Initialization Failure
+      - alert: ModuleInitializationFailure
+        expr: increase(module_operations_total{operation="initialize", status="failed"}[5m]) > 0
+        labels:
+          severity: critical
+          category: module
+        annotations:
+          summary: "Module initialization failure detected"
+          description: "Module failed to initialize"
+          runbook_url: "https://docs.lume.dev/runbooks/module-init"
+
+      # Webhook Delivery Failure
+      - alert: HighWebhookFailureRate
+        expr: |
+          (
+            sum(rate(webhook_delivery_total{status="failed"}[10m])) /
+            sum(rate(webhook_delivery_total[10m]))
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: webhook
+        annotations:
+          summary: "Webhook delivery failure rate elevated"
+          description: "Webhook failure rate is {{ $value | humanize }}% (threshold: 5%)"
+          runbook_url: "https://docs.lume.dev/runbooks/webhook-failures"
+
+  - name: process_alerts
+    interval: 30s
+    rules:
+      # Process Restart Detected
+      - alert: ProcessRestartDetected
+        expr: increase(process_start_time_seconds[5m]) > 0
+        labels:
+          severity: critical
+          category: process
+        annotations:
+          summary: "Application process restarted"
+          description: "Process was restarted at {{ $value | humanizeTimestamp }}"
+          runbook_url: "https://docs.lume.dev/runbooks/process-restart"
+
+      # Graceful Shutdown Timeout
+      - alert: GracefulShutdownTimeout
+        expr: process_shutdown_duration_seconds > 30
+        labels:
+          severity: warning
+          category: process
+        annotations:
+          summary: "Graceful shutdown timeout"
+          description: "Shutdown duration exceeded 30 seconds: {{ $value | humanizeDuration }}"
+          runbook_url: "https://docs.lume.dev/runbooks/shutdown-timeout"
+
+  - name: cache_alerts
+    interval: 30s
+    rules:
+      # Low Cache Hit Rate
+      - alert: LowCacheHitRate
+        expr: |
+          (
+            sum(rate(cache_hits_total[5m])) /
+            (sum(rate(cache_hits_total[5m])) + sum(rate(cache_misses_total[5m])))
+          ) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "Cache hit rate below threshold"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 50%)"
+          runbook_url: "https://docs.lume.dev/runbooks/cache-performance"

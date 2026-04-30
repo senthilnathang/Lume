@@ -1,0 +1,268 @@
+# Production Alert Rules for Lume Framework
+# Used in Docker/Kubernetes deployments with Prometheus & AlertManager
+
+groups:
+  - name: lume_performance_alerts
+    interval: 30s
+    rules:
+      # HTTP Latency Alerts
+      - alert: HighP95Latency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: http
+          team: platform
+        annotations:
+          summary: "High P95 latency on {{ $labels.job }}"
+          description: "P95 latency is {{ $value | humanizeDuration }} (threshold: 500ms)"
+          dashboard: "https://grafana.lume.dev/d/http-latency"
+          runbook: "https://docs.lume.dev/runbooks/high-latency"
+
+      - alert: CriticalP99Latency
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 1.0
+        for: 5m
+        labels:
+          severity: critical
+          component: http
+          team: platform
+        annotations:
+          summary: "Critical P99 latency on {{ $labels.job }}"
+          description: "P99 latency is {{ $value | humanizeDuration }} (threshold: 1000ms)"
+          dashboard: "https://grafana.lume.dev/d/http-latency"
+          runbook: "https://docs.lume.dev/runbooks/high-latency"
+
+  - name: lume_error_rate_alerts
+    interval: 30s
+    rules:
+      - alert: ElevatedErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_requests_total[5m])) by (job)
+          ) * 100 > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: http
+          team: platform
+        annotations:
+          summary: "Elevated error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanize }}% (threshold: 1%)"
+          dashboard: "https://grafana.lume.dev/d/error-rate"
+          runbook: "https://docs.lume.dev/runbooks/error-rate"
+
+      - alert: CriticalErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[2m])) by (job)
+            /
+            sum(rate(http_requests_total[2m])) by (job)
+          ) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: http
+          team: platform
+          page: true
+        annotations:
+          summary: "CRITICAL error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanize }}% (threshold: 5%)"
+          dashboard: "https://grafana.lume.dev/d/error-rate"
+          runbook: "https://docs.lume.dev/runbooks/error-rate"
+
+  - name: lume_database_alerts
+    interval: 30s
+    rules:
+      - alert: HighDatabaseConnectionUsage
+        expr: db_connections_active / 10 > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+          team: platform
+        annotations:
+          summary: "Database connection pool near capacity on {{ $labels.job }}"
+          description: "Active connections: {{ $value | humanize }} (80% of max: 8)"
+          dashboard: "https://grafana.lume.dev/d/database"
+          runbook: "https://docs.lume.dev/runbooks/db-connections"
+
+      - alert: HighQueryLatency
+        expr: histogram_quantile(0.95, rate(db_query_duration_seconds_bucket[5m])) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+          team: platform
+        annotations:
+          summary: "High database query latency on {{ $labels.job }}"
+          description: "P95 query latency is {{ $value | humanizeDuration }} (threshold: 1s)"
+          dashboard: "https://grafana.lume.dev/d/database"
+          runbook: "https://docs.lume.dev/runbooks/query-latency"
+
+      - alert: HighSlowQueryRate
+        expr: increase(db_slow_queries_total[1m]) > 0.1667
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+          team: platform
+        annotations:
+          summary: "High slow query rate on {{ $labels.job }}"
+          description: "Slow queries: {{ $value | humanize }}/sec (threshold: 10/min)"
+          dashboard: "https://grafana.lume.dev/d/database"
+          runbook: "https://docs.lume.dev/runbooks/slow-queries"
+
+  - name: lume_resource_alerts
+    interval: 30s
+    rules:
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+          team: platform
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value | humanize }}% (threshold: 80%)"
+          runbook: "https://docs.lume.dev/runbooks/disk-usage"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+          team: platform
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value | humanize }}% (threshold: 85%)"
+          runbook: "https://docs.lume.dev/runbooks/memory-usage"
+
+      - alert: HighCpuUsage
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+          team: platform
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value | humanize }}% (threshold: 90%)"
+          runbook: "https://docs.lume.dev/runbooks/cpu-usage"
+
+  - name: lume_module_alerts
+    interval: 30s
+    rules:
+      - alert: ModuleInitializationFailure
+        expr: increase(module_operations_total{operation="initialize", status="failed"}[5m]) > 0
+        labels:
+          severity: critical
+          component: modules
+          team: platform
+          page: true
+        annotations:
+          summary: "Module initialization failure on {{ $labels.job }}"
+          description: "Module {{ $labels.module }} failed to initialize"
+          dashboard: "https://grafana.lume.dev/d/modules"
+          runbook: "https://docs.lume.dev/runbooks/module-init"
+
+      - alert: HighWebhookFailureRate
+        expr: |
+          (
+            sum(rate(webhook_delivery_total{status="failed"}[10m])) by (job)
+            /
+            sum(rate(webhook_delivery_total[10m])) by (job)
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: webhooks
+          team: platform
+        annotations:
+          summary: "High webhook failure rate on {{ $labels.job }}"
+          description: "Webhook failure rate is {{ $value | humanize }}% (threshold: 5%)"
+          runbook: "https://docs.lume.dev/runbooks/webhook-failures"
+
+  - name: lume_process_alerts
+    interval: 30s
+    rules:
+      - alert: ProcessRestartDetected
+        expr: increase(process_start_time_seconds[5m]) > 0
+        labels:
+          severity: critical
+          component: process
+          team: platform
+          page: true
+        annotations:
+          summary: "Application process restarted on {{ $labels.instance }}"
+          description: "Process was restarted. This may indicate a crash or deployment."
+          runbook: "https://docs.lume.dev/runbooks/process-restart"
+
+      - alert: GracefulShutdownTimeout
+        expr: process_shutdown_duration_seconds > 30
+        labels:
+          severity: warning
+          component: process
+          team: platform
+        annotations:
+          summary: "Graceful shutdown timeout on {{ $labels.instance }}"
+          description: "Shutdown duration exceeded 30 seconds: {{ $value | humanizeDuration }}"
+          runbook: "https://docs.lume.dev/runbooks/shutdown-timeout"
+
+  - name: lume_cache_alerts
+    interval: 30s
+    rules:
+      - alert: LowCacheHitRate
+        expr: |
+          (
+            sum(rate(cache_hits_total[5m])) by (cache_name)
+            /
+            (
+              sum(rate(cache_hits_total[5m])) by (cache_name)
+              + sum(rate(cache_misses_total[5m])) by (cache_name)
+            )
+          ) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+          team: platform
+        annotations:
+          summary: "Low cache hit rate for {{ $labels.cache_name }} on {{ $labels.job }}"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 50%)"
+          runbook: "https://docs.lume.dev/runbooks/cache-performance"
+
+  - name: lume_availability_alerts
+    interval: 30s
+    rules:
+      - alert: InstanceDown
+        expr: up{job="lume-backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: availability
+          team: platform
+          page: true
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "Instance has been unreachable for more than 2 minutes"
+          runbook: "https://docs.lume.dev/runbooks/instance-down"
+
+      - alert: HighErrorBudgetBurn
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[1h])) by (job)
+            /
+            sum(rate(http_requests_total[1h])) by (job)
+          ) > 0.01
+        labels:
+          severity: warning
+          component: slo
+          team: platform
+        annotations:
+          summary: "High error budget burn rate on {{ $labels.job }}"
+          description: "1-hour error rate is {{ $value | humanizePercentage }} (SLO target: 1%)"
+          runbook: "https://docs.lume.dev/runbooks/slo-burn"
