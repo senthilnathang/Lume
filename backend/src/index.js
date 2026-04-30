@@ -39,7 +39,9 @@ import { loggingMiddleware } from './core/middleware/logging.middleware.js';
 import { ipAccessMiddleware } from './core/middleware/ipAccess.js';
 import { responseCache } from './core/middleware/cacheControl.js';
 import { requestTracing } from './core/middleware/requestTracing.js';
-import { metricsMiddleware, errorTracker, getHealthMetrics } from './core/middleware/metrics.js';
+import { metricsMiddleware as metricsMiddlewareNew } from './core/middleware/metrics.middleware.js';
+import { metricsMiddleware as metricsMiddlewareOld, errorTracker, getHealthMetrics } from './core/middleware/metrics.js';
+import { getMetrics, initMetricsCache } from './core/metrics/index.js';
 
 // ORM adapters
 import prisma from './core/db/prisma.js';
@@ -168,7 +170,8 @@ app.use(limiter);
 
 // ─── Observability: Request Tracing & Metrics ────────────────────────────────
 app.use(requestTracing);
-app.use(metricsMiddleware);
+app.use(metricsMiddlewareNew);  // New Prometheus metrics middleware
+app.use(metricsMiddlewareOld);  // Legacy metrics middleware (for compatibility)
 
 // ─── Security: Authentication Middleware ──────────────────────────────────────
 // Paths that never require authentication
@@ -279,6 +282,18 @@ app.get('/health', (req, res) => {
     modular: true,
     metrics: getHealthMetrics()
   });
+});
+
+// ─── Prometheus Metrics Endpoint (no auth) ────────────────────────────────────
+// Exposes metrics in Prometheus text format for scraping by monitoring systems
+app.get('/metrics', (req, res) => {
+  try {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.send(getMetrics());
+  } catch (error) {
+    console.error('Failed to generate metrics:', error);
+    res.status(500).send('# Error generating metrics\n');
+  }
 });
 
 // ─── Public Config (no auth) ────────────────────────────────────────────────
@@ -905,6 +920,14 @@ const startServer = async () => {
       }
     } catch (queueErr) {
       console.warn('⚠️ Queue system initialization failed:', queueErr.message);
+    }
+
+    // Initialize Prometheus metrics cache
+    try {
+      initMetricsCache();
+      console.log('✅ Prometheus metrics cache initialized');
+    } catch (metricsErr) {
+      console.warn('⚠️ Metrics cache initialization failed:', metricsErr.message);
     }
 
     // Create HTTP server and initialize WebSocket
