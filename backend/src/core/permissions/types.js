@@ -73,7 +73,7 @@
 /**
  * @typedef {Object} QueryFilter
  * @property {string} field - Field name to filter
- * @property {'eq' | 'neq' | 'in' | 'nin' | 'gt' | 'gte' | 'lt' | 'lte' | 'between' | 'contains' | 'startsWith' | 'endsWith'} operator - Filter operator
+ * @property {'eq' | 'in' | 'between' | 'gt' | 'lt' | 'gte' | 'lte' | 'contains' | 'exists'} operator - Filter operator (QueryOperator type)
  * @property {any} value - Filter value
  */
 
