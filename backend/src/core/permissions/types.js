@@ -78,12 +78,54 @@
  */
 
 /**
+ * @typedef {Object} PermissionPolicy
+ * @property {string} id - Unique identifier for the policy
+ * @property {string} name - Policy name
+ * @property {string} [description] - Policy description (optional)
+ * @property {PermissionRule[]} rules - Array of permission rules
+ * @property {number} version - Policy version number
+ */
+
+/**
+ * @typedef {Object} PermissionDecision
+ * @property {boolean} allowed - Whether access is allowed
+ * @property {string} reason - Reason for the decision
+ * @property {string} [matchedRuleId] - ID of the matched rule (optional)
+ * @property {number} [ttl] - Time-to-live in seconds for caching (optional)
+ */
+
+/**
+ * @typedef {Object} EvaluationResult
+ * @property {boolean} allowed - Whether evaluation passed
+ * @property {string} reason - Reason for the result
+ * @property {number} ttl - Time-to-live in seconds for caching
+ */
+
+/**
+ * @typedef {'role' | 'ownership' | 'time' | 'attribute' | 'expression'} ConditionType
+ */
+
+/**
+ * @typedef {'allow' | 'deny'} PermissionEffect
+ */
+
+/**
+ * @typedef {'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 'nin' | 'contains' | 'startsWith' | 'endsWith'} AttributeOperator
+ */
+
+/**
+ * @typedef {'eq' | 'in' | 'between' | 'gt' | 'lt' | 'gte' | 'lte' | 'contains' | 'exists'} QueryOperator
+ */
+
+/**
  * @typedef {Object} IPermissionEngine
  * @property {Function} evaluate - Evaluate permission for a context
  * @property {Function} evaluateField - Evaluate permission for a specific field
  * @property {Function} getQueryFilters - Get query filters for data-level access control
  * @property {Function} registerPolicy - Register a new permission policy
  * @property {Function} getPolicy - Retrieve a registered policy
+ * @property {Function} clearCache - Clear all cached permissions
+ * @property {Function} cacheStats - Get cache statistics (hits, misses, size)
  */
 
 export const PermissionContext = Symbol('PermissionContext');
@@ -98,3 +140,10 @@ export const TimeCondition = Symbol('TimeCondition');
 export const AttributeCondition = Symbol('AttributeCondition');
 export const ExpressionCondition = Symbol('ExpressionCondition');
 export const FieldPermission = Symbol('FieldPermission');
+export const PermissionPolicy = Symbol('PermissionPolicy');
+export const PermissionDecision = Symbol('PermissionDecision');
+export const EvaluationResult = Symbol('EvaluationResult');
+export const ConditionType = Symbol('ConditionType');
+export const PermissionEffect = Symbol('PermissionEffect');
+export const AttributeOperator = Symbol('AttributeOperator');
+export const QueryOperator = Symbol('QueryOperator');
