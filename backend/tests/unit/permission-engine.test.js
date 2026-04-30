@@ -1,214 +1,503 @@
 /**
- * @fileoverview Unit tests for PolicyEngine and ExpressionEvaluator
+ * @fileoverview Unit tests for PermissionEngine
+ * Tests policy aggregation with "deny wins" principle
  */
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import PolicyEngine from '../../src/core/permissions/policy-engine.js';
-import ExpressionEvaluator from '../../src/core/permissions/evaluator.js';
-import MetadataRegistry from '../../src/core/runtime/registry.js';
+import { PermissionEngine } from '../../src/core/permissions/permission-engine.js';
 
-describe('ExpressionEvaluator', () => {
-  let evaluator;
-
-  beforeEach(() => {
-    evaluator = new ExpressionEvaluator();
-  });
-
-  it('should evaluate simple equality', async () => {
-    const context = { user: { role: 'admin' } };
-    const result = await evaluator.evaluate("user.role == 'admin'", context);
-    expect(result).toBe(true);
-  });
-
-  it('should evaluate inequality', async () => {
-    const context = { user: { role: 'user' } };
-    const result = await evaluator.evaluate("user.role != 'admin'", context);
-    expect(result).toBe(true);
-  });
-
-  it('should evaluate AND logic', async () => {
-    const context = { user: { role: 'admin', active: true } };
-    const result = await evaluator.evaluate("user.role == 'admin' AND user.active == true", context);
-    expect(result).toBe(true);
-  });
-
-  it('should evaluate OR logic', async () => {
-    const context = { user: { role: 'user' } };
-    const result = await evaluator.evaluate("user.role == 'admin' OR user.role == 'user'", context);
-    expect(result).toBe(true);
-  });
-
-  it('should evaluate NOT logic', async () => {
-    const context = { user: { role: 'user' } };
-    const result = await evaluator.evaluate("NOT user.role == 'admin'", context);
-    expect(result).toBe(true);
-  });
-
-  it('should evaluate number comparisons', async () => {
-    const context = { data: { priority: 5 } };
-    const result = await evaluator.evaluate('data.priority > 3', context);
-    expect(result).toBe(true);
-  });
-
-  it('should handle parentheses', async () => {
-    const context = { user: { role: 'user' }, data: { public: true } };
-    const result = await evaluator.evaluate("(user.role == 'user' AND data.public == true) OR user.role == 'admin'", context);
-    expect(result).toBe(true);
-  });
-
-  it('should resolve nested properties', async () => {
-    const context = { user: { profile: { role: 'admin' } } };
-    const result = await evaluator.evaluate("user.profile.role == 'admin'", context);
-    expect(result).toBe(true);
-  });
-
-  it('should handle undefined properties gracefully', async () => {
-    const context = { user: { role: 'admin' } };
-    const result = await evaluator.evaluate("user.nonexistent == 'value'", context);
-    expect(result).toBe(false);
-  });
-});
-
-describe('PolicyEngine', () => {
+describe('PermissionEngine', () => {
   let engine;
-  let registry;
 
   beforeEach(() => {
-    registry = new MetadataRegistry(null);
-    engine = new PolicyEngine(registry);
+    engine = new PermissionEngine();
   });
 
-  it('should allow when no policies exist', async () => {
-    const result = await engine.evaluate({
-      resource: 'ticket',
-      action: 'read',
-      user: { userId: 'user1', roles: ['user'], permissions: [] },
+  describe('Policy Registration and Retrieval', () => {
+    it('should register and retrieve a policy', () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Admin Policy',
+        description: 'Full access for admins',
+        rules: [],
+        version: 1
+      };
+
+      engine.registerPolicy(policy);
+      const retrieved = engine.getPolicy('policy-1');
+
+      expect(retrieved).toBeDefined();
+      expect(retrieved.id).toBe('policy-1');
+      expect(retrieved.name).toBe('Admin Policy');
     });
 
-    expect(result.allowed).toBe(true);
+    it('should return undefined for non-existent policy', () => {
+      const retrieved = engine.getPolicy('non-existent');
+      expect(retrieved).toBeUndefined();
+    });
   });
 
-  it('should deny based on ABAC rule', async () => {
-    const policy = {
-      resource: 'ticket',
-      action: 'read',
-      rule: "user.role == 'manager'",
-    };
+  describe('Allow Rule Matching', () => {
+    it('should allow when allow rule matches', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Allow Read',
+        rules: [
+          {
+            id: 'rule-1',
+            effect: 'allow',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 10
+          }
+        ],
+        version: 1
+      };
 
-    await registry.registerPermission(policy);
+      engine.registerPolicy(policy);
 
-    const result = await engine.evaluate({
-      resource: 'ticket',
-      action: 'read',
-      user: { userId: 'user1', roles: ['agent'], permissions: [] },
-      data: {},
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const result = await engine.evaluate(context, 'ticket', 'read');
+
+      expect(result.allowed).toBe(true);
+      expect(result.reason).toContain('Allow rule');
     });
-
-    expect(result.allowed).toBe(false);
   });
 
-  it('should allow based on ABAC rule', async () => {
-    const policy = {
-      resource: 'ticket',
-      action: 'read',
-      rule: "user.role == 'agent' OR user.role == 'manager'",
-    };
+  describe('Deny Wins Principle', () => {
+    it('should deny when both allow and deny rules match (deny wins)', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Mixed Policy',
+        rules: [
+          {
+            id: 'allow-rule',
+            effect: 'allow',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 10
+          },
+          {
+            id: 'deny-rule',
+            effect: 'deny',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 5
+          }
+        ],
+        version: 1
+      };
 
-    await registry.registerPermission(policy);
+      engine.registerPolicy(policy);
 
-    const result = await engine.evaluate({
-      resource: 'ticket',
-      action: 'read',
-      user: { userId: 'user1', roles: ['agent'], permissions: [] },
-      data: {},
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const result = await engine.evaluate(context, 'ticket', 'read');
+
+      expect(result.allowed).toBe(false);
+      expect(result.reason).toContain('Deny rule');
     });
 
-    expect(result.allowed).toBe(true);
+    it('should deny when only deny rule matches', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Deny Policy',
+        rules: [
+          {
+            id: 'deny-rule',
+            effect: 'deny',
+            resource: 'ticket',
+            action: 'delete',
+            conditions: [],
+            priority: 10
+          }
+        ],
+        version: 1
+      };
+
+      engine.registerPolicy(policy);
+
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const result = await engine.evaluate(context, 'ticket', 'delete');
+
+      expect(result.allowed).toBe(false);
+    });
   });
 
-  it('should enforce field-level permissions', async () => {
-    const policy = {
-      resource: 'ticket',
-      action: 'update',
-      fieldLevel: {
-        status: "user.role == 'manager'",
-        notes: "true",
-      },
-    };
+  describe('Wildcard Resource Matching', () => {
+    it('should match "ticket:*" resource pattern against "ticket:read"', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Wildcard Resource',
+        rules: [
+          {
+            id: 'rule-1',
+            effect: 'allow',
+            resource: 'ticket:*',
+            action: 'read',
+            conditions: [],
+            priority: 10
+          }
+        ],
+        version: 1
+      };
 
-    await registry.registerPermission(policy);
+      engine.registerPolicy(policy);
 
-    const result = await engine.evaluate({
-      resource: 'ticket',
-      action: 'update',
-      user: { userId: 'user1', roles: ['agent'], permissions: [] },
-      data: {},
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const result = await engine.evaluate(context, 'ticket:read', 'read');
+
+      expect(result.allowed).toBe(true);
     });
 
-    expect(result.allowed).toBe(true);
-    expect(result.fieldFilters.status).toBe(false);
-    expect(result.fieldFilters.notes).toBe(true);
+    it('should match "*" resource pattern against any resource', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Match All',
+        rules: [
+          {
+            id: 'rule-1',
+            effect: 'allow',
+            resource: '*',
+            action: 'read',
+            conditions: [],
+            priority: 10
+          }
+        ],
+        version: 1
+      };
+
+      engine.registerPolicy(policy);
+
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const result = await engine.evaluate(context, 'anything', 'read');
+
+      expect(result.allowed).toBe(true);
+    });
   });
 
-  it('should check hasPermission convenience method', async () => {
-    const policy = {
-      resource: 'ticket',
-      action: 'create',
-      rule: "user.role == 'agent'",
-    };
+  describe('Wildcard Action Matching', () => {
+    it('should match "*" action pattern against any action', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'All Actions',
+        rules: [
+          {
+            id: 'rule-1',
+            effect: 'allow',
+            resource: 'ticket',
+            action: '*',
+            conditions: [],
+            priority: 10
+          }
+        ],
+        version: 1
+      };
 
-    await registry.registerPermission(policy);
+      engine.registerPolicy(policy);
 
-    const allowed = await engine.hasPermission(
-      'ticket',
-      'create',
-      { userId: 'user1', roles: ['agent'] }
-    );
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
 
-    expect(allowed).toBe(true);
+      const result = await engine.evaluate(context, 'ticket', 'delete');
+
+      expect(result.allowed).toBe(true);
+    });
   });
 
-  it('should handle multiple policies (all must pass)', async () => {
-    await registry.registerPermission({
-      resource: 'ticket',
-      action: 'create',
-      rule: "user.role != 'guest'",
+  describe('Rule Priority Ordering', () => {
+    it('should check rules by priority (highest first)', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Priority Policy',
+        rules: [
+          {
+            id: 'low-priority-allow',
+            effect: 'allow',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 5
+          },
+          {
+            id: 'high-priority-deny',
+            effect: 'deny',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 10
+          }
+        ],
+        version: 1
+      };
+
+      engine.registerPolicy(policy);
+
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const result = await engine.evaluate(context, 'ticket', 'read');
+
+      // High priority deny should win
+      expect(result.allowed).toBe(false);
+    });
+  });
+
+  describe('Field Permissions', () => {
+    it('should evaluate field permissions', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Field Policy',
+        rules: [
+          {
+            id: 'rule-1',
+            effect: 'allow',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 10,
+            fieldPermissions: {
+              'description': { allowed: true },
+              'internalNotes': { allowed: false, reason: 'Internal field' }
+            }
+          }
+        ],
+        version: 1
+      };
+
+      engine.registerPolicy(policy);
+
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const descField = await engine.evaluateField(context, 'ticket', 'read', 'description');
+      const notesField = await engine.evaluateField(context, 'ticket', 'read', 'internalNotes');
+
+      expect(descField.allowed).toBe(true);
+      expect(notesField.allowed).toBe(false);
+      expect(notesField.reason).toBe('Internal field');
+    });
+  });
+
+  describe('Query Filters Retrieval', () => {
+    it('should retrieve query filters from rules', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Filter Policy',
+        rules: [
+          {
+            id: 'rule-1',
+            effect: 'allow',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 10,
+            queryFilters: [
+              {
+                field: 'status',
+                operator: 'eq',
+                value: 'open'
+              },
+              {
+                field: 'assignedTo',
+                operator: 'eq',
+                value: 'user1'
+              }
+            ]
+          }
+        ],
+        version: 1
+      };
+
+      engine.registerPolicy(policy);
+
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const filters = await engine.getQueryFilters(context, 'ticket', 'read');
+
+      expect(filters).toBeDefined();
+      expect(filters.length).toBeGreaterThan(0);
+      expect(filters.some(f => f.field === 'status')).toBe(true);
+    });
+  });
+
+  describe('Multiple Policies Aggregation', () => {
+    it('should aggregate rules from multiple policies with deny wins', async () => {
+      const policy1 = {
+        id: 'policy-1',
+        name: 'Allow Policy',
+        rules: [
+          {
+            id: 'rule-1',
+            effect: 'allow',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 10
+          }
+        ],
+        version: 1
+      };
+
+      const policy2 = {
+        id: 'policy-2',
+        name: 'Deny Policy',
+        rules: [
+          {
+            id: 'rule-2',
+            effect: 'deny',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 8
+          }
+        ],
+        version: 1
+      };
+
+      engine.registerPolicy(policy1);
+      engine.registerPolicy(policy2);
+
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const result = await engine.evaluate(context, 'ticket', 'read');
+
+      // Deny from policy2 should win over allow from policy1
+      expect(result.allowed).toBe(false);
+    });
+  });
+
+  describe('Cache Management', () => {
+    it('should clear cache', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Cache Policy',
+        rules: [
+          {
+            id: 'rule-1',
+            effect: 'allow',
+            resource: 'ticket',
+            action: 'read',
+            conditions: [],
+            priority: 10
+          }
+        ],
+        version: 1
+      };
+
+      engine.registerPolicy(policy);
+
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      await engine.evaluate(context, 'ticket', 'read');
+      engine.clearCache();
+
+      const stats = engine.cacheStats();
+      expect(stats.size).toBe(0);
     });
 
-    await registry.registerPermission({
-      resource: 'ticket',
-      action: 'create',
-      rule: "user.active == true",
+    it('should return cache statistics', async () => {
+      const stats = engine.cacheStats();
+
+      expect(stats).toHaveProperty('hits');
+      expect(stats).toHaveProperty('misses');
+      expect(stats).toHaveProperty('size');
+      expect(typeof stats.hits).toBe('number');
+      expect(typeof stats.misses).toBe('number');
+      expect(typeof stats.size).toBe('number');
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle missing policies gracefully', async () => {
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const result = await engine.evaluate(context, 'nonexistent', 'read');
+
+      expect(result).toBeDefined();
+      expect(result.allowed).toBe(false);
     });
 
-    // First policy fails
-    let result = await engine.evaluate({
-      resource: 'ticket',
-      action: 'create',
-      user: { userId: 'user1', roles: ['guest'], active: true },
-      data: { active: true },
+    it('should return false when no rule matches', async () => {
+      const policy = {
+        id: 'policy-1',
+        name: 'Empty Policy',
+        rules: [
+          {
+            id: 'rule-1',
+            effect: 'allow',
+            resource: 'document',
+            action: 'write',
+            conditions: [],
+            priority: 10
+          }
+        ],
+        version: 1
+      };
+
+      engine.registerPolicy(policy);
+
+      const context = {
+        userId: 'user1',
+        userRole: 'user',
+        userAttributes: {}
+      };
+
+      const result = await engine.evaluate(context, 'ticket', 'read');
+
+      expect(result.allowed).toBe(false);
     });
-
-    expect(result.allowed).toBe(false);
-
-    // Second policy fails
-    result = await engine.evaluate({
-      resource: 'ticket',
-      action: 'create',
-      user: { userId: 'user1', roles: ['agent'], active: false },
-      data: { active: false },
-    });
-
-    expect(result.allowed).toBe(false);
-
-    // Both policies pass
-    result = await engine.evaluate({
-      resource: 'ticket',
-      action: 'create',
-      user: { userId: 'user1', roles: ['agent'], active: true },
-      data: { active: true },
-    });
-
-    expect(result.allowed).toBe(true);
   });
 });
