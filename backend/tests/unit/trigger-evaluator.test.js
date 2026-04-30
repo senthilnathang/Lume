@@ -1,281 +1,586 @@
 /**
  * @fileoverview Unit tests for TriggerEvaluator
+ * Tests event, time, manual, and conditional trigger evaluation
  */
 
-import { describe, it, expect } from '@jest/globals';
-import TriggerEvaluator from '../../src/domains/agent/trigger-evaluator.js';
+import { describe, it, expect, beforeEach } from '@jest/globals';
+import { TriggerEvaluator } from '../../src/core/workflows/trigger-evaluator.js';
 
 describe('TriggerEvaluator', () => {
-  const userContext = {
-    userId: 1,
-    orgId: 1,
-    roles: ['support_agent'],
-  };
+  let evaluator;
 
-  describe('Simple Expressions', () => {
-    it('should evaluate equality condition', async () => {
-      const trigger = 'data.status == "open"';
-      const record = { id: 1, status: 'open' };
+  beforeEach(() => {
+    evaluator = new TriggerEvaluator();
+  });
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
+  // ============================================================================
+  // EVENT TRIGGER TESTS
+  // ============================================================================
 
-      expect(result).toBe(true);
+  describe('Event Triggers', () => {
+    it('should match exact event name', () => {
+      const trigger = {
+        type: 'event',
+        event: 'order:created'
+      };
+
+      const data = {
+        event: 'order:created',
+        orderId: '123'
+      };
+
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(true);
+      expect(result.reason).toBeDefined();
     });
 
-    it('should evaluate inequality condition', async () => {
-      const trigger = 'data.status != "closed"';
-      const record = { id: 1, status: 'open' };
+    it('should match resource wildcard event pattern (order:*)', () => {
+      const trigger = {
+        type: 'event',
+        event: 'order:*'
+      };
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
+      const data = {
+        event: 'order:created',
+        orderId: '123'
+      };
 
-      expect(result).toBe(true);
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(true);
     });
 
-    it('should evaluate greater than condition', async () => {
-      const trigger = 'data.daysOpen > 2';
-      const record = { id: 1, daysOpen: 5 };
+    it('should match action wildcard event pattern (*.created)', () => {
+      const trigger = {
+        type: 'event',
+        event: '*.created'
+      };
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
+      const data = {
+        event: 'user:created',
+        userId: '456'
+      };
 
-      expect(result).toBe(true);
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(true);
     });
 
-    it('should evaluate less than condition', async () => {
-      const trigger = 'data.priority < 3';
-      const record = { id: 1, priority: 2 };
+    it('should match full wildcard event pattern (*)', () => {
+      const trigger = {
+        type: 'event',
+        event: '*'
+      };
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
+      const data = {
+        event: 'any:event:name',
+        data: 'something'
+      };
 
-      expect(result).toBe(true);
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(true);
+    });
+
+    it('should not match different event', () => {
+      const trigger = {
+        type: 'event',
+        event: 'order:created'
+      };
+
+      const data = {
+        event: 'order:updated',
+        orderId: '123'
+      };
+
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(false);
+    });
+
+    it('should evaluate event conditions and trigger if all pass', () => {
+      const trigger = {
+        type: 'event',
+        event: 'order:created',
+        conditions: [
+          { field: 'amount', operator: 'gt', value: 100 },
+          { field: 'status', operator: 'eq', value: 'pending' }
+        ]
+      };
+
+      const data = {
+        event: 'order:created',
+        amount: 150,
+        status: 'pending'
+      };
+
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(true);
+      expect(result.matchedConditions).toBeDefined();
+    });
+
+    it('should not trigger event if any condition fails', () => {
+      const trigger = {
+        type: 'event',
+        event: 'order:created',
+        conditions: [
+          { field: 'amount', operator: 'gt', value: 100 },
+          { field: 'status', operator: 'eq', value: 'pending' }
+        ]
+      };
+
+      const data = {
+        event: 'order:created',
+        amount: 50,
+        status: 'pending'
+      };
+
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(false);
     });
   });
 
-  describe('Complex Expressions', () => {
-    it('should evaluate AND expression', async () => {
-      const trigger = 'data.status != "closed" AND data.priority == "high"';
-      const record = { id: 1, status: 'open', priority: 'high' };
+  // ============================================================================
+  // TIME TRIGGER TESTS
+  // ============================================================================
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
+  describe('Time Triggers', () => {
+    it('should validate cron expression with 5 parts', () => {
+      const trigger = {
+        type: 'time',
+        cron: '0 9 * * 1-5'
+      };
 
+      const data = {};
+
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(false);
+      expect(result.reason).toBeDefined();
+    });
+
+    it('should throw error for invalid cron expression', () => {
+      const trigger = {
+        type: 'time',
+        cron: 'invalid cron'
+      };
+
+      const data = {};
+
+      expect(() => {
+        evaluator.evaluate(trigger, data);
+      }).toThrow();
+    });
+
+    it('should throw error for cron expression with wrong number of parts', () => {
+      const trigger = {
+        type: 'time',
+        cron: '0 9 *'
+      };
+
+      const data = {};
+
+      expect(() => {
+        evaluator.evaluate(trigger, data);
+      }).toThrow();
+    });
+  });
+
+  // ============================================================================
+  // MANUAL TRIGGER TESTS
+  // ============================================================================
+
+  describe('Manual Triggers', () => {
+    it('should always trigger manual trigger', () => {
+      const trigger = {
+        type: 'manual',
+        label: 'Process Now'
+      };
+
+      const data = {};
+
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(true);
+      expect(result.reason).toBeDefined();
+    });
+
+    it('should trigger manual trigger regardless of data', () => {
+      const trigger = {
+        type: 'manual'
+      };
+
+      const data = {
+        random: 'data',
+        nested: { value: 123 }
+      };
+
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(true);
+    });
+  });
+
+  // ============================================================================
+  // CONDITIONAL TRIGGER TESTS
+  // ============================================================================
+
+  describe('Conditional Triggers', () => {
+    it('should trigger when all conditions are met', () => {
+      const trigger = {
+        type: 'conditional',
+        conditions: [
+          { field: 'inventory', operator: 'lt', value: 10 },
+          { field: 'reorderStatus', operator: 'eq', value: 'enabled' }
+        ]
+      };
+
+      const data = {
+        inventory: 5,
+        reorderStatus: 'enabled'
+      };
+
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(true);
+      expect(result.matchedConditions).toBeDefined();
+    });
+
+    it('should not trigger if any condition fails', () => {
+      const trigger = {
+        type: 'conditional',
+        conditions: [
+          { field: 'inventory', operator: 'lt', value: 10 },
+          { field: 'reorderStatus', operator: 'eq', value: 'enabled' }
+        ]
+      };
+
+      const data = {
+        inventory: 5,
+        reorderStatus: 'disabled'
+      };
+
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(false);
+    });
+  });
+
+  // ============================================================================
+  // eventMatches TESTS
+  // ============================================================================
+
+  describe('eventMatches method', () => {
+    it('should match exact event names', () => {
+      expect(evaluator.eventMatches('order:created', 'order:created')).toBe(true);
+      expect(evaluator.eventMatches('user:deleted', 'user:deleted')).toBe(true);
+    });
+
+    it('should not match different event names', () => {
+      expect(evaluator.eventMatches('order:created', 'order:updated')).toBe(false);
+      expect(evaluator.eventMatches('order:created', 'user:created')).toBe(false);
+    });
+
+    it('should match resource wildcard pattern (order:*)', () => {
+      expect(evaluator.eventMatches('order:*', 'order:created')).toBe(true);
+      expect(evaluator.eventMatches('order:*', 'order:updated')).toBe(true);
+      expect(evaluator.eventMatches('order:*', 'order:deleted')).toBe(true);
+      expect(evaluator.eventMatches('order:*', 'user:created')).toBe(false);
+    });
+
+    it('should match action wildcard pattern (*.created)', () => {
+      expect(evaluator.eventMatches('*.created', 'order:created')).toBe(true);
+      expect(evaluator.eventMatches('*.created', 'user:created')).toBe(true);
+      expect(evaluator.eventMatches('*.created', 'order:updated')).toBe(false);
+    });
+
+    it('should match full wildcard pattern (*)', () => {
+      expect(evaluator.eventMatches('*', 'order:created')).toBe(true);
+      expect(evaluator.eventMatches('*', 'user:deleted')).toBe(true);
+      expect(evaluator.eventMatches('*', 'any:event:here')).toBe(true);
+    });
+  });
+
+  // ============================================================================
+  // evaluateConditions TESTS
+  // ============================================================================
+
+  describe('evaluateConditions method', () => {
+    it('should return true when all conditions pass (AND logic)', () => {
+      const conditions = [
+        { field: 'amount', operator: 'gt', value: 100 },
+        { field: 'status', operator: 'eq', value: 'active' }
+      ];
+
+      const data = {
+        amount: 150,
+        status: 'active'
+      };
+
+      const result = evaluator.evaluateConditions(conditions, data);
       expect(result).toBe(true);
     });
 
-    it('should evaluate OR expression', async () => {
-      const trigger = 'data.status == "urgent" OR data.priority == "high"';
-      const record = { id: 1, status: 'open', priority: 'high' };
+    it('should return false when any condition fails (AND logic)', () => {
+      const conditions = [
+        { field: 'amount', operator: 'gt', value: 100 },
+        { field: 'status', operator: 'eq', value: 'active' }
+      ];
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
+      const data = {
+        amount: 50,
+        status: 'active'
+      };
 
-      expect(result).toBe(true);
-    });
-
-    it('should evaluate mixed AND/OR', async () => {
-      const trigger = 'data.status != "closed" AND (data.priority == "high" OR data.priority == "urgent")';
-      const record = { id: 1, status: 'open', priority: 'urgent' };
-
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
-
-      expect(result).toBe(true);
-    });
-
-    it('should return false when condition not met', async () => {
-      const trigger = 'data.status == "closed"';
-      const record = { id: 1, status: 'open' };
-
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
-
+      const result = evaluator.evaluateConditions(conditions, data);
       expect(result).toBe(false);
     });
-  });
 
-  describe('User Context References', () => {
-    it('should reference user fields', async () => {
-      const trigger = 'data.assignedTo == user.userId';
-      const record = { id: 1, assignedTo: 1 };
+    it('should handle empty conditions array', () => {
+      const conditions = [];
+      const data = { any: 'data' };
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
-
-      expect(result).toBe(true);
-    });
-
-    it('should check user roles', async () => {
-      const trigger = 'user.roles == "admin"';
-      const record = { id: 1 };
-      const managerContext = { userId: 1, roles: ['manager'] };
-
-      const result = await TriggerEvaluator.evaluate(trigger, record, managerContext);
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('No Trigger', () => {
-    it('should execute if no trigger specified', async () => {
-      const result = await TriggerEvaluator.evaluate(null, { id: 1 }, userContext);
-
-      expect(result).toBe(true);
-    });
-
-    it('should execute if empty trigger', async () => {
-      const result = await TriggerEvaluator.evaluate('', { id: 1 }, userContext);
-
+      const result = evaluator.evaluateConditions(conditions, data);
       expect(result).toBe(true);
     });
   });
 
-  describe('Evaluate Many', () => {
-    it('should filter records matching trigger', async () => {
-      const trigger = 'data.status != "closed"';
-      const records = [
-        { id: 1, status: 'open' },
-        { id: 2, status: 'closed' },
-        { id: 3, status: 'in_progress' },
-        { id: 4, status: 'closed' },
-      ];
+  // ============================================================================
+  // CONDITION OPERATORS TESTS
+  // ============================================================================
 
-      const matching = await TriggerEvaluator.evaluateMany(trigger, records, userContext);
+  describe('Condition Operators', () => {
+    describe('eq operator', () => {
+      it('should match equal values', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'status', operator: 'eq', value: 'active' }]
+        };
 
-      expect(matching).toHaveLength(2);
-      expect(matching.map(r => r.id)).toContain(1);
-      expect(matching.map(r => r.id)).toContain(3);
+        const result = evaluator.evaluate(trigger, { status: 'active' });
+        expect(result.triggered).toBe(true);
+      });
+
+      it('should not match unequal values', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'status', operator: 'eq', value: 'active' }]
+        };
+
+        const result = evaluator.evaluate(trigger, { status: 'inactive' });
+        expect(result.triggered).toBe(false);
+      });
     });
 
-    it('should return all records if no trigger', async () => {
-      const records = [
-        { id: 1, status: 'open' },
-        { id: 2, status: 'closed' },
-      ];
+    describe('neq operator', () => {
+      it('should match unequal values', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'status', operator: 'neq', value: 'inactive' }]
+        };
 
-      const matching = await TriggerEvaluator.evaluateMany(null, records, userContext);
+        const result = evaluator.evaluate(trigger, { status: 'active' });
+        expect(result.triggered).toBe(true);
+      });
 
-      expect(matching).toHaveLength(2);
+      it('should not match equal values', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'status', operator: 'neq', value: 'active' }]
+        };
+
+        const result = evaluator.evaluate(trigger, { status: 'active' });
+        expect(result.triggered).toBe(false);
+      });
+    });
+
+    describe('gt operator', () => {
+      it('should match greater than', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'amount', operator: 'gt', value: 100 }]
+        };
+
+        const result = evaluator.evaluate(trigger, { amount: 150 });
+        expect(result.triggered).toBe(true);
+      });
+
+      it('should not match less than or equal', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'amount', operator: 'gt', value: 100 }]
+        };
+
+        const result = evaluator.evaluate(trigger, { amount: 50 });
+        expect(result.triggered).toBe(false);
+      });
+    });
+
+    describe('lt operator', () => {
+      it('should match less than', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'amount', operator: 'lt', value: 100 }]
+        };
+
+        const result = evaluator.evaluate(trigger, { amount: 50 });
+        expect(result.triggered).toBe(true);
+      });
+
+      it('should not match greater than or equal', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'amount', operator: 'lt', value: 100 }]
+        };
+
+        const result = evaluator.evaluate(trigger, { amount: 150 });
+        expect(result.triggered).toBe(false);
+      });
+    });
+
+    describe('gte operator', () => {
+      it('should match greater than or equal', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'amount', operator: 'gte', value: 100 }]
+        };
+
+        const result = evaluator.evaluate(trigger, { amount: 100 });
+        expect(result.triggered).toBe(true);
+      });
+
+      it('should not match less than', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'amount', operator: 'gte', value: 100 }]
+        };
+
+        const result = evaluator.evaluate(trigger, { amount: 50 });
+        expect(result.triggered).toBe(false);
+      });
+    });
+
+    describe('lte operator', () => {
+      it('should match less than or equal', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'amount', operator: 'lte', value: 100 }]
+        };
+
+        const result = evaluator.evaluate(trigger, { amount: 100 });
+        expect(result.triggered).toBe(true);
+      });
+
+      it('should not match greater than', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'amount', operator: 'lte', value: 100 }]
+        };
+
+        const result = evaluator.evaluate(trigger, { amount: 150 });
+        expect(result.triggered).toBe(false);
+      });
+    });
+
+    describe('in operator', () => {
+      it('should match value in array', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'status', operator: 'in', value: ['active', 'pending'] }]
+        };
+
+        const result = evaluator.evaluate(trigger, { status: 'active' });
+        expect(result.triggered).toBe(true);
+      });
+
+      it('should not match value not in array', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'status', operator: 'in', value: ['active', 'pending'] }]
+        };
+
+        const result = evaluator.evaluate(trigger, { status: 'inactive' });
+        expect(result.triggered).toBe(false);
+      });
+    });
+
+    describe('contains operator', () => {
+      it('should match string containment', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'description', operator: 'contains', value: 'urgent' }]
+        };
+
+        const result = evaluator.evaluate(trigger, { description: 'This is urgent matter' });
+        expect(result.triggered).toBe(true);
+      });
+
+      it('should not match if string does not contain value', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'description', operator: 'contains', value: 'urgent' }]
+        };
+
+        const result = evaluator.evaluate(trigger, { description: 'This is a normal matter' });
+        expect(result.triggered).toBe(false);
+      });
+
+      it('should be case sensitive for contains', () => {
+        const trigger = {
+          type: 'conditional',
+          conditions: [{ field: 'description', operator: 'contains', value: 'Urgent' }]
+        };
+
+        const result = evaluator.evaluate(trigger, { description: 'This is urgent matter' });
+        expect(result.triggered).toBe(false);
+      });
     });
   });
 
-  describe('Describe Trigger', () => {
-    it('should describe status not closed trigger', () => {
-      const desc = TriggerEvaluator.describe('status != "closed" AND daysOpen > 2');
-
-      expect(desc).toContain('not closed');
-    });
-
-    it('should describe daysOpen trigger', () => {
-      const desc = TriggerEvaluator.describe('daysOpen > 5');
-
-      expect(desc).toContain('5');
-      expect(desc).toContain('days');
-    });
-
-    it('should describe urgent priority trigger', () => {
-      const desc = TriggerEvaluator.describe('priority == "urgent"');
-
-      expect(desc).toContain('urgent');
-    });
-
-    it('should describe empty trigger', () => {
-      const desc = TriggerEvaluator.describe(null);
-
-      expect(desc).toBe('Always execute');
-    });
-
-    it('should provide fallback description', () => {
-      const desc = TriggerEvaluator.describe('customField > 100');
-
-      expect(desc).toContain('When');
-    });
-  });
-
-  describe('Validate Trigger', () => {
-    it('should validate correct expression', () => {
-      const result = TriggerEvaluator.validate('data.status == "open"');
-
-      expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
-    });
-
-    it('should reject unbalanced parentheses', () => {
-      const result = TriggerEvaluator.validate('(data.status == "open"');
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Unbalanced parentheses');
-    });
-
-    it('should reject mismatched closing parentheses', () => {
-      const result = TriggerEvaluator.validate('data.status == "open"))');
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Unbalanced parentheses');
-    });
-
-    it('should accept null trigger', () => {
-      const result = TriggerEvaluator.validate(null);
-
-      expect(result.valid).toBe(true);
-    });
-
-    it('should accept valid AND/OR expressions', () => {
-      const result = TriggerEvaluator.validate('data.status != "closed" AND data.priority > 2');
-
-      expect(result.valid).toBe(true);
-    });
-  });
-
-  describe('Real-World Scenarios', () => {
-    it('should evaluate ticket escalation trigger', async () => {
-      const trigger = 'data.status != "closed" AND data.daysOpen > 2';
-      const records = [
-        { id: 1, status: 'open', daysOpen: 1 }, // Won't escalate
-        { id: 2, status: 'open', daysOpen: 5 }, // Will escalate
-        { id: 3, status: 'closed', daysOpen: 10 }, // Won't escalate
-        { id: 4, status: 'in_progress', daysOpen: 3 }, // Will escalate
-      ];
-
-      const escalating = await TriggerEvaluator.evaluateMany(trigger, records, userContext);
-
-      expect(escalating).toHaveLength(2);
-      expect(escalating.map(r => r.id)).toEqual([2, 4]);
-    });
-
-    it('should evaluate critical issue trigger', async () => {
-      const trigger = 'data.priority == "critical" OR (data.status == "open" AND data.severity > 8)';
-      const records = [
-        { id: 1, priority: 'critical', status: 'open', severity: 5 }, // Critical
-        { id: 2, priority: 'high', status: 'open', severity: 9 }, // High severity open
-        { id: 3, priority: 'medium', status: 'closed', severity: 10 }, // Closed (ignored)
-      ];
-
-      const critical = await TriggerEvaluator.evaluateMany(trigger, records, userContext);
-
-      expect(critical).toHaveLength(2);
-    });
-  });
+  // ============================================================================
+  // ERROR HANDLING TESTS
+  // ============================================================================
 
   describe('Error Handling', () => {
-    it('should handle invalid expression gracefully', async () => {
-      const trigger = 'invalid syntax here!@#$';
-      const record = { id: 1 };
+    it('should handle missing event field in data', () => {
+      const trigger = {
+        type: 'event',
+        event: 'order:created'
+      };
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
+      const data = {
+        orderId: '123'
+      };
 
-      expect(result).toBe(false);
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(false);
+      expect(result.reason).toBeDefined();
     });
 
-    it('should continue evaluating even if record missing field', async () => {
-      const trigger = 'data.status == "open"';
-      const record = { id: 1 }; // Missing status field
+    it('should handle missing condition field in data', () => {
+      const trigger = {
+        type: 'conditional',
+        conditions: [{ field: 'nonexistent', operator: 'eq', value: 'value' }]
+      };
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
+      const data = {
+        other: 'data'
+      };
 
-      expect(result).toBe(false);
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(false);
     });
 
-    it('should handle null record', async () => {
-      const trigger = 'data.status == "open"';
-      const record = null;
+    it('should handle invalid trigger type gracefully', () => {
+      const trigger = {
+        type: 'unknown'
+      };
 
-      const result = await TriggerEvaluator.evaluate(trigger, record, userContext);
+      const data = {};
 
-      expect(typeof result).toBe('boolean');
+      const result = evaluator.evaluate(trigger, data);
+      expect(result.triggered).toBe(false);
+      expect(result.reason).toBeDefined();
+    });
+
+    it('should handle null or undefined data', () => {
+      const trigger = {
+        type: 'manual'
+      };
+
+      const result = evaluator.evaluate(trigger, null);
+      expect(result.triggered).toBe(true);
     });
   });
 });
