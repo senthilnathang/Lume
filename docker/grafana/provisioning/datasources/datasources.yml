@@ -1,0 +1,161 @@
+apiVersion: 1
+
+# List of data sources to be provisioned into Grafana
+datasources:
+  # ============================================================================
+  # PROMETHEUS - Metrics
+  # ============================================================================
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      httpMethod: POST
+    version: 1
+
+  # ============================================================================
+  # ELASTICSEARCH - Logs (ELK Stack)
+  # ============================================================================
+  - name: Elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    isDefault: false
+    editable: true
+    database: logs-*
+    jsonData:
+      esVersion: 8.0.0
+      maxConcurrentShardRequests: 256
+      logMessageField: message
+      logLevelField: level
+      timeField: '@timestamp'
+      httpMethod: POST
+    version: 1
+
+  # ============================================================================
+  # LOKI - Logs (Log Aggregation)
+  # ============================================================================
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: false
+    editable: true
+    jsonData:
+      derivedFields:
+        - name: TraceID
+          matcherRegex: traceID=([^\s]+)
+          url: $${__data.fields[0]}
+          datasourceUid: jaeger-uid
+    version: 1
+
+  # ============================================================================
+  # JAEGER - Distributed Tracing
+  # ============================================================================
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    isDefault: false
+    editable: true
+    uid: jaeger-uid
+    version: 1
+
+  # ============================================================================
+  # TEMPO - Traces (Optional - for better integration)
+  # ============================================================================
+  # - name: Tempo
+  #   type: tempo
+  #   access: proxy
+  #   url: http://tempo:3200
+  #   isDefault: false
+  #   editable: true
+  #   jsonData:
+  #     tracesToMetrics:
+  #       datasourceUid: prometheus-uid
+  #     serviceMap:
+  #       datasourceUid: prometheus-uid
+  #   version: 1
+
+  # ============================================================================
+  # CLOUDWATCH - AWS Metrics (Optional)
+  # ============================================================================
+  # - name: CloudWatch
+  #   type: cloudwatch
+  #   access: proxy
+  #   jsonData:
+  #     defaultRegion: us-east-1
+  #     customMetricsNamespaces: Lume
+  #   secureJsonData:
+  #     accessKey: ${AWS_ACCESS_KEY_ID}
+  #     secretKey: ${AWS_SECRET_ACCESS_KEY}
+  #   version: 1
+
+# deleteDatasources allows you to delete datasources that were provisioned by a previous version
+# of the datasources config file. By default, it will delete the data source if it is no longer
+# in the datasources list. You can change this behavior by setting the deleteNonProvisioned option.
+deleteDatasources: []
+
+# If you prefer to track datasources via version control, you can delete datasources
+# that are not in the provisioned list by setting this to false.
+# deleteNonProvisioned: false
+
+# ============================================================================
+# DATASOURCE VARIABLES
+# ============================================================================
+
+# Common datasource environment variables that can be used in jsonData:
+#
+# $${DS_PROMETHEUS} - Name of the Prometheus datasource
+# $${DS_ELASTICSEARCH} - Name of the Elasticsearch datasource
+# $${DS_LOKI} - Name of the Loki datasource
+# $${DS_JAEGER} - Name of the Jaeger datasource
+
+# ============================================================================
+# EXAMPLES - CUSTOM DATASOURCES
+# ============================================================================
+
+# MySQL DataSource (if using Grafana for SQL queries):
+# - name: MySQL
+#   type: mysql
+#   access: proxy
+#   url: mysql:3306
+#   database: lume_dev
+#   user: lume_dev
+#   secureJsonData:
+#     password: lume123
+#   jsonData:
+#     maxOpenConns: 100
+#     maxIdleConns: 100
+#     connMaxLifetime: 0
+#   version: 1
+
+# Redis DataSource (if using Grafana Enterprise):
+# - name: Redis
+#   type: redis-datasource
+#   access: proxy
+#   url: redis:6379
+#   jsonData:
+#     client: standalone
+#   version: 1
+
+# ============================================================================
+# PROVISIONING NOTES
+# ============================================================================
+
+# 1. Datasources are automatically loaded from:
+#    /etc/grafana/provisioning/datasources/*.yml
+
+# 2. Changes to this file are reloaded automatically (every ~30 seconds)
+
+# 3. After updating datasources, you may need to update dashboards
+#    that reference them
+
+# 4. Test datasource connectivity:
+#    - In Grafana: Admin > Data Sources > Select datasource > Test
+
+# 5. To add custom datasources, create new .yml files in this directory
+#    following the same format
