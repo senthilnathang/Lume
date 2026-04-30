@@ -1,0 +1,38 @@
+<h2>Unified Runtime Architecture — Three Approaches</h2>
+<p class="subtitle">Each balances simplicity, extensibility, and performance differently</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Layered Execution Model</h3>
+      <p><strong>How it works:</strong> Each system (Entity, Workflow, View, Permission) is a standalone layer. Runtime orchestrates by calling each layer in sequence.</p>
+      <p><strong>Pros:</strong> Simple to understand, easy to test each layer independently, loose coupling</p>
+      <p><strong>Cons:</strong> More network overhead (layer-to-layer calls), harder to optimize cross-layer logic, performance hits for complex scenarios</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Event-Driven Reactive Model</h3>
+      <p><strong>How it works:</strong> Central event bus. Entity changes emit events. Workflows, views, permissions react asynchronously via listeners/subscribers.</p>
+      <p><strong>Pros:</strong> Decoupled, scales well, natural fit for async workflows, agents fit naturally</p>
+      <p><strong>Cons:</strong> Harder to reason about execution order, eventual consistency challenges, debugging is harder</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Metadata Registry + Interceptor Pipeline</h3>
+      <p><strong>How it works:</strong> Single source of truth (metadata registry). Every operation passes through an interceptor pipeline (permissions → validation → transformation → execution → side effects).</p>
+      <p><strong>Pros:</strong> Unified flow, cross-cutting concerns handled uniformly, predictable execution, easy to debug, natural fit for NestJS interceptors</p>
+      <p><strong>Cons:</strong> More complex core, single point of failure if not careful, requires careful pipeline design</p>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top: 2rem; padding: 1rem; background: #f5f5f5; border-radius: 4px; font-size: 0.95rem;">
+<strong>My recommendation:</strong> <strong>C with B as a sub-layer.</strong> Use the Metadata Registry + Interceptor Pipeline as the core execution model (NestJS-friendly), but add an event bus underneath for async workflows and agent reactions. This gives you the predictability of C with the decoupling benefits of B.
+</p>

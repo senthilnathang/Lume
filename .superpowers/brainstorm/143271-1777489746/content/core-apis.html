@@ -1,0 +1,251 @@
+<h2>Core Runtime APIs & Interfaces</h2>
+<p class="subtitle">TypeScript interfaces defining the unified runtime contract</p>
+
+<div class="mockup">
+  <div class="mockup-header">1. Runtime Entry Point</div>
+  <div class="mockup-body">
+    <div style="font-family: 'Monaco', monospace; font-size: 0.85rem; background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;">
+<pre>// Single entry point for ALL operations
+interface LumeRuntime {
+  // CRUD operations on any entity
+  execute(request: OperationRequest): Promise&lt;OperationResult&gt;
+
+  // Metadata access
+  getEntityMetadata(entityId: string): EntityDefinition
+  getWorkflowDefinition(workflowId: string): WorkflowDefinition
+  getPermissionPolicy(entityId: string, action: string): PermissionPolicy
+
+  // Registry access (for UI, API generation, etc)
+  listEntities(): EntityDefinition[]
+  listWorkflows(): WorkflowDefinition[]
+  listViews(): ViewDefinition[]
+}
+
+// Universal request format (works for CRUD, workflow, view)
+interface OperationRequest {
+  context: ExecutionContext  // user, org, locale, etc
+  entity: string              // entity ID/slug
+  action: string              // 'create', 'read', 'update', 'delete', 'trigger_workflow'
+  data?: Record&lt;string, any&gt;  // payload (record data, workflow input, etc)
+  options?: {
+    skipPermissions?: boolean  // for internal ops
+    includeRelations?: string[]
+    returnFormat?: 'json' | 'raw'
+  }
+}
+
+interface OperationResult {
+  success: boolean
+  data?: any
+  errors?: ValidationError[]
+  metadata?: {
+    executedAt: string
+    duration: number
+    permissions: PermissionCheck[]
+  }
+}
+
+interface ExecutionContext {
+  userId: string
+  orgId: string
+  roles: string[]
+  permissions: string[]
+  locale?: string
+  timezone?: string
+}</pre>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top: 1.5rem;">
+  <div class="mockup-header">2. Metadata Registry Structure</div>
+  <div class="mockup-body">
+    <div style="font-family: 'Monaco', monospace; font-size: 0.85rem; background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;">
+<pre>// Entity metadata (complete definition)
+interface EntityDefinition {
+  id: string
+  slug: string
+  name: string
+  label: string
+  description?: string
+  icon?: string
+  color?: string
+
+  // ORM config
+  orm: 'prisma' | 'drizzle'  // which adapter to use
+  tableName: string
+
+  // Fields
+  fields: FieldDefinition[]
+
+  // Relationships
+  relations: RelationDefinition[]
+
+  // Lifecycle hooks
+  hooks: {
+    beforeCreate?: HookFunction[]
+    afterCreate?: HookFunction[]
+    beforeUpdate?: HookFunction[]
+    afterUpdate?: HookFunction[]
+    beforeDelete?: HookFunction[]
+    afterDelete?: HookFunction[]
+  }
+
+  // Computed fields (derived from other fields)
+  computed?: {
+    [fieldName: string]: ComputedFieldDefinition
+  }
+
+  // Default workflows triggered on this entity
+  workflows: {
+    onCreate?: string[]     // workflow IDs
+    onUpdate?: string[]
+    onDelete?: string[]
+  }
+
+  // Agents (reactive logic)
+  agents: AgentDefinition[]
+
+  // Search/index config
+  searchable?: string[]
+  indexed?: string[]
+
+  // Soft delete support
+  softDelete?: boolean
+
+  // Audit trail
+  auditable?: boolean
+
+  // Permissions (entity-level)
+  permissions?: PermissionPolicy[]
+}
+
+interface FieldDefinition {
+  id: string
+  name: string
+  label: string
+  type: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'relation' | ...
+  required: boolean
+  unique?: boolean
+  indexed?: boolean
+  defaultValue?: any
+  validation?: ValidationRule[]
+  computed?: boolean
+  computed_expression?: string  // e.g., "${firstName} ${lastName}"
+}</pre>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top: 1.5rem;">
+  <div class="mockup-header">3. Interceptor Pipeline Interface</div>
+  <div class="mockup-body">
+    <div style="font-family: 'Monaco', monospace; font-size: 0.85rem; background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;">
+<pre>// Each stage in the pipeline
+interface Interceptor {
+  name: string
+  order: number  // execution order (1-100)
+
+  process(
+    request: OperationRequest,
+    context: InterceptorContext
+  ): Promise&lt;InterceptorResult&gt;
+}
+
+interface InterceptorContext {
+  metadata: EntityDefinition
+  user: ExecutionContext
+  previousResults: Map&lt;string, any&gt;  // results from earlier interceptors
+  abort: (error: Error) =&gt; void
+}
+
+interface InterceptorResult {
+  allowed: boolean
+  reason?: string
+  transformedRequest?: OperationRequest
+  metadata?: Record&lt;string, any&gt;
+}
+
+// Built-in interceptors (can be extended)
+// 1. AuthInterceptor (10) — verify user is authenticated
+// 2. PermissionInterceptor (20) — check RBAC/ABAC
+// 3. SchemaValidator (30) — validate request against entity schema
+// 4. PreHooks (40) — run entity.hooks.beforeCreate/Update/Delete
+// 5. OrmSelector (50) — select Prisma or Drizzle adapter
+// 6. QueryExecutor (60) — execute CRUD operation
+// 7. PostHooks (70) — run entity.hooks.afterCreate/Update/Delete
+// 8. EventEmitter (80) — emit events to bus</pre>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top: 1.5rem;">
+  <div class="mockup-header">4. Entity Definition API (User-Facing)</div>
+  <div class="mockup-body">
+    <div style="font-family: 'Monaco', monospace; font-size: 0.85rem; background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;">
+<pre>// Simple API for defining entities (both code & UI)
+function defineEntity(config: EntityDefinition): EntityDefinition
+
+function defineField(
+  name: string,
+  type: string,
+  options?: {
+    label?: string
+    required?: boolean
+    validation?: ValidationRule[]
+  }
+): FieldDefinition
+
+// Example usage:
+const Ticket = defineEntity({
+  slug: 'ticket',
+  name: 'Ticket',
+  label: 'Support Ticket',
+  orm: 'drizzle',
+  tableName: 'tickets',
+  fields: [
+    defineField('title', 'text', { label: 'Title', required: true }),
+    defineField('description', 'text', { label: 'Description' }),
+    defineField('status', 'select', {
+      label: 'Status',
+      validation: [{ rule: 'enum', values: ['open', 'in_progress', 'closed'] }]
+    }),
+    defineField('assignedTo', 'relation', { label: 'Assigned To', relation: 'User' }),
+  ],
+  hooks: {
+    onCreate: [
+      async (record) =&gt; {
+        // Auto-assign to available rep
+        const rep = await findAvailableRep()
+        record.assignedTo = rep.id
+      }
+    ]
+  },
+  workflows: {
+    onCreate: ['auto-assign', 'send-notification'],
+    onUpdate: ['escalate-if-overdue']
+  }
+})</pre>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 2rem; padding: 1rem; background: #fff3e0; border-left: 4px solid #f57c00; border-radius: 4px;">
+  <strong>Key API Design Principles:</strong>
+  <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+    <li><strong>Single entry point:</strong> <code>runtime.execute()</code> handles all operations</li>
+    <li><strong>Universal request/response:</strong> Same format for CRUD, workflows, views</li>
+    <li><strong>Metadata-first:</strong> Everything defined in structured metadata</li>
+    <li><strong>Extensible:</strong> Custom interceptors, hooks, computed fields</li>
+    <li><strong>Context-aware:</strong> Every operation includes user, org, permissions context</li>
+  </ul>
+</div>
+
+<div style="margin-top: 1.5rem; padding: 1rem; background: #f3e5f5; border-left: 4px solid #7b1fa2; border-radius: 4px;">
+  <strong>Does this API design work for you?</strong>
+  <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+    <li>Is <code>runtime.execute()</code> the right abstraction?</li>
+    <li>Should we have specialized methods (e.g., <code>create()</code>, <code>update()</code>) in addition?</li>
+    <li>Does the metadata structure capture everything you need?</li>
+  </ul>
+</div>
