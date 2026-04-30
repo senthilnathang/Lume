@@ -9,6 +9,29 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
+// ─── Observability: Initialize Tracing Early ────────────────────────────────────
+// IMPORTANT: Must be called before importing other modules to ensure
+// proper instrumentation of HTTP, database, and cache clients
+import { initTracing, shutdownTracing } from './core/tracing/index.js';
+import { traceContextMiddleware } from './core/middleware/trace-context.middleware.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+config();
+
+// Initialize OpenTelemetry tracing first (before any other module imports)
+// Run initialization asynchronously without blocking startup
+let tracingInitialized = false;
+(async () => {
+  try {
+    await initTracing();
+    tracingInitialized = true;
+  } catch (error) {
+    console.error('❌ Failed to initialize tracing, continuing without it:', error.message);
+  }
+})();
+
 import { responseUtil, jwtUtil } from './shared/utils/index.js';
 import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
 import { requestLogger } from './core/middleware/requestLogger.js';
@@ -31,11 +54,6 @@ import {
   runInstallHook,
   runUninstallHook
 } from './core/modules/__loader__.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -136,6 +154,13 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('combined'));
 }
+
+// ─── Observability: W3C Trace Context ────────────────────────────────────────
+// Register trace context middleware EARLY to capture all request/response spans
+if (tracingInitialized) {
+  app.use(traceContextMiddleware);
+}
+
 app.use(requestLogger);
 app.use(loggingMiddleware);
 app.use(ipAccessMiddleware);
@@ -905,7 +930,7 @@ const startServer = async () => {
       console.log(`╚════════════════════════════════════════════════════════════╝\n`);
     });
 
-    // Graceful shutdown for queues on process termination
+    // Graceful shutdown for queues, tracing, and server on process termination
     const gracefulShutdown = async (signal) => {
       console.log(`\n⏹️  Received ${signal}, shutting down gracefully...`);
       try {
@@ -914,6 +939,12 @@ const startServer = async () => {
       } catch (err) {
         console.warn('⚠️ Queue shutdown warning:', err.message);
       }
+
+      // Shutdown OpenTelemetry tracing (flushes pending spans)
+      if (tracingInitialized) {
+        await shutdownTracing();
+      }
+
       server.close(() => {
         console.log('✅ Server closed');
         process.exit(0);
