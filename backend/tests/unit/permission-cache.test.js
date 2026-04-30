@@ -12,6 +12,42 @@ describe('PermissionCache', () => {
     });
   });
 
+  describe('constructor validation', () => {
+    it('should throw error on invalid maxSize (zero)', () => {
+      expect(() => new PermissionCache({ maxSize: 0 })).toThrow(
+        'Invalid cache maxSize: 0, must be greater than 0'
+      );
+    });
+
+    it('should throw error on invalid maxSize (negative)', () => {
+      expect(() => new PermissionCache({ maxSize: -1 })).toThrow(
+        'Invalid cache maxSize: -1, must be greater than 0'
+      );
+    });
+
+    it('should throw error on invalid defaultTTL (negative)', () => {
+      expect(() => new PermissionCache({ defaultTTL: -1 })).toThrow(
+        'Invalid defaultTTL: -1, must be non-negative'
+      );
+    });
+
+    it('should allow defaultTTL of zero', () => {
+      expect(() => new PermissionCache({ defaultTTL: 0 })).not.toThrow();
+    });
+
+    it('should allow positive maxSize values', () => {
+      expect(() => new PermissionCache({ maxSize: 1 })).not.toThrow();
+      expect(() => new PermissionCache({ maxSize: 1000 })).not.toThrow();
+      expect(() => new PermissionCache({ maxSize: 999999 })).not.toThrow();
+    });
+
+    it('should allow non-negative defaultTTL values', () => {
+      expect(() => new PermissionCache({ defaultTTL: 0 })).not.toThrow();
+      expect(() => new PermissionCache({ defaultTTL: 300 })).not.toThrow();
+      expect(() => new PermissionCache({ defaultTTL: 3600 })).not.toThrow();
+    });
+  });
+
   describe('get/set', () => {
     it('should cache permission results', () => {
       const cache = new PermissionCache();
