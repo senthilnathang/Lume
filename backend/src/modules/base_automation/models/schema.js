@@ -122,3 +122,19 @@ export const automationWorkflowExecutionHistory = table('automation_workflow_exe
   userId: idCol('user_id'),
   metadata: json('metadata').$type().default({}),
 });
+
+// Phase 8 Wave 4: Auto-Transitions
+export const automationAutoTransitions = table('automation_auto_transitions', {
+  ...baseColumns(),
+  workflowId: idCol('workflow_id').notNull(),
+  executionId: idCol('execution_id'),
+  fromState: varchar('from_state', { length: 100 }).notNull(),
+  toState: varchar('to_state', { length: 100 }).notNull(),
+  triggerType: varchar('trigger_type', { length: 20 }).notNull(),
+  delaySeconds: idCol('delay_seconds'),
+  webhookUrl: varchar('webhook_url', { length: 500 }),
+  conditionData: json('condition_data').$type(),
+  scheduledFor: timestamp('scheduled_for'),
+  executedAt: timestamp('executed_at'),
+  status: varchar('status', { length: 20 }).default('pending'),
+});

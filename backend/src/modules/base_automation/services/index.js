@@ -391,6 +391,78 @@ export class AutomationService {
 
     return updated;
   }
+
+  // ── Auto-Transitions (Wave 4) ──────────────────────────────
+
+  async scheduleAutoTransition(executionId, fromState, toState, triggerType, config = {}) {
+    const { delaySeconds, webhookUrl, conditionData } = config;
+
+    const scheduledFor = delaySeconds
+      ? new Date(Date.now() + delaySeconds * 1000)
+      : config.scheduledFor;
+
+    return this.models.AutoTransition.create({
+      executionId,
+      workflowId: (await this.models.WorkflowExecution.findById(executionId))?.workflowId,
+      fromState,
+      toState,
+      triggerType,
+      delaySeconds,
+      webhookUrl,
+      conditionData,
+      scheduledFor,
+      status: 'pending'
+    });
+  }
+
+  async getPendingAutoTransitions() {
+    const now = new Date();
+    const result = await this.models.AutoTransition.findAll({
+      where: [['status', '=', 'pending']],
+      limit: 1000,
+      offset: 0
+    });
+
+    // Filter by scheduledFor in JavaScript
+    return result.rows.filter(t => {
+      if (!t.scheduledFor) return false;
+      const scheduledTime = new Date(t.scheduledFor);
+      return scheduledTime <= now;
+    });
+  }
+
+  async executeAutoTransition(autoTransitionId) {
+    const autoTransition = await this.models.AutoTransition.findById(autoTransitionId);
+    if (!autoTransition) throw new Error('Auto-transition not found');
+    if (autoTransition.status !== 'pending') throw new Error('Auto-transition is not pending');
+
+    const execution = await this.models.WorkflowExecution.findById(autoTransition.executionId);
+    if (!execution) throw new Error('Execution not found');
+
+    // Verify the execution is still in the expected state
+    if (execution.currentState !== autoTransition.fromState) {
+      await this.models.AutoTransition.update(autoTransitionId, {
+        status: 'cancelled'
+      });
+      throw new Error('Execution state has changed, auto-transition cancelled');
+    }
+
+    // Execute the transition
+    const updated = await this.transitionWorkflowState(
+      autoTransition.executionId,
+      autoTransition.toState,
+      `Auto: ${autoTransition.toState}`,
+      null
+    );
+
+    // Mark auto-transition as executed
+    await this.models.AutoTransition.update(autoTransitionId, {
+      status: 'executed',
+      executedAt: new Date()
+    });
+
+    return updated;
+  }
 }
 
 export default { AutomationService };
