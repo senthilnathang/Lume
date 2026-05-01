@@ -5,12 +5,14 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { PrismaService } from '../core/services/prisma.service';
 import { DrizzleService } from '../core/services/drizzle.service';
 import { ScalarsModule } from './scalars/scalars.module';
+import { GraphQLGuardsModule } from './guards/guards.module';
 import { GraphQLContextFactory } from './graphql.context';
 import { createGraphQLConfig } from './graphql.config';
 
 @Module({
   imports: [
     ScalarsModule,
+    GraphQLGuardsModule,
     GraphQLModule.forRootAsync<any>({
       driver: ApolloDriver,
       imports: [ScalarsModule],
