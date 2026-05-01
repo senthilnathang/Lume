@@ -1,74 +1,74 @@
 export default {
-    name: "gawdesy",
+    name: "platform-config",
     version: "1.0.0",
-    summary: "Gawdesy Enterprise Module",
-    description: "Core enterprise features including hooks, services, security, sequences, and record rules",
-    author: "Gawdesy Team",
+    summary: "Platform Configuration Module",
+    description: "Core platform features including hooks, services, security, sequences, and record rules",
+    author: "Lume Team",
     license: "MIT",
     depends: [],
     external_dependencies: {},
     permissions: [
-        { name: "gawdesy.read", description: "Read Gawdesy settings", group: "Gawdesy" },
-        { name: "gawdesy.write", description: "Write Gawdesy settings", group: "Gawdesy" },
-        { name: "gawdesy.admin", description: "Administer Gawdesy system", group: "Gawdesy" },
-        { name: "gawdesy.hooks.manage", description: "Manage module hooks", group: "Gawdesy" },
-        { name: "gawdesy.sequences.manage", description: "Manage document sequences", group: "Gawdesy" },
-        { name: "gawdesy.record_rules.manage", description: "Manage record rules", group: "Gawdesy" }
+        { name: "platform-config.read", description: "Read platform configuration", group: "Platform" },
+        { name: "platform-config.write", description: "Write platform configuration", group: "Platform" },
+        { name: "platform-config.admin", description: "Administer platform system", group: "Platform" },
+        { name: "platform-config.hooks.manage", description: "Manage module hooks", group: "Platform" },
+        { name: "platform-config.sequences.manage", description: "Manage document sequences", group: "Platform" },
+        { name: "platform-config.record_rules.manage", description: "Manage record rules", group: "Platform" }
     ],
     menus: [
-        { 
-            id: "gawdesy.menu.main",
-            title: "Gawdesy", 
-            path: "/gawdesy", 
-            icon: "settings", 
+        {
+            id: "platform.menu.main",
+            title: "Platform",
+            path: "/platform",
+            icon: "settings",
             group: "Administration",
             sequence: 100
         },
         {
-            id: "gawdesy.menu.settings",
+            id: "platform.menu.settings",
             title: "Settings",
-            path: "/gawdesy/settings",
+            path: "/platform/settings",
             icon: "cog",
-            parent_id: "gawdesy.menu.main",
+            parent_id: "platform.menu.main",
             group: "Administration",
             sequence: 1
         },
         {
-            id: "gawdesy.menu.sequences",
+            id: "platform.menu.sequences",
             title: "Sequences",
-            path: "/gawdesy/sequences",
+            path: "/platform/sequences",
             icon: "list-ol",
-            parent_id: "gawdesy.menu.main",
+            parent_id: "platform.menu.main",
             group: "Administration",
-            permission: "gawdesy.sequences.manage",
+            permission: "platform-config.sequences.manage",
             sequence: 2
         },
         {
-            id: "gawdesy.menu.record_rules",
+            id: "platform.menu.record_rules",
             title: "Record Rules",
-            path: "/gawdesy/record-rules",
+            path: "/platform/record-rules",
             icon: "shield",
-            parent_id: "gawdesy.menu.main",
+            parent_id: "platform.menu.main",
             group: "Administration",
-            permission: "gawdesy.record_rules.manage",
+            permission: "platform-config.record_rules.manage",
             sequence: 3
         },
         {
-            id: "gawdesy.menu.hooks",
+            id: "platform.menu.hooks",
             title: "Hooks",
-            path: "/gawdesy/hooks",
+            path: "/platform/hooks",
             icon: "code",
-            parent_id: "gawdesy.menu.main",
+            parent_id: "platform.menu.main",
             group: "Administration",
-            permission: "gawdesy.hooks.manage",
+            permission: "platform-config.hooks.manage",
             sequence: 4
         }
     ],
     views: [
-        { name: "GawdesySettings", path: "/gawdesy/settings", component: "GawdesySettings" },
-        { name: "SequenceManager", path: "/gawdesy/sequences", component: "SequenceManager" },
-        { name: "RecordRuleManager", path: "/gawdesy/record-rules", component: "RecordRuleManager" },
-        { name: "HookManager", path: "/gawdesy/hooks", component: "HookManager" }
+        { name: "PlatformSettings", path: "/platform/settings", component: "PlatformSettings" },
+        { name: "SequenceManager", path: "/platform/sequences", component: "SequenceManager" },
+        { name: "RecordRuleManager", path: "/platform/record-rules", component: "RecordRuleManager" },
+        { name: "HookManager", path: "/platform/hooks", component: "HookManager" }
     ],
     hooks: {
         pre_init_hook: "preInit",
@@ -81,8 +81,8 @@ export default {
     sequence: 1,
     installed_at: new Date().toISOString(),
     settings: {
-        company_name: "Gawdesy",
-        company_email: "support@gawdesy.org",
+        company_name: "My Company",
+        company_email: "support@example.com",
         timezone: "UTC",
         date_format: "YYYY-MM-DD",
         time_format: "HH:mm:ss",
