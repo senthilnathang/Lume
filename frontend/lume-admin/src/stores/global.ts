@@ -3,7 +3,7 @@ import type { Permission } from '@/types/api';
 
 export const useGlobalStore = defineStore('global', () => {
   const state = () => ({
-    siteName: 'GAWDESY NGO',
+    siteName: 'Lume Platform',
     theme: 'light',
     layout: 'side-nav',
     sidebarCollapsed: false,
