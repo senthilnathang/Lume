@@ -76,3 +76,18 @@ export const marketplaceDownloads = table('marketplace_downloads', {
   userId: idCol('user_id').notNull(),
   installedVersion: varchar('installed_version', { length: 20 }).notNull(),
 });
+
+export const marketplaceSubmissions = table('marketplace_submissions', {
+  ...baseColumns(),
+  name: varchar('name', { length: 100 }).notNull().unique(),
+  displayName: varchar('display_name', { length: 150 }).notNull(),
+  manifestUrl: varchar('manifest_url', { length: 500 }).notNull(),
+  status: varchar('status', { length: 20 }).default('pending'),
+  submittedBy: idCol('submitted_by').notNull(),
+  approvedBy: idCol('approved_by'),
+  rejectionReason: text('rejection_reason'),
+  downloadCount: idCol('download_count').default(0),
+  installCount: idCol('install_count').default(0),
+  reviewCount: idCol('review_count').default(0),
+  rating: varchar('rating', { length: 4 }).default('0.00'),
+});
