@@ -11,6 +11,7 @@ import { PolicyGridModule } from './grids/policy-grid/policy-grid.module';
 import { FlowGridModule } from './grids/flow-grid/flow-grid.module';
 import { AgentGridModule } from './grids/agent-grid/agent-grid.module';
 import { EnterpriseGridModule } from './grids/enterprise-grid/enterprise-grid.module';
+import { ContentGridModule } from './grids/content-grid/content-grid.module';
 import { PluginsModule } from './plugins/plugins.module';
 import { TracingPlugin } from './plugins/tracing.plugin';
 import { ComplexityPlugin } from './plugins/complexity.plugin';
@@ -27,6 +28,7 @@ import { createGraphQLConfig } from './graphql.config';
     FlowGridModule,
     AgentGridModule,
     EnterpriseGridModule,
+    ContentGridModule,
     PluginsModule,
     GraphQLModule.forRootAsync<any>({
       driver: ApolloDriver,
