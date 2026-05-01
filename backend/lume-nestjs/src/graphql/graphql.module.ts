@@ -13,6 +13,7 @@ import { AgentGridModule } from './grids/agent-grid/agent-grid.module';
 import { EnterpriseGridModule } from './grids/enterprise-grid/enterprise-grid.module';
 import { ContentGridModule } from './grids/content-grid/content-grid.module';
 import { MetaGridModule } from './grids/meta-grid/meta-grid.module';
+import { MarketplaceGridModule } from './grids/marketplace-grid/marketplace-grid.module';
 import { PluginsModule } from './plugins/plugins.module';
 import { TracingPlugin } from './plugins/tracing.plugin';
 import { ComplexityPlugin } from './plugins/complexity.plugin';
@@ -31,6 +32,7 @@ import { createGraphQLConfig } from './graphql.config';
     EnterpriseGridModule,
     ContentGridModule,
     MetaGridModule,
+    MarketplaceGridModule,
     PluginsModule,
     GraphQLModule.forRootAsync<any>({
       driver: ApolloDriver,
