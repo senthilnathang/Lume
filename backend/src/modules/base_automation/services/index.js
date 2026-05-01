@@ -18,11 +18,25 @@ export class AutomationService {
       where,
       order: [['createdAt', 'DESC']]
     });
+    result.rows.forEach(workflow => this._parseWorkflowJSON(workflow));
     return result.rows;
   }
 
   async getWorkflow(id) {
-    return this.models.Workflow.findById(id);
+    const workflow = await this.models.Workflow.findById(id);
+    if (workflow) {
+      this._parseWorkflowJSON(workflow);
+    }
+    return workflow;
+  }
+
+  _parseWorkflowJSON(workflow) {
+    if (workflow.states && typeof workflow.states === 'string') {
+      workflow.states = JSON.parse(workflow.states);
+    }
+    if (workflow.transitions && typeof workflow.transitions === 'string') {
+      workflow.transitions = JSON.parse(workflow.transitions);
+    }
   }
 
   async createWorkflow(data) {
@@ -293,6 +307,8 @@ export class AutomationService {
     const workflow = await this.models.Workflow.findById(workflowId);
     if (!workflow) throw new Error('Workflow not found');
 
+    this._parseWorkflowJSON(workflow);
+
     const initialState = workflow.states.find(s => s.is_start) || workflow.states[0];
     if (!initialState) throw new Error('Workflow has no states');
 
@@ -349,12 +365,26 @@ export class AutomationService {
       userId
     });
 
+    // Parse executionData and update
+    let executionDataObj = {};
+    if (execution.executionData) {
+      if (typeof execution.executionData === 'string') {
+        try {
+          executionDataObj = JSON.parse(execution.executionData);
+        } catch (e) {
+          console.warn('Could not parse executionData:', e);
+        }
+      } else {
+        executionDataObj = execution.executionData;
+      }
+    }
+
     // Update execution state
     const updated = await this.models.WorkflowExecution.update(executionId, {
       currentState: toState,
       status: toState.endsWith('_end') ? 'completed' : 'active',
       executionData: {
-        ...execution.executionData,
+        ...executionDataObj,
         lastTransition: { from: currentState, to: toState, at: new Date() }
       }
     });
