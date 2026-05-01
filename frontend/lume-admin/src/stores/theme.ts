@@ -15,9 +15,9 @@ export interface AdminLayoutConfig {
 }
 
 export const defaultAdminLayoutConfig: AdminLayoutConfig = {
-  title: 'GAWDESY Admin',
+  title: 'Admin Dashboard',
   logoUrl: '/logo.svg',
-  logoText: 'GAWDESY',
+  logoText: 'Lume',
   favicon: '/favicon.svg',
   showMenuToggle: true,
   showBreadcrumb: true,
