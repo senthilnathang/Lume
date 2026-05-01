@@ -34,8 +34,8 @@ export default {
         icon: 'lucide:message-square',
         sequence: 25,
         children: [
-          { name: 'Inbox', path: '/messages', icon: 'lucide:inbox', sequence: 1 },
-          { name: 'Sent', path: '/messages/sent', icon: 'lucide:send', sequence: 2 }
+          { name: 'Inbox', path: '/messages', icon: 'lucide:inbox', sequence: 1, viewName: 'list' },
+          { name: 'Sent', path: '/messages/sent', icon: 'lucide:send', sequence: 2, viewName: 'sent' }
         ]
       }
     ]

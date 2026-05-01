@@ -42,12 +42,14 @@ export default {
             path: '/base-features-data/data-import',
             icon: 'lucide:upload',
             sequence: 1,
+            viewName: 'data-import'
           },
           {
             name: 'Data Export',
             path: '/base-features-data/data-export',
             icon: 'lucide:download',
             sequence: 2,
+            viewName: 'data-export'
           },
         ],
       },

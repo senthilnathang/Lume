@@ -34,9 +34,9 @@ export default {
         icon: 'lucide:image',
         sequence: 35,
         children: [
-          { name: 'Library', path: '/media', icon: 'lucide:library', sequence: 1 },
-          { name: 'Upload', path: '/media/upload', icon: 'lucide:upload', sequence: 2 },
-          { name: 'Featured', path: '/media/featured', icon: 'lucide:star', sequence: 3 }
+          { name: 'Library', path: '/media', icon: 'lucide:library', sequence: 1, viewName: 'list' },
+          { name: 'Upload', path: '/media/upload', icon: 'lucide:upload', sequence: 2, viewName: 'list' },
+          { name: 'Featured', path: '/media/featured', icon: 'lucide:star', sequence: 3, viewName: 'list' }
         ]
       }
     ]

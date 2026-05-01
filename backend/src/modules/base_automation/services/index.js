@@ -285,6 +285,82 @@ export class AutomationService {
     await this.models.RollupField.destroy(id);
     return existing;
   }
+
+  // ── Workflow Execution ────────────────────────────────────────
+
+  async startWorkflowExecution(workflowId, recordId, userId) {
+    // Fetch the workflow to get initial state
+    const workflow = await this.models.Workflow.findById(workflowId);
+    if (!workflow) throw new Error('Workflow not found');
+
+    const initialState = workflow.states.find(s => s.is_start) || workflow.states[0];
+    if (!initialState) throw new Error('Workflow has no states');
+
+    // Create execution record
+    const execution = await this.models.WorkflowExecution.create({
+      workflowId,
+      recordId,
+      currentState: initialState.name,
+      status: 'active',
+      executionData: {
+        initiatedBy: userId,
+        initialState: initialState.name
+      }
+    });
+
+    // Create history entry for start
+    await this.models.WorkflowExecutionHistory.create({
+      executionId: execution.id,
+      fromState: null,
+      toState: initialState.name,
+      transitionName: 'START',
+      userId
+    });
+
+    return execution;
+  }
+
+  async getWorkflowExecution(executionId) {
+    return this.models.WorkflowExecution.findById(executionId);
+  }
+
+  async getExecutionHistory(executionId) {
+    const result = await this.models.WorkflowExecutionHistory.findAll({
+      where: [['executionId', '=', executionId]],
+      order: [['createdAt', 'DESC']]
+    });
+    return result.rows;
+  }
+
+  async transitionWorkflowState(executionId, toState, transitionName, userId) {
+    // Get execution
+    const execution = await this.models.WorkflowExecution.findById(executionId);
+    if (!execution) throw new Error('Execution not found');
+    if (execution.status !== 'active') throw new Error('Execution is not active');
+
+    const currentState = execution.currentState;
+
+    // Record transition in history
+    await this.models.WorkflowExecutionHistory.create({
+      executionId,
+      fromState: currentState,
+      toState,
+      transitionName,
+      userId
+    });
+
+    // Update execution state
+    const updated = await this.models.WorkflowExecution.update(executionId, {
+      currentState: toState,
+      status: toState.endsWith('_end') ? 'completed' : 'active',
+      executionData: {
+        ...execution.executionData,
+        lastTransition: { from: currentState, to: toState, at: new Date() }
+      }
+    });
+
+    return updated;
+  }
 }
 
 export default { AutomationService };

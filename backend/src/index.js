@@ -618,7 +618,7 @@ app.get('/api/menus', async (req, res) => {
 
 // FastVue-compatible /modules/installed/menus endpoint
 // Only returns menus from installed modules
-app.get('/modules/installed/menus', async (req, res) => {
+app.get('/api/modules/installed/menus', async (req, res) => {
   let installedModuleNames = null;
   try {
     const installedRecords = await prisma.installedModule.findMany({ where: { state: 'installed' } });
@@ -659,7 +659,7 @@ app.get('/modules/installed/menus', async (req, res) => {
 
   allMenus.sort((a, b) => (a.sequence || 10) - (b.sequence || 10));
 
-  res.json(allMenus);
+  res.json({ success: true, data: allMenus });
 });
 
 // Get all permissions (only from installed modules)

@@ -34,9 +34,9 @@ export default {
         icon: 'lucide:folder',
         sequence: 30,
         children: [
-          { name: 'All Documents', path: '/documents', icon: 'lucide:files', sequence: 1 },
-          { name: 'Images', path: '/documents/images', icon: 'lucide:image', sequence: 2 },
-          { name: 'Videos', path: '/documents/videos', icon: 'lucide:video', sequence: 3 }
+          { name: 'All Documents', path: '/documents', icon: 'lucide:files', sequence: 1, viewName: 'list' },
+          { name: 'Images', path: '/documents/images', icon: 'lucide:image', sequence: 2, viewName: 'list' },
+          { name: 'Videos', path: '/documents/videos', icon: 'lucide:video', sequence: 3, viewName: 'list' }
         ]
       }
     ]

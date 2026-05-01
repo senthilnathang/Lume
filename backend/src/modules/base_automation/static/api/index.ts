@@ -116,6 +116,34 @@ export function deleteWorkflow(code: string): Promise<void> {
   return del(`/base_automation/workflows/${code}`);
 }
 
+// Workflow Definitions (for designer)
+export function getWorkflowDefinitionApi(id: string | number): Promise<Workflow> {
+  return get<Workflow>(`/base_automation/workflows/${id}`);
+}
+export function createWorkflowDefinitionApi(data: Partial<Workflow>): Promise<Workflow> {
+  return post<Workflow>('/base_automation/workflows', data);
+}
+export function updateWorkflowDefinitionApi(id: string | number, data: Partial<Workflow>): Promise<Workflow> {
+  return put<Workflow>(`/base_automation/workflows/${id}`, data);
+}
+export function validateWorkflowDefinitionApi(data: Partial<Workflow>): Promise<{ errors: string[] }> {
+  return post<{ errors: string[] }>('/base_automation/workflows/validate', data);
+}
+export function getApprovalChainsApi(): Promise<ApprovalChain[]> {
+  return get<ApprovalChain[]>('/base_automation/approvals');
+}
+
+// Workflow Execution
+export function startWorkflowExecutionApi(workflowId: string | number, recordId: string): Promise<any> {
+  return post<any>(`/base_automation/workflows/${workflowId}/run/${recordId}`, {});
+}
+export function getWorkflowExecutionApi(workflowId: string | number, executionId: string): Promise<any> {
+  return get<any>(`/base_automation/workflows/${workflowId}/executions/${executionId}`);
+}
+export function transitionWorkflowStateApi(workflowId: string | number, executionId: string, data: any): Promise<any> {
+  return post<any>(`/base_automation/workflows/${workflowId}/executions/${executionId}/transition`, data);
+}
+
 // Flows
 export function getFlows(params?: Record<string, any>): Promise<Flow[]> {
   return get<Flow[]>('/base_automation/flows', { params });

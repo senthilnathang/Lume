@@ -22,7 +22,8 @@ export default {
         name: 'FlowGrid',
         path: '/flowgrid',
         icon: 'lucide:workflow',
-        sequence: 80
+        sequence: 80,
+        viewName: 'workflow-list'
       }
     ]
   },

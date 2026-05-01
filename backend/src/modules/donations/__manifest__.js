@@ -35,10 +35,10 @@ export default {
         icon: 'lucide:heart',
         sequence: 20,
         children: [
-          { name: 'All Donations', path: '/donations', icon: 'lucide:list', sequence: 1 },
-          { name: 'Donors', path: '/donations/donors', icon: 'lucide:users', sequence: 2 },
-          { name: 'Campaigns', path: '/donations/campaigns', icon: 'lucide:megaphone', sequence: 3 },
-          { name: 'Reports', path: '/donations/reports', icon: 'lucide:bar-chart', sequence: 4 }
+          { name: 'All Donations', path: '/donations', icon: 'lucide:list', sequence: 1, viewName: 'list' },
+          { name: 'Donors', path: '/donations/donors', icon: 'lucide:users', sequence: 2, viewName: 'donors' },
+          { name: 'Campaigns', path: '/donations/campaigns', icon: 'lucide:megaphone', sequence: 3, viewName: 'campaigns' },
+          { name: 'Reports', path: '/donations/reports', icon: 'lucide:bar-chart', sequence: 4, viewName: 'reports' }
         ]
       }
     ]

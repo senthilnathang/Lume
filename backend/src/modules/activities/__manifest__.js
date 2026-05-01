@@ -35,9 +35,9 @@ export default {
         icon: 'lucide:calendar',
         sequence: 10,
         children: [
-          { name: 'All Activities', path: '/activities', icon: 'lucide:list', sequence: 1 },
-          { name: 'Upcoming', path: '/activities/upcoming', icon: 'lucide:clock', sequence: 2 },
-          { name: 'Calendar', path: '/activities/calendar', icon: 'lucide:calendar-days', sequence: 3 }
+          { name: 'All Activities', path: '/activities', icon: 'lucide:list', sequence: 1, viewName: 'list' },
+          { name: 'Upcoming', path: '/activities/upcoming', icon: 'lucide:clock', sequence: 2, viewName: 'upcoming' },
+          { name: 'Calendar', path: '/activities/calendar', icon: 'lucide:calendar-days', sequence: 3, viewName: 'calendar' }
         ]
       }
     ]

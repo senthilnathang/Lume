@@ -31,6 +31,7 @@ export default {
       'views/workflows.vue',
       'views/workflow-form.vue',
       'views/workflow-designer.vue',
+      'views/workflow-execution.vue',
       'views/flows-list.vue',
       'views/flow-designer.vue',
       'views/business-rules.vue',
@@ -58,35 +59,40 @@ export default {
             path: '/settings/automation/workflows',
             icon: 'lucide:git-merge',
             sequence: 1,
-            permission: 'base_automation.workflows.manage'
+            permission: 'base_automation.workflows.manage',
+            viewName: 'workflows'
           },
           {
             name: 'Flows',
             path: '/settings/automation/flows',
             icon: 'lucide:git-branch',
             sequence: 2,
-            permission: 'base_automation.flows.manage'
+            permission: 'base_automation.flows.manage',
+            viewName: 'flows-list'
           },
           {
             name: 'Business Rules',
             path: '/settings/automation/business-rules',
             icon: 'lucide:book-open',
             sequence: 3,
-            permission: 'base_automation.rules.manage'
+            permission: 'base_automation.rules.manage',
+            viewName: 'business-rules'
           },
           {
             name: 'Approval Chains',
             path: '/settings/automation/approvals',
             icon: 'lucide:check-circle',
             sequence: 4,
-            permission: 'base_automation.approvals.manage'
+            permission: 'base_automation.approvals.manage',
+            viewName: 'approval-chains'
           },
           {
             name: 'Scheduled Actions',
             path: '/settings/automation/scheduled',
             icon: 'lucide:clock',
             sequence: 5,
-            permission: 'base_automation.scheduled.manage'
+            permission: 'base_automation.scheduled.manage',
+            viewName: 'automation'
           }
         ]
       }

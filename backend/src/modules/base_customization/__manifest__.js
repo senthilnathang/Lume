@@ -46,35 +46,40 @@ export default {
             path: '/settings/customization/fields',
             icon: 'lucide:columns',
             sequence: 1,
-            permission: 'base_customization.fields.manage'
+            permission: 'base_customization.fields.manage',
+            viewName: 'custom-fields'
           },
           {
             name: 'Custom Views',
             path: '/settings/customization/views',
             icon: 'lucide:layout-dashboard',
             sequence: 2,
-            permission: 'base_customization.views.manage'
+            permission: 'base_customization.views.manage',
+            viewName: 'custom-views'
           },
           {
             name: 'Form Layouts',
             path: '/settings/customization/forms',
             icon: 'lucide:layout',
             sequence: 3,
-            permission: 'base_customization.forms.manage'
+            permission: 'base_customization.forms.manage',
+            viewName: 'form-builder'
           },
           {
             name: 'List Config',
             path: '/settings/customization/lists',
             icon: 'lucide:list',
             sequence: 4,
-            permission: 'base_customization.lists.manage'
+            permission: 'base_customization.lists.manage',
+            viewName: 'list-configs'
           },
           {
             name: 'Dashboard Widgets',
             path: '/settings/customization/widgets',
             icon: 'lucide:layout-grid',
             sequence: 5,
-            permission: 'base_customization.widgets.manage'
+            permission: 'base_customization.widgets.manage',
+            viewName: 'dashboard-widgets'
           }
         ]
       }

@@ -34,8 +34,8 @@ export default {
         icon: 'lucide:activity',
         sequence: 101,
         children: [
-          { name: 'All Logs', path: '/audit', icon: 'lucide:list', sequence: 1 },
-          { name: 'Cleanup', path: '/audit/cleanup', icon: 'lucide:trash-2', sequence: 2 }
+          { name: 'All Logs', path: '/audit', icon: 'lucide:list', sequence: 1, viewName: 'list' },
+          { name: 'Cleanup', path: '/audit/cleanup', icon: 'lucide:trash-2', sequence: 2, viewName: 'cleanup' }
         ]
       }
     ]
