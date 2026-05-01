@@ -1,10 +1,12 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { ApolloServerPlugin } from '@apollo/server';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { GraphQLContextFactory } from './graphql.context';
 
 export function createGraphQLConfig(
   contextFactory: GraphQLContextFactory,
   env: string,
+  plugins: ApolloServerPlugin[] = [],
 ): ApolloDriverConfig {
   return {
     driver: ApolloDriver,
@@ -41,7 +43,6 @@ export function createGraphQLConfig(
         },
       },
     },
-    // Plugins will be added in Phase 8
-    plugins: [],
+    plugins,
   };
 }
