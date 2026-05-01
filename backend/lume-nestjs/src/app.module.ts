@@ -45,6 +45,9 @@ import { SecurityAuditModule } from './modules/security_audit/security-audit.mod
 // Controllers (Health check)
 import { HealthController } from './health.controller';
 
+// GraphQL
+import { GraphQLCoreModule } from './graphql/graphql.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -65,6 +68,7 @@ import { HealthController } from './health.controller';
     EventEmitterModule.forRoot(),
     RuntimeModule,
     BaseModule,
+    GraphQLCoreModule,
     AuthModule,
     UsersModule,
     SettingsModule,

@@ -1,0 +1,37 @@
+import { Module } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ConfigService } from '@nestjs/config';
+import { ApolloDriver } from '@nestjs/apollo';
+import { PrismaService } from '../core/services/prisma.service';
+import { DrizzleService } from '../core/services/drizzle.service';
+import { ScalarsModule } from './scalars/scalars.module';
+import { GraphQLContextFactory } from './graphql.context';
+import { createGraphQLConfig } from './graphql.config';
+
+@Module({
+  imports: [
+    ScalarsModule,
+    GraphQLModule.forRootAsync<any>({
+      driver: ApolloDriver,
+      imports: [ScalarsModule],
+      inject: [ConfigService, PrismaService, DrizzleService],
+      useFactory: (
+        configService: ConfigService,
+        prismaService: PrismaService,
+        drizzleService: DrizzleService,
+      ) => {
+        const contextFactory = new GraphQLContextFactory(
+          prismaService,
+          drizzleService,
+        );
+        return createGraphQLConfig(
+          contextFactory,
+          configService.get('NODE_ENV') || 'development',
+        );
+      },
+    }),
+  ],
+  providers: [GraphQLContextFactory],
+  exports: [GraphQLContextFactory],
+})
+export class GraphQLCoreModule {}
