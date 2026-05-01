@@ -2,6 +2,7 @@ import { Request } from 'express';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../core/services/prisma.service';
 import { DrizzleService } from '../core/services/drizzle.service';
+import { DataLoaderRegistry } from './dataloader/dataloader.registry';
 
 export interface JwtPayload {
   sub: number;
@@ -17,7 +18,7 @@ export interface GqlContext {
   req: Request;
   user: JwtPayload | null;
   companyId: number | null;
-  // DataLoaders will be added in Phase 3
+  loaders: DataLoaderRegistry;
 }
 
 @Injectable()
@@ -36,11 +37,18 @@ export class GraphQLContextFactory {
       user?.company_id ||
       null;
 
+    // Create per-request DataLoaders scoped to tenant
+    const loaders = new DataLoaderRegistry(
+      this.prismaService,
+      this.drizzleService,
+      companyId,
+    );
+
     return {
       req,
       user,
       companyId,
-      // DataLoaderRegistry will be instantiated here in Phase 3
+      loaders,
     };
   }
 }
