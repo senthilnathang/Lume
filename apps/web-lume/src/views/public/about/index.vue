@@ -65,9 +65,8 @@ onMounted(async () => {
           <div class="about-main">
             <h2>Who We Are</h2>
             <p class="lead">
-              GAWDESY is committed to empower underprivileged people to attain social, 
-              physical, and economical well-being through enhancing their awareness towards 
-              self-reliant development and standards of quality of life.
+              We are committed to providing excellent service and support to our customers,
+              helping them achieve their goals and succeed in their endeavors.
             </p>
             
             <div class="about-text">

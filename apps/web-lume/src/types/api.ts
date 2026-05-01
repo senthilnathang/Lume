@@ -1,4 +1,4 @@
-// TypeScript Interfaces for GAWDESY API
+// TypeScript Interfaces for Lume API
 
 // API Response Types
 export interface ApiResponse<T> {

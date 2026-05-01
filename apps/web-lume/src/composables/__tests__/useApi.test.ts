@@ -19,7 +19,7 @@ describe('useApi Composable', () => {
 
     expect(api.token.value).toBe('test-token')
     expect(api.refreshToken.value).toBe('test-refresh')
-    expect(localStorage.getItem('gawdesy_token')).toBe('test-token')
+    expect(localStorage.getItem('lume_token')).toBe('test-token')
   })
 
   it('clears auth tokens', () => {
@@ -29,7 +29,7 @@ describe('useApi Composable', () => {
 
     expect(api.token.value).toBeNull()
     expect(api.refreshToken.value).toBeNull()
-    expect(localStorage.getItem('gawdesy_token')).toBeNull()
+    expect(localStorage.getItem('lume_token')).toBeNull()
   })
 
   it('includes auth header when token exists', () => {
