@@ -7,6 +7,7 @@ import { DrizzleService } from '../core/services/drizzle.service';
 import { ScalarsModule } from './scalars/scalars.module';
 import { GraphQLGuardsModule } from './guards/guards.module';
 import { DataGridModule } from './grids/data-grid/data-grid.module';
+import { PolicyGridModule } from './grids/policy-grid/policy-grid.module';
 import { GraphQLContextFactory } from './graphql.context';
 import { createGraphQLConfig } from './graphql.config';
 
@@ -15,6 +16,7 @@ import { createGraphQLConfig } from './graphql.config';
     ScalarsModule,
     GraphQLGuardsModule,
     DataGridModule,
+    PolicyGridModule,
     GraphQLModule.forRootAsync<any>({
       driver: ApolloDriver,
       imports: [ScalarsModule],
