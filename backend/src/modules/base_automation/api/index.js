@@ -3,10 +3,23 @@
  */
 
 import { Router } from 'express';
+import { AutomationService } from '../services/index.js';
+import { getDrizzle } from '../../../core/db/drizzle.js';
+import createAutomationModels from '../models/index.js';
+
+let automationServiceInstance = null;
+
+const getAutomationService = () => {
+  if (!automationServiceInstance) {
+    const models = createAutomationModels();
+    automationServiceInstance = new AutomationService(models);
+  }
+  return automationServiceInstance;
+};
 
 const createRoutes = (models, services) => {
   const router = Router();
-  const svc = services.automationService;
+  const svc = getAutomationService();
 
   // ── Health ────────────────────────────────────────────────────
 
@@ -37,13 +50,14 @@ const createRoutes = (models, services) => {
 
   router.post('/workflows', async (req, res) => {
     try {
-      const { name, model } = req.body;
+      const { name, model } = req.body || {};
       if (!name || !model) {
         return res.status(400).json({ success: false, error: 'Name and model are required' });
       }
       const workflow = await svc.createWorkflow(req.body);
       res.json({ success: true, data: workflow });
     } catch (error) {
+      console.error('Create workflow error:', error);
       res.status(400).json({ success: false, error: error.message });
     }
   });
