@@ -33,9 +33,32 @@
             <template #icon><SaveOutlined /></template>
             Save Workflow
           </Button>
+          <Button v-if="isEdit" type="default" @click="showRunModal = true" :loading="executing">
+            <template #icon><PlayCircleOutlined /></template>
+            Run Workflow
+          </Button>
         </Space>
       </template>
     </PageHeader>
+
+    <!-- Run Workflow Modal -->
+    <Modal
+      v-model:visible="showRunModal"
+      title="Run Workflow"
+      ok-text="Start Execution"
+      cancel-text="Cancel"
+      @ok="handleRunWorkflow"
+      :loading="executing"
+    >
+      <Form layout="vertical">
+        <FormItem label="Record ID (Optional)">
+          <Input
+            v-model:value="executionRecordId"
+            placeholder="Leave empty for standalone execution"
+          />
+        </FormItem>
+      </Form>
+    </Modal>
 
     <div class="designer-layout">
       <!-- Left Sidebar: Toolbox -->
@@ -444,6 +467,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
 import {
   Alert,
   Button,
@@ -488,6 +512,7 @@ import {
   createWorkflowDefinitionApi,
   updateWorkflowDefinitionApi,
   validateWorkflowDefinitionApi,
+  startWorkflowExecutionApi,
   getApprovalChainsApi,
 } from '@modules/base_automation/static/api/index';
 
@@ -503,6 +528,9 @@ const emit = defineEmits(['back', 'saved']);
 // State
 const loading = ref(false);
 const saving = ref(false);
+const executing = ref(false);
+const showRunModal = ref(false);
+const executionRecordId = ref('');
 const canvasContainer = ref(null);
 const canvas = ref(null);
 
@@ -1048,6 +1076,38 @@ async function handleSave() {
     }
   } finally {
     saving.value = false;
+  }
+}
+
+// Run workflow
+async function handleRunWorkflow() {
+  if (!props.workflowId) {
+    message.error('Please save workflow before running');
+    return;
+  }
+
+  executing.value = true;
+  try {
+    const recordId = executionRecordId.value || null;
+    const execution = await startWorkflowExecutionApi(props.workflowId, recordId);
+    message.success('Workflow execution started');
+    showRunModal.value = false;
+    executionRecordId.value = '';
+
+    // Navigate to execution view
+    const router = useRouter();
+    router.push({
+      name: 'WorkflowExecution',
+      params: {
+        workflowId: props.workflowId,
+        executionId: execution.id
+      }
+    });
+  } catch (err) {
+    console.error('Run failed:', err);
+    message.error(err.response?.data?.error || 'Failed to start workflow execution');
+  } finally {
+    executing.value = false;
   }
 }
 

@@ -27,6 +27,23 @@ const staticRoutes: RouteRecordRaw[] = [
     component: () => import('../views/ForbiddenView.vue')
   },
   {
+    path: '/automation/workflows/:workflowId/executions/:executionId',
+    name: 'WorkflowExecution',
+    component: () => import('../layouts/BasicLayout.vue'),
+    children: [
+      {
+        path: '',
+        component: () => import('@modules/base_automation/static/views/workflow-execution.vue'),
+        props: route => ({
+          workflowId: route.params.workflowId,
+          executionId: route.params.executionId
+        }),
+        meta: { requiresAuth: true, title: 'Workflow Execution' }
+      }
+    ],
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('../views/NotFoundView.vue')
