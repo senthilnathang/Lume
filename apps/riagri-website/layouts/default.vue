@@ -13,7 +13,7 @@
                 <path d="M8 11c1.5.4 3 .8 4 1.5m0 0c1-.7 2.5-1.1 4-1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
               </svg>
             </div>
-            <span class="text-2xl font-extrabold tracking-tight text-gray-900">{{ siteName.split(/(?=[A-Z])/).length > 1 ? siteName : 'RI' }}<span class="text-primary-600">{{ siteName.split(/(?=[A-Z])/).length > 1 ? '' : 'AGRI' }}</span></span>
+            <span class="text-2xl font-extrabold tracking-tight text-gray-900">{{ siteName }}</span>
           </NuxtLink>
 
           <!-- Desktop Navigation -->
@@ -269,10 +269,10 @@ const { items: headerMenuItems } = useMenu('header')
 
 // Derived values with fallbacks
 const siteName = computed(() => settings.value.site_name || 'RIAGRI')
-const phone = computed(() => settings.value.phone || '+1 (234) 567-890')
+const phone = computed(() => settings.value.phone || '')
 const phoneClean = computed(() => phone.value.replace(/[^+\d]/g, ''))
-const email = computed(() => settings.value.email || 'info@riagri.com')
-const address = computed(() => settings.value.address || '123 Agriculture Road, Farmington, AG 54321')
+const email = computed(() => settings.value.email || 'contact@example.com')
+const address = computed(() => settings.value.address || '')
 const addressHtml = computed(() => address.value.replace(', ', ',<br>'))
 
 const navLinks = computed(() => {
@@ -303,13 +303,13 @@ const navLinks = computed(() => {
 const footerProductsList = computed(() => {
   const v = settings.value.footer_products
   if (Array.isArray(v)) return v
-  return ['Tractors & Machinery', 'Transport Equipment', 'Harvesters', 'Irrigation Systems', 'Spare Parts', 'Accessories']
+  return []
 })
 
 const footerServicesList = computed(() => {
   const v = settings.value.footer_services
   if (Array.isArray(v)) return v
-  return ['Equipment Sales', 'Maintenance & Repair', 'Parts Supply', 'Training & Support', 'Consultation', 'Financing Options']
+  return []
 })
 
 const socials = [

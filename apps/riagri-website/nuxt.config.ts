@@ -32,7 +32,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api/website/public',
-      siteName: 'RIAGRI',
+      siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'My Website',
+      siteTitle: process.env.NUXT_PUBLIC_SITE_TITLE || process.env.NUXT_PUBLIC_SITE_NAME || 'My Website',
+      siteDescription: process.env.NUXT_PUBLIC_SITE_DESCRIPTION || 'Welcome to our website',
+      themeColor: process.env.NUXT_PUBLIC_THEME_COLOR || '#3B82F6',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3100',
     },
   },
@@ -40,11 +43,11 @@ export default defineNuxtConfig({
     head: {
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
-      title: 'RIAGRI - Agricultural Equipment & Transport Solutions',
+      title: process.env.NUXT_PUBLIC_SITE_TITLE || process.env.NUXT_PUBLIC_SITE_NAME || 'My Website',
       meta: [
-        { name: 'description', content: 'RIAGRI provides premium agricultural equipment, transport devices, and expert service solutions for modern farming.' },
-        { property: 'og:site_name', content: 'RIAGRI' },
-        { name: 'theme-color', content: '#16a34a' },
+        { name: 'description', content: process.env.NUXT_PUBLIC_SITE_DESCRIPTION || 'Welcome to our website' },
+        { property: 'og:site_name', content: process.env.NUXT_PUBLIC_SITE_NAME || 'My Website' },
+        { name: 'theme-color', content: process.env.NUXT_PUBLIC_THEME_COLOR || '#3B82F6' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },

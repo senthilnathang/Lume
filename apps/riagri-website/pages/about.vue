@@ -9,7 +9,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           <span class="text-white font-medium">About</span>
         </nav>
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">About RIAGRI</h1>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">About Us</h1>
         <p class="mt-4 text-lg text-primary-100 max-w-2xl">Dedicated to advancing agriculture through reliable equipment, innovative solutions, and unwavering commitment to our farming community.</p>
       </div>
     </section>
@@ -137,18 +137,18 @@ interface AboutContent {
 const { content, seo } = usePageContent<AboutContent>('about')
 
 useHead({
-  title: () => seo.value.title || 'About Us - RIAGRI Agricultural Equipment',
+  title: () => seo.value.title || 'About Us',
   meta: [
-    { name: 'description', content: () => seo.value.description || 'Learn about RIAGRI\'s 15+ year journey in providing premium agricultural equipment, transport solutions, and expert service to farming communities.' },
-    { property: 'og:title', content: () => seo.value.ogTitle || 'About Us - RIAGRI Agricultural Equipment' },
-    { property: 'og:description', content: () => seo.value.ogDescription || 'Dedicated to advancing agriculture through reliable equipment and unwavering commitment to our farming community.' },
+    { name: 'description', content: () => seo.value.description || 'Learn more about our company and our mission.' },
+    { property: 'og:title', content: () => seo.value.ogTitle || 'About Us' },
+    { property: 'og:description', content: () => seo.value.ogDescription || 'Learn more about our company and mission.' },
   ],
 })
 
 const story = computed(() => content.value?.story || [
-  'Founded in 2009, RIAGRI began as a small family-owned equipment dealership with a simple mission: to provide farmers with access to reliable, high-quality agricultural machinery at fair prices.',
-  'Over the past 15 years, we have grown into one of the region\'s most trusted agricultural equipment providers, serving over 500 farming operations across the country. Our growth has been driven by a commitment to understanding the unique challenges that modern farmers face.',
-  'Today, RIAGRI offers a comprehensive range of products and services, from heavy-duty tractors and harvesters to precision irrigation systems and genuine spare parts. We are not just an equipment dealer, we are a partner in your farming success.',
+  'Our company was founded with a simple mission: to provide high-quality products and services to our customers.',
+  'Over the years, we have grown into a trusted partner for our community. Our success is driven by a commitment to understanding the needs of our customers.',
+  'Today, we offer a comprehensive range of products and services. We are not just a service provider; we are a partner in your success.',
 ])
 
 const mvv = computed(() => content.value?.mvv || [
