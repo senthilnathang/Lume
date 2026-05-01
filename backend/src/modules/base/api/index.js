@@ -64,6 +64,58 @@ const createRoutes = (models, services) => {
     }
   });
 
+  // Get installed modules with frontend menus and viewNames
+  router.get('/modules/installed/menus', async (req, res) => {
+    try {
+      const { getAllModules } = await import('../../../core/modules/__loader__.js');
+      const allModules = getAllModules?.() || [];
+
+      const allMenus = [];
+
+      for (const module of allModules) {
+        const manifest = module.manifest || {};
+        const menus = manifest.frontend?.menus || [];
+        const routes = manifest.frontend?.routes || [];
+
+        // Build path → viewName map from routes
+        const routeMap = {};
+        for (const route of routes) {
+          if (route.path && route.viewName) {
+            routeMap[route.path] = route.viewName;
+          }
+        }
+
+        // Recursively annotate menus with module and viewName
+        const annotateMenus = (menuItems) => {
+          return (menuItems || []).map(menu => ({
+            ...menu,
+            module: menu.module || manifest.technicalName,
+            viewName: menu.viewName || routeMap[menu.path],
+            children: menu.children ? annotateMenus(menu.children) : undefined
+          }));
+        };
+
+        const annotatedMenus = annotateMenus(menus);
+        allMenus.push(...annotatedMenus);
+      }
+
+      // Sort by sequence
+      const sortMenus = (items) => {
+        const sorted = (items || []).sort((a, b) => (a.sequence || 99) - (b.sequence || 99));
+        return sorted.map(item => ({
+          ...item,
+          children: item.children ? sortMenus(item.children) : undefined
+        }));
+      };
+
+      const sortedMenus = sortMenus(allMenus);
+      res.json({ success: true, data: sortedMenus });
+    } catch (error) {
+      console.error('Error fetching menus:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Mount CRUD routers for core models (no soft delete — core tables lack deleted_at)
   const noSoftDelete = { softDelete: false };
   router.use('/menus', createCrudRouter(new PrismaAdapter('Menu'), noSoftDelete));

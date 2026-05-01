@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'Team members management',
   description: '# Team Module\n\nTeam member directory:\n\n- **Team Members** - Manage team profiles\n- **Departments** - Organize by department\n- **Leadership** - Mark team leaders\n- **Ordering** - Custom display order',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'Human Resources',
   

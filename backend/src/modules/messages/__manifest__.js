@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'Contact messages management',
   description: '# Messages Module\n\nContact form and message management:\n\n- **Inquiries** - Handle contact form submissions\n- **Status Tracking** - Track message status\n- **Priorities** - Mark urgent messages\n- **Replies** - Send responses',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'Communication',
   

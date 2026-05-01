@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'User account management',
   description: '# User Management Module\n\nUser account administration:\n\n- **User Accounts** - Create and manage users\n- **Authentication** - Login, logout, password management\n- **Profiles** - User profile information\n- **Account Status** - Active, inactive, locked accounts',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
   

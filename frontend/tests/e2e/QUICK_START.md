@@ -179,7 +179,7 @@ test('login success', async ({ page }) => {
   await page.goto('/');
   await fillForm(page, {
     'Email': 'admin@lume.dev',
-    'Password': 'admin123',
+    'Password': 'Admin@123',
   });
   await submitForm(page, { waitForUrl: '/dashboard' });
   expect(page.url()).toContain('/dashboard');
@@ -286,7 +286,7 @@ npx playwright test tests/e2e/auth.spec.ts
 - Check credentials in auth.spec.ts
 
 ### Can't login?
-- Verify admin@lume.dev / admin123 exists in DB
+- Verify admin@lume.dev / Admin@123 exists in DB
 - Check backend login endpoint: POST /api/auth/login
 - Look for error messages in test output
 

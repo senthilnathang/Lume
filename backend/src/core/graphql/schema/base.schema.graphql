@@ -1,0 +1,177 @@
+scalar DateTime
+scalar JSON
+scalar Date
+
+directive @auth(
+  roles: [String!]
+  permissions: [String!]
+) on FIELD_DEFINITION
+
+directive @policy(
+  resource: String!
+  action: String!
+) on FIELD_DEFINITION
+
+directive @cache(
+  ttl: Int = 300
+  key: String
+) on FIELD_DEFINITION
+
+input PaginationInput {
+  page: Int! = 1
+  pageSize: Int! = 20
+  sort: [SortInput!]
+  filter: String
+}
+
+input SortInput {
+  field: String!
+  direction: SortDirection! = ASC
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+input FilterInput {
+  field: String!
+  operator: FilterOperator!
+  value: String
+  values: [String!]
+}
+
+enum FilterOperator {
+  EQ
+  NE
+  GT
+  GTE
+  LT
+  LTE
+  IN
+  NIN
+  CONTAINS
+  STARTS_WITH
+  ENDS_WITH
+}
+
+type PageInfo {
+  page: Int!
+  pageSize: Int!
+  total: Int!
+  totalPages: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type ErrorDetail {
+  field: String!
+  message: String!
+  code: String!
+}
+
+interface MutationResponse {
+  success: Boolean!
+  message: String!
+  errors: [ErrorDetail!]
+}
+
+type AuditLog {
+  id: ID!
+  userId: ID!
+  action: String!
+  resource: String!
+  resourceId: String!
+  changes: JSON
+  ipAddress: String
+  userAgent: String
+  createdAt: DateTime!
+}
+
+interface TenantScoped {
+  tenantId: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type User implements TenantScoped {
+  id: ID!
+  tenantId: ID!
+  email: String!
+  firstName: String
+  lastName: String
+  avatar: String
+  status: UserStatus!
+  roles: [Role!]!
+  permissions: [Permission!]! @auth(roles: ["admin"])
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+type Role {
+  id: ID!
+  name: String!
+  description: String
+  permissions: [Permission!]!
+  userCount: Int! @auth(roles: ["admin"])
+  createdAt: DateTime!
+}
+
+type Permission {
+  id: ID!
+  name: String!
+  description: String
+  resource: String!
+  action: String!
+  createdAt: DateTime!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+type Query {
+  me: User @auth(roles: ["user"])
+  user(id: ID!): User @auth(roles: ["admin"])
+  users(input: PaginationInput): UserConnection! @auth(roles: ["admin"])
+
+  roles: [Role!]! @auth(roles: ["admin"])
+  permissions: [Permission!]! @auth(roles: ["admin"])
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!): User! @auth(roles: ["admin"]) @policy(resource: "users", action: "create")
+  updateUser(id: ID!, input: UpdateUserInput!): User! @auth(roles: ["admin"]) @policy(resource: "users", action: "update")
+  deleteUser(id: ID!): Boolean! @auth(roles: ["admin"]) @policy(resource: "users", action: "delete")
+}
+
+input CreateUserInput {
+  email: String!
+  firstName: String
+  lastName: String
+  roleIds: [ID!]!
+}
+
+input UpdateUserInput {
+  email: String
+  firstName: String
+  lastName: String
+  status: UserStatus
+  roleIds: [ID!]
+}
+
+type Subscription {
+  userUpdated(userId: ID!): User!
+}

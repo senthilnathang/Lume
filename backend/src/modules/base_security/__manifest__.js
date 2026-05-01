@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'Security and access control module',
   description: '# Base Security Module\n\nAdvanced security features:\n\n- **Access Control** - IP whitelist/blacklist\n- **Two-Factor Authentication** - 2FA management\n- **Session Management** - Active sessions tracking\n- **Security Logs** - Security event logging\n- **API Keys** - API key management',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
   

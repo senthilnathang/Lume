@@ -25,7 +25,12 @@
         </a-form-item>
 
         <a-form-item>
-          <a-button type="primary" html-type="submit" class="w-full">
+          <a-button
+            type="primary"
+            html-type="submit"
+            class="w-full"
+            :loading="loading"
+          >
             Sign In
           </a-button>
         </a-form-item>
@@ -38,27 +43,28 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
 const form = ref({
   email: 'admin@lume.dev',
   password: 'admin123'
 })
 
-const onFinish = async () => {
-  try {
-    const response = await axios.post('/api/users/login', {
-      email: form.value.email,
-      password: form.value.password
-    })
+const loading = ref(false)
 
-    localStorage.setItem('token', response.data.token)
-    message.success('Login successful')
-    router.push('/')
-  } catch (error) {
-    message.error('Login failed. Please check your credentials.')
-    console.error(error)
+const onFinish = async () => {
+  loading.value = true
+  try {
+    const success = await authStore.login(form.value.email, form.value.password)
+    if (success) {
+      message.success('Login successful')
+      router.push('/')
+    }
+  } finally {
+    loading.value = false
   }
 }
 

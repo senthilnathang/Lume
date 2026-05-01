@@ -24,7 +24,7 @@ test.describe('Authentication', () => {
     // Fill login form
     await fillForm(page, {
       'Email': 'admin@lume.dev',
-      'Password': 'admin123',
+      'Password': 'Admin@123',
     });
 
     // Submit form
@@ -42,7 +42,7 @@ test.describe('Authentication', () => {
     // Fill login form
     await fillForm(page, {
       'Email': 'user@lume.dev',
-      'Password': 'user123',
+      'Password': 'User@123',
     });
 
     // Submit form
@@ -91,7 +91,7 @@ test.describe('Authentication', () => {
     // Login first
     await fillForm(page, {
       'Email': 'admin@lume.dev',
-      'Password': 'admin123',
+      'Password': 'Admin@123',
     });
     await submitForm(page, { waitForUrl: '/dashboard' });
 
@@ -128,7 +128,7 @@ test.describe('Authentication', () => {
     // Login
     await fillForm(page, {
       'Email': 'admin@lume.dev',
-      'Password': 'admin123',
+      'Password': 'Admin@123',
     });
     await submitForm(page, { waitForUrl: '/dashboard' });
 
@@ -157,7 +157,7 @@ test.describe('Authentication', () => {
     // Login
     await fillForm(page, {
       'Email': 'admin@lume.dev',
-      'Password': 'admin123',
+      'Password': 'Admin@123',
     });
     await submitForm(page, { waitForUrl: '/dashboard' });
 
@@ -182,7 +182,7 @@ test.describe('Authentication', () => {
     // Login as regular user
     await fillForm(page, {
       'Email': 'user@lume.dev',
-      'Password': 'user123',
+      'Password': 'User@123',
     });
     await submitForm(page, { waitForUrl: '/dashboard' });
 

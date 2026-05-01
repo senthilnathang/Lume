@@ -1,0 +1,225 @@
+type FlowGrid implements GridEntity {
+  id: ID!
+  tenantId: ID!
+  title: String!
+  description: String
+  workflows: [Workflow!]!
+  totalExecutions: Int!
+  successRate: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  updatedBy: User
+}
+
+type Workflow {
+  id: ID!
+  name: String!
+  description: String
+  version: Int!
+  status: WorkflowStatus!
+  steps: [WorkflowStep!]!
+  triggers: [WorkflowTrigger!]!
+  variables: [WorkflowVariable!]!
+  executions(input: PaginationInput): [WorkflowExecution!]! @policy(resource: "flow_grid", action: "read")
+  successRate: Float!
+  totalExecutions: Int!
+}
+
+enum WorkflowStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  PAUSED
+}
+
+type WorkflowStep {
+  id: ID!
+  workflowId: ID!
+  name: String!
+  type: StepType!
+  sequence: Int!
+  config: JSON!
+  conditions: [StepCondition!]!
+  nextStepIds: [ID!]!
+  errorHandling: ErrorHandlingConfig
+}
+
+enum StepType {
+  ACTION
+  CONDITION
+  LOOP
+  DELAY
+  WEBHOOK
+  SCRIPT
+  HUMAN_TASK
+}
+
+type StepCondition {
+  id: ID!
+  stepId: ID!
+  field: String!
+  operator: ConditionOperator!
+  value: String
+}
+
+type ErrorHandlingConfig {
+  retryCount: Int
+  retryDelay: Int
+  fallbackAction: String
+  notifyOnError: Boolean
+}
+
+type WorkflowTrigger {
+  id: ID!
+  workflowId: ID!
+  type: TriggerType!
+  config: JSON!
+}
+
+enum TriggerType {
+  WEBHOOK
+  SCHEDULED
+  EVENT
+  MANUAL
+}
+
+type WorkflowVariable {
+  id: ID!
+  workflowId: ID!
+  name: String!
+  type: VariableType!
+  defaultValue: String
+  required: Boolean!
+}
+
+enum VariableType {
+  STRING
+  NUMBER
+  BOOLEAN
+  ARRAY
+  OBJECT
+  DATE
+}
+
+type WorkflowExecution {
+  id: ID!
+  workflowId: ID!
+  status: ExecutionStatus!
+  variables: JSON!
+  steps: [StepExecution!]!
+  startedAt: DateTime!
+  completedAt: DateTime
+  duration: Int
+  error: String
+}
+
+type StepExecution {
+  id: ID!
+  executionId: ID!
+  stepId: ID!
+  status: ExecutionStatus!
+  input: JSON
+  output: JSON
+  startedAt: DateTime!
+  completedAt: DateTime
+  duration: Int
+  error: String
+}
+
+type FlowGridConnection {
+  edges: [FlowGridEdge!]!
+  pageInfo: PageInfo!
+}
+
+type FlowGridEdge {
+  node: FlowGrid!
+  cursor: String!
+}
+
+type WorkflowExecutionResponse implements MutationResponse {
+  success: Boolean!
+  message: String!
+  errors: [ErrorDetail!]
+  execution: WorkflowExecution
+}
+
+input StepConditionInput {
+  field: String!
+  operator: ConditionOperator!
+  value: String
+}
+
+input ErrorHandlingConfigInput {
+  retryCount: Int
+  retryDelay: Int
+  fallbackAction: String
+  notifyOnError: Boolean
+}
+
+input WorkflowStepInput {
+  name: String!
+  type: StepType!
+  sequence: Int!
+  config: JSON!
+  conditions: [StepConditionInput!]
+  nextStepIds: [ID!]
+  errorHandling: ErrorHandlingConfigInput
+}
+
+input WorkflowTriggerInput {
+  type: TriggerType!
+  config: JSON!
+}
+
+input WorkflowVariableInput {
+  name: String!
+  type: VariableType!
+  defaultValue: String
+  required: Boolean = false
+}
+
+input WorkflowInput {
+  name: String!
+  description: String
+  steps: [WorkflowStepInput!]!
+  triggers: [WorkflowTriggerInput!]!
+  variables: [WorkflowVariableInput!]!
+}
+
+input ExecuteWorkflowInput {
+  workflowId: ID!
+  variables: JSON
+}
+
+input FlowGridInput {
+  title: String!
+  description: String
+}
+
+extend type Query {
+  flowGrid(id: ID!): FlowGrid @auth(roles: ["user"])
+  flowGrids(input: PaginationInput): FlowGridConnection! @auth(roles: ["user"])
+
+  workflow(id: ID!): Workflow @auth(roles: ["user"])
+  workflows(input: PaginationInput): [Workflow!]! @auth(roles: ["user"])
+
+  workflowExecution(id: ID!): WorkflowExecution @auth(roles: ["user"])
+  workflowExecutions(workflowId: ID!, input: PaginationInput): [WorkflowExecution!]! @auth(roles: ["user"]) @policy(resource: "flow_grid", action: "read")
+}
+
+extend type Mutation {
+  createFlowGrid(input: FlowGridInput!): FlowGrid! @auth(roles: ["user"]) @policy(resource: "flow_grid", action: "create")
+  updateFlowGrid(id: ID!, input: FlowGridInput!): FlowGrid! @auth(roles: ["user"]) @policy(resource: "flow_grid", action: "update")
+  deleteFlowGrid(id: ID!): Boolean! @auth(roles: ["user"]) @policy(resource: "flow_grid", action: "delete")
+
+  createWorkflow(gridId: ID!, input: WorkflowInput!): Workflow! @auth(roles: ["user"]) @policy(resource: "flow_grid", action: "create")
+  publishWorkflow(id: ID!): Workflow! @auth(roles: ["user"]) @policy(resource: "flow_grid", action: "update")
+  executeWorkflow(input: ExecuteWorkflowInput!): WorkflowExecutionResponse! @auth(roles: ["user"])
+  cancelExecution(id: ID!): Boolean! @auth(roles: ["user"])
+}
+
+extend type Subscription {
+  workflowExecutionUpdated(executionId: ID!): WorkflowExecution!
+  stepExecutionUpdated(executionId: ID!, stepId: ID!): StepExecution!
+}

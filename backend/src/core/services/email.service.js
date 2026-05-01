@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = join(__dirname, '..', 'templates');
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 let transporterInstance = null;
 
@@ -94,7 +95,7 @@ export class EmailService {
     // Interpolate variables: {{varName}}
     const vars = {
       appName: process.env.APP_NAME || 'Lume',
-      frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
+      frontendUrl: FRONTEND_URL,
       year: new Date().getFullYear().toString(),
       ...variables,
     };
@@ -121,8 +122,7 @@ export class EmailService {
    * Send password reset email with a reset link.
    */
   async sendPasswordReset(to, name, resetToken) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+    const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
     return this.sendFromTemplate(to, 'password-reset', { name, resetLink, resetToken });
   }
 
@@ -130,8 +130,7 @@ export class EmailService {
    * Send email verification link.
    */
   async sendEmailVerification(to, name, verifyToken) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const verifyLink = `${frontendUrl}/verify-email?token=${verifyToken}`;
+    const verifyLink = `${FRONTEND_URL}/verify-email?token=${verifyToken}`;
     return this.sendFromTemplate(to, 'email-verification', { name, verifyLink, verifyToken });
   }
 

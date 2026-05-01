@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'Core base module with ORM, security, and module management',
   description: '# Base Module\n\nProvides foundational functionality for all modules:\n\n- **ORM Framework** - BaseModel with mixins\n- **CRUD Operations** - Inherit CRUD with record rules\n- **Module Registry** - Track installed modules\n- **Security** - Record rules, permissions\n- **Audit Logging** - Track all changes',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
   
@@ -46,63 +46,72 @@ export default {
             path: '/settings/modules',
             icon: 'lucide:package',
             sequence: 1,
-            permission: 'base.modules.manage'
+            permission: 'base.modules.manage',
+            viewName: 'modules'
           },
           {
             name: 'Menus',
             path: '/settings/menus',
             icon: 'lucide:menu',
             sequence: 2,
-            permission: 'base.menus.manage'
+            permission: 'base.menus.manage',
+            viewName: 'menus'
           },
           {
             name: 'Users',
             path: '/settings/users',
             icon: 'lucide:users',
             sequence: 3,
-            permission: 'base.users.manage'
+            permission: 'base.users.manage',
+            viewName: 'users'
           },
           {
             name: 'Groups',
             path: '/settings/groups',
             icon: 'lucide:users-round',
             sequence: 4,
-            permission: 'base.groups.manage'
+            permission: 'base.groups.manage',
+            viewName: 'groups'
           },
           {
             name: 'Roles',
             path: '/settings/roles',
             icon: 'lucide:shield',
             sequence: 5,
-            permission: 'base.roles.manage'
+            permission: 'base.roles.manage',
+            viewName: 'roles'
           },
           {
             name: 'Permissions',
             path: '/settings/permissions',
             icon: 'lucide:key',
             sequence: 6,
-            permission: 'base.permissions.manage'
+            permission: 'base.permissions.manage',
+            viewName: 'permissions'
           },
           {
             name: 'Record Rules',
             path: '/settings/record-rules',
             icon: 'lucide:shield-check',
             sequence: 7,
-            permission: 'base.record_rules.manage'
+            permission: 'base.record_rules.manage',
+            viewName: 'record-rules'
           },
           {
             name: 'Sequences',
             path: '/settings/sequences',
             icon: 'lucide:list-ordered',
             sequence: 8,
-            permission: 'base.sequences.manage'
+            permission: 'base.sequences.manage',
+            viewName: 'sequences'
           },
           {
             name: 'System',
             path: '/settings/system',
             icon: 'lucide:server',
             sequence: 9,
-            permission: 'base.system.manage'
+            permission: 'base.system.manage',
+            viewName: 'system'
           }
         ]
       }

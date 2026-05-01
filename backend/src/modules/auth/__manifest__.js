@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'Authentication and authorization',
   description: '# Authentication Module\n\nAuthentication system:\n\n- **JWT Tokens** - Secure token-based authentication\n- **Refresh Tokens** - Token renewal\n- **Role-Based Access** - Permission management\n- **Security** - Brute force protection',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
   

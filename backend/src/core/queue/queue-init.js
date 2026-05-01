@@ -69,6 +69,26 @@ function registerAutomationProcessors() {
           return await automationProcessors.executeWorkflow(job);
         case 'execute-rule':
           return await automationProcessors.executeBusinessRule(job);
+        case 'execute-flowgrid-workflow': {
+          const { getModule } = await import('../../modules/__loader__.js');
+          const flowgridModule = getModule('flowgrid');
+          await flowgridModule.services.executionEngine.executeWorkflow(
+            job.data.workflowId,
+            job.data.input || {},
+            { userId: job.data.userId }
+          );
+          return { success: true };
+        }
+        case 'execute-agentgrid-agent': {
+          const { getModule } = await import('../../modules/__loader__.js');
+          const agentgridModule = getModule('agentgrid');
+          await agentgridModule.services.orchestrator.executeAgent(
+            job.data.agentId,
+            job.data.input || {},
+            { userId: job.data.userId }
+          );
+          return { success: true };
+        }
         default:
           throw new Error(`Unknown job type: ${type}`);
       }

@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'UI customization, custom fields, and form configuration',
   description: '# Base Customization Module\n\nCustomization features:\n\n- **Custom Fields** - Add custom fields to any model\n- **Custom Views** - Custom list/form view configurations\n- **Form Layouts** - Drag-and-drop form designer\n- **List Configurations** - Column visibility, ordering, default filters\n- **Dashboard Widgets** - Custom dashboard widget definitions',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
 

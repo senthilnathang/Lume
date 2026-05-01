@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'Advanced role-based access control module',
   description: '# RBAC Module\n\nAdvanced access control:\n\n- **Roles** - Define user roles with specific permissions\n- **Permissions** - Granular permission management\n- **Access Rules** - Record-level access control\n- **Field Security** - Field-level visibility control',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
   

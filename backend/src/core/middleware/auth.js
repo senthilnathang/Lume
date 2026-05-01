@@ -186,15 +186,6 @@ export const authorize = (resource = null, action = null) => {
         return res.status(403).json(responseUtil.forbidden('Role not found'));
       }
 
-      const rolePermission = await prisma.rolePermission.findFirst({
-        where: { roleId: roleRecord.id },
-        include: {
-          permission: {
-            select: { name: true },
-          },
-        },
-      });
-
       // Check if the role has the required permission
       const hasPermission = await prisma.rolePermission.findFirst({
         where: {

@@ -20,8 +20,8 @@ export async function initDrizzle() {
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT) || 5432,
       database: process.env.DB_NAME || 'lume',
-      user: process.env.DB_USER || 'gawdesy',
-      password: process.env.DB_PASSWORD || 'gawdesy',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || 'lume',
       max: parseInt(process.env.DB_POOL_SIZE) || 10,
     });
 
@@ -34,8 +34,8 @@ export async function initDrizzle() {
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT) || 3306,
       database: process.env.DB_NAME || 'lume',
-      user: process.env.DB_USER || 'gawdesy',
-      password: process.env.DB_PASSWORD || 'gawdesy',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || 'lume',
       waitForConnections: true,
       connectionLimit: parseInt(process.env.DB_POOL_SIZE) || 10,
     });

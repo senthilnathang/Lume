@@ -1,0 +1,83 @@
+# Document Management Schema
+# Manages document creation, updates, publishing, and organization
+
+"""Document entity"""
+type Document {
+  id: ID!
+  tenantId: String!
+  title: String!
+  content: String!
+  status: DocumentStatus!
+  categoryId: String
+  tags: [String!]!
+  metadata: JSON
+  createdById: String!
+  updatedById: String
+  publishedById: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  publishedAt: DateTime
+}
+
+"""Document status enumeration"""
+enum DocumentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  REVIEW
+}
+
+"""Document connection for pagination"""
+type DocumentConnection {
+  edges: [DocumentEdge!]!
+  pageInfo: PageInfo!
+}
+
+type DocumentEdge {
+  node: Document!
+  cursor: String!
+}
+
+"""Document filter options"""
+input DocumentFilter {
+  status: DocumentStatus
+  categoryId: String
+  tags: [String!]
+  search: String
+}
+
+"""Document input for creating and updating"""
+input DocumentInput {
+  title: String!
+  content: String!
+  status: DocumentStatus
+  categoryId: String
+  tags: [String!]
+  metadata: JSON
+}
+
+extend type Query {
+  """Get a single document by ID"""
+  document(id: ID!): Document
+
+  """List all documents with filters and pagination"""
+  documents(
+    filter: DocumentFilter
+    page: Int
+    limit: Int
+  ): DocumentConnection!
+}
+
+extend type Mutation {
+  """Create a new document"""
+  createDocument(input: DocumentInput!): Document!
+
+  """Update an existing document"""
+  updateDocument(id: ID!, input: DocumentInput!): Document!
+
+  """Publish a document"""
+  publishDocument(id: ID!): Document!
+
+  """Delete a document"""
+  deleteDocument(id: ID!): Boolean!
+}

@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'Shared composables, components, and locales for all modules',
   description: 'Provides common JavaScript utilities that are loaded at runtime by frontend views.',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
   

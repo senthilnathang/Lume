@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'Automation and workflow management module',
   description: '# Base Automation Module\n\nWorkflow and automation features:\n\n- **Workflows** - State machine workflows\n- **Flows** - Visual flow designer\n- **Business Rules** - Automatic field change detection\n- **Approval Chains** - Multi-step approvals\n- **Scheduled Actions** - Cron job automation\n- **Email Templates** - Email automation',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
   
