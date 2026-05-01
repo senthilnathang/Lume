@@ -39,7 +39,7 @@ import { BaseCustomizationModule } from './modules/base_customization/base_custo
 import { BaseFeaturesDataModule } from './modules/base_features_data/base_features_data.module';
 import { AdvancedFeaturesModule } from './modules/advanced_features/advanced-features.module';
 import { LumeModule } from './modules/lume/lume.module';
-import { GawdesyModule } from './modules/gawdesy/gawdesy.module';
+import { PlatformConfigModule } from './modules/platform-config/platform-config.module';
 import { SecurityAuditModule } from './modules/security_audit/security-audit.module';
 import { PluginsModule } from './modules/plugins/plugins.module';
 
@@ -91,7 +91,7 @@ import { GraphQLCoreModule } from './graphql/graphql.module';
     BaseFeaturesDataModule,
     AdvancedFeaturesModule,
     LumeModule,
-    GawdesyModule,
+    PlatformConfigModule,
     SecurityAuditModule,
     PluginsModule,
   ],

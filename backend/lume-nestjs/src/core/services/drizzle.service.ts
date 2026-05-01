@@ -7,10 +7,19 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
   private db: any;
 
   async onModuleInit() {
+    const dbUser = process.env.DB_USER;
+    const dbPass = process.env.DB_PASS;
+
+    if (!dbUser || !dbPass) {
+      throw new Error(
+        'Database credentials must be set via environment variables: DB_USER and DB_PASS are required'
+      );
+    }
+
     const connection = await mysql.createConnection({
       host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'gawdesy',
-      password: process.env.DB_PASS || 'gawdesy',
+      user: dbUser,
+      password: dbPass,
       database: process.env.DB_NAME || 'lume',
     });
 
