@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'Data Import & Export Management',
   description: '# Data Management Module\n\nProvides comprehensive data import and export functionality.\n\n- **Data Import** - CSV file import with column mapping, preview, validation, and execution\n- **Data Export** - Model data export to CSV/JSON with field selection and filters',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'Administration',
 

@@ -34,14 +34,14 @@ let tracingInitialized = false;
 
 import { responseUtil, jwtUtil } from './shared/utils/index.js';
 import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
-import { requestLogger } from './core/middleware/requestLogger.js';
 import { loggingMiddleware } from './core/middleware/logging.middleware.js';
 import { ipAccessMiddleware } from './core/middleware/ipAccess.js';
 import { responseCache } from './core/middleware/cacheControl.js';
 import { requestTracing } from './core/middleware/requestTracing.js';
 import { metricsMiddleware as metricsMiddlewareNew } from './core/middleware/metrics.middleware.js';
-import { metricsMiddleware as metricsMiddlewareOld, errorTracker, getHealthMetrics } from './core/middleware/metrics.js';
+import { errorTracker, getHealthMetrics } from './core/middleware/metrics.js';
 import { getMetrics, initMetricsCache } from './core/metrics/index.js';
+import { packageVersion } from './config/version.js';
 
 // ORM adapters
 import prisma from './core/db/prisma.js';
@@ -163,15 +163,13 @@ if (tracingInitialized) {
   app.use(traceContextMiddleware);
 }
 
-app.use(requestLogger);
 app.use(loggingMiddleware);
 app.use(ipAccessMiddleware);
 app.use(limiter);
 
 // ─── Observability: Request Tracing & Metrics ────────────────────────────────
 app.use(requestTracing);
-app.use(metricsMiddlewareNew);  // New Prometheus metrics middleware
-app.use(metricsMiddlewareOld);  // Legacy metrics middleware (for compatibility)
+app.use(metricsMiddlewareNew);  // Prometheus metrics middleware
 
 // ─── Security: Authentication Middleware ──────────────────────────────────────
 // Paths that never require authentication
@@ -191,7 +189,6 @@ const optionalAuthPaths = [
   '/api/modules',
   '/api/permissions',
   '/api/lume/health',
-  '/api/gawdesy/health',
   '/api/base/health',
   '/api/base_automation/health',
   '/api/base_features_data/health',
@@ -277,7 +274,7 @@ app.get('/health', (req, res) => {
     success: true,
     message: 'Lume Framework is running',
     timestamp: new Date().toISOString(),
-    version: '2.0.0',
+    version: packageVersion,
     framework: 'Lume',
     modular: true,
     metrics: getHealthMetrics()
@@ -313,7 +310,7 @@ app.get('/api/public/config', async (req, res) => {
       success: true,
       data: {
         framework: 'Lume',
-        version: '1.0.0',
+        version: packageVersion,
         websiteInstalled,
         publicUrl: process.env.PUBLIC_WEBSITE_URL || null,
       },
@@ -779,17 +776,6 @@ app.use('/api/media', (await import('./modules/media/index.js')).mediaRoutes);
 
 // Module routes (base_automation, base_security, base_features_data, base_customization, advanced_features)
 // are registered by the module system via their __init__.js during initialization
-
-// Gawdesy routes
-const gawdesyRouter = Router();
-gawdesyRouter.get('/health', (req, res) => res.json({ success: true, status: 'healthy', module: 'gawdesy' }));
-gawdesyRouter.get('/info', (req, res) => res.json({ success: true, data: { name: 'Gawdesy', version: '1.0.0' } }));
-gawdesyRouter.get('/statistics', (req, res) => res.json({ success: true, data: { users: 0, donations: 0, activities: 0 } }));
-gawdesyRouter.get('/modules', (req, res) => res.json({ success: true, data: [] }));
-gawdesyRouter.get('/menus', (req, res) => res.json({ success: true, data: [] }));
-gawdesyRouter.get('/permissions', (req, res) => res.json({ success: true, data: [] }));
-gawdesyRouter.get('/settings', (req, res) => res.json({ success: true, data: {} }));
-app.use('/api/gawdesy', gawdesyRouter);
 
 // Lume routes
 const lumeRouter = Router();

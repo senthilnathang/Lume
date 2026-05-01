@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'Website & CMS',
   description: '# Website Module\n\nPublic website content management:\n\n- **Pages** - Create and publish web pages with rich content\n- **Menus** - Navigation menu management\n- **Media** - Image and file uploads\n- **Settings** - Site name, logo, SEO defaults\n- **SEO** - Meta tags, Open Graph, sitemap',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'Website',
 

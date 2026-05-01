@@ -1,0 +1,154 @@
+type PolicyGrid implements GridEntity {
+  id: ID!
+  tenantId: ID!
+  title: String!
+  description: String
+  policies(input: PaginationInput): [AccessPolicy!]!
+  roles: [Role!]!
+  resources: [Resource!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  updatedBy: User
+}
+
+type AccessPolicy {
+  id: ID!
+  name: String!
+  description: String
+  resource: String!
+  action: String!
+  conditions: [PolicyCondition!]!
+  roles: [Role!]!
+  effect: PolicyEffect!
+  priority: Int!
+}
+
+enum PolicyEffect {
+  ALLOW
+  DENY
+}
+
+type PolicyCondition {
+  id: ID!
+  field: String!
+  operator: ConditionOperator!
+  value: String
+  values: [String!]
+}
+
+enum ConditionOperator {
+  EQ
+  NE
+  GT
+  LT
+  IN
+  CONTAINS
+  REGEX
+}
+
+type Resource {
+  id: ID!
+  name: String!
+  displayName: String!
+  description: String
+  actions: [ResourceAction!]!
+}
+
+type ResourceAction {
+  id: ID!
+  name: String!
+  description: String!
+}
+
+type PolicyGridConnection {
+  edges: [PolicyGridEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PolicyGridEdge {
+  node: PolicyGrid!
+  cursor: String!
+}
+
+type AccessCheckResult {
+  allowed: Boolean!
+  reason: String
+  deniedBy: AccessPolicy
+  matchedPolicies: [AccessPolicy!]
+}
+
+type PolicyMutationResponse implements MutationResponse {
+  success: Boolean!
+  message: String!
+  errors: [ErrorDetail!]
+  policy: AccessPolicy
+}
+
+input PolicyConditionInput {
+  field: String!
+  operator: ConditionOperator!
+  value: String
+  values: [String!]
+}
+
+input AccessPolicyInput {
+  name: String!
+  description: String
+  resource: String!
+  action: String!
+  conditions: [PolicyConditionInput!]
+  roleIds: [ID!]!
+  effect: PolicyEffect!
+  priority: Int = 100
+}
+
+input PolicyGridInput {
+  title: String!
+  description: String
+}
+
+input RegisterResourceInput {
+  name: String!
+  displayName: String!
+  description: String
+  actions: [String!]!
+}
+
+input UpdateResourceInput {
+  displayName: String
+  description: String
+  actions: [String!]
+}
+
+extend type Query {
+  policyGrid(id: ID!): PolicyGrid @auth(roles: ["admin"])
+  policyGrids(input: PaginationInput): PolicyGridConnection! @auth(roles: ["admin"])
+
+  policy(id: ID!): AccessPolicy @auth(roles: ["admin"])
+  policies(input: PaginationInput): [AccessPolicy!]! @auth(roles: ["admin"])
+
+  resources: [Resource!]! @auth(roles: ["admin"])
+  resource(name: String!): Resource @auth(roles: ["admin"])
+
+  checkAccess(userId: ID!, resource: String!, action: String!): AccessCheckResult! @auth(roles: ["admin"])
+  userEffectivePermissions(userId: ID!): [String!]! @auth(roles: ["admin"])
+}
+
+extend type Mutation {
+  createPolicyGrid(input: PolicyGridInput!): PolicyGrid! @auth(roles: ["admin"]) @policy(resource: "policy_grid", action: "create")
+  updatePolicyGrid(id: ID!, input: PolicyGridInput!): PolicyGrid! @auth(roles: ["admin"]) @policy(resource: "policy_grid", action: "update")
+  deletePolicyGrid(id: ID!): Boolean! @auth(roles: ["admin"]) @policy(resource: "policy_grid", action: "delete")
+
+  createPolicy(input: AccessPolicyInput!): PolicyMutationResponse! @auth(roles: ["admin"]) @policy(resource: "policy_grid", action: "create")
+  updatePolicy(id: ID!, input: AccessPolicyInput!): PolicyMutationResponse! @auth(roles: ["admin"]) @policy(resource: "policy_grid", action: "update")
+  deletePolicy(id: ID!): Boolean! @auth(roles: ["admin"]) @policy(resource: "policy_grid", action: "delete")
+
+  registerResource(input: RegisterResourceInput!): Resource! @auth(roles: ["admin"])
+  updateResource(name: String!, input: UpdateResourceInput!): Resource! @auth(roles: ["admin"])
+}
+
+extend type Subscription {
+  policyUpdated(policyId: ID!): AccessPolicy!
+  accessCheckChanged(userId: ID!): AccessCheckResult!
+}

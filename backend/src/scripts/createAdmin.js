@@ -9,6 +9,9 @@ dotenv.config();
 
 import prisma from '../core/db/prisma.js';
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@lume.dev';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@Lume!1';
+
 const createAdminUser = async () => {
   try {
     await prisma.$connect();
@@ -30,14 +33,14 @@ const createAdminUser = async () => {
     }
 
     // Check if admin user exists
-    const existingAdmin = await prisma.user.findFirst({ where: { email: 'admin@gawdesy.org' } });
+    const existingAdmin = await prisma.user.findFirst({ where: { email: ADMIN_EMAIL } });
     if (existingAdmin) {
       console.log('Admin user already exists:', existingAdmin.email);
       // Update password and role (Prisma middleware hashes password on update)
       await prisma.user.update({
         where: { id: existingAdmin.id },
         data: {
-          password: 'admin123',
+          password: ADMIN_PASSWORD,
           role_id: superAdminRole.id,
         },
       });
@@ -48,8 +51,8 @@ const createAdminUser = async () => {
     // Create admin user (password is auto-hashed by Prisma middleware)
     const admin = await prisma.user.create({
       data: {
-        email: 'admin@gawdesy.org',
-        password: 'admin123',
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD,
         firstName: 'Super',
         lastName: 'Admin',
         role_id: superAdminRole.id,

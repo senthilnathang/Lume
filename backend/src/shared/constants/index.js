@@ -68,6 +68,7 @@ export const USER_ROLES = {
   MANAGER: 'manager',
   STAFF: 'staff',
   USER: 'user',
+  VIEWER: 'viewer',
   GUEST: 'guest'
 };
 

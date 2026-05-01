@@ -1,0 +1,97 @@
+# Message Management Schema
+# Handles contact form messages, inquiries, and support requests
+
+"""Message entity"""
+type Message {
+  id: ID!
+  tenantId: String!
+  email: String!
+  name: String
+  subject: String
+  message: String!
+  type: MessageType!
+  phone: String
+  status: MessageStatus!
+  reply: String
+  metadata: JSON
+  ipAddress: String
+  repliedById: String
+  repliedAt: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""Message type enumeration"""
+enum MessageType {
+  CONTACT
+  INQUIRY
+  SUPPORT
+  FEEDBACK
+  COMPLAINT
+  OTHER
+}
+
+"""Message status enumeration"""
+enum MessageStatus {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+"""Message connection for pagination"""
+type MessageConnection {
+  edges: [MessageEdge!]!
+  pageInfo: PageInfo!
+}
+
+type MessageEdge {
+  node: Message!
+  cursor: String!
+}
+
+"""Message filter options"""
+input MessageFilter {
+  email: String
+  type: MessageType
+  status: MessageStatus
+  fromDate: DateTime
+  toDate: DateTime
+}
+
+"""Message input for creating"""
+input MessageInput {
+  email: String!
+  name: String
+  subject: String
+  message: String!
+  type: MessageType
+  phone: String
+  metadata: JSON
+}
+
+extend type Query {
+  """Get a single message by ID"""
+  message(id: ID!): Message
+
+  """List all messages with filters and pagination"""
+  messages(
+    filter: MessageFilter
+    page: Int
+    limit: Int
+  ): MessageConnection!
+}
+
+extend type Mutation {
+  """Create a new message (public endpoint)"""
+  createMessage(input: MessageInput!): Message!
+
+  """Reply to a message"""
+  replyToMessage(id: ID!, reply: String!): Message!
+
+  """Update message status"""
+  updateMessageStatus(id: ID!, status: MessageStatus!): Message!
+
+  """Delete a message"""
+  deleteMessage(id: ID!): Boolean!
+}

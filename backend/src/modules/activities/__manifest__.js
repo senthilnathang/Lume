@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'Activity and event management',
   description: '# Activities Module\n\nManage activities and events:\n\n- **Activity Management** - Create, edit, and publish activities\n- **Categories** - Organize activities by category\n- **Featured Activities** - Highlight important events\n- **Registration** - Track participant registration',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'Content',
   

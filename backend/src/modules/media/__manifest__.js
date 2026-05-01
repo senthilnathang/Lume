@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'Media file management',
   description: '# Media Library Module\n\nAdvanced media management:\n\n- **Media Library** - Organize all media files\n- **Featured Media** - Highlight important media\n- **Categories** - Organize by type\n- **Statistics** - Track views and downloads',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'Content',
   

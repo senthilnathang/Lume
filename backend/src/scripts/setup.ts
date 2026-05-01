@@ -86,7 +86,7 @@ const checkDatabaseConnectivity = async () => {
   }
 };
 
-const initializeDatabases = () => {
+const initializeDatabases = async () => {
   log.info('Initializing database schemas...');
 
   try {
@@ -202,7 +202,7 @@ const main = async () => {
     setupEnv();
     validateEnv();
     await checkDatabaseConnectivity();
-    initializeDatabases();
+    await initializeDatabases();
     await seedCoreData();
     printSummary();
   } catch (error) {

@@ -1,0 +1,138 @@
+type AgentGrid implements GridEntity {
+  id: ID!
+  tenantId: ID!
+  title: String!
+  description: String
+  agents: [Agent!]!
+  executions(input: PaginationInput): [AgentExecution!]! @policy(resource: "agent_grid", action: "read")
+  totalExecutions: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  updatedBy: User
+}
+
+type Agent {
+  id: ID!
+  name: String!
+  description: String
+  status: AgentStatus!
+  version: String!
+  config: JSON!
+  capabilities: [String!]!
+  lastExecution: AgentExecution
+  executionCount: Int!
+  successRate: Float!
+}
+
+enum AgentStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  ERROR
+}
+
+type AgentExecution {
+  id: ID!
+  agentId: ID!
+  status: ExecutionStatus!
+  input: JSON!
+  output: JSON
+  logs(level: LogLevel): [ExecutionLog!]!
+  startedAt: DateTime!
+  completedAt: DateTime
+  duration: Int
+  error: String
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+type ExecutionLog {
+  id: ID!
+  executionId: ID!
+  level: LogLevel!
+  message: String!
+  data: JSON
+  timestamp: DateTime!
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+type AgentGridConnection {
+  edges: [AgentGridEdge!]!
+  pageInfo: PageInfo!
+}
+
+type AgentGridEdge {
+  node: AgentGrid!
+  cursor: String!
+}
+
+type AgentExecutionResponse implements MutationResponse {
+  success: Boolean!
+  message: String!
+  errors: [ErrorDetail!]
+  execution: AgentExecution
+}
+
+input AgentExecutionInput {
+  agentId: ID!
+  input: JSON!
+}
+
+input AgentGridInput {
+  title: String!
+  description: String
+}
+
+input RegisterAgentInput {
+  name: String!
+  description: String
+  capabilities: [String!]!
+  config: JSON!
+}
+
+input UpdateAgentInput {
+  status: AgentStatus
+  config: JSON
+}
+
+extend type Query {
+  agentGrid(id: ID!): AgentGrid @auth(roles: ["user"])
+  agentGrids(input: PaginationInput): AgentGridConnection! @auth(roles: ["user"])
+  agent(id: ID!): Agent @auth(roles: ["user"])
+  agents(gridId: ID!, input: PaginationInput): [Agent!]! @auth(roles: ["user"])
+
+  agentExecution(id: ID!): AgentExecution @auth(roles: ["user"])
+  agentExecutions(agentId: ID!, input: PaginationInput): [AgentExecution!]! @auth(roles: ["user"]) @policy(resource: "agent_grid", action: "read")
+
+  executionLogs(executionId: ID!): [ExecutionLog!]! @auth(roles: ["user"]) @policy(resource: "agent_grid", action: "read")
+}
+
+extend type Mutation {
+  createAgentGrid(input: AgentGridInput!): AgentGrid! @auth(roles: ["user"]) @policy(resource: "agent_grid", action: "create")
+  updateAgentGrid(id: ID!, input: AgentGridInput!): AgentGrid! @auth(roles: ["user"]) @policy(resource: "agent_grid", action: "update")
+  deleteAgentGrid(id: ID!): Boolean! @auth(roles: ["user"]) @policy(resource: "agent_grid", action: "delete")
+
+  registerAgent(input: RegisterAgentInput!): Agent! @auth(roles: ["admin"]) @policy(resource: "agent_grid", action: "create")
+  updateAgent(id: ID!, input: UpdateAgentInput!): Agent! @auth(roles: ["admin"]) @policy(resource: "agent_grid", action: "update")
+
+  executeAgent(input: AgentExecutionInput!): AgentExecutionResponse! @auth(roles: ["user"])
+  cancelExecution(id: ID!): Boolean! @auth(roles: ["user"])
+}
+
+extend type Subscription {
+  executionUpdated(executionId: ID!): AgentExecution!
+  agentStatusChanged(agentId: ID!): Agent!
+}

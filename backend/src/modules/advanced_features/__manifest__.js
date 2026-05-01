@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'Webhooks, notifications, tagging, and commenting system',
   description: '# Advanced Features Module\n\nAdvanced platform capabilities:\n\n- **Webhooks** - Outgoing webhook management for event-driven integrations\n- **Notifications** - In-app notification system with channels and preferences\n- **Tags** - Universal tagging system for any model\n- **Comments** - Threaded commenting system for records\n- **Attachments** - File attachment management for records',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
 

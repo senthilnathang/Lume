@@ -1,174 +1,101 @@
-import { defineStore } from 'pinia';
-import type { User } from '@/types/api';
-import { useApi } from '@/composables';
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { message } from 'ant-design-vue'
+import { loginApi, logoutApi, getMeApi } from '@/api/auth'
+import { useAccessStore } from './access'
+import { useUserStore } from './user'
 
 export const useAuthStore = defineStore('auth', () => {
-  const state = () => ({
-    user: null as User | null,
-    token: null as string | null,
-    permissions: [],
-    loading: false,
-    error: null as string | null,
-    messages: []
-  });
+  const router = useRouter()
+  const accessStore = useAccessStore()
+  const userStore = useUserStore()
 
-  const getters = {
-    isAuthenticated: (state) => !!state.user && !!state.token,
-    user: (state) => state.user,
-    userInfo: (state) => ({
-      fullName: state.user ? `${state.user.first_name} ${state.user.last_name}` : '',
-      email: state.user?.email || '',
-      role: state.user?.role || 'user',
-      avatar: state.user?.avatar || null,
-      userId: state.user?.id
-    }),
-    permissions: (state) => state.permissions,
-    hasPermission: (state) => (permission: any) => {
-      if (!state.user || !state.token) return false;
-      return state.permissions.includes(permission);
-    }
-  };
+  // State
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-  const actions = {
-    login: async (email: string, password: string): Promise<boolean> => {
-      const { post } = useApi();
-      
-      try {
-        state.loading = true;
-        state.error = null;
-        
-        const response = await post('/auth/login', {
-          email,
-          password
-        });
-          
-        if (response.token && response.user) {
-          state.token = response.token;
-          state.user = response.user;
-          state.loading = false;
-          
-          // Store user info in localStorage
-          localStorage.setItem('token', state.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
-          
-          return true;
+  // Actions
+  const login = async (email: string, password: string) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await loginApi(email, password)
+
+      if (response.token) {
+        // Set token
+        accessStore.setToken(response.token)
+
+        // Set user info
+        if (response.user) {
+          userStore.setUserInfo({
+            id: response.user.id,
+            email: response.user.email,
+            firstName: response.user.first_name,
+            lastName: response.user.last_name,
+            role: response.user.role,
+            avatar: response.user.avatar
+          })
         }
-        
-        state.error = response.error || 'Invalid credentials';
-        
-        return false;
-      } catch (error) {
-        state.loading = false;
-        state.error = error;
-        console.error('Login error:', error);
-        return false;
+
+        return true
       }
-    },
 
-    logout: () => {
-      state.token = null;
-      state.user = null;
-      state.loading = false;
-      state.error = null;
-      
-      // Clear localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Clear all auth state
-      Object.keys(state).forEach(key => {
-        state[key] = null;
-      });
-      
-      state.messages = [];
-      
-      return true;
-    },
-
-    getUserInfo: () => {
-      return state.user || {
-        id: state.user?.id || 0,
-        email: state.user?.email || '',
-        firstName: state.user?.first_name || '',
-        lastName: state.user?.last_name || '',
-        phone: state.user?.phone || '',
-        role: state.user?.role || '',
-        avatar: state.user?.avatar || '',
-        created_at: state.user?.created_at || '',
-        last_login: state.user?.last_login || '',
-        updated_at: state.user?.updated_at || ''
-      };
+      error.value = response.error || 'Login failed'
+      return false
+    } catch (err: any) {
+      const errorMsg = err?.message || 'Login failed'
+      error.value = errorMsg
+      message.error(errorMsg)
+      return false
+    } finally {
+      loading.value = false
     }
-  },
+  }
 
-    updateUser: async (data: Partial<User>): Promise<boolean> => {
-      const { put } = useApi();
-      
-      try {
-        state.loading = true;
-        state.error = null;
-        
-        const response = await put(`/admin/users/${state.user.id}`, data);
-        
-        if (response.success) {
-          // Update user in store
-          state.user = response.user;
-          localStorage.setItem('user', JSON.stringify(response.user));
-          
-          state.loading = false;
-          state.error = null;
-          return true;
-        }
-        
-        state.error = response.error || 'Failed to update user';
-        console.error('Update error:', state.error);
-        return false;
-      } catch (error) {
-        state.loading = false;
-        state.error = state.error || error.message || 'Update failed';
-        return false;
-      }
-    },
-
-    refreshToken: async (): Promise<boolean> => {
-      const { post } = useApi();
-      
-      try {
-        const response = await post('/auth/refresh-token', {
-          headers: { 
-            'Authorization': `Bearer ${state.token}`
-          }
-        });
-        
-        if (response.success) {
-          state.token = response.token;
-          return true;
-        }
-        
-        state.error = response.error || 'Failed to refresh token';
-        console.error('Token refresh error:', state.error);
-        return false;
-      } catch (error) {
-        state.error = state.error || error.message || 'Token refresh failed';
-          return false;
-      }
+  const logout = async () => {
+    try {
+      await logoutApi()
+    } catch (err) {
+      console.error('Logout error:', err)
     }
-  },
 
-    hasPermission: (permission: string): boolean => {
-      if (!state.user || !state.token) return false;
-      
-      // Check against user permissions or backend
-      const userPermissions = state.permissions;
-      if (userPermissions.includes(permission)) {
-        return true;
+    // Clear stores
+    accessStore.reset()
+    userStore.reset()
+    error.value = null
+
+    // Redirect to login
+    await router.push('/login')
+  }
+
+  const fetchUserInfo = async () => {
+    try {
+      const user = await getMeApi()
+      if (user) {
+        userStore.setUserInfo({
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          role: user.role,
+          avatar: user.avatar
+        })
+        return true
       }
-      
-      return false;
+      return false
+    } catch (err) {
+      console.error('Fetch user info error:', err)
+      return false
     }
-  };
+  }
 
   return {
-    state, actions, getters
-  };
-});
+    loading,
+    error,
+    login,
+    logout,
+    fetchUserInfo
+  }
+})

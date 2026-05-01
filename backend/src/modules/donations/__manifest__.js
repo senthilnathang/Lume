@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'Donation and donor management',
   description: '# Donations Module\n\nComprehensive donation tracking:\n\n- **Donations** - Track all donations\n- **Donors** - Manage donor information\n- **Campaigns** - Create donation campaigns\n- **Reports** - Financial reports and analytics',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'Financial',
   

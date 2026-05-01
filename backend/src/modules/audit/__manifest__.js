@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'Audit logging and activity tracking',
   description: '# Audit Module\n\nSystem activity tracking:\n\n- **Activity Logs** - Track all user actions\n- **Filtering** - Filter by user, action, date\n- **Cleanup** - Archive old logs\n- **Compliance** - Meet regulatory requirements',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
   

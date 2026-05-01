@@ -1,0 +1,156 @@
+interface GridEntity implements TenantScoped {
+  id: ID!
+  tenantId: ID!
+  title: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  updatedBy: User
+}
+
+type DataGridColumn {
+  id: ID!
+  name: String!
+  type: ColumnType!
+  displayName: String!
+  width: Int
+  sortable: Boolean!
+  filterable: Boolean!
+  editable: Boolean!
+  hidden: Boolean!
+  formatters: [String!]
+  validators: [String!]
+  sequence: Int!
+}
+
+enum ColumnType {
+  TEXT
+  NUMBER
+  DATE
+  DATETIME
+  BOOLEAN
+  SELECT
+  MULTISELECT
+  RELATION
+  RICH_TEXT
+  JSON
+}
+
+type DataGrid implements GridEntity {
+  id: ID!
+  tenantId: ID!
+  title: String!
+  description: String
+  columns: [DataGridColumn!]!
+  rows(input: PaginationInput): [GridRow!]! @policy(resource: "datagrid", action: "read")
+  totalRows: Int!
+  pageSize: Int!
+  filters: [FilterRule!]!
+  sort: [SortRule!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User!
+  updatedBy: User
+}
+
+type GridRow {
+  id: ID!
+  gridId: ID!
+  data: JSON!
+  sequence: Int!
+  status: RowStatus!
+  errors: [String!]
+}
+
+enum RowStatus {
+  VALID
+  INVALID
+  PENDING_REVIEW
+}
+
+type FilterRule {
+  id: ID!
+  field: String!
+  operator: FilterOperator!
+  value: String!
+}
+
+type SortRule {
+  id: ID!
+  field: String!
+  direction: SortDirection!
+}
+
+type DataGridConnection {
+  edges: [DataGridEdge!]!
+  pageInfo: PageInfo!
+}
+
+type DataGridEdge {
+  node: DataGrid!
+  cursor: String!
+}
+
+type RowMutationResponse implements MutationResponse {
+  success: Boolean!
+  message: String!
+  errors: [ErrorDetail!]
+  row: GridRow
+}
+
+type BulkUpdateResponse implements MutationResponse {
+  success: Boolean!
+  message: String!
+  errors: [ErrorDetail!]
+  updatedCount: Int!
+  failedCount: Int!
+  failedRows: [RowMutationResponse!]
+}
+
+input DataGridInput {
+  title: String!
+  description: String
+  columns: [DataGridColumnInput!]!
+}
+
+input DataGridColumnInput {
+  name: String!
+  type: ColumnType!
+  displayName: String!
+  width: Int
+  sortable: Boolean = true
+  filterable: Boolean = true
+  editable: Boolean = true
+  hidden: Boolean = false
+  sequence: Int!
+}
+
+input RowDataInput {
+  gridId: ID!
+  data: JSON!
+}
+
+extend type Query {
+  dataGrid(id: ID!): DataGrid @auth(roles: ["user"])
+  dataGrids(input: PaginationInput): DataGridConnection! @auth(roles: ["user"])
+  dataGridRows(gridId: ID!, input: PaginationInput): [GridRow!]! @auth(roles: ["user"]) @policy(resource: "datagrid", action: "read")
+}
+
+extend type Mutation {
+  createDataGrid(input: DataGridInput!): DataGrid! @auth(roles: ["user"]) @policy(resource: "datagrid", action: "create")
+  updateDataGrid(id: ID!, input: DataGridInput!): DataGrid! @auth(roles: ["user"]) @policy(resource: "datagrid", action: "update")
+  deleteDataGrid(id: ID!): Boolean! @auth(roles: ["user"]) @policy(resource: "datagrid", action: "delete")
+
+  createRow(input: RowDataInput!): RowMutationResponse! @auth(roles: ["user"]) @policy(resource: "datagrid_rows", action: "create")
+  updateRow(id: ID!, data: JSON!): RowMutationResponse! @auth(roles: ["user"]) @policy(resource: "datagrid_rows", action: "update")
+  deleteRow(id: ID!): Boolean! @auth(roles: ["user"]) @policy(resource: "datagrid_rows", action: "delete")
+  bulkDeleteRows(gridId: ID!, ids: [ID!]!): Int! @auth(roles: ["user"]) @policy(resource: "datagrid_rows", action: "delete")
+
+  bulkUpdateRows(gridId: ID!, rows: [RowDataInput!]!): BulkUpdateResponse! @auth(roles: ["user"]) @policy(resource: "datagrid_rows", action: "update")
+}
+
+extend type Subscription {
+  dataGridUpdated(gridId: ID!): DataGrid!
+  rowUpdated(gridId: ID!): GridRow!
+}

@@ -1,0 +1,91 @@
+# Team Management Schema
+# Manages team members, roles, and organizational structure
+
+"""Team member entity"""
+type TeamMember {
+  id: ID!
+  tenantId: String!
+  name: String!
+  email: String!
+  role: TeamRole!
+  status: TeamMemberStatus!
+  avatar: String
+  bio: String
+  socialLinks: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""Team member role enumeration"""
+enum TeamRole {
+  LEAD
+  MEMBER
+  CONTRIBUTOR
+  VIEWER
+}
+
+"""Team member status enumeration"""
+enum TeamMemberStatus {
+  ACTIVE
+  INACTIVE
+  PENDING_INVITATION
+  INVITED
+}
+
+"""Team member connection for pagination"""
+type TeamMemberConnection {
+  edges: [TeamMemberEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TeamMemberEdge {
+  node: TeamMember!
+  cursor: String!
+}
+
+"""Team member filter options"""
+input TeamMemberFilter {
+  role: TeamRole
+  status: TeamMemberStatus
+  search: String
+}
+
+"""Team member input for creating and updating"""
+input TeamMemberInput {
+  name: String!
+  email: String!
+  role: TeamRole
+  status: TeamMemberStatus
+  avatar: String
+  bio: String
+  socialLinks: JSON
+}
+
+extend type Query {
+  """Get a single team member by ID"""
+  teamMember(id: ID!): TeamMember
+
+  """List all team members with filters and pagination"""
+  teamMembers(
+    filter: TeamMemberFilter
+    page: Int
+    limit: Int
+  ): TeamMemberConnection!
+}
+
+extend type Mutation {
+  """Create a new team member"""
+  createTeamMember(input: TeamMemberInput!): TeamMember!
+
+  """Update an existing team member"""
+  updateTeamMember(id: ID!, input: TeamMemberInput!): TeamMember!
+
+  """Update team member role"""
+  updateTeamMemberRole(id: ID!, role: TeamRole!): TeamMember!
+
+  """Update team member status"""
+  updateTeamMemberStatus(id: ID!, status: TeamMemberStatus!): TeamMember!
+
+  """Delete a team member"""
+  deleteTeamMember(id: ID!): Boolean!
+}

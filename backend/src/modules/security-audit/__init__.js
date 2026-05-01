@@ -2,7 +2,7 @@
  * Security Audit Module Initialization
  */
 
-import manifest from './manifest.js';
+import manifest from './__manifest__.js';
 import { SecurityAuditService } from './services/security-audit.service.js';
 import { createSecurityAuditRoutes } from './routes.js';
 import securityHardening from './security-hardening.js';

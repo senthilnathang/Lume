@@ -1,34 +1,45 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { setupAuthGuard, setupAccessGuard } from './guards'
 
-const routes = [
+const staticRoutes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../views/LoginView.vue')
+    component: () => import('../views/LoginView.vue'),
+    meta: { requiresAuth: false }
   },
   {
     path: '/',
     name: 'Dashboard',
-    component: () => import('../views/DashboardView.vue'),
+    component: () => import('../layouts/BasicLayout.vue'),
+    children: [
+      {
+        path: '',
+        component: () => import('../views/DashboardView.vue'),
+        meta: { requiresAuth: true, title: 'Dashboard' }
+      }
+    ],
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/forbidden',
+    name: 'Forbidden',
+    component: () => import('../views/ForbiddenView.vue')
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../views/NotFoundView.vue')
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes: staticRoutes
 })
 
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('token')
-
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login')
-  } else if (to.path === '/login' && isAuthenticated) {
-    next('/')
-  } else {
-    next()
-  }
-})
+// Setup guards
+setupAuthGuard(router)
+setupAccessGuard(router)
 
 export default router

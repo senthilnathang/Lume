@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'Document management',
   description: '# Documents Module\n\nFile and document management:\n\n- **Document Storage** - Upload and manage files\n- **Categories** - Organize by type\n- **Downloads** - Track download statistics\n- **Access Control** - Public and private documents',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'Content',
   

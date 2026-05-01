@@ -9,8 +9,8 @@ export default {
   version: '1.0.0',
   summary: 'Rich Text Editor',
   description: '# Editor Module\n\nTipTap-based WYSIWYG editor with reusable components:\n\n- **Rich Editor** - Full-featured content editor\n- **Compact Editor** - Minimal editor for forms\n- **Templates** - Reusable page templates\n- **Snippets** - Reusable content blocks',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'Content',
 

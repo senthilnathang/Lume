@@ -8,8 +8,8 @@ export default {
   version: '1.0.0',
   summary: 'Application settings management',
   description: '# Settings Module\n\nApplication configuration:\n\n- **General Settings** - Site name, description\n- **Contact Info** - Email, phone, address\n- **Localization** - Currency, timezone\n- **Social Links** - Social media connections',
-  author: 'Gawdesy',
-  website: 'https://gawdesy.org',
+  author: 'Lume',
+  website: 'https://lume.dev',
   license: 'MIT',
   category: 'System',
   

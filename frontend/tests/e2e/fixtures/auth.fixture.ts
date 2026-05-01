@@ -1,6 +1,7 @@
 import { test as base, Page } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 export type AuthFixture = {
   authenticatedPage: Page;
@@ -18,6 +19,7 @@ export type AuthFixture = {
  * Subsequent runs: Auth state is loaded from cache, speeding up test execution
  */
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const AUTH_STATE_DIR = path.join(__dirname, '../auth-states');
 const ADMIN_STATE_FILE = path.join(AUTH_STATE_DIR, 'admin-auth.json');
 const USER_STATE_FILE = path.join(AUTH_STATE_DIR, 'user-auth.json');
