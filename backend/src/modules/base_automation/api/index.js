@@ -79,14 +79,14 @@ const createRoutes = (models, services) => {
       if (!states || states.length === 0) errors.push('At least one state is required');
 
       // Validate start and end states
-      const startStates = states?.filter((s: any) => s.is_start);
-      const endStates = states?.filter((s: any) => s.is_end);
+      const startStates = states?.filter(s => s.is_start);
+      const endStates = states?.filter(s => s.is_end);
       if (!startStates?.length) errors.push('At least one start state is required');
       if (!endStates?.length) errors.push('At least one end state is required');
 
       // Check for duplicate state codes
-      const codes = states?.map((s: any) => s.code) || [];
-      const duplicates = codes.filter((c: string, i: number) => codes.indexOf(c) !== i);
+      const codes = states?.map(s => s.code) || [];
+      const duplicates = codes.filter((c, i) => codes.indexOf(c) !== i);
       if (duplicates.length > 0) {
         errors.push(`Duplicate state codes: ${duplicates.join(', ')}`);
       }
@@ -94,8 +94,8 @@ const createRoutes = (models, services) => {
       // Validate transitions
       if (transitions && transitions.length > 0) {
         for (const t of transitions) {
-          const fromExists = states?.find((s: any) => s.code === t.from_state);
-          const toExists = states?.find((s: any) => s.code === t.to_state);
+          const fromExists = states?.find(s => s.code === t.from_state);
+          const toExists = states?.find(s => s.code === t.to_state);
           if (!fromExists) errors.push(`Transition references unknown state: ${t.from_state}`);
           if (!toExists) errors.push(`Transition references unknown state: ${t.to_state}`);
         }

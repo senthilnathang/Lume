@@ -2,7 +2,7 @@
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": ["NODE_ENV"],
   "globalDependencies": ["**/package.json"],
-  "pipeline": {
+  "tasks": {
     "typecheck": {
       "cache": false,
       "outputs": []
