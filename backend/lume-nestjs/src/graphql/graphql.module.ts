@@ -6,6 +6,7 @@ import { PrismaService } from '../core/services/prisma.service';
 import { DrizzleService } from '../core/services/drizzle.service';
 import { ScalarsModule } from './scalars/scalars.module';
 import { GraphQLGuardsModule } from './guards/guards.module';
+import { DataGridModule } from './grids/data-grid/data-grid.module';
 import { GraphQLContextFactory } from './graphql.context';
 import { createGraphQLConfig } from './graphql.config';
 
@@ -13,6 +14,7 @@ import { createGraphQLConfig } from './graphql.config';
   imports: [
     ScalarsModule,
     GraphQLGuardsModule,
+    DataGridModule,
     GraphQLModule.forRootAsync<any>({
       driver: ApolloDriver,
       imports: [ScalarsModule],
