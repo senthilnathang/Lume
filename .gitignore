@@ -92,3 +92,7 @@ lume-deploy.zip
 # Turbo cache
 .turbo/
 .worktrees
+
+# Claude Code / IDE
+.claude/
+.superpowers/
