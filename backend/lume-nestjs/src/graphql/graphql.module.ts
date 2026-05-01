@@ -8,6 +8,7 @@ import { ScalarsModule } from './scalars/scalars.module';
 import { GraphQLGuardsModule } from './guards/guards.module';
 import { DataGridModule } from './grids/data-grid/data-grid.module';
 import { PolicyGridModule } from './grids/policy-grid/policy-grid.module';
+import { FlowGridModule } from './grids/flow-grid/flow-grid.module';
 import { GraphQLContextFactory } from './graphql.context';
 import { createGraphQLConfig } from './graphql.config';
 
@@ -17,6 +18,7 @@ import { createGraphQLConfig } from './graphql.config';
     GraphQLGuardsModule,
     DataGridModule,
     PolicyGridModule,
+    FlowGridModule,
     GraphQLModule.forRootAsync<any>({
       driver: ApolloDriver,
       imports: [ScalarsModule],
