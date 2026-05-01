@@ -487,8 +487,9 @@ import {
   getWorkflowDefinitionApi,
   createWorkflowDefinitionApi,
   updateWorkflowDefinitionApi,
+  validateWorkflowDefinitionApi,
   getApprovalChainsApi,
-} from '#/api/base_automation';
+} from '@modules/base_automation/static/api/index';
 
 const props = defineProps({
   workflowId: {
@@ -998,9 +999,10 @@ async function handleSave() {
         color: s.color,
         is_start: s.is_start || false,
         is_end: s.is_end || false,
+        is_decision: s.is_decision || false,
         sla_hours: s.sla_hours,
         sequence: s.sequence || 10,
-        // Store position for visual designer
+        // Store position for visual designer (Wave 2)
         x: s.x,
         y: s.y,
       })),
@@ -1022,6 +1024,14 @@ async function handleSave() {
       })),
     };
 
+    // Validate before save
+    try {
+      await validateWorkflowDefinitionApi(data);
+    } catch (validationErr) {
+      message.error('Validation failed: ' + (validationErr.response?.data?.error || 'Unknown validation error'));
+      throw validationErr;
+    }
+
     if (isEdit.value) {
       await updateWorkflowDefinitionApi(props.workflowId, data);
       message.success('Workflow updated successfully');
@@ -1033,7 +1043,9 @@ async function handleSave() {
     emit('saved');
   } catch (err) {
     console.error('Save failed:', err);
-    message.error(err.response?.data?.detail || 'Failed to save workflow');
+    if (!err.response?.status === 400) {
+      message.error(err.response?.data?.detail || 'Failed to save workflow');
+    }
   } finally {
     saving.value = false;
   }

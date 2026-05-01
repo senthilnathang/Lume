@@ -32,8 +32,8 @@ export default {
         icon: 'lucide:layout',
         sequence: 90,
         children: [
-          { name: 'Templates', path: '/settings/editor/templates', icon: 'lucide:file-text', sequence: 1 },
-          { name: 'Widget Manager', path: '/editor/widget-manager', icon: 'lucide:puzzle', sequence: 2 },
+          { name: 'Templates', path: '/settings/editor/templates', icon: 'lucide:file-text', sequence: 1, viewName: 'templates' },
+          { name: 'Widget Manager', path: '/editor/widget-manager', icon: 'lucide:puzzle', sequence: 2, viewName: 'widget-manager' },
         ],
       },
     ],

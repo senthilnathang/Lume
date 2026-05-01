@@ -45,21 +45,24 @@ export default {
             path: '/settings/advanced/webhooks',
             icon: 'lucide:webhook',
             sequence: 1,
-            permission: 'advanced_features.webhooks.manage'
+            permission: 'advanced_features.webhooks.manage',
+            viewName: 'webhooks'
           },
           {
             name: 'Notifications',
             path: '/settings/advanced/notifications',
             icon: 'lucide:bell',
             sequence: 2,
-            permission: 'advanced_features.notifications.manage'
+            permission: 'advanced_features.notifications.manage',
+            viewName: 'notifications'
           },
           {
             name: 'Tags',
             path: '/settings/advanced/tags',
             icon: 'lucide:tag',
             sequence: 3,
-            permission: 'advanced_features.tags.manage'
+            permission: 'advanced_features.tags.manage',
+            viewName: 'tags'
           }
         ]
       }

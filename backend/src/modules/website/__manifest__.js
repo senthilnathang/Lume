@@ -39,16 +39,16 @@ export default {
         icon: 'lucide:globe',
         sequence: 25,
         children: [
-          { name: 'Pages', path: '/website/pages', icon: 'lucide:file-text', sequence: 1 },
-          { name: 'Menus', path: '/website/menus', icon: 'lucide:menu', sequence: 2 },
-          { name: 'Media', path: '/website/media', icon: 'lucide:image', sequence: 3 },
-          { name: 'Forms', path: '/website/forms', icon: 'lucide:file-input', sequence: 4 },
-          { name: 'Theme Builder', path: '/website/theme-builder', icon: 'lucide:layout', sequence: 5 },
-          { name: 'Popups', path: '/website/popups', icon: 'lucide:maximize-2', sequence: 6 },
-          { name: 'Settings', path: '/website/settings', icon: 'lucide:settings', sequence: 7 },
-          { name: 'Redirects', path: '/website/redirects', icon: 'ArrowLeftRight', sequence: 8 },
-          { name: 'Categories', path: '/website/categories', icon: 'lucide:tag', sequence: 9 },
-          { name: 'Tags', path: '/website/tags', icon: 'lucide:hash', sequence: 10 },
+          { name: 'Pages', path: '/website/pages', icon: 'lucide:file-text', sequence: 1, viewName: 'pages' },
+          { name: 'Menus', path: '/website/menus', icon: 'lucide:menu', sequence: 2, viewName: 'menus' },
+          { name: 'Media', path: '/website/media', icon: 'lucide:image', sequence: 3, viewName: 'media' },
+          { name: 'Forms', path: '/website/forms', icon: 'lucide:file-input', sequence: 4, viewName: 'forms' },
+          { name: 'Theme Builder', path: '/website/theme-builder', icon: 'lucide:layout', sequence: 5, viewName: 'theme-builder' },
+          { name: 'Popups', path: '/website/popups', icon: 'lucide:maximize-2', sequence: 6, viewName: 'popups' },
+          { name: 'Settings', path: '/website/settings', icon: 'lucide:settings', sequence: 7, viewName: 'settings' },
+          { name: 'Redirects', path: '/website/redirects', icon: 'ArrowLeftRight', sequence: 8, viewName: 'redirects' },
+          { name: 'Categories', path: '/website/categories', icon: 'lucide:tag', sequence: 9, viewName: 'categories' },
+          { name: 'Tags', path: '/website/tags', icon: 'lucide:hash', sequence: 10, viewName: 'tags' },
         ]
       }
     ]

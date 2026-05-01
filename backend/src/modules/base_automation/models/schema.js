@@ -99,3 +99,26 @@ export const automationRollupFields = table('automation_rollup_fields', {
   description: text('description'),
   status: varchar('status', { length: 20 }).default('active'),
 });
+
+// Phase 8: Workflow Execution
+export const automationWorkflowExecutions = table('automation_workflow_executions', {
+  ...baseColumns(),
+  workflowId: idCol('workflow_id').notNull(),
+  recordId: varchar('record_id', { length: 100 }),
+  currentState: varchar('current_state', { length: 100 }).notNull(),
+  status: varchar('status', { length: 20 }).default('active'), // active, completed, rejected, aborted
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+  executionData: json('execution_data').$type().default({}),
+});
+
+export const automationWorkflowExecutionHistory = table('automation_workflow_execution_history', {
+  ...baseColumns(),
+  executionId: idCol('execution_id').notNull(),
+  fromState: varchar('from_state', { length: 100 }),
+  toState: varchar('to_state', { length: 100 }).notNull(),
+  transitionName: varchar('transition_name', { length: 100 }),
+  transitionedAt: timestamp('transitioned_at').notNull().defaultNow(),
+  userId: idCol('user_id'),
+  metadata: json('metadata').$type().default({}),
+});

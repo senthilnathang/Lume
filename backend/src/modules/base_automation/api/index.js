@@ -67,6 +67,46 @@ const createRoutes = (models, services) => {
     }
   });
 
+  router.post('/workflows/validate', async (req, res) => {
+    try {
+      const errors = [];
+      const { name, code, model_name, states, transitions } = req.body;
+
+      // Validate required fields
+      if (!name) errors.push('Workflow name is required');
+      if (!code) errors.push('Workflow code is required');
+      if (!model_name) errors.push('Model is required');
+      if (!states || states.length === 0) errors.push('At least one state is required');
+
+      // Validate start and end states
+      const startStates = states?.filter((s: any) => s.is_start);
+      const endStates = states?.filter((s: any) => s.is_end);
+      if (!startStates?.length) errors.push('At least one start state is required');
+      if (!endStates?.length) errors.push('At least one end state is required');
+
+      // Check for duplicate state codes
+      const codes = states?.map((s: any) => s.code) || [];
+      const duplicates = codes.filter((c: string, i: number) => codes.indexOf(c) !== i);
+      if (duplicates.length > 0) {
+        errors.push(`Duplicate state codes: ${duplicates.join(', ')}`);
+      }
+
+      // Validate transitions
+      if (transitions && transitions.length > 0) {
+        for (const t of transitions) {
+          const fromExists = states?.find((s: any) => s.code === t.from_state);
+          const toExists = states?.find((s: any) => s.code === t.to_state);
+          if (!fromExists) errors.push(`Transition references unknown state: ${t.from_state}`);
+          if (!toExists) errors.push(`Transition references unknown state: ${t.to_state}`);
+        }
+      }
+
+      res.json({ success: true, data: { errors } });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
   // ── Flows ─────────────────────────────────────────────────────
 
   router.get('/flows', async (req, res) => {
@@ -451,6 +491,41 @@ const createRoutes = (models, services) => {
     try {
       await svc.deleteRollupField(req.params.id);
       res.json({ success: true, message: 'Rollup field deleted' });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  // ── Workflow Execution ─────────────────────────────────────────
+
+  router.post('/workflows/:id/run/:recordId', async (req, res) => {
+    try {
+      const { id, recordId } = req.params;
+      const execution = await svc.startWorkflowExecution(id, recordId, req.user?.id);
+      res.json({ success: true, data: execution });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/workflows/:id/executions/:executionId', async (req, res) => {
+    try {
+      const { executionId } = req.params;
+      const execution = await svc.getWorkflowExecution(executionId);
+      if (!execution) return res.status(404).json({ success: false, error: 'Execution not found' });
+      const history = await svc.getExecutionHistory(executionId);
+      res.json({ success: true, data: { execution, history } });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/workflows/:id/executions/:executionId/transition', async (req, res) => {
+    try {
+      const { executionId } = req.params;
+      const { toState, transitionName } = req.body;
+      const execution = await svc.transitionWorkflowState(executionId, toState, transitionName, req.user?.id);
+      res.json({ success: true, data: execution });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
     }

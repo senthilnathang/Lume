@@ -34,9 +34,9 @@ export default {
         icon: 'lucide:users',
         sequence: 15,
         children: [
-          { name: 'All Team', path: '/team', icon: 'lucide:users', sequence: 1 },
-          { name: 'Leadership', path: '/team/leadership', icon: 'lucide:crown', sequence: 2 },
-          { name: 'Departments', path: '/team/departments', icon: 'lucide:building', sequence: 3 }
+          { name: 'All Team', path: '/team', icon: 'lucide:users', sequence: 1, viewName: 'list' },
+          { name: 'Leadership', path: '/team/leadership', icon: 'lucide:crown', sequence: 2, viewName: 'leadership' },
+          { name: 'Departments', path: '/team/departments', icon: 'lucide:building', sequence: 3, viewName: 'departments' }
         ]
       }
     ]

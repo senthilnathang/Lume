@@ -40,28 +40,32 @@ export default {
             path: '/settings/security/access',
             icon: 'lucide:lock',
             sequence: 1,
-            permission: 'base_security.access.manage'
+            permission: 'base_security.access.manage',
+            viewName: 'acl-builder'
           },
           {
             name: '2FA',
             path: '/settings/security/2fa',
             icon: 'lucide:smartphone',
             sequence: 2,
-            permission: 'base_security.2fa.manage'
+            permission: 'base_security.2fa.manage',
+            viewName: 'security'
           },
           {
             name: 'Sessions',
             path: '/settings/security/sessions',
             icon: 'lucide:clock',
             sequence: 3,
-            permission: 'base_security.sessions.manage'
+            permission: 'base_security.sessions.manage',
+            viewName: 'user-security-settings'
           },
           {
             name: 'API Keys',
             path: '/settings/security/api-keys',
             icon: 'lucide:key',
             sequence: 4,
-            permission: 'base_security.api_keys.manage'
+            permission: 'base_security.api_keys.manage',
+            viewName: 'permission-sets'
           }
         ]
       }

@@ -34,10 +34,10 @@ export default {
         icon: 'lucide:settings',
         sequence: 100,
         children: [
-          { name: 'General', path: '/settings/general', icon: 'lucide:sliders', sequence: 1 },
-          { name: 'Contact', path: '/settings/contact', icon: 'lucide:mail', sequence: 2 },
-          { name: 'Localization', path: '/settings/localization', icon: 'lucide:globe', sequence: 3 },
-          { name: 'Social', path: '/settings/social', icon: 'lucide:share-2', sequence: 4 }
+          { name: 'General', path: '/settings/general', icon: 'lucide:sliders', sequence: 1, viewName: 'app-settings' },
+          { name: 'Contact', path: '/settings/contact', icon: 'lucide:mail', sequence: 2, viewName: 'settings' },
+          { name: 'Localization', path: '/settings/localization', icon: 'lucide:globe', sequence: 3, viewName: 'settings' },
+          { name: 'Social', path: '/settings/social', icon: 'lucide:share-2', sequence: 4, viewName: 'settings' }
         ]
       }
     ]
