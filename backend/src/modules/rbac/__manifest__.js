@@ -35,10 +35,10 @@ export default {
         sequence: 15,
         permission: 'rbac.access',
         children: [
-          { name: 'Roles', path: '/settings/rbac/roles', icon: 'lucide:users', sequence: 1, permission: 'rbac.roles.read' },
-          { name: 'Permissions', path: '/settings/rbac/permissions', icon: 'lucide:key', sequence: 2, permission: 'rbac.permissions.read' },
-          { name: 'Access Rules', path: '/settings/rbac/access-rules', icon: 'lucide:file-lock', sequence: 3, permission: 'rbac.rules.read' },
-          { name: 'Audit', path: '/settings/rbac/audit', icon: 'lucide:history', sequence: 4, permission: 'rbac.audit.read' }
+          { name: 'Roles', path: '/settings/rbac/roles', icon: 'lucide:users', sequence: 1, permission: 'rbac.roles.read', viewName: 'roles' },
+          { name: 'Permissions', path: '/settings/rbac/permissions', icon: 'lucide:key', sequence: 2, permission: 'rbac.permissions.read', viewName: 'permissions' },
+          { name: 'Access Rules', path: '/settings/rbac/access-rules', icon: 'lucide:file-lock', sequence: 3, permission: 'rbac.rules.read', viewName: 'access-rules' },
+          { name: 'Audit', path: '/settings/rbac/audit', icon: 'lucide:history', sequence: 4, permission: 'rbac.audit.read', viewName: 'audit' }
         ]
       }
     ]
