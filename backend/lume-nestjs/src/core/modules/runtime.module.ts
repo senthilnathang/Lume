@@ -11,9 +11,10 @@ import { VersioningService } from '@core/versioning/versioning.service';
 import { AIAdapterService } from '@core/ai/ai-adapter.service';
 import { AskQueryService } from '@core/ai/ask-query.service';
 import { PluginRegistryService } from '@core/plugin/plugin-registry.service';
+import { PluginsModule } from '../../modules/plugins/plugins.module';
 
 @Module({
-  imports: [EventEmitterModule.forRoot()],
+  imports: [EventEmitterModule.forRoot(), PluginsModule],
   providers: [
     MetadataRegistryService,
     ExecutionPipelineService,

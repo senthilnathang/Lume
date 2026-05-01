@@ -41,6 +41,7 @@ import { AdvancedFeaturesModule } from './modules/advanced_features/advanced-fea
 import { LumeModule } from './modules/lume/lume.module';
 import { GawdesyModule } from './modules/gawdesy/gawdesy.module';
 import { SecurityAuditModule } from './modules/security_audit/security-audit.module';
+import { PluginsModule } from './modules/plugins/plugins.module';
 
 // Controllers (Health check)
 import { HealthController } from './health.controller';
@@ -92,6 +93,7 @@ import { GraphQLCoreModule } from './graphql/graphql.module';
     LumeModule,
     GawdesyModule,
     SecurityAuditModule,
+    PluginsModule,
   ],
   controllers: [HealthController],
   providers: [

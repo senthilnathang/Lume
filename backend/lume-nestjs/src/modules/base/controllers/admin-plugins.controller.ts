@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, HttpCode, UseGuards, Req } from '@nestjs/common';
 import { PluginRegistryService } from '../../../core/plugin/plugin-registry.service.js';
 import { MetadataRegistryService } from '../../../core/runtime/metadata-registry.service.js';
+import { DrizzleService } from '../../../core/services/drizzle.service.js';
 import { PolicyGuard, Policy } from '../../../core/permission/policy.guard.js';
+import { readFile } from 'fs/promises';
 
 @Controller('admin/plugins')
 @UseGuards(PolicyGuard)
@@ -9,6 +11,7 @@ export class AdminPluginsController {
   constructor(
     private readonly pluginRegistry: PluginRegistryService,
     private readonly metadataRegistry: MetadataRegistryService,
+    private readonly drizzle: DrizzleService,
   ) {}
 
   @Get()
@@ -52,10 +55,20 @@ export class AdminPluginsController {
   @Post('install')
   @HttpCode(201)
   @Policy(['admin', 'super_admin'])
-  async installPlugin(@Body() body: { manifestPath: string }) {
+  async installPlugin(@Body() body: { manifestPath: string }, @Req() req: any) {
     try {
-      await this.pluginRegistry.install(body.manifestPath);
-      return { success: true, message: 'Plugin installed successfully' };
+      const manifestContent = await readFile(body.manifestPath, 'utf-8');
+      const manifest = JSON.parse(manifestContent);
+
+      const moduleDefinition = this.metadataRegistry.getModule(manifest.name);
+      if (!moduleDefinition) {
+        return { success: false, message: `Module definition not found for ${manifest.name}` };
+      }
+
+      const userId = req.user?.sub;
+      await this.pluginRegistry.install(manifest, moduleDefinition, this.drizzle, userId);
+
+      return { success: true, message: 'Plugin installed successfully', data: { name: manifest.name, version: manifest.version } };
     } catch (error) {
       return { success: false, message: error.message };
     }
@@ -64,9 +77,10 @@ export class AdminPluginsController {
   @Post(':pluginName/enable')
   @HttpCode(200)
   @Policy(['admin', 'super_admin'])
-  async enablePlugin(@Param('pluginName') pluginName: string) {
+  async enablePlugin(@Param('pluginName') pluginName: string, @Req() req: any) {
     try {
-      await this.pluginRegistry.enable(pluginName);
+      const userId = req.user?.sub;
+      await this.pluginRegistry.enable(pluginName, userId);
       return { success: true, message: `Plugin ${pluginName} enabled` };
     } catch (error) {
       return { success: false, message: error.message };
@@ -76,9 +90,10 @@ export class AdminPluginsController {
   @Post(':pluginName/disable')
   @HttpCode(200)
   @Policy(['admin', 'super_admin'])
-  async disablePlugin(@Param('pluginName') pluginName: string) {
+  async disablePlugin(@Param('pluginName') pluginName: string, @Req() req: any) {
     try {
-      await this.pluginRegistry.disable(pluginName);
+      const userId = req.user?.sub;
+      await this.pluginRegistry.disable(pluginName, userId);
       return { success: true, message: `Plugin ${pluginName} disabled` };
     } catch (error) {
       return { success: false, message: error.message };
@@ -87,9 +102,10 @@ export class AdminPluginsController {
 
   @Delete(':pluginName')
   @Policy(['admin', 'super_admin'])
-  async uninstallPlugin(@Param('pluginName') pluginName: string) {
+  async uninstallPlugin(@Param('pluginName') pluginName: string, @Req() req: any) {
     try {
-      await this.pluginRegistry.uninstall(pluginName);
+      const userId = req.user?.sub;
+      await this.pluginRegistry.uninstall(pluginName, this.drizzle, userId);
       return { success: true, message: `Plugin ${pluginName} uninstalled` };
     } catch (error) {
       return { success: false, message: error.message };

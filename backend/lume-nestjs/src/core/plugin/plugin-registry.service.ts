@@ -1,6 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ModuleDefinition } from '@core/runtime/metadata-registry.service';
 import { ModuleLoaderService } from '@core/module/module-loader.service';
+import { PluginPersistenceService } from '@modules/plugins/services/plugin-persistence.service';
+import { SemverService } from '@modules/plugins/services/semver.service';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
 export interface PluginManifest {
   name: string;
@@ -33,15 +37,41 @@ export interface InstalledPlugin {
 }
 
 @Injectable()
-export class PluginRegistryService {
+export class PluginRegistryService implements OnModuleInit {
   private installedPlugins = new Map<string, InstalledPlugin>();
+  private appVersion = '2.0.0';
 
-  constructor(private moduleLoader: ModuleLoaderService) {}
+  constructor(
+    private moduleLoader: ModuleLoaderService,
+    private pluginPersistence: PluginPersistenceService,
+    private semverService: SemverService,
+  ) {}
+
+  async onModuleInit() {
+    try {
+      const installedPlugins = await this.pluginPersistence.getAllInstalled();
+      for (const plugin of installedPlugins) {
+        if (plugin.manifestJson) {
+          this.installedPlugins.set(plugin.name, {
+            name: plugin.name,
+            version: plugin.version,
+            manifest: plugin.manifestJson,
+            installedAt: plugin.installedAt,
+            enabled: plugin.isEnabled,
+          });
+        }
+      }
+      console.log(`Loaded ${installedPlugins.length} plugins from database`);
+    } catch (error) {
+      console.error('Failed to hydrate plugins from database:', error);
+    }
+  }
 
   async install(
     manifest: PluginManifest,
     moduleDefinition: ModuleDefinition,
     db?: any,
+    userId?: number,
   ): Promise<void> {
     // Validate manifest format
     this.validateManifest(manifest);
@@ -64,18 +94,29 @@ export class PluginRegistryService {
     await this.moduleLoader.installModule(moduleDefinition, db);
 
     // Register plugin as installed
-    this.installedPlugins.set(manifest.name, {
+    const installedPlugin: InstalledPlugin = {
       name: manifest.name,
       version: manifest.version,
       manifest,
       installedAt: new Date(),
       enabled: true,
-    });
+    };
+    this.installedPlugins.set(manifest.name, installedPlugin);
+
+    // Persist to database
+    await this.pluginPersistence.savePlugin(manifest, userId);
+    await this.pluginPersistence.logOperation(
+      manifest.name,
+      'install',
+      'success',
+      `Plugin ${manifest.name}@${manifest.version} installed`,
+      userId,
+    );
 
     console.log(`Plugin '${manifest.name}' installed successfully`);
   }
 
-  async uninstall(pluginName: string, db?: any): Promise<void> {
+  async uninstall(pluginName: string, db?: any, userId?: number): Promise<void> {
     const plugin = this.installedPlugins.get(pluginName);
     if (!plugin) {
       throw new Error(`Plugin '${pluginName}' not installed`);
@@ -105,25 +146,51 @@ export class PluginRegistryService {
     // Remove from installed list
     this.installedPlugins.delete(pluginName);
 
+    // Persist to database
+    await this.pluginPersistence.removePlugin(pluginName);
+    await this.pluginPersistence.logOperation(
+      pluginName,
+      'uninstall',
+      'success',
+      `Plugin ${pluginName} uninstalled`,
+      userId,
+    );
+
     console.log(`Plugin '${pluginName}' uninstalled successfully`);
   }
 
-  async enable(pluginName: string): Promise<void> {
+  async enable(pluginName: string, userId?: number): Promise<void> {
     const plugin = this.installedPlugins.get(pluginName);
     if (!plugin) {
       throw new Error(`Plugin '${pluginName}' not installed`);
     }
 
     plugin.enabled = true;
+    await this.pluginPersistence.setEnabled(pluginName, true);
+    await this.pluginPersistence.logOperation(
+      pluginName,
+      'enable',
+      'success',
+      `Plugin ${pluginName} enabled`,
+      userId,
+    );
   }
 
-  async disable(pluginName: string): Promise<void> {
+  async disable(pluginName: string, userId?: number): Promise<void> {
     const plugin = this.installedPlugins.get(pluginName);
     if (!plugin) {
       throw new Error(`Plugin '${pluginName}' not installed`);
     }
 
     plugin.enabled = false;
+    await this.pluginPersistence.setEnabled(pluginName, false);
+    await this.pluginPersistence.logOperation(
+      pluginName,
+      'disable',
+      'success',
+      `Plugin ${pluginName} disabled`,
+      userId,
+    );
   }
 
   list(): InstalledPlugin[] {
@@ -139,18 +206,14 @@ export class PluginRegistryService {
   }
 
   checkCompatibility(manifest: PluginManifest): CompatibilityResult {
-    // Parse version compatibility string (e.g., ">=2.0.0")
-    const currentVersion = '2.0.0'; // Get from app config in production
+    if (!manifest.compatibility) {
+      return { compatible: true };
+    }
 
-    // Simple version check (in production, use semver library)
-    if (
-      manifest.compatibility &&
-      manifest.compatibility.includes('>=') &&
-      currentVersion.localeCompare(manifest.compatibility.replace('>=', '')) < 0
-    ) {
+    if (!this.semverService.isCompatible(this.appVersion, manifest.compatibility)) {
       return {
         compatible: false,
-        message: `Plugin requires version ${manifest.compatibility}, current is ${currentVersion}`,
+        message: `Plugin requires version ${manifest.compatibility}, current is ${this.appVersion}`,
       };
     }
 
@@ -185,9 +248,8 @@ export class PluginRegistryService {
         throw new Error(`Dependency not found: ${depName}@${depVersion}`);
       }
 
-      // Simple version check (in production, use semver library)
-      if (dep.version !== depVersion && !depVersion.includes('*')) {
-        console.warn(
+      if (!this.semverService.satisfies(dep.version, depVersion)) {
+        throw new Error(
           `Plugin version mismatch: ${depName} requires ${depVersion}, installed is ${dep.version}`,
         );
       }
@@ -195,9 +257,22 @@ export class PluginRegistryService {
   }
 
   private async runMigration(migrationPath: string, db: any): Promise<void> {
-    // Stub: In production, read and execute SQL file
-    console.log(`Running migration: ${migrationPath}`);
-    // Example: const sql = await fs.readFile(migrationPath, 'utf-8');
-    // await db.query(sql);
+    try {
+      const sql = await readFile(migrationPath, 'utf-8');
+      if (db && db.getDrizzle) {
+        const drizzle = db.getDrizzle();
+        const statements = sql
+          .split(';')
+          .map(stmt => stmt.trim())
+          .filter(stmt => stmt.length > 0);
+        for (const statement of statements) {
+          await drizzle.run(statement);
+        }
+      }
+      console.log(`Migration executed: ${migrationPath}`);
+    } catch (error) {
+      console.error(`Failed to run migration ${migrationPath}:`, error);
+      throw error;
+    }
   }
 }
