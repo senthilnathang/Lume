@@ -3,15 +3,15 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: gawdesy-mysql
+    container_name: ${COMPOSE_PROJECT_NAME:-lume}-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: gawdesy_db
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-lume}
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
     ports:
-      - "3306:3306"
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
@@ -25,17 +25,17 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: gawdesy-backend
+    container_name: ${COMPOSE_PROJECT_NAME:-lume}-backend
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3000
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_NAME: gawdesy_db
-      DB_USER: root
-      DB_PASSWORD: rootpassword
-      JWT_SECRET: your-super-secret-jwt-key
+      DB_NAME: ${DB_NAME:-lume}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key}
       JWT_EXPIRES_IN: 7d
     ports:
       - "3000:3000"
@@ -50,7 +50,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: gawdesy-frontend
+    container_name: ${COMPOSE_PROJECT_NAME:-lume}-frontend
     restart: unless-stopped
     ports:
       - "80:80"
@@ -64,4 +64,4 @@ volumes:
 
 networks:
   default:
-    name: gawdesy-network
+    name: ${COMPOSE_PROJECT_NAME:-lume}-network
