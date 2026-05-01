@@ -10,6 +10,10 @@ import { DataGridModule } from './grids/data-grid/data-grid.module';
 import { PolicyGridModule } from './grids/policy-grid/policy-grid.module';
 import { FlowGridModule } from './grids/flow-grid/flow-grid.module';
 import { AgentGridModule } from './grids/agent-grid/agent-grid.module';
+import { PluginsModule } from './plugins/plugins.module';
+import { TracingPlugin } from './plugins/tracing.plugin';
+import { ComplexityPlugin } from './plugins/complexity.plugin';
+import { LoggingPlugin } from './plugins/logging.plugin';
 import { GraphQLContextFactory } from './graphql.context';
 import { createGraphQLConfig } from './graphql.config';
 
@@ -21,14 +25,25 @@ import { createGraphQLConfig } from './graphql.config';
     PolicyGridModule,
     FlowGridModule,
     AgentGridModule,
+    PluginsModule,
     GraphQLModule.forRootAsync<any>({
       driver: ApolloDriver,
-      imports: [ScalarsModule],
-      inject: [ConfigService, PrismaService, DrizzleService],
+      imports: [ScalarsModule, PluginsModule],
+      inject: [
+        ConfigService,
+        PrismaService,
+        DrizzleService,
+        TracingPlugin,
+        ComplexityPlugin,
+        LoggingPlugin,
+      ],
       useFactory: (
         configService: ConfigService,
         prismaService: PrismaService,
         drizzleService: DrizzleService,
+        tracingPlugin: TracingPlugin,
+        complexityPlugin: ComplexityPlugin,
+        loggingPlugin: LoggingPlugin,
       ) => {
         const contextFactory = new GraphQLContextFactory(
           prismaService,
@@ -37,6 +52,7 @@ import { createGraphQLConfig } from './graphql.config';
         return createGraphQLConfig(
           contextFactory,
           configService.get('NODE_ENV') || 'development',
+          [tracingPlugin, complexityPlugin, loggingPlugin],
         );
       },
     }),
