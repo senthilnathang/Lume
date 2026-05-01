@@ -14,7 +14,8 @@ import {
   automationAssignmentRules,
   automationRollupFields,
   automationWorkflowExecutions,
-  automationWorkflowExecutionHistory
+  automationWorkflowExecutionHistory,
+  automationAutoTransitions
 } from './schema.js';
 
 export function createAutomationModels() {
@@ -29,6 +30,7 @@ export function createAutomationModels() {
     RollupField: new DrizzleAdapter(automationRollupFields),
     WorkflowExecution: new DrizzleAdapter(automationWorkflowExecutions),
     WorkflowExecutionHistory: new DrizzleAdapter(automationWorkflowExecutionHistory),
+    AutoTransition: new DrizzleAdapter(automationAutoTransitions),
   };
 }
 

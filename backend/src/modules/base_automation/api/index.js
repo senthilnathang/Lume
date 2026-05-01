@@ -545,6 +545,49 @@ const createRoutes = (models, services) => {
     }
   });
 
+  // ── Auto-Transitions (Wave 4) ──────────────────────────────
+
+  router.post('/workflows/:id/executions/:executionId/schedule-transition', async (req, res) => {
+    try {
+      const { executionId } = req.params;
+      const { fromState, toState, triggerType, delaySeconds, webhookUrl, conditionData } = req.body;
+
+      if (!triggerType || !fromState || !toState) {
+        return res.status(400).json({ success: false, error: 'Missing required fields' });
+      }
+
+      const autoTransition = await svc.scheduleAutoTransition(
+        executionId,
+        fromState,
+        toState,
+        triggerType,
+        { delaySeconds, webhookUrl, conditionData }
+      );
+      res.json({ success: true, data: autoTransition });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/auto-transitions/pending', async (req, res) => {
+    try {
+      const transitions = await svc.getPendingAutoTransitions();
+      res.json({ success: true, data: transitions });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/auto-transitions/:id/execute', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const execution = await svc.executeAutoTransition(id);
+      res.json({ success: true, data: execution });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
   return router;
 };
 
