@@ -1,5 +1,5 @@
 /**
- * API Composable for Gawdesy Frontend
+ * API Composable for Lume Frontend
  * Centralized API client with auth support
  */
 
@@ -9,8 +9,8 @@ import { ref, computed } from 'vue';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // Auth token storage key
-const TOKEN_KEY = 'gawdesy_token';
-const REFRESH_TOKEN_KEY = 'gawdesy_refresh_token';
+const TOKEN_KEY = 'lume_token';
+const REFRESH_TOKEN_KEY = 'lume_refresh_token';
 
 // Reactive state
 const token = ref(localStorage.getItem(TOKEN_KEY) || null);

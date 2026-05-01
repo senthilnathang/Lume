@@ -132,8 +132,8 @@ if (!permissionStore.menusLoaded && authStore.isAuthenticated) {
       theme="light"
     >
       <div class="logo">
-        <span v-if="!collapsed">GAWDESY</span>
-        <span v-else>G</span>
+        <span v-if="!collapsed">Lume</span>
+        <span v-else>L</span>
       </div>
       
       <Menu

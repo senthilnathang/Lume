@@ -72,7 +72,7 @@ const handleSubmit = async () => {
                 <span class="icon">✉️</span>
                 <div>
                   <h4>Email</h4>
-                  <p>gawdesy@gmail.com</p>
+                  <p>contact@example.com</p>
                 </div>
               </div>
             </div>

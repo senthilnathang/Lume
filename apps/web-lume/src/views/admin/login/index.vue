@@ -59,7 +59,7 @@ const handleLogin = async () => {
           <div class="logo-icon">
             <SafetyCertificateOutlined spin />
           </div>
-          <Title :level="2" class="login-title">GAWDESY</Title>
+          <Title :level="2" class="login-title">Lume</Title>
           <Title :level="5" type="secondary" class="login-subtitle">Admin Dashboard</Title>
         </div>
 
