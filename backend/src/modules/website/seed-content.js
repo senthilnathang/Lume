@@ -1,22 +1,42 @@
 /**
- * Website Content Seed Script
- * Seeds all RIAGRI website content into the database.
+ * Website Content Seed Script (RIAGRI Demo)
+ * Seeds RIAGRI website content - customize via environment variables.
+ * For generic content, use seed-content-template.js or set WEBSITE_SEED_* env vars.
  * Run: node backend/src/modules/website/seed-content.js
  * Idempotent: checks if content exists before inserting.
+ *
+ * Environment Variables:
+ *   WEBSITE_SEED_SITE_NAME - Override site name (default: "RIAGRI")
+ *   WEBSITE_SEED_SITE_EMAIL - Override email (default: "info@riagri.com")
+ *   WEBSITE_SEED_DEMO_PAGES - Include demo pages (default: "true" for this script)
  */
 import { getDb, initDrizzle } from '../../core/db/drizzle.js';
 import { websitePages, websiteMenus, websiteMenuItems, websiteSettings, websiteThemeTemplates, websitePopups, websiteForms, websitePageRevisions } from './models/schema.js';
 import { eq } from 'drizzle-orm';
 
+const config = {
+  siteName: process.env.WEBSITE_SEED_SITE_NAME || 'RIAGRI',
+  siteEmail: process.env.WEBSITE_SEED_SITE_EMAIL || 'info@riagri.com',
+  seedDemoPages: (process.env.WEBSITE_SEED_DEMO_PAGES ?? 'true').toLowerCase() === 'true',
+};
+
 async function seed() {
   await initDrizzle();
   const db = getDb();
 
-  console.log('🌱 Seeding website content...');
+  console.log('🌱 Seeding RIAGRI website content...');
+  console.log(`   Site Name: ${config.siteName}`);
+  console.log(`   Site Email: ${config.siteEmail}`);
+  console.log(`   Include Demo Pages: ${config.seedDemoPages}`);
+
+  // Skip demo pages if disabled
+  if (!config.seedDemoPages) {
+    console.log('\n⏭️  Demo pages disabled, only seeding settings');
+  }
 
   // ─── Settings ───
   const settings = [
-    { key: 'site_name', value: 'RIAGRI', type: 'string' },
+    { key: 'site_name', value: config.siteName, type: 'string' },
     { key: 'site_tagline', value: 'Agricultural Equipment & Transport Solutions', type: 'string' },
     { key: 'site_description', value: 'Premium agricultural equipment, reliable transport devices, and expert service solutions to help your farm thrive in every season.', type: 'string' },
     { key: 'logo_url', value: '', type: 'string' },
@@ -24,8 +44,8 @@ async function seed() {
     { key: 'phone', value: '+1 (234) 567-890', type: 'string' },
     { key: 'phone_secondary', value: '+1 (234) 567-891', type: 'string' },
     { key: 'emergency_phone', value: '+1 (234) 567-899', type: 'string' },
-    { key: 'email', value: 'info@riagri.com', type: 'string' },
-    { key: 'email_sales', value: 'sales@riagri.com', type: 'string' },
+    { key: 'email', value: config.siteEmail, type: 'string' },
+    { key: 'email_sales', value: config.siteEmail.replace('info@', 'sales@'), type: 'string' },
     { key: 'address', value: '123 Agriculture Road, Farmington, AG 54321', type: 'string' },
     { key: 'social_facebook', value: '#', type: 'string' },
     { key: 'social_twitter', value: '#', type: 'string' },
@@ -59,8 +79,12 @@ async function seed() {
     }
   }
 
-  // ─── Pages ───
-  const pages = [
+  // ─── Demo Pages & Menus (conditional) ───
+  if (config.seedDemoPages) {
+    console.log('\n📄 Seeding demo pages and menus...');
+
+    // ─── Pages ───
+    const pages = [
     {
       title: 'Home',
       slug: 'home',
@@ -296,6 +320,7 @@ async function seed() {
   } else {
     console.log(`  ⏭️  Menus already exist (${existingMenus.length} menus)`);
   }
+  } // end if (config.seedDemoPages)
 
   // ─── Theme Templates ───
   const existingTemplates = await db.select().from(websiteThemeTemplates);
