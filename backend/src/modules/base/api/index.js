@@ -34,37 +34,7 @@ const createRoutes = (models, services) => {
     }
   });
 
-  router.get('/modules/:name', async (req, res) => {
-    try {
-      const module = await services.moduleService.getModule(req.params.name);
-      if (!module) {
-        return res.status(404).json({ success: false, error: 'Module not found' });
-      }
-      res.json({ success: true, data: module });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  router.post('/modules/:name/install', async (req, res) => {
-    try {
-      const result = await services.moduleService.installModule(req.body);
-      res.json({ success: true, data: result });
-    } catch (error) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  });
-
-  router.post('/modules/:name/uninstall', async (req, res) => {
-    try {
-      await services.moduleService.uninstallModule(req.params.name);
-      res.json({ success: true, message: `Module ${req.params.name} uninstalled` });
-    } catch (error) {
-      res.status(400).json({ success: false, error: error.message });
-    }
-  });
-
-  // Get installed modules with frontend menus and viewNames
+  // Get installed modules with frontend menus and viewNames (must be BEFORE /:name route)
   router.get('/modules/installed/menus', async (req, res) => {
     try {
       const { getAllModules } = await import('../../../core/modules/__loader__.js');
@@ -113,6 +83,37 @@ const createRoutes = (models, services) => {
     } catch (error) {
       console.error('Error fetching menus:', error);
       res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Get specific module by name
+  router.get('/modules/:name', async (req, res) => {
+    try {
+      const module = await services.moduleService.getModule(req.params.name);
+      if (!module) {
+        return res.status(404).json({ success: false, error: 'Module not found' });
+      }
+      res.json({ success: true, data: module });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/modules/:name/install', async (req, res) => {
+    try {
+      const result = await services.moduleService.installModule(req.body);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/modules/:name/uninstall', async (req, res) => {
+    try {
+      await services.moduleService.uninstallModule(req.params.name);
+      res.json({ success: true, message: `Module ${req.params.name} uninstalled` });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
     }
   });
 
