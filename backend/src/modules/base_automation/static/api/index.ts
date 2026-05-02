@@ -221,3 +221,18 @@ export function delegateTaskApi(taskId: number, data: any): Promise<any> {
 export function getApprovalChainApi(id: number): Promise<ApprovalChain> {
   return get<ApprovalChain>(`/base_automation/approvals/${id}`);
 }
+
+// Workflow approval callbacks
+export async function approveWorkflowApprovalApi(instanceId: number, userId: string): Promise<any> {
+  return post<any>(`/base_automation/approvals/${instanceId}/callback`, {
+    decision: 'approved',
+    userId
+  });
+}
+
+export async function rejectWorkflowApprovalApi(instanceId: number, userId: string): Promise<any> {
+  return post<any>(`/base_automation/approvals/${instanceId}/callback`, {
+    decision: 'rejected',
+    userId
+  });
+}
