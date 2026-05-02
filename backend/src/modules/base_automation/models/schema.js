@@ -243,3 +243,26 @@ export const automationRoutingRules = table('automation_routing_rules', {
   enabled: boolean('enabled').default(true),
   metadata: json('metadata').$type().default({})
 });
+
+// Phase 11 Wave 4: Enhanced Notification Templates and Delivery Tracking
+export const automationNotificationTemplates = table('automation_notification_templates', {
+  ...baseColumns(),
+  name: varchar('name', { length: 255 }).notNull(),
+  channel: varchar('channel', { length: 50 }).notNull(), // email, slack, in_app, sms
+  subject: varchar('subject', { length: 255 }),
+  body: text('body').notNull(),
+  variables: json('variables').$type().default({}), // { approval_id, approver_name, etc }
+  enabled: boolean('enabled').default(true),
+  metadata: json('metadata').$type().default({})
+});
+
+export const automationNotificationDelivery = table('automation_notification_delivery', {
+  ...baseColumns(),
+  notificationId: idCol('notification_id').notNull(),
+  channel: varchar('channel', { length: 50 }).notNull(),
+  recipient: varchar('recipient', { length: 255 }).notNull(),
+  status: varchar('status', { length: 50 }).default('pending'), // pending, sent, failed, bounce
+  sentAt: timestamp('sent_at'),
+  failureReason: text('failure_reason'),
+  metadata: json('metadata').$type().default({})
+});

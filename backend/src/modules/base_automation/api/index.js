@@ -8,6 +8,7 @@ import { ApprovalAnalyticsService } from '../services/approval-analytics.js';
 import { getDrizzle } from '../../../core/db/drizzle.js';
 import createAutomationModels from '../models/index.js';
 import SettingService from '../../settings/setting.service.js';
+import createNotificationRoutes from './notification.routes.js';
 
 let automationServiceInstance = null;
 let analyticsServiceInstance = null;
@@ -876,6 +877,10 @@ const createRoutes = (models, services) => {
       res.status(500).json({ success: false, error: error.message });
     }
   });
+
+  // ── Notification Routes (Wave 4) ───────────────────────────────
+  const notificationRoutes = createNotificationRoutes(models, services);
+  router.use('/notifications', notificationRoutes);
 
   return router;
 };

@@ -21,7 +21,9 @@ import {
   automationWorkflowApprovalLinks,
   automationApprovalEscalations,
   automationApprovalEscalationChains,
-  automationRoutingRules
+  automationRoutingRules,
+  automationNotificationTemplates,
+  automationNotificationDelivery
 } from './models/schema.js';
 import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
 import { AutomationService } from './services/index.js';
@@ -33,6 +35,8 @@ import { EscalationChainHandler } from './services/escalation-chain-handler.js';
 import { ApprovalAnalyticsService } from './services/approval-analytics.js';
 import { AdvancedRoutingService } from './services/advanced-routing.js';
 import { EscalationProcessor } from './jobs/escalation-processor.js';
+import { NotificationSchedulerJob } from './jobs/notification-scheduler.js';
+import { EnhancedNotificationService } from './services/notification-enhanced.js';
 import { SchedulerService } from '../../core/services/scheduler.service.js';
 import { RuleEngineService } from '../../core/services/rule-engine.service.js';
 import createRoutes from './api/index.js';
@@ -63,7 +67,9 @@ const initializeBaseAutomation = async (context) => {
     WorkflowApprovalLink: new DrizzleAdapter(automationWorkflowApprovalLinks),
     ApprovalEscalation: new DrizzleAdapter(automationApprovalEscalations),
     ApprovalEscalationChain: new DrizzleAdapter(automationApprovalEscalationChains),
-    RoutingRule: new DrizzleAdapter(automationRoutingRules)
+    RoutingRule: new DrizzleAdapter(automationRoutingRules),
+    NotificationTemplate: new DrizzleAdapter(automationNotificationTemplates),
+    NotificationDelivery: new DrizzleAdapter(automationNotificationDelivery)
   };
   console.log(`✅ Base Automation adapters created: ${Object.keys(adapters).join(', ')}`);
 
@@ -76,9 +82,11 @@ const initializeBaseAutomation = async (context) => {
   const escalationChainHandler = new EscalationChainHandler(adapters);
   const approvalAnalyticsService = new ApprovalAnalyticsService(adapters);
   const advancedRoutingService = new AdvancedRoutingService(adapters, ruleEngineService);
+  const notificationService = new EnhancedNotificationService(adapters);
   const automationService = new AutomationService(adapters, webhookService, workflowNotificationService, approvalRuntimeService);
   const autoTransitionProcessor = new AutoTransitionProcessor(automationService);
   const escalationProcessor = new EscalationProcessor(approvalEscalationService);
+  const notificationSchedulerJob = new NotificationSchedulerJob(notificationService);
 
   const services = {
     automationService,
@@ -91,9 +99,11 @@ const initializeBaseAutomation = async (context) => {
     escalationChainHandler,
     approvalAnalyticsService,
     advancedRoutingService,
-    escalationProcessor
+    escalationProcessor,
+    notificationService,
+    notificationSchedulerJob
   };
-  console.log('✅ Base Automation services created (scheduler + rule engine + auto-transition processor + approval runtime + notifications + escalation chain handler + approval analytics + advanced routing + escalation processor)');
+  console.log('✅ Base Automation services created (scheduler + rule engine + auto-transition processor + approval runtime + notifications + escalation chain handler + approval analytics + advanced routing + escalation processor + enhanced notification service + notification scheduler job)');
 
   // Register services globally for cross-module access (BaseService hooks)
   serviceRegistry.register('schedulerService', schedulerService);
@@ -102,6 +112,7 @@ const initializeBaseAutomation = async (context) => {
   serviceRegistry.register('escalationChainHandler', escalationChainHandler);
   serviceRegistry.register('approvalAnalyticsService', approvalAnalyticsService);
   serviceRegistry.register('advancedRoutingService', advancedRoutingService);
+  serviceRegistry.register('notificationService', notificationService);
 
   const routes = createRoutes(adapters, services);
   app.use('/api/base_automation', routes);
