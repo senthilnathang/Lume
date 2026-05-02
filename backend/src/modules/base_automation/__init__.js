@@ -73,7 +73,8 @@ const initializeBaseAutomation = async (context) => {
 
   // Start auto-transition processor (Wave 4)
   try {
-    autoTransitionProcessor.startProcessor(30); // Check every 30 seconds
+    const processorInterval = process.env.NODE_ENV === 'test' ? 2 : 30; // 2s in tests, 30s in production
+    autoTransitionProcessor.startProcessor(processorInterval);
     console.log('✅ Auto-transition processor started');
   } catch (err) {
     console.warn('⚠️ Auto-transition processor warning:', err.message);

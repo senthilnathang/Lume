@@ -59,11 +59,11 @@ describe('Workflow Automation E2E - Phase 8 Complete Pipeline', () => {
       {}
     );
 
-    expect(response.data.success).toBe(true);
-    expect(response.data.data.currentState).toBe('draft');
-    expect(response.data.data.status).toBe('active');
+    expect(response.success).toBe(true);
+    expect(response.data.currentState).toBe('draft');
+    expect(response.data.status).toBe('active');
 
-    executionId = response.data.data.id;
+    executionId = response.data.id;
     console.log(`✅ Wave 3: Started execution (ID: ${executionId}, State: draft)`);
   });
 
@@ -72,12 +72,12 @@ describe('Workflow Automation E2E - Phase 8 Complete Pipeline', () => {
       `${BASE_AUTOMATION_API}/workflows/${workflowId}/executions/${executionId}`
     );
 
-    expect(response.data.success).toBe(true);
-    expect(response.data.data.execution.currentState).toBe('draft');
-    expect(response.data.data.history.length).toBeGreaterThan(0);
-    expect(response.data.data.history[0].transitionName).toBe('START');
+    expect(response.success).toBe(true);
+    expect(response.data.execution.currentState).toBe('draft');
+    expect(response.data.history.length).toBeGreaterThan(0);
+    expect(response.data.history[0].transitionName).toBe('START');
 
-    console.log(`✅ Wave 3: Retrieved execution with ${response.data.data.history.length} history entry`);
+    console.log(`✅ Wave 3: Retrieved execution with ${response.data.history.length} history entry`);
   });
 
   it('Wave 3: Should manually transition state', async () => {
@@ -89,8 +89,8 @@ describe('Workflow Automation E2E - Phase 8 Complete Pipeline', () => {
       }
     );
 
-    expect(response.data.success).toBe(true);
-    expect(response.data.data.currentState).toBe('review');
+    expect(response.success).toBe(true);
+    expect(response.data.currentState).toBe('review');
 
     console.log(`✅ Wave 3: Manual transition - draft → review`);
   });
@@ -107,21 +107,21 @@ describe('Workflow Automation E2E - Phase 8 Complete Pipeline', () => {
       }
     );
 
-    expect(response.data.success).toBe(true);
-    expect(response.data.data.status).toBe('pending');
-    expect(response.data.data.triggerType).toBe('timer');
+    expect(response.success).toBe(true);
+    expect(response.data.status).toBe('pending');
+    expect(response.data.triggerType).toBe('timer');
 
-    autoTransitionId = response.data.data.id;
+    autoTransitionId = response.data.id;
     console.log(`✅ Wave 4: Scheduled auto-transition (ID: ${autoTransitionId}, delay: 2s)`);
   });
 
   it('Wave 4: Should list pending auto-transitions', async () => {
     const response = await request('GET',`${BASE_AUTOMATION_API}/auto-transitions/pending`);
 
-    expect(response.data.success).toBe(true);
-    expect(Array.isArray(response.data.data)).toBe(true);
+    expect(response.success).toBe(true);
+    expect(Array.isArray(response.data)).toBe(true);
 
-    console.log(`✅ Wave 4: Listed ${response.data.data.length} pending auto-transition(s)`);
+    console.log(`✅ Wave 4: Listed ${response.data.length} pending auto-transition(s)`);
   });
 
   it('Wave 4: Should auto-execute pending transition after delay', async () => {
@@ -133,11 +133,11 @@ describe('Workflow Automation E2E - Phase 8 Complete Pipeline', () => {
       `${BASE_AUTOMATION_API}/workflows/${workflowId}/executions/${executionId}`
     );
 
-    expect(response.data.success).toBe(true);
-    expect(response.data.data.execution.currentState).toBe('approved');
+    expect(response.success).toBe(true);
+    expect(response.data.execution.currentState).toBe('approved');
 
     // Verify the auto-transition history entry
-    const autoTransitionHistory = response.data.data.history.find(
+    const autoTransitionHistory = response.data.history.find(
       h => h.transitionName && h.transitionName.includes('Auto:')
     );
     expect(autoTransitionHistory).toBeDefined();
@@ -155,9 +155,9 @@ describe('Workflow Automation E2E - Phase 8 Complete Pipeline', () => {
       }
     );
 
-    expect(response.data.success).toBe(true);
-    expect(response.data.data.currentState).toBe('completed');
-    expect(response.data.data.status).toBe('completed');
+    expect(response.success).toBe(true);
+    expect(response.data.currentState).toBe('completed');
+    expect(response.data.status).toBe('completed');
 
     console.log(`✅ Final: Workflow execution completed (approved → completed)`);
   });
@@ -167,11 +167,11 @@ describe('Workflow Automation E2E - Phase 8 Complete Pipeline', () => {
       `${BASE_AUTOMATION_API}/workflows/${workflowId}/executions/${executionId}`
     );
 
-    expect(response.data.success).toBe(true);
-    expect(response.data.data.execution.currentState).toBe('completed');
-    expect(response.data.data.execution.status).toBe('completed');
+    expect(response.success).toBe(true);
+    expect(response.data.execution.currentState).toBe('completed');
+    expect(response.data.execution.status).toBe('completed');
 
-    const history = response.data.data.history;
+    const history = response.data.history;
     console.log(`\n📋 Complete Execution History:`);
     history.forEach((entry, idx) => {
       console.log(`   ${idx + 1}. ${entry.fromState || 'START'} → ${entry.toState} (${entry.transitionName})`);

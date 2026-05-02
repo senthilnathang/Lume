@@ -379,10 +379,16 @@ export class AutomationService {
       }
     }
 
+    // Lookup workflow to get state definitions
+    const workflow = await this.models.Workflow.findById(execution.workflowId);
+    this._parseWorkflowJSON(workflow);
+    const stateDef = (workflow?.states || []).find(s => s.name === toState);
+    const isEndState = stateDef?.is_end === true;
+
     // Update execution state
     const updated = await this.models.WorkflowExecution.update(executionId, {
       currentState: toState,
-      status: toState.endsWith('_end') ? 'completed' : 'active',
+      status: isEndState ? 'completed' : 'active',
       executionData: {
         ...executionDataObj,
         lastTransition: { from: currentState, to: toState, at: new Date() }
