@@ -28,8 +28,8 @@ describe('Approval Escalation Tracking', () => {
       const escalation = {
         taskId: 1,
         instanceId: 100,
-        escalatedFrom: '5',
-        escalatedTo: '10',
+        escalatedFrom: 5,
+        escalatedTo: 10,
         reason: 'sla_breach',
         escalatedAt: expect.any(Date),
         hoursOverdue: 1
@@ -41,15 +41,15 @@ describe('Approval Escalation Tracking', () => {
       const result = await mockModels.ApprovalEscalation.create(escalation);
 
       expect(result.reason).toBe('sla_breach');
-      expect(result.escalatedTo).toBe('10');
+      expect(result.escalatedTo).toBe(10);
     });
 
     it('should record escalation with manual reason', async () => {
       const escalation = {
         taskId: 2,
         instanceId: 101,
-        escalatedFrom: '5',
-        escalatedTo: '10',
+        escalatedFrom: 5,
+        escalatedTo: 10,
         reason: 'manual',
         escalatedAt: expect.any(Date),
         hoursOverdue: 2
@@ -67,8 +67,8 @@ describe('Approval Escalation Tracking', () => {
       const escalation = {
         taskId: 3,
         instanceId: 102,
-        escalatedFrom: '5',
-        escalatedTo: '10',
+        escalatedFrom: 5,
+        escalatedTo: 10,
         reason: 'sla_breach',
         escalatedAt: expect.any(Date),
         hoursOverdue: 1,
@@ -91,8 +91,8 @@ describe('Approval Escalation Tracking', () => {
       const escalation = {
         taskId: 4,
         instanceId: 103,
-        escalatedFrom: '5',
-        escalatedTo: '10',
+        escalatedFrom: 5,
+        escalatedTo: 10,
         reason: 'sla_breach',
         escalatedAt: expect.any(Date),
         hoursOverdue: 2,
@@ -110,8 +110,8 @@ describe('Approval Escalation Tracking', () => {
       const escalation = {
         taskId: 5,
         instanceId: 104,
-        escalatedFrom: '5',
-        escalatedTo: '10',
+        escalatedFrom: 5,
+        escalatedTo: 10,
         reason: 'timeout',
         escalatedAt: expect.any(Date),
         hoursOverdue: 3

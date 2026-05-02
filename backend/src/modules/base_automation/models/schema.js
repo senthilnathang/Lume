@@ -212,10 +212,10 @@ export const automationApprovalEscalations = table('automation_approval_escalati
   ...baseColumns(),
   taskId: idCol('task_id').notNull(),
   instanceId: idCol('instance_id').notNull(),
-  escalatedFrom: varchar('escalated_from', { length: 100 }),
-  escalatedTo: varchar('escalated_to', { length: 100 }).notNull(),
+  escalatedFrom: idCol('escalated_from').notNull(),
+  escalatedTo: idCol('escalated_to').notNull(),
   reason: varchar('reason', { length: 50 }).default('sla_breach'),
-  escalatedAt: timestamp('escalated_at').defaultNow(),
+  escalatedAt: timestamp('escalated_at').notNull().defaultNow(),
   hoursOverdue: int('hours_overdue'),
   notificationSent: boolean('notification_sent').default(false),
   metadata: json('metadata').$type().default({})
