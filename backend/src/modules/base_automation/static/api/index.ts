@@ -245,3 +245,21 @@ export async function getEscalationHistoryApi(instanceId: number): Promise<any[]
 export async function getTaskEscalationHistoryApi(taskId: number): Promise<any[]> {
   return get<any[]>(`/base_automation/approvals/escalations/task/${taskId}`);
 }
+
+// Analytics API
+export async function getApprovalMetricsApi(filters?: any): Promise<any> {
+  return get<any>('/base_automation/approvals/analytics/metrics', { params: filters });
+}
+
+export async function getApprovalBottlenecksApi(limit?: number): Promise<any[]> {
+  const params = limit ? { limit } : undefined;
+  return get<any[]>('/base_automation/approvals/analytics/bottlenecks', { params });
+}
+
+export async function getEscalationMetricsApi(): Promise<any> {
+  return get<any>('/base_automation/approvals/analytics/escalations');
+}
+
+export async function getRoleApprovalMetricsApi(role: string): Promise<any> {
+  return get<any>(`/base_automation/approvals/analytics/roles/${role}`);
+}
