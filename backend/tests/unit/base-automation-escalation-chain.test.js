@@ -197,3 +197,103 @@ describe('ApprovalAnalyticsService', () => {
     expect(metrics.avgTimeHours).toBeGreaterThan(0);
   });
 });
+
+describe('Analytics API Endpoints', () => {
+  let mockReq, mockRes, mockNext;
+  let mockAnalyticsService;
+
+  beforeEach(() => {
+    mockReq = {
+      query: {},
+      params: {}
+    };
+    mockRes = {
+      json: jest.fn().mockReturnThis(),
+      status: jest.fn().mockReturnThis()
+    };
+    mockNext = jest.fn();
+
+    mockAnalyticsService = {
+      getApprovalMetrics: jest.fn(),
+      getBottlenecks: jest.fn(),
+      getEscalationMetrics: jest.fn(),
+      getApprovalTimeByRole: jest.fn()
+    };
+  });
+
+  it('should return approval metrics via GET /approvals/analytics/metrics', async () => {
+    const metrics = { totalApprovals: 100, avgTime: 24, slaBreachers: 10, breachRate: 0.1 };
+    mockAnalyticsService.getApprovalMetrics.mockResolvedValue(metrics);
+
+    const handleMetricsEndpoint = async (req, res, service) => {
+      try {
+        const data = await service.getApprovalMetrics(req.query);
+        res.json({ success: true, data });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    };
+
+    await handleMetricsEndpoint(mockReq, mockRes, mockAnalyticsService);
+
+    expect(mockRes.json).toHaveBeenCalledWith({ success: true, data: metrics });
+  });
+
+  it('should return bottlenecks via GET /approvals/analytics/bottlenecks', async () => {
+    const bottlenecks = [
+      { id: 1, taskId: 101, pendingFor: 240 },
+      { id: 2, taskId: 102, pendingFor: 120 }
+    ];
+    mockAnalyticsService.getBottlenecks.mockResolvedValue(bottlenecks);
+
+    const handleBottlenecksEndpoint = async (req, res, service) => {
+      try {
+        const data = await service.getBottlenecks(req.query.limit || 10);
+        res.json({ success: true, data });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    };
+
+    await handleBottlenecksEndpoint(mockReq, mockRes, mockAnalyticsService);
+
+    expect(mockRes.json).toHaveBeenCalledWith({ success: true, data: bottlenecks });
+  });
+
+  it('should return escalation metrics via GET /approvals/analytics/escalations', async () => {
+    const escalations = { totalEscalations: 50, byLevel: { 1: 30, 2: 20 }, byReason: { sla_breach: 50 } };
+    mockAnalyticsService.getEscalationMetrics.mockResolvedValue(escalations);
+
+    const handleEscalationsEndpoint = async (req, res, service) => {
+      try {
+        const data = await service.getEscalationMetrics();
+        res.json({ success: true, data });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    };
+
+    await handleEscalationsEndpoint(mockReq, mockRes, mockAnalyticsService);
+
+    expect(mockRes.json).toHaveBeenCalledWith({ success: true, data: escalations });
+  });
+
+  it('should return role metrics via GET /approvals/analytics/roles/:role', async () => {
+    mockReq.params = { role: 'manager' };
+    const metrics = { role: 'manager', avgTimeHours: 24.5, totalApprovals: 30 };
+    mockAnalyticsService.getApprovalTimeByRole.mockResolvedValue(metrics);
+
+    const handleRoleMetricsEndpoint = async (req, res, service) => {
+      try {
+        const data = await service.getApprovalTimeByRole(req.params.role);
+        res.json({ success: true, data });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    };
+
+    await handleRoleMetricsEndpoint(mockReq, mockRes, mockAnalyticsService);
+
+    expect(mockRes.json).toHaveBeenCalledWith({ success: true, data: metrics });
+  });
+});

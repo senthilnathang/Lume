@@ -4,11 +4,13 @@
 
 import { Router } from 'express';
 import { AutomationService } from '../services/index.js';
+import { ApprovalAnalyticsService } from '../services/approval-analytics.js';
 import { getDrizzle } from '../../../core/db/drizzle.js';
 import createAutomationModels from '../models/index.js';
 import SettingService from '../../settings/setting.service.js';
 
 let automationServiceInstance = null;
+let analyticsServiceInstance = null;
 
 const getAutomationService = () => {
   if (!automationServiceInstance) {
@@ -16,6 +18,14 @@ const getAutomationService = () => {
     automationServiceInstance = new AutomationService(models);
   }
   return automationServiceInstance;
+};
+
+const getAnalyticsService = () => {
+  if (!analyticsServiceInstance) {
+    const models = createAutomationModels();
+    analyticsServiceInstance = new ApprovalAnalyticsService(models);
+  }
+  return analyticsServiceInstance;
 };
 
 const createRoutes = (models, services) => {
@@ -818,6 +828,52 @@ const createRoutes = (models, services) => {
       res.json({ success: true, data: escalations });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  // ── Analytics Endpoints (Wave 4) ───────────────────────────────
+
+  router.get('/approvals/analytics/metrics', async (req, res) => {
+    try {
+      const analyticsService = getAnalyticsService();
+      const metrics = await analyticsService.getApprovalMetrics(req.query);
+      res.json({ success: true, data: metrics });
+    } catch (error) {
+      console.error('Error fetching approval metrics:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/approvals/analytics/bottlenecks', async (req, res) => {
+    try {
+      const analyticsService = getAnalyticsService();
+      const bottlenecks = await analyticsService.getBottlenecks(req.query.limit || 10);
+      res.json({ success: true, data: bottlenecks });
+    } catch (error) {
+      console.error('Error fetching bottlenecks:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/approvals/analytics/escalations', async (req, res) => {
+    try {
+      const analyticsService = getAnalyticsService();
+      const escalations = await analyticsService.getEscalationMetrics();
+      res.json({ success: true, data: escalations });
+    } catch (error) {
+      console.error('Error fetching escalation metrics:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/approvals/analytics/roles/:role', async (req, res) => {
+    try {
+      const analyticsService = getAnalyticsService();
+      const metrics = await analyticsService.getApprovalTimeByRole(req.params.role);
+      res.json({ success: true, data: metrics });
+    } catch (error) {
+      console.error('Error fetching role metrics:', error);
+      res.status(500).json({ success: false, error: error.message });
     }
   });
 
