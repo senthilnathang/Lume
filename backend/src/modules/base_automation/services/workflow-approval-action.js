@@ -5,8 +5,9 @@
  */
 
 export class WorkflowApprovalActionService {
-  constructor(approvalRuntimeService) {
+  constructor(approvalRuntimeService, models) {
     this.approvalRuntimeService = approvalRuntimeService;
+    this.models = models;
   }
 
   /**
@@ -43,6 +44,23 @@ export class WorkflowApprovalActionService {
       userId,
       execution.id
     );
+
+    // Create approval link for tracking
+    if (this.models?.WorkflowApprovalLink) {
+      try {
+        await this.models.WorkflowApprovalLink.create({
+          executionId: execution.id,
+          approvalInstanceId: approvalInstance.id,
+          actionType: action.type,
+          onApproveState: action.onApprove,
+          onRejectState: action.onReject,
+          status: 'pending'
+        });
+      } catch (e) {
+        console.warn('Failed to create workflow approval link:', e.message);
+        // Don't fail the approval if link creation fails
+      }
+    }
 
     return approvalInstance;
   }

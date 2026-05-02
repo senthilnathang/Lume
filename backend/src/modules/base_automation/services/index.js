@@ -11,7 +11,7 @@ export class AutomationService {
     this.webhookService = webhookService;
     this.workflowNotificationService = workflowNotificationService;
     this.approvalRuntimeService = approvalRuntimeService;
-    this.workflowApprovalActionService = new WorkflowApprovalActionService(approvalRuntimeService);
+    this.workflowApprovalActionService = new WorkflowApprovalActionService(approvalRuntimeService, models);
   }
 
   // ── Workflows ─────────────────────────────────────────────────
@@ -710,6 +710,28 @@ export class AutomationService {
       transitionName: `approval_${decision}`,
       userId
     });
+
+    // Update approval link status
+    if (this.models?.WorkflowApprovalLink) {
+      try {
+        // Find and update the link
+        const result = await this.models.WorkflowApprovalLink.findAll({
+          where: [
+            ['executionId', '=', executionId],
+            ['approvalInstanceId', '=', approvalInstanceId]
+          ]
+        });
+
+        if (result.rows && result.rows.length > 0) {
+          const link = result.rows[0];
+          await this.models.WorkflowApprovalLink.update(link.id, {
+            status: decision === 'approved' ? 'approved' : 'rejected'
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to update workflow approval link:', e.message);
+      }
+    }
 
     // Fire webhooks and notifications
     const workflow = await this.models.Workflow.findById(execution.workflowId);

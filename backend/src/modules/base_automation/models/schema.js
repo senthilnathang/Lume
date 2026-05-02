@@ -194,3 +194,15 @@ export const automationWorkflowNotificationSettings = table('automation_workflow
   emailTemplate: varchar('email_template', { length: 100 }).default('workflow-state-change'),
   status: varchar('status', { length: 20 }).default('active'),
 });
+
+// Phase 11 Wave 1: Approval Link Tracking
+export const automationWorkflowApprovalLinks = table('automation_workflow_approval_links', {
+  ...baseColumns(),
+  executionId: idCol('execution_id').notNull(),
+  approvalInstanceId: idCol('approval_instance_id').notNull(),
+  actionType: varchar('action_type', { length: 50 }).default('request_approval'),
+  onApproveState: varchar('on_approve_state', { length: 50 }),
+  onRejectState: varchar('on_reject_state', { length: 50 }),
+  status: varchar('status', { length: 20 }).default('pending'),
+  metadata: json('metadata').$type().default({})
+});
