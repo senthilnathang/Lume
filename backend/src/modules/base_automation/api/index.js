@@ -547,6 +547,33 @@ const createRoutes = (models, services) => {
     }
   });
 
+  // ── Approval Callbacks (Wave 1) ───────────────────────────────
+
+  router.post('/approvals/:instanceId/callback', async (req, res) => {
+    try {
+      const { instanceId } = req.params;
+      const { decision, userId: overrideUserId } = req.body;
+
+      if (!decision || !['approved', 'rejected'].includes(decision)) {
+        return res.status(400).json({
+          success: false,
+          error: 'decision must be "approved" or "rejected"'
+        });
+      }
+
+      const userId = overrideUserId || req.user?.id;
+      const updated = await svc.handleApprovalCallback(
+        parseInt(instanceId, 10),
+        decision,
+        userId
+      );
+
+      res.json({ success: true, data: updated });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
   // ── Auto-Transitions (Wave 4) ──────────────────────────────
 
   router.post('/workflows/:id/executions/:executionId/schedule-transition', async (req, res) => {
