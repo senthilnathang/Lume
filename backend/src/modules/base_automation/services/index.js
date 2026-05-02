@@ -3,6 +3,7 @@
  */
 
 import { RuleEngineService } from '../../../core/services/rule-engine.service.js';
+import { WorkflowApprovalActionService } from './workflow-approval-action.js';
 
 export class AutomationService {
   constructor(models, webhookService = null, workflowNotificationService = null) {
@@ -589,5 +590,7 @@ export class AutomationService {
     return existing;
   }
 }
+
+export { WorkflowApprovalActionService };
 
 export default { AutomationService };

@@ -5,8 +5,7 @@
  */
 
 export class WorkflowApprovalActionService {
-  constructor(models, approvalRuntimeService) {
-    this.models = models;
+  constructor(approvalRuntimeService) {
     this.approvalRuntimeService = approvalRuntimeService;
   }
 
@@ -22,14 +21,20 @@ export class WorkflowApprovalActionService {
    * @returns {Promise<Object>} The created approval instance
    */
   async executeApprovalAction(execution, action, userId) {
+    if (!execution || !execution.id) {
+      throw new Error('Workflow execution must have a valid ID');
+    }
+
     if (action.type !== 'request_approval') {
-      throw new Error(`Unknown approval action type: ${action.type}`);
+      throw new Error(`Unsupported approval action type: "${action.type}". Expected "request_approval".`);
     }
 
     const { chainId, onApprove, onReject } = action;
     if (!chainId || !onApprove || !onReject) {
       throw new Error('Approval action requires chainId, onApprove, and onReject');
     }
+    // onApprove/onReject are validated here and will be used in approval callback handling
+    // (see Task 3: handleApprovalCallback in AutomationService)
 
     const approvalInstance = await this.approvalRuntimeService.submitForApproval(
       chainId,

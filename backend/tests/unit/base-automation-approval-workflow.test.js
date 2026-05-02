@@ -8,18 +8,13 @@ import { WorkflowApprovalActionService } from '../../src/modules/base_automation
 
 describe('WorkflowApprovalActionService', () => {
   let service;
-  let mockModels;
   let mockApprovalService;
 
   beforeEach(() => {
-    mockModels = {
-      ApprovalInstance: { create: jest.fn() },
-      WorkflowExecution: { findById: jest.fn(), update: jest.fn() }
-    };
     mockApprovalService = {
       submitForApproval: jest.fn()
     };
-    service = new WorkflowApprovalActionService(mockModels, mockApprovalService);
+    service = new WorkflowApprovalActionService(mockApprovalService);
   });
 
   describe('executeApprovalAction', () => {
@@ -57,7 +52,7 @@ describe('WorkflowApprovalActionService', () => {
 
       await expect(
         service.executeApprovalAction(execution, action, 'user_123')
-      ).rejects.toThrow('Unknown approval action type: unknown_action');
+      ).rejects.toThrow('Unsupported approval action type: "unknown_action". Expected "request_approval".');
     });
 
     it('should throw error if chainId is missing', async () => {
@@ -141,6 +136,33 @@ describe('WorkflowApprovalActionService', () => {
         'user_123',
         99
       );
+    });
+
+    it('should throw error if execution is null', async () => {
+      const action = {
+        type: 'request_approval',
+        chainId: 3,
+        onApprove: 'submitted',
+        onReject: 'draft'
+      };
+
+      await expect(
+        service.executeApprovalAction(null, action, 'user_123')
+      ).rejects.toThrow('Workflow execution must have a valid ID');
+    });
+
+    it('should throw error if execution has no id', async () => {
+      const execution = { workflowId: 5, recordId: 10 };
+      const action = {
+        type: 'request_approval',
+        chainId: 3,
+        onApprove: 'submitted',
+        onReject: 'draft'
+      };
+
+      await expect(
+        service.executeApprovalAction(execution, action, 'user_123')
+      ).rejects.toThrow('Workflow execution must have a valid ID');
     });
   });
 });
