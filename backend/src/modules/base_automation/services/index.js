@@ -356,6 +356,18 @@ export class AutomationService {
     return result.rows;
   }
 
+  /**
+   * Transition workflow execution to a new state
+   * Optionally triggers approval actions that defer state change
+   *
+   * @param {number} executionId - ID of the workflow execution
+   * @param {string} toState - Target state name
+   * @param {string} transitionName - Human-readable transition name
+   * @param {string} userId - User performing the transition
+   * @param {boolean} [hasApprovalAction=false] - Whether to check for approval actions
+   * @returns {Promise<Object>} Updated execution record
+   * @throws {Error} If execution not found or not active
+   */
   async transitionWorkflowState(executionId, toState, transitionName, userId, hasApprovalAction = false) {
     // Get execution
     const execution = await this.models.WorkflowExecution.findById(executionId);
@@ -389,6 +401,7 @@ export class AutomationService {
 
     // Lookup workflow to get state definitions
     const workflow = await this.models.Workflow.findById(execution.workflowId);
+    if (!workflow) throw new Error('Workflow not found');
     this._parseWorkflowJSON(workflow);
     const stateDef = (workflow?.states || []).find(s => s.name === toState);
     const isEndState = stateDef?.is_end === true;
@@ -412,7 +425,7 @@ export class AutomationService {
 
       const updated = await this.models.WorkflowExecution.update(executionId, {
         status: 'awaiting_approval',
-        executionData: {
+        executionData: {  // DrizzleAdapter auto-stringifies JSON fields on persist
           ...executionDataObj,
           pendingApprovalAction: approvalAction,
           pendingApprovalState: toState,
