@@ -516,7 +516,8 @@ const createRoutes = (models, services) => {
   router.post('/workflows/:id/run/:recordId', async (req, res) => {
     try {
       const { id, recordId } = req.params;
-      const execution = await svc.startWorkflowExecution(id, recordId, req.user?.id);
+      const recordData = req.body?.data || {};
+      const execution = await svc.startWorkflowExecution(id, recordId, req.user?.id, recordData);
       res.json({ success: true, data: execution });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -642,6 +643,124 @@ const createRoutes = (models, services) => {
       const settingService = new SettingService();
       const result = await settingService.set('business_hours', JSON.stringify(req.body));
       res.json({ success: true, data: result.data });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  // ── Notification Settings ────────────────────────────────────
+
+  router.get('/workflows/:id/notification-settings', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const settings = await svc.getNotificationSettings(id);
+      res.json({ success: true, data: settings });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/workflows/:id/notification-settings', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const setting = await svc.createNotificationSetting({ ...req.body, workflowId: id });
+      res.json({ success: true, data: setting });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.put('/workflows/:id/notification-settings/:settingId', async (req, res) => {
+    try {
+      const { settingId } = req.params;
+      const setting = await svc.updateNotificationSetting(settingId, req.body);
+      if (!setting) return res.status(404).json({ success: false, error: 'Setting not found' });
+      res.json({ success: true, data: setting });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.delete('/workflows/:id/notification-settings/:settingId', async (req, res) => {
+    try {
+      const { settingId } = req.params;
+      await svc.deleteNotificationSetting(settingId);
+      res.json({ success: true, message: 'Setting deleted' });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  // ── Approval Endpoints ────────────────────────────────────────
+
+  router.post('/approvals/:chainId/submit', async (req, res) => {
+    try {
+      const { chainId } = req.params;
+      const { entityType, entityRef, executionId } = req.body;
+      const instance = await services.approvalRuntimeService.submitForApproval(chainId, entityType, entityRef, req.user?.id, executionId);
+      res.json({ success: true, data: instance });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/approvals/pending', async (req, res) => {
+    try {
+      const tasks = await services.approvalRuntimeService.getTasksForUser(req.user?.id, req.user?.role?.name);
+      res.json({ success: true, data: tasks });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/approvals/history', async (req, res) => {
+    try {
+      const tasks = await services.approvalRuntimeService.getApprovalHistory(req.query);
+      res.json({ success: true, data: tasks });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/approvals/tasks/:taskId/approve', async (req, res) => {
+    try {
+      const { taskId } = req.params;
+      const { comments } = req.body;
+      const task = await services.approvalRuntimeService.approveTask(taskId, req.user?.id, comments);
+      res.json({ success: true, data: task });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/approvals/tasks/:taskId/reject', async (req, res) => {
+    try {
+      const { taskId } = req.params;
+      const { reason } = req.body;
+      const task = await services.approvalRuntimeService.rejectTask(taskId, req.user?.id, reason);
+      res.json({ success: true, data: task });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/approvals/tasks/:taskId/delegate', async (req, res) => {
+    try {
+      const { taskId } = req.params;
+      const { toUserId, reason } = req.body;
+      const task = await services.approvalRuntimeService.delegateTask(taskId, req.user?.id, toUserId, reason);
+      res.json({ success: true, data: task });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/approvals/instances/:instanceId', async (req, res) => {
+    try {
+      const { instanceId } = req.params;
+      const instance = await services.approvalRuntimeService.getApprovalInstance(instanceId);
+      if (!instance) return res.status(404).json({ success: false, error: 'Approval instance not found' });
+      res.json({ success: true, data: instance });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
     }

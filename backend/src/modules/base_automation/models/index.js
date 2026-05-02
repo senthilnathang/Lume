@@ -16,7 +16,10 @@ import {
   automationWorkflowExecutions,
   automationWorkflowExecutionHistory,
   automationAutoTransitions,
-  automationWorkflowWebhooks
+  automationWorkflowWebhooks,
+  automationApprovalInstances,
+  automationApprovalTasks,
+  automationWorkflowNotificationSettings
 } from './schema.js';
 
 export function createAutomationModels() {
@@ -33,6 +36,9 @@ export function createAutomationModels() {
     WorkflowExecutionHistory: new DrizzleAdapter(automationWorkflowExecutionHistory),
     AutoTransition: new DrizzleAdapter(automationAutoTransitions),
     WorkflowWebhook: new DrizzleAdapter(automationWorkflowWebhooks),
+    ApprovalInstance: new DrizzleAdapter(automationApprovalInstances),
+    ApprovalTask: new DrizzleAdapter(automationApprovalTasks),
+    WorkflowNotificationSetting: new DrizzleAdapter(automationWorkflowNotificationSettings),
   };
 }
 

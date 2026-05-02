@@ -203,3 +203,21 @@ export function deleteApproval(id: number): Promise<void> {
 export function getPendingApprovals(): Promise<any[]> {
   return get<any[]>('/base_automation/approvals/pending');
 }
+export function getPendingApprovalsApi(): Promise<any[]> {
+  return get<any[]>('/base_automation/approvals/pending');
+}
+export function getApprovalHistoryApi(params?: any): Promise<any[]> {
+  return get<any[]>('/base_automation/approvals/history', params);
+}
+export function approveTaskApi(taskId: number, data: any): Promise<any> {
+  return post<any>(`/base_automation/approvals/tasks/${taskId}/approve`, data);
+}
+export function rejectTaskApi(taskId: number, data: any): Promise<any> {
+  return post<any>(`/base_automation/approvals/tasks/${taskId}/reject`, data);
+}
+export function delegateTaskApi(taskId: number, data: any): Promise<any> {
+  return post<any>(`/base_automation/approvals/tasks/${taskId}/delegate`, data);
+}
+export function getApprovalChainApi(id: number): Promise<ApprovalChain> {
+  return get<ApprovalChain>(`/base_automation/approvals/${id}`);
+}

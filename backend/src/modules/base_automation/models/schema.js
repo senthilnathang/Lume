@@ -152,3 +152,45 @@ export const automationWorkflowWebhooks = table('automation_workflow_webhooks', 
   retryCount: idCol('retry_count').default(3),
   status: varchar('status', { length: 20 }).default('active'),
 });
+
+// Phase 10 Wave 5: Approval Routing
+export const automationApprovalInstances = table('automation_approval_instances', {
+  ...baseColumns(),
+  chainId: idCol('chain_id').notNull(),
+  executionId: idCol('execution_id'),
+  entityType: varchar('entity_type', { length: 100 }),
+  entityRef: varchar('entity_ref', { length: 100 }),
+  currentStep: idCol('current_step').default(1),
+  status: varchar('status', { length: 20 }).default('pending'),
+  submittedBy: idCol('submitted_by'),
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+});
+
+export const automationApprovalTasks = table('automation_approval_tasks', {
+  ...baseColumns(),
+  instanceId: idCol('instance_id').notNull(),
+  stepSequence: idCol('step_sequence').notNull(),
+  stepName: varchar('step_name', { length: 100 }),
+  assignedToUserId: idCol('assigned_to_user_id'),
+  assignedToRole: varchar('assigned_to_role', { length: 100 }),
+  approverType: varchar('approver_type', { length: 20 }).default('USER'),
+  status: varchar('status', { length: 20 }).default('pending'),
+  dueAt: timestamp('due_at'),
+  decidedAt: timestamp('decided_at'),
+  decidedBy: idCol('decided_by'),
+  comments: text('comments'),
+  delegatedTo: idCol('delegated_to'),
+});
+
+// Phase 10 Wave 6: Workflow Notifications
+export const automationWorkflowNotificationSettings = table('automation_workflow_notification_settings', {
+  ...baseColumns(),
+  workflowId: idCol('workflow_id').notNull(),
+  event: varchar('event', { length: 50 }).notNull(),
+  channel: varchar('channel', { length: 20 }).notNull(),
+  recipients: varchar('recipients', { length: 100 }).default('submitter'),
+  slackWebhookUrl: varchar('slack_webhook_url', { length: 500 }),
+  emailTemplate: varchar('email_template', { length: 100 }).default('workflow-state-change'),
+  status: varchar('status', { length: 20 }).default('active'),
+});

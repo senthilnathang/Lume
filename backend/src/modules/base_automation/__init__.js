@@ -14,15 +14,21 @@ import {
   automationWorkflowExecutions,
   automationWorkflowExecutionHistory,
   automationAutoTransitions,
-  automationWorkflowWebhooks
+  automationWorkflowWebhooks,
+  automationApprovalInstances,
+  automationApprovalTasks,
+  automationWorkflowNotificationSettings
 } from './models/schema.js';
 import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
 import { AutomationService } from './services/index.js';
 import { AutoTransitionProcessor } from './services/auto-transition-processor.js';
+import { ApprovalRuntimeService } from './services/approval-runtime.js';
+import { WorkflowNotificationService } from './services/workflow-notifications.js';
 import { SchedulerService } from '../../core/services/scheduler.service.js';
 import { RuleEngineService } from '../../core/services/rule-engine.service.js';
 import createRoutes from './api/index.js';
 import serviceRegistry from '../../core/services/service-registry.js';
+import prisma from '../../core/db/prisma.js';
 
 const initializeBaseAutomation = async (context) => {
   const { app } = context;
@@ -41,23 +47,30 @@ const initializeBaseAutomation = async (context) => {
     WorkflowExecution: new DrizzleAdapter(automationWorkflowExecutions),
     WorkflowExecutionHistory: new DrizzleAdapter(automationWorkflowExecutionHistory),
     AutoTransition: new DrizzleAdapter(automationAutoTransitions),
-    WorkflowWebhook: new DrizzleAdapter(automationWorkflowWebhooks)
+    WorkflowWebhook: new DrizzleAdapter(automationWorkflowWebhooks),
+    ApprovalInstance: new DrizzleAdapter(automationApprovalInstances),
+    ApprovalTask: new DrizzleAdapter(automationApprovalTasks),
+    WorkflowNotificationSetting: new DrizzleAdapter(automationWorkflowNotificationSettings)
   };
   console.log(`✅ Base Automation adapters created: ${Object.keys(adapters).join(', ')}`);
 
   const webhookService = serviceRegistry.get('webhookService');
   const schedulerService = new SchedulerService(adapters.ScheduledAction);
   const ruleEngineService = new RuleEngineService(adapters.BusinessRule);
-  const automationService = new AutomationService(adapters, webhookService);
+  const workflowNotificationService = new WorkflowNotificationService(adapters);
+  const automationService = new AutomationService(adapters, webhookService, workflowNotificationService);
   const autoTransitionProcessor = new AutoTransitionProcessor(automationService);
+  const approvalRuntimeService = new ApprovalRuntimeService(adapters, prisma);
 
   const services = {
     automationService,
     schedulerService,
     ruleEngineService,
-    autoTransitionProcessor
+    autoTransitionProcessor,
+    approvalRuntimeService,
+    workflowNotificationService
   };
-  console.log('✅ Base Automation services created (scheduler + rule engine + auto-transition processor)');
+  console.log('✅ Base Automation services created (scheduler + rule engine + auto-transition processor + approval runtime + notifications)');
 
   // Register services globally for cross-module access (BaseService hooks)
   serviceRegistry.register('schedulerService', schedulerService);
