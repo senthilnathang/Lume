@@ -2,10 +2,13 @@
  * Base Automation Services
  */
 
+import { RuleEngineService } from '../../../core/services/rule-engine.service.js';
+
 export class AutomationService {
-  constructor(models, webhookService = null) {
+  constructor(models, webhookService = null, workflowNotificationService = null) {
     this.models = models;
     this.webhookService = webhookService;
+    this.workflowNotificationService = workflowNotificationService;
   }
 
   // ── Workflows ─────────────────────────────────────────────────
@@ -303,7 +306,7 @@ export class AutomationService {
 
   // ── Workflow Execution ────────────────────────────────────────
 
-  async startWorkflowExecution(workflowId, recordId, userId) {
+  async startWorkflowExecution(workflowId, recordId, userId, recordData = {}) {
     // Fetch the workflow to get initial state
     const workflow = await this.models.Workflow.findById(workflowId);
     if (!workflow) throw new Error('Workflow not found');
@@ -321,7 +324,8 @@ export class AutomationService {
       status: 'active',
       executionData: {
         initiatedBy: userId,
-        initialState: initialState.name
+        initialState: initialState.name,
+        record: recordData
       }
     });
 
@@ -404,6 +408,19 @@ export class AutomationService {
       toState
     }).catch(() => {});
 
+    // Send workflow notifications (non-blocking)
+    this.workflowNotificationService?.notifyStateChange(
+      executionId,
+      execution.workflowId,
+      currentState,
+      toState,
+      {
+        recordId: execution.recordId,
+        workflowName: workflow?.name,
+        submitter: executionDataObj.initiatedBy ? { id: executionDataObj.initiatedBy } : null
+      }
+    ).catch(() => {});
+
     return updated;
   }
 
@@ -462,6 +479,23 @@ export class AutomationService {
         status: 'cancelled'
       });
       throw new Error('Execution state has changed, auto-transition cancelled');
+    }
+
+    // Evaluate condition if present
+    if (autoTransition.conditionData) {
+      const condition = typeof autoTransition.conditionData === 'string'
+        ? JSON.parse(autoTransition.conditionData) : autoTransition.conditionData;
+      let execData = {};
+      if (execution.executionData) {
+        execData = typeof execution.executionData === 'string'
+          ? JSON.parse(execution.executionData) : execution.executionData;
+      }
+      const record = execData.record || {};
+      const ruleEngine = new RuleEngineService(null);
+      const conditionMet = ruleEngine._evaluateCondition(condition, record, {});
+      if (!conditionMet) {
+        throw new Error('Condition not met — transition deferred');
+      }
     }
 
     // Execute the transition
@@ -526,6 +560,33 @@ export class AutomationService {
         console.error(`Failed to trigger webhook ${webhook.id}:`, err.message);
       }
     }
+  }
+
+  // ── Workflow Notification Settings (Wave 3) ───────────────────
+
+  async getNotificationSettings(workflowId) {
+    const result = await this.models.WorkflowNotificationSetting.findAll({
+      where: [['workflowId', '=', workflowId]],
+      order: [['createdAt', 'DESC']]
+    });
+    return result.rows;
+  }
+
+  async createNotificationSetting(data) {
+    return this.models.WorkflowNotificationSetting.create(data);
+  }
+
+  async updateNotificationSetting(id, data) {
+    const existing = await this.models.WorkflowNotificationSetting.findById(id);
+    if (!existing) return null;
+    return this.models.WorkflowNotificationSetting.update(id, data);
+  }
+
+  async deleteNotificationSetting(id) {
+    const existing = await this.models.WorkflowNotificationSetting.findById(id);
+    if (!existing) return null;
+    await this.models.WorkflowNotificationSetting.destroy(id);
+    return existing;
   }
 }
 
