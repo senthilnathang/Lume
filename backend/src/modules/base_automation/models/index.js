@@ -20,7 +20,8 @@ import {
   automationApprovalInstances,
   automationApprovalTasks,
   automationWorkflowNotificationSettings,
-  automationWorkflowApprovalLinks
+  automationWorkflowApprovalLinks,
+  automationApprovalEscalations
 } from './schema.js';
 
 export function createAutomationModels() {
@@ -41,6 +42,7 @@ export function createAutomationModels() {
     ApprovalTask: new DrizzleAdapter(automationApprovalTasks),
     WorkflowNotificationSetting: new DrizzleAdapter(automationWorkflowNotificationSettings),
     WorkflowApprovalLink: new DrizzleAdapter(automationWorkflowApprovalLinks),
+    ApprovalEscalation: new DrizzleAdapter(automationApprovalEscalations),
   };
 }
 
