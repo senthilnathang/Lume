@@ -6,10 +6,12 @@ import { RuleEngineService } from '../../../core/services/rule-engine.service.js
 import { WorkflowApprovalActionService } from './workflow-approval-action.js';
 
 export class AutomationService {
-  constructor(models, webhookService = null, workflowNotificationService = null) {
+  constructor(models, webhookService = null, workflowNotificationService = null, approvalRuntimeService = null) {
     this.models = models;
     this.webhookService = webhookService;
     this.workflowNotificationService = workflowNotificationService;
+    this.approvalRuntimeService = approvalRuntimeService;
+    this.workflowApprovalActionService = new WorkflowApprovalActionService(approvalRuntimeService);
   }
 
   // ── Workflows ─────────────────────────────────────────────────
@@ -354,7 +356,7 @@ export class AutomationService {
     return result.rows;
   }
 
-  async transitionWorkflowState(executionId, toState, transitionName, userId) {
+  async transitionWorkflowState(executionId, toState, transitionName, userId, hasApprovalAction = false) {
     // Get execution
     const execution = await this.models.WorkflowExecution.findById(executionId);
     if (!execution) throw new Error('Execution not found');
@@ -391,7 +393,37 @@ export class AutomationService {
     const stateDef = (workflow?.states || []).find(s => s.name === toState);
     const isEndState = stateDef?.is_end === true;
 
-    // Update execution state
+    // Check if this transition has approval actions
+    let approvalAction = null;
+    if (hasApprovalAction) {
+      const transition = (workflow?.transitions || []).find(
+        t => t.from === currentState && t.to === toState
+      );
+      approvalAction = transition?.actions?.find(a => a.type === 'request_approval');
+    }
+
+    // If approval action exists, execute it and defer state change
+    if (approvalAction) {
+      await this.workflowApprovalActionService.executeApprovalAction(
+        execution,
+        approvalAction,
+        userId
+      );
+
+      const updated = await this.models.WorkflowExecution.update(executionId, {
+        status: 'awaiting_approval',
+        executionData: {
+          ...executionDataObj,
+          pendingApprovalAction: approvalAction,
+          pendingApprovalState: toState,
+          lastTransition: { from: currentState, to: toState, at: new Date(), deferred: true }
+        }
+      });
+
+      return updated;
+    }
+
+    // Normal state transition (no approval)
     const updated = await this.models.WorkflowExecution.update(executionId, {
       currentState: toState,
       status: isEndState ? 'completed' : 'active',
