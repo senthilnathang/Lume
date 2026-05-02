@@ -18,7 +18,8 @@ import {
   automationApprovalInstances,
   automationApprovalTasks,
   automationWorkflowNotificationSettings,
-  automationWorkflowApprovalLinks
+  automationWorkflowApprovalLinks,
+  automationApprovalEscalations
 } from './models/schema.js';
 import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
 import { AutomationService } from './services/index.js';
@@ -52,7 +53,8 @@ const initializeBaseAutomation = async (context) => {
     ApprovalInstance: new DrizzleAdapter(automationApprovalInstances),
     ApprovalTask: new DrizzleAdapter(automationApprovalTasks),
     WorkflowNotificationSetting: new DrizzleAdapter(automationWorkflowNotificationSettings),
-    WorkflowApprovalLink: new DrizzleAdapter(automationWorkflowApprovalLinks)
+    WorkflowApprovalLink: new DrizzleAdapter(automationWorkflowApprovalLinks),
+    ApprovalEscalation: new DrizzleAdapter(automationApprovalEscalations)
   };
   console.log(`✅ Base Automation adapters created: ${Object.keys(adapters).join(', ')}`);
 

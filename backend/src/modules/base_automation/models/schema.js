@@ -206,3 +206,17 @@ export const automationWorkflowApprovalLinks = table('automation_workflow_approv
   status: varchar('status', { length: 20 }).default('pending'),
   metadata: json('metadata').$type().default({})
 });
+
+// Phase 11 Wave 2: Approval Escalation Tracking
+export const automationApprovalEscalations = table('automation_approval_escalations', {
+  ...baseColumns(),
+  taskId: idCol('task_id').notNull(),
+  instanceId: idCol('instance_id').notNull(),
+  escalatedFrom: varchar('escalated_from', { length: 100 }),
+  escalatedTo: varchar('escalated_to', { length: 100 }).notNull(),
+  reason: varchar('reason', { length: 50 }).default('sla_breach'),
+  escalatedAt: timestamp('escalated_at').defaultNow(),
+  hoursOverdue: int('hours_overdue'),
+  notificationSent: boolean('notification_sent').default(false),
+  metadata: json('metadata').$type().default({})
+});
