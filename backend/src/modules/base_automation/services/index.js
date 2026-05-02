@@ -3,8 +3,9 @@
  */
 
 export class AutomationService {
-  constructor(models) {
+  constructor(models, webhookService = null) {
     this.models = models;
+    this.webhookService = webhookService;
   }
 
   // ── Workflows ─────────────────────────────────────────────────
@@ -395,6 +396,14 @@ export class AutomationService {
       }
     });
 
+    // Fire workflow webhooks (non-blocking)
+    this.webhookService?.triggerWebhooks('workflow.state_changed', 'workflow', {
+      executionId,
+      workflowId: execution.workflowId,
+      fromState: currentState,
+      toState
+    }).catch(() => {});
+
     return updated;
   }
 
@@ -468,6 +477,53 @@ export class AutomationService {
     });
 
     return updated;
+  }
+
+  // ── Workflow Webhooks (Wave 2) ────────────────────────────────
+
+  async getWorkflowWebhooks(workflowId) {
+    const result = await this.models.WorkflowWebhook.findAll({
+      where: [['workflowId', '=', workflowId]],
+      order: [['createdAt', 'DESC']]
+    });
+    return result.rows;
+  }
+
+  async createWorkflowWebhook(data) {
+    return this.models.WorkflowWebhook.create(data);
+  }
+
+  async deleteWorkflowWebhook(id) {
+    const existing = await this.models.WorkflowWebhook.findById(id);
+    if (!existing) return null;
+    await this.models.WorkflowWebhook.destroy(id);
+    return existing;
+  }
+
+  async triggerWorkflowWebhook(workflowId, event, payload) {
+    const webhooks = await this.getWorkflowWebhooks(workflowId);
+    const activeHooks = webhooks.filter(w => w.status === 'active');
+
+    for (const webhook of activeHooks) {
+      if (!webhook.events || !webhook.events.includes(event)) continue;
+
+      try {
+        const headers = webhook.headers || {};
+        headers['Content-Type'] = 'application/json';
+
+        await fetch(webhook.url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            event,
+            timestamp: new Date().toISOString(),
+            ...payload
+          })
+        });
+      } catch (err) {
+        console.error(`Failed to trigger webhook ${webhook.id}:`, err.message);
+      }
+    }
   }
 }
 
