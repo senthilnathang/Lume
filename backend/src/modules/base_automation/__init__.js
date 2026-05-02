@@ -17,7 +17,8 @@ import {
   automationWorkflowWebhooks,
   automationApprovalInstances,
   automationApprovalTasks,
-  automationWorkflowNotificationSettings
+  automationWorkflowNotificationSettings,
+  automationWorkflowApprovalLinks
 } from './models/schema.js';
 import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
 import { AutomationService } from './services/index.js';
@@ -50,7 +51,8 @@ const initializeBaseAutomation = async (context) => {
     WorkflowWebhook: new DrizzleAdapter(automationWorkflowWebhooks),
     ApprovalInstance: new DrizzleAdapter(automationApprovalInstances),
     ApprovalTask: new DrizzleAdapter(automationApprovalTasks),
-    WorkflowNotificationSetting: new DrizzleAdapter(automationWorkflowNotificationSettings)
+    WorkflowNotificationSetting: new DrizzleAdapter(automationWorkflowNotificationSettings),
+    WorkflowApprovalLink: new DrizzleAdapter(automationWorkflowApprovalLinks)
   };
   console.log(`✅ Base Automation adapters created: ${Object.keys(adapters).join(', ')}`);
 
