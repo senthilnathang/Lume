@@ -138,3 +138,15 @@ export const automationAutoTransitions = table('automation_auto_transitions', {
   executedAt: timestamp('executed_at'),
   status: varchar('status', { length: 20 }).default('pending'),
 });
+
+// Phase 9 Wave 2: Workflow Webhooks
+export const automationWorkflowWebhooks = table('automation_workflow_webhooks', {
+  ...baseColumns(),
+  workflowId: idCol('workflow_id').notNull(),
+  url: varchar('url', { length: 500 }).notNull(),
+  events: json('events').$type().default([]),
+  secret: varchar('secret', { length: 255 }),
+  headers: json('headers').$type().default({}),
+  retryCount: idCol('retry_count').default(3),
+  status: varchar('status', { length: 20 }).default('active'),
+});

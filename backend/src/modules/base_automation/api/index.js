@@ -588,6 +588,42 @@ const createRoutes = (models, services) => {
     }
   });
 
+  // ── Workflow Webhooks (Wave 2) ────────────────────────────────
+
+  router.get('/workflows/:id/webhooks', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const webhooks = await svc.getWorkflowWebhooks(id);
+      res.json({ success: true, data: webhooks });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/workflows/:id/webhooks', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const webhook = await svc.createWorkflowWebhook({
+        ...req.body,
+        workflowId: parseInt(id)
+      });
+      res.json({ success: true, data: webhook });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.delete('/workflows/:id/webhooks/:hookId', async (req, res) => {
+    try {
+      const { hookId } = req.params;
+      const webhook = await svc.deleteWorkflowWebhook(hookId);
+      if (!webhook) return res.status(404).json({ success: false, error: 'Webhook not found' });
+      res.json({ success: true, data: webhook });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
   return router;
 };
 

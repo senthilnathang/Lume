@@ -13,7 +13,8 @@ import {
   automationRollupFields,
   automationWorkflowExecutions,
   automationWorkflowExecutionHistory,
-  automationAutoTransitions
+  automationAutoTransitions,
+  automationWorkflowWebhooks
 } from './models/schema.js';
 import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
 import { AutomationService } from './services/index.js';
@@ -39,13 +40,15 @@ const initializeBaseAutomation = async (context) => {
     RollupField: new DrizzleAdapter(automationRollupFields),
     WorkflowExecution: new DrizzleAdapter(automationWorkflowExecutions),
     WorkflowExecutionHistory: new DrizzleAdapter(automationWorkflowExecutionHistory),
-    AutoTransition: new DrizzleAdapter(automationAutoTransitions)
+    AutoTransition: new DrizzleAdapter(automationAutoTransitions),
+    WorkflowWebhook: new DrizzleAdapter(automationWorkflowWebhooks)
   };
   console.log(`✅ Base Automation adapters created: ${Object.keys(adapters).join(', ')}`);
 
+  const webhookService = serviceRegistry.get('webhookService');
   const schedulerService = new SchedulerService(adapters.ScheduledAction);
   const ruleEngineService = new RuleEngineService(adapters.BusinessRule);
-  const automationService = new AutomationService(adapters);
+  const automationService = new AutomationService(adapters, webhookService);
   const autoTransitionProcessor = new AutoTransitionProcessor(automationService);
 
   const services = {

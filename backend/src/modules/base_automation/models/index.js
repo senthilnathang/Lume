@@ -15,7 +15,8 @@ import {
   automationRollupFields,
   automationWorkflowExecutions,
   automationWorkflowExecutionHistory,
-  automationAutoTransitions
+  automationAutoTransitions,
+  automationWorkflowWebhooks
 } from './schema.js';
 
 export function createAutomationModels() {
@@ -31,6 +32,7 @@ export function createAutomationModels() {
     WorkflowExecution: new DrizzleAdapter(automationWorkflowExecutions),
     WorkflowExecutionHistory: new DrizzleAdapter(automationWorkflowExecutionHistory),
     AutoTransition: new DrizzleAdapter(automationAutoTransitions),
+    WorkflowWebhook: new DrizzleAdapter(automationWorkflowWebhooks),
   };
 }
 
