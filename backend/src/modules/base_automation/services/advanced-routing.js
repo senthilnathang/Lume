@@ -36,11 +36,17 @@ export class AdvancedRoutingService {
 
     // Evaluate rules in order, return first match
     for (const rule of rules) {
-      const conditions = typeof rule.conditions === 'string'
-        ? JSON.parse(rule.conditions)
-        : rule.conditions;
+      let conditions;
+      try {
+        conditions = typeof rule.conditions === 'string'
+          ? JSON.parse(rule.conditions)
+          : rule.conditions;
+      } catch (e) {
+        console.error(`Invalid JSON in routing rule ${rule.id}:`, e.message);
+        continue; // Skip invalid rule
+      }
 
-      if (this.ruleEngine._evaluateCondition(conditions, context)) {
+      if (this.ruleEngine._evaluateCondition(conditions, context, context)) {
         return rule.chainId;
       }
     }
@@ -80,10 +86,19 @@ export class AdvancedRoutingService {
    * @returns {Promise<Object>} The created routing rule
    */
   async createRule(chainId, name, conditions, priority, metadata = {}) {
+    let parsedConditions;
+    try {
+      parsedConditions = typeof conditions === 'string'
+        ? JSON.parse(conditions)
+        : conditions;
+    } catch (e) {
+      throw new Error(`Invalid conditions JSON: ${e.message}`);
+    }
+
     const rule = await this.models.RoutingRule.create({
       chainId,
       name,
-      conditions: typeof conditions === 'string' ? JSON.parse(conditions) : conditions,
+      conditions: parsedConditions,
       priority,
       enabled: true,
       metadata
