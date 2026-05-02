@@ -58,9 +58,9 @@ const initializeBaseAutomation = async (context) => {
   const schedulerService = new SchedulerService(adapters.ScheduledAction);
   const ruleEngineService = new RuleEngineService(adapters.BusinessRule);
   const workflowNotificationService = new WorkflowNotificationService(adapters);
-  const automationService = new AutomationService(adapters, webhookService, workflowNotificationService);
-  const autoTransitionProcessor = new AutoTransitionProcessor(automationService);
   const approvalRuntimeService = new ApprovalRuntimeService(adapters, prisma);
+  const automationService = new AutomationService(adapters, webhookService, workflowNotificationService, approvalRuntimeService);
+  const autoTransitionProcessor = new AutoTransitionProcessor(automationService);
 
   const services = {
     automationService,
