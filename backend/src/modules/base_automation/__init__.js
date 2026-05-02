@@ -26,6 +26,7 @@ import { AutomationService } from './services/index.js';
 import { AutoTransitionProcessor } from './services/auto-transition-processor.js';
 import { ApprovalRuntimeService } from './services/approval-runtime.js';
 import { WorkflowNotificationService } from './services/workflow-notifications.js';
+import { ApprovalEscalationService } from './services/approval-escalation.js';
 import { SchedulerService } from '../../core/services/scheduler.service.js';
 import { RuleEngineService } from '../../core/services/rule-engine.service.js';
 import createRoutes from './api/index.js';
@@ -63,6 +64,7 @@ const initializeBaseAutomation = async (context) => {
   const ruleEngineService = new RuleEngineService(adapters.BusinessRule);
   const workflowNotificationService = new WorkflowNotificationService(adapters);
   const approvalRuntimeService = new ApprovalRuntimeService(adapters, prisma);
+  const approvalEscalationService = new ApprovalEscalationService(adapters, workflowNotificationService);
   const automationService = new AutomationService(adapters, webhookService, workflowNotificationService, approvalRuntimeService);
   const autoTransitionProcessor = new AutoTransitionProcessor(automationService);
 
@@ -72,13 +74,15 @@ const initializeBaseAutomation = async (context) => {
     ruleEngineService,
     autoTransitionProcessor,
     approvalRuntimeService,
-    workflowNotificationService
+    workflowNotificationService,
+    approvalEscalationService
   };
-  console.log('✅ Base Automation services created (scheduler + rule engine + auto-transition processor + approval runtime + notifications)');
+  console.log('✅ Base Automation services created (scheduler + rule engine + auto-transition processor + approval runtime + notifications + escalation)');
 
   // Register services globally for cross-module access (BaseService hooks)
   serviceRegistry.register('schedulerService', schedulerService);
   serviceRegistry.register('ruleEngineService', ruleEngineService);
+  serviceRegistry.register('approvalEscalationService', approvalEscalationService);
 
   const routes = createRoutes(adapters, services);
   app.use('/api/base_automation', routes);
