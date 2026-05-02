@@ -634,6 +634,108 @@ export class AutomationService {
     await this.models.WorkflowNotificationSetting.destroy(id);
     return existing;
   }
+
+  // ── Approval Callbacks (Wave 1) ─────────────────────────────────
+
+  /**
+   * Handle approval callback to advance workflow state
+   * Called when an approval task is approved/rejected
+   *
+   * @param {number} approvalInstanceId - ID of the ApprovalInstance
+   * @param {string} decision - 'approved' or 'rejected'
+   * @param {string} userId - User who made the decision
+   * @returns {Promise<Object>} Updated execution record
+   * @throws {Error} If decision is invalid or execution not found
+   */
+  async handleApprovalCallback(approvalInstanceId, decision, userId) {
+    if (!['approved', 'rejected'].includes(decision)) {
+      throw new Error('Decision must be "approved" or "rejected"');
+    }
+
+    // Get approval instance
+    const approvalInstance = await this.models.ApprovalInstance.findById(approvalInstanceId);
+    if (!approvalInstance) throw new Error('Approval instance not found');
+
+    // Parse metadata to get execution ID
+    let meta = {};
+    if (approvalInstance.metadata) {
+      meta = typeof approvalInstance.metadata === 'string'
+        ? JSON.parse(approvalInstance.metadata) : approvalInstance.metadata;
+    }
+
+    if (meta.entityType !== 'workflow_execution') {
+      throw new Error('Approval instance is not for a workflow execution');
+    }
+
+    const executionId = parseInt(meta.entityRef, 10);
+    const execution = await this.models.WorkflowExecution.findById(executionId);
+    if (!execution) throw new Error('Workflow execution not found');
+
+    // Get execution data to find pending approval action
+    let executionDataObj = {};
+    if (execution.executionData) {
+      executionDataObj = typeof execution.executionData === 'string'
+        ? JSON.parse(execution.executionData) : execution.executionData;
+    }
+
+    const approvalAction = executionDataObj.pendingApprovalAction;
+    if (!approvalAction) throw new Error('No pending approval action found');
+
+    // Determine next state based on decision
+    const nextState = decision === 'approved' ? approvalAction.onApprove : approvalAction.onReject;
+
+    // Store approval decision in execution data
+    executionDataObj.lastApprovalDecision = {
+      decision,
+      instanceId: approvalInstanceId,
+      decidedBy: userId,
+      decidedAt: new Date(),
+      decidedFor: executionDataObj.pendingApprovalState
+    };
+    delete executionDataObj.pendingApprovalAction;
+    delete executionDataObj.pendingApprovalState;
+
+    // Transition to next state (without approval action this time)
+    const updated = await this.models.WorkflowExecution.update(executionId, {
+      currentState: nextState,
+      status: 'active',
+      executionData: executionDataObj
+    });
+
+    // Record transition in history
+    await this.models.WorkflowExecutionHistory.create({
+      executionId,
+      fromState: execution.currentState,
+      toState: nextState,
+      transitionName: `approval_${decision}`,
+      userId
+    });
+
+    // Fire webhooks and notifications
+    const workflow = await this.models.Workflow.findById(execution.workflowId);
+    this.webhookService?.triggerWebhooks('workflow.state_changed', 'workflow', {
+      executionId,
+      workflowId: execution.workflowId,
+      fromState: execution.currentState,
+      toState: nextState,
+      approvalDecision: decision
+    }).catch(() => {});
+
+    this.workflowNotificationService?.notifyStateChange(
+      executionId,
+      execution.workflowId,
+      execution.currentState,
+      nextState,
+      {
+        recordId: execution.recordId,
+        workflowName: workflow?.name,
+        submitter: executionDataObj.initiatedBy ? { id: executionDataObj.initiatedBy } : null,
+        approvalDecision: decision
+      }
+    ).catch(() => {});
+
+    return updated;
+  }
 }
 
 export { WorkflowApprovalActionService };
