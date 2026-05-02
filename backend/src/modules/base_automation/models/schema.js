@@ -220,3 +220,15 @@ export const automationApprovalEscalations = table('automation_approval_escalati
   notificationSent: boolean('notification_sent').default(false),
   metadata: json('metadata').$type().default({})
 });
+
+// Phase 11 Wave 3: Escalation Chain Configuration
+export const automationApprovalEscalationChains = table('automation_approval_escalation_chains', {
+  ...baseColumns(),
+  approvalChainId: idCol('approval_chain_id').notNull(),
+  level: int('level').notNull(),
+  escalateToRole: varchar('escalate_to_role', { length: 100 }).notNull(),
+  escalateAfterHours: int('escalate_after_hours').notNull(),
+  maxEscalations: int('max_escalations').default(3),
+  notificationTemplate: varchar('notification_template', { length: 100 }),
+  metadata: json('metadata').$type().default({})
+});
