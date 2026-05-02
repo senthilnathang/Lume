@@ -4,10 +4,13 @@
  * Can be run via cron job or queue processor
  */
 
+import { BusinessHoursService } from './business-hours.js';
+
 export class AutoTransitionProcessor {
   constructor(automationService) {
     this.svc = automationService;
     this.processingInterval = null;
+    this.bhs = new BusinessHoursService();
   }
 
   /**
@@ -54,6 +57,17 @@ export class AutoTransitionProcessor {
       console.log(`[AutoTransitionProcessor] Processing ${pending.length} pending transitions`);
 
       for (const autoTransition of pending) {
+        // Skip if business hours only and currently outside business hours
+        if (autoTransition.businessHoursOnly) {
+          const inHours = this.bhs.isBusinessHours({
+            timezone: autoTransition.timezone || 'UTC'
+          });
+          if (!inHours) {
+            console.log(`[AutoTransitionProcessor] Deferring transition ${autoTransition.id} (outside business hours)`);
+            continue;
+          }
+        }
+
         try {
           await this.svc.executeAutoTransition(autoTransition.id);
           console.log(`[AutoTransitionProcessor] Executed transition ${autoTransition.id}`);

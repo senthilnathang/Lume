@@ -4,10 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import relativeTime from 'dayjs/plugin/relativeTime.js';
+import timezone from 'dayjs/plugin/timezone.js';
+import isoWeek from 'dayjs/plugin/isoWeek.js';
 import crypto from 'crypto';
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
+dayjs.extend(timezone);
+dayjs.extend(isoWeek);
 
 // Password utilities
 export const passwordUtil = {

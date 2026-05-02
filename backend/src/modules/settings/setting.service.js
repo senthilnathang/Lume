@@ -140,7 +140,8 @@ export class SettingService {
       { key: 'currency', value: 'USD', type: 'string', category: 'localization', description: 'Default currency' },
       { key: 'timezone', value: 'UTC', type: 'string', category: 'localization', description: 'Default timezone' },
       { key: 'date_format', value: 'YYYY-MM-DD', type: 'string', category: 'localization', description: 'Date format' },
-      { key: 'maintenance_mode', value: 'false', type: 'boolean', category: 'system', description: 'Enable maintenance mode' }
+      { key: 'maintenance_mode', value: 'false', type: 'boolean', category: 'system', description: 'Enable maintenance mode' },
+      { key: 'business_hours', value: JSON.stringify({ start: 9, end: 17, timezone: 'UTC', days: [1, 2, 3, 4, 5] }), type: 'json', category: 'automation', description: 'Business hours for auto-transition scheduling' }
     ];
 
     for (const setting of defaults) {

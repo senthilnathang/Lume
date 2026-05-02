@@ -6,6 +6,7 @@ import { Router } from 'express';
 import { AutomationService } from '../services/index.js';
 import { getDrizzle } from '../../../core/db/drizzle.js';
 import createAutomationModels from '../models/index.js';
+import SettingService from '../../settings/setting.service.js';
 
 let automationServiceInstance = null;
 
@@ -619,6 +620,28 @@ const createRoutes = (models, services) => {
       const webhook = await svc.deleteWorkflowWebhook(hookId);
       if (!webhook) return res.status(404).json({ success: false, error: 'Webhook not found' });
       res.json({ success: true, data: webhook });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  // ── Business Hours (Wave 3) ───────────────────────────────────
+
+  router.get('/business-hours', async (req, res) => {
+    try {
+      const settingService = new SettingService();
+      const result = await settingService.get('business_hours');
+      res.json({ success: true, data: result.data });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.put('/business-hours', async (req, res) => {
+    try {
+      const settingService = new SettingService();
+      const result = await settingService.set('business_hours', JSON.stringify(req.body));
+      res.json({ success: true, data: result.data });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
     }
