@@ -645,3 +645,364 @@ describe('AutomationService - handleApprovalCallback', () => {
     expect(updateCall[1].executionData.pendingApprovalState).toBeUndefined();
   });
 });
+
+// ── Wave 1: Workflow Approval Actions - End-to-End Integration ────
+
+describe('Wave 1: Workflow Approval Actions - End-to-End Integration', () => {
+  let automationService;
+  let mockModels;
+  let mockApprovalService;
+
+  beforeEach(() => {
+    mockModels = {
+      WorkflowExecution: {
+        findById: jest.fn(),
+        update: jest.fn()
+      },
+      Workflow: {
+        findById: jest.fn()
+      },
+      WorkflowExecutionHistory: {
+        create: jest.fn()
+      },
+      ApprovalInstance: {
+        findById: jest.fn()
+      },
+      WorkflowApprovalLink: {
+        create: jest.fn(),
+        findAll: jest.fn()
+      }
+    };
+
+    mockApprovalService = {
+      submitForApproval: jest.fn().mockResolvedValue({ id: 100, status: 'pending' })
+    };
+
+    automationService = new AutomationService(
+      mockModels,
+      null,
+      null,
+      mockApprovalService
+    );
+    automationService.webhookService = null;
+    automationService.workflowNotificationService = null;
+  });
+
+  it('should complete full workflow: normal transition → approval action → decision → state advancement', async () => {
+    // Step 1: Transition with approval action
+    const execution1 = {
+      id: 1,
+      workflowId: 5,
+      recordId: 10,
+      currentState: 'draft',
+      status: 'active',
+      executionData: { initiatedBy: 'user_123' }
+    };
+
+    const workflow = {
+      id: 5,
+      name: 'Change Request',
+      states: JSON.stringify([
+        { name: 'draft', is_start: true, is_end: false },
+        { name: 'submitted', is_start: false, is_end: false },
+        { name: 'approved', is_start: false, is_end: true },
+        { name: 'rejected', is_start: false, is_end: false }
+      ]),
+      transitions: JSON.stringify([
+        {
+          from: 'draft',
+          to: 'submitted',
+          actions: [
+            {
+              type: 'request_approval',
+              chainId: 3,
+              onApprove: 'approved',
+              onReject: 'draft'
+            }
+          ]
+        }
+      ])
+    };
+
+    mockModels.WorkflowExecution.findById.mockResolvedValue(execution1);
+    mockModels.Workflow.findById.mockResolvedValue(workflow);
+    mockModels.WorkflowExecution.update.mockResolvedValueOnce({
+      ...execution1,
+      status: 'awaiting_approval',
+      currentState: 'submitted',
+      executionData: {
+        ...execution1.executionData,
+        pendingApprovalAction: {
+          type: 'request_approval',
+          chainId: 3,
+          onApprove: 'approved',
+          onReject: 'draft'
+        },
+        pendingApprovalState: 'submitted'
+      }
+    });
+
+    jest.spyOn(automationService.workflowApprovalActionService, 'executeApprovalAction')
+      .mockResolvedValue({ id: 100 });
+
+    const result1 = await automationService.transitionWorkflowState(
+      1,
+      'submitted',
+      'manual',
+      'user_123',
+      true
+    );
+
+    expect(result1.status).toBe('awaiting_approval');
+    expect(automationService.workflowApprovalActionService.executeApprovalAction).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Object),
+      'user_123'
+    );
+
+    // Step 2: Approval decision
+    const approvalInstance = {
+      id: 100,
+      metadata: JSON.stringify({ entityType: 'workflow_execution', entityRef: '1' })
+    };
+
+    const execution2 = {
+      id: 1,
+      workflowId: 5,
+      recordId: 10,
+      currentState: 'submitted',
+      status: 'awaiting_approval',
+      executionData: {
+        initiatedBy: 'user_123',
+        pendingApprovalAction: {
+          type: 'request_approval',
+          chainId: 3,
+          onApprove: 'approved',
+          onReject: 'draft'
+        },
+        pendingApprovalState: 'submitted'
+      }
+    };
+
+    mockModels.ApprovalInstance.findById.mockResolvedValue(approvalInstance);
+    mockModels.WorkflowExecution.findById.mockResolvedValue(execution2);
+    mockModels.WorkflowExecution.update.mockResolvedValueOnce({
+      ...execution2,
+      currentState: 'approved',
+      status: 'active',
+      executionData: {
+        initiatedBy: 'user_123',
+        lastApprovalDecision: {
+          decision: 'approved',
+          instanceId: 100,
+          decidedBy: 'approver_123',
+          decidedAt: new Date(),
+          decidedFor: 'submitted'
+        }
+      }
+    });
+
+    const result2 = await automationService.handleApprovalCallback(
+      100,
+      'approved',
+      'approver_123'
+    );
+
+    expect(result2.currentState).toBe('approved');
+    expect(result2.status).toBe('active');
+    expect(mockModels.WorkflowExecutionHistory.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        executionId: 1,
+        fromState: 'submitted',
+        toState: 'approved',
+        transitionName: 'approval_approved'
+      })
+    );
+  });
+
+  it('should handle approval rejection and return to start state', async () => {
+    const execution = {
+      id: 1,
+      workflowId: 5,
+      recordId: 10,
+      currentState: 'submitted',
+      status: 'awaiting_approval',
+      executionData: {
+        initiatedBy: 'user_123',
+        pendingApprovalAction: {
+          type: 'request_approval',
+          chainId: 3,
+          onApprove: 'approved',
+          onReject: 'draft'
+        },
+        pendingApprovalState: 'submitted'
+      }
+    };
+
+    const approvalInstance = {
+      id: 100,
+      metadata: JSON.stringify({ entityType: 'workflow_execution', entityRef: '1' })
+    };
+
+    mockModels.ApprovalInstance.findById.mockResolvedValue(approvalInstance);
+    mockModels.WorkflowExecution.findById.mockResolvedValue(execution);
+    mockModels.Workflow.findById.mockResolvedValue({
+      id: 5,
+      name: 'Change Request',
+      states: JSON.stringify([
+        { name: 'draft', is_start: true, is_end: false },
+        { name: 'submitted', is_start: false, is_end: false },
+        { name: 'approved', is_start: false, is_end: true }
+      ]),
+      transitions: JSON.stringify([])
+    });
+    mockModels.WorkflowExecution.update.mockResolvedValue({
+      ...execution,
+      currentState: 'draft',
+      status: 'active'
+    });
+    mockModels.WorkflowExecutionHistory.create.mockResolvedValue({});
+
+    const result = await automationService.handleApprovalCallback(
+      100,
+      'rejected',
+      'approver_123'
+    );
+
+    expect(result.currentState).toBe('draft');
+    expect(mockModels.WorkflowExecutionHistory.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toState: 'draft',
+        transitionName: 'approval_rejected'
+      })
+    );
+  });
+
+  it('should preserve existing execution data while adding approval decision', async () => {
+    const execution = {
+      id: 1,
+      workflowId: 5,
+      recordId: 10,
+      currentState: 'submitted',
+      status: 'awaiting_approval',
+      executionData: {
+        initiatedBy: 'user_123',
+        customField: 'custom_value',
+        pendingApprovalAction: {
+          type: 'request_approval',
+          chainId: 3,
+          onApprove: 'approved',
+          onReject: 'draft'
+        },
+        pendingApprovalState: 'submitted'
+      }
+    };
+
+    const approvalInstance = {
+      id: 100,
+      metadata: JSON.stringify({ entityType: 'workflow_execution', entityRef: '1' })
+    };
+
+    mockModels.ApprovalInstance.findById.mockResolvedValue(approvalInstance);
+    mockModels.WorkflowExecution.findById.mockResolvedValue(execution);
+    mockModels.Workflow.findById.mockResolvedValue({
+      id: 5,
+      name: 'Change Request',
+      states: JSON.stringify([]),
+      transitions: JSON.stringify([])
+    });
+
+    let capturedUpdateData = null;
+    mockModels.WorkflowExecution.update.mockImplementation((id, data) => {
+      capturedUpdateData = data;
+      return Promise.resolve({ ...execution, ...data });
+    });
+
+    mockModels.WorkflowExecutionHistory.create.mockResolvedValue({});
+
+    await automationService.handleApprovalCallback(100, 'approved', 'approver_123');
+
+    expect(capturedUpdateData.executionData.customField).toBe('custom_value');
+    expect(capturedUpdateData.executionData.initiatedBy).toBe('user_123');
+    expect(capturedUpdateData.executionData.pendingApprovalAction).toBeUndefined();
+    expect(capturedUpdateData.executionData.pendingApprovalState).toBeUndefined();
+    expect(capturedUpdateData.executionData.lastApprovalDecision).toBeDefined();
+    expect(capturedUpdateData.executionData.lastApprovalDecision.decision).toBe('approved');
+  });
+
+  it('should maintain workflow state consistency across approval lifecycle', async () => {
+    const workflow = {
+      id: 5,
+      name: 'Multi-Step Approval',
+      states: JSON.stringify([
+        { name: 'draft', is_start: true, is_end: false },
+        { name: 'review', is_start: false, is_end: false },
+        { name: 'approved', is_start: false, is_end: true },
+        { name: 'published', is_start: false, is_end: true }
+      ]),
+      transitions: JSON.stringify([
+        {
+          from: 'draft',
+          to: 'review',
+          actions: [
+            {
+              type: 'request_approval',
+              chainId: 1,
+              onApprove: 'approved',
+              onReject: 'draft'
+            }
+          ]
+        }
+      ])
+    };
+
+    const execution = {
+      id: 2,
+      workflowId: 5,
+      recordId: 20,
+      currentState: 'review',
+      status: 'awaiting_approval',
+      executionData: {
+        initiatedBy: 'user_456',
+        processedAt: '2026-05-02T10:00:00Z',
+        pendingApprovalAction: {
+          type: 'request_approval',
+          chainId: 1,
+          onApprove: 'approved',
+          onReject: 'draft'
+        },
+        pendingApprovalState: 'review'
+      }
+    };
+
+    const approvalInstance = {
+      id: 200,
+      metadata: JSON.stringify({ entityType: 'workflow_execution', entityRef: '2' })
+    };
+
+    mockModels.WorkflowExecution.findById.mockResolvedValue(execution);
+    mockModels.ApprovalInstance.findById.mockResolvedValue(approvalInstance);
+    mockModels.Workflow.findById.mockResolvedValue(workflow);
+
+    let finalState = null;
+    mockModels.WorkflowExecution.update.mockImplementation((id, data) => {
+      finalState = {
+        ...execution,
+        ...data,
+        currentState: data.currentState || execution.currentState,
+        status: data.status || execution.status
+      };
+      return Promise.resolve(finalState);
+    });
+
+    mockModels.WorkflowExecutionHistory.create.mockResolvedValue({});
+
+    const result = await automationService.handleApprovalCallback(200, 'approved', 'approver_456');
+
+    expect(result.currentState).toBe('approved');
+    expect(result.status).toBe('active');
+    expect(result.executionData.initiatedBy).toBe('user_456');
+    expect(result.executionData.processedAt).toBe('2026-05-02T10:00:00Z');
+    expect(result.executionData.lastApprovalDecision.decidedBy).toBe('approver_456');
+  });
+});
