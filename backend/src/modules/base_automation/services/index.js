@@ -410,7 +410,7 @@ export class AutomationService {
   // ── Auto-Transitions (Wave 4) ──────────────────────────────
 
   async scheduleAutoTransition(executionId, fromState, toState, triggerType, config = {}) {
-    const { delaySeconds, webhookUrl, conditionData } = config;
+    const { delaySeconds, webhookUrl, conditionData, businessHoursOnly, timezone } = config;
 
     const scheduledFor = delaySeconds
       ? new Date(Date.now() + delaySeconds * 1000)
@@ -426,7 +426,9 @@ export class AutomationService {
       webhookUrl,
       conditionData,
       scheduledFor,
-      status: 'pending'
+      status: 'pending',
+      businessHoursOnly: businessHoursOnly || false,
+      timezone: timezone || 'UTC'
     });
   }
 

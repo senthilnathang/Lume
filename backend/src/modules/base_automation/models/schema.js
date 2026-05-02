@@ -1,4 +1,4 @@
-import { table, int, integer, varchar, text, json, timestamp } from '../../../core/db/dialect.js';
+import { table, int, integer, varchar, text, json, timestamp, boolean } from '../../../core/db/dialect.js';
 import { baseColumns } from '../../../core/db/drizzle-helpers.js';
 
 const idCol = int || integer;
@@ -137,6 +137,8 @@ export const automationAutoTransitions = table('automation_auto_transitions', {
   scheduledFor: timestamp('scheduled_for'),
   executedAt: timestamp('executed_at'),
   status: varchar('status', { length: 20 }).default('pending'),
+  businessHoursOnly: boolean('business_hours_only').default(false),
+  timezone: varchar('timezone', { length: 100 }).default('UTC'),
 });
 
 // Phase 9 Wave 2: Workflow Webhooks
