@@ -25,7 +25,7 @@ export class EscalationChainHandler {
   /**
    * Escalate a task to the next level in the escalation chain
    * Creates a new escalation record at the next level if one exists
-   * @param {Object} currentEscalation - Current escalation record with taskId, level, approvalChainId
+   * @param {Object} currentEscalation - Current escalation record with taskId, level, approvalChainId, instanceId
    * @returns {Promise<Object|undefined>} New escalation record or undefined if at max level
    */
   async escalateToNextLevel(currentEscalation) {
@@ -35,6 +35,10 @@ export class EscalationChainHandler {
 
     if (!currentEscalation.approvalChainId) {
       throw new Error('Current escalation must have approvalChainId');
+    }
+
+    if (!currentEscalation.instanceId) {
+      throw new Error('Current escalation must have instanceId');
     }
 
     // Fetch all chain levels for this approval chain
@@ -55,6 +59,7 @@ export class EscalationChainHandler {
     // Create escalation to next level
     const escalation = await this.models.ApprovalEscalation.create({
       taskId: currentEscalation.taskId,
+      instanceId: currentEscalation.instanceId,
       escalatedFrom: currentEscalation.escalatedTo,
       escalatedTo: nextLevel.escalateToRole,
       reason: 'sla_breach',
