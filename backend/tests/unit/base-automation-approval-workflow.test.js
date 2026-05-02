@@ -166,3 +166,189 @@ describe('WorkflowApprovalActionService', () => {
     });
   });
 });
+
+// ── AutomationService Approval Action Tests ──────────────────
+
+import { AutomationService } from '../../src/modules/base_automation/services/index.js';
+
+describe('AutomationService - transitionWorkflowState with approval action', () => {
+  let automationService;
+  let mockModels;
+  let mockApprovalService;
+
+  beforeEach(() => {
+    mockModels = {
+      WorkflowExecution: {
+        findById: jest.fn(),
+        update: jest.fn()
+      },
+      Workflow: {
+        findById: jest.fn()
+      },
+      WorkflowExecutionHistory: {
+        create: jest.fn()
+      }
+    };
+    mockApprovalService = {
+      submitForApproval: jest.fn().mockResolvedValue({ id: 100 })
+    };
+
+    automationService = new AutomationService(mockModels, null, null, mockApprovalService);
+    automationService.webhookService = null;
+    automationService.workflowNotificationService = null;
+  });
+
+  it('should execute approval action and set status to awaiting_approval', async () => {
+    const execution = {
+      id: 1,
+      workflowId: 5,
+      recordId: 10,
+      currentState: 'draft',
+      status: 'active',
+      executionData: {}
+    };
+    const workflow = {
+      id: 5,
+      states: JSON.stringify([
+        { name: 'draft', is_start: true, is_end: false },
+        { name: 'submitted', is_start: false, is_end: false },
+        { name: 'approved', is_start: false, is_end: true }
+      ]),
+      transitions: JSON.stringify([
+        {
+          from: 'draft',
+          to: 'submitted',
+          actions: [
+            {
+              type: 'request_approval',
+              chainId: 3,
+              onApprove: 'approved',
+              onReject: 'draft'
+            }
+          ]
+        }
+      ])
+    };
+
+    mockModels.WorkflowExecution.findById.mockResolvedValue(execution);
+    mockModels.Workflow.findById.mockResolvedValue(workflow);
+    mockModels.WorkflowExecution.update.mockResolvedValue({
+      ...execution,
+      status: 'awaiting_approval'
+    });
+    mockModels.WorkflowExecutionHistory.create.mockResolvedValue({});
+
+    // Spy on the approval action service method
+    jest.spyOn(automationService.workflowApprovalActionService, 'executeApprovalAction')
+      .mockResolvedValue({ id: 100 });
+
+    const result = await automationService.transitionWorkflowState(
+      1,
+      'submitted',
+      'auto',
+      'user_123',
+      true  // hasApprovalAction flag
+    );
+
+    expect(automationService.workflowApprovalActionService.executeApprovalAction).toHaveBeenCalled();
+    expect(result.status).toBe('awaiting_approval');
+  });
+
+  it('should perform normal transition when hasApprovalAction is false', async () => {
+    const execution = {
+      id: 1,
+      workflowId: 5,
+      recordId: 10,
+      currentState: 'draft',
+      status: 'active',
+      executionData: {}
+    };
+    const workflow = {
+      id: 5,
+      states: JSON.stringify([
+        { name: 'draft', is_start: true, is_end: false },
+        { name: 'submitted', is_start: false, is_end: true }
+      ]),
+      transitions: JSON.stringify([
+        {
+          from: 'draft',
+          to: 'submitted',
+          actions: []
+        }
+      ])
+    };
+
+    mockModels.WorkflowExecution.findById.mockResolvedValue(execution);
+    mockModels.Workflow.findById.mockResolvedValue(workflow);
+    mockModels.WorkflowExecution.update.mockResolvedValue({
+      ...execution,
+      currentState: 'submitted',
+      status: 'completed'
+    });
+    mockModels.WorkflowExecutionHistory.create.mockResolvedValue({});
+
+    const result = await automationService.transitionWorkflowState(
+      1,
+      'submitted',
+      'auto',
+      'user_123',
+      false
+    );
+
+    expect(result.currentState).toBe('submitted');
+    expect(result.status).toBe('completed');
+  });
+
+  it('should store pending approval action in executionData', async () => {
+    const execution = {
+      id: 1,
+      workflowId: 5,
+      recordId: 10,
+      currentState: 'draft',
+      status: 'active',
+      executionData: JSON.stringify({ initiatedBy: 'user_123' })
+    };
+    const workflow = {
+      id: 5,
+      states: JSON.stringify([
+        { name: 'draft', is_start: true, is_end: false },
+        { name: 'submitted', is_start: false, is_end: false }
+      ]),
+      transitions: JSON.stringify([
+        {
+          from: 'draft',
+          to: 'submitted',
+          actions: [
+            {
+              type: 'request_approval',
+              chainId: 3,
+              onApprove: 'approved',
+              onReject: 'draft'
+            }
+          ]
+        }
+      ])
+    };
+
+    mockModels.WorkflowExecution.findById.mockResolvedValue(execution);
+    mockModels.Workflow.findById.mockResolvedValue(workflow);
+    mockModels.WorkflowExecution.update.mockResolvedValue({
+      ...execution,
+      status: 'awaiting_approval'
+    });
+    mockModels.WorkflowExecutionHistory.create.mockResolvedValue({});
+
+    await automationService.transitionWorkflowState(
+      1,
+      'submitted',
+      'auto',
+      'user_123',
+      true
+    );
+
+    const updateCall = mockModels.WorkflowExecution.update.mock.calls[0];
+    expect(updateCall[1].status).toBe('awaiting_approval');
+    expect(updateCall[1].executionData.pendingApprovalAction).toBeDefined();
+    expect(updateCall[1].executionData.pendingApprovalState).toBe('submitted');
+  });
+});
