@@ -51,6 +51,7 @@ describe('EscalationChainHandler', () => {
       id: 1,
       taskId: 1,
       approvalChainId: 5,
+      instanceId: 10,
       escalatedTo: 'manager',
       level: 1
     };
@@ -79,6 +80,7 @@ describe('EscalationChainHandler', () => {
       id: 1,
       taskId: 1,
       approvalChainId: 5,
+      instanceId: 10,
       escalatedTo: 'director',
       level: 2
     };
@@ -184,9 +186,9 @@ describe('ApprovalAnalyticsService', () => {
 
   it('should calculate average approval time by role', async () => {
     const tasks = [
-      { id: 1, assignedToRole: 'manager', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-02') },
-      { id: 2, assignedToRole: 'manager', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-04') },
-      { id: 3, assignedToRole: 'director', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-06') }
+      { id: 1, assignedToRole: 'manager', status: 'approved', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-02') },
+      { id: 2, assignedToRole: 'manager', status: 'approved', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-04') },
+      { id: 3, assignedToRole: 'director', status: 'approved', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-06') }
     ];
 
     mockModels.ApprovalTask.findAll.mockResolvedValue({ rows: tasks, count: 3 });

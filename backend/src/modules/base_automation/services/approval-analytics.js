@@ -15,10 +15,9 @@ export class ApprovalAnalyticsService {
    */
   async getApprovalMetrics(filters = {}) {
     const result = await this.models.ApprovalTask.findAll({
-      where: { status: { $in: ['approved', 'rejected'] }, ...filters }
+      where: []  // Get all, then filter completed
     });
-
-    const tasks = (result && result.rows) ? result.rows : [];
+    const tasks = (result && result.rows) ? result.rows.filter(t => t.status === 'approved' || t.status === 'rejected') : [];
     if (tasks.length === 0) {
       return { totalApprovals: 0, avgTime: 0, slaBreachers: 0, breachRate: 0 };
     }
@@ -50,7 +49,7 @@ export class ApprovalAnalyticsService {
    */
   async getBottlenecks(limit = 10) {
     const result = await this.models.ApprovalTask.findAll({
-      where: { status: 'pending' }
+      where: [['status', '=', 'pending']]
     });
 
     const tasks = (result && result.rows) ? result.rows : [];
@@ -100,10 +99,9 @@ export class ApprovalAnalyticsService {
    */
   async getApprovalTimeByRole(role) {
     const result = await this.models.ApprovalTask.findAll({
-      where: { assignedToRole: role, status: { $in: ['approved', 'rejected'] } }
+      where: [['assignedToRole', '=', role]]
     });
-
-    const tasks = (result && result.rows) ? result.rows : [];
+    const tasks = (result && result.rows) ? result.rows.filter(t => t.status === 'approved' || t.status === 'rejected') : [];
     if (tasks.length === 0) {
       return { role, avgTimeHours: 0, totalApprovals: 0 };
     }
