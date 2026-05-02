@@ -793,6 +793,34 @@ const createRoutes = (models, services) => {
     }
   });
 
+  // ── Escalation Endpoints (Wave 4) ──────────────────────────────
+
+  router.get('/approvals/escalations/:instanceId', async (req, res) => {
+    try {
+      const { instanceId } = req.params;
+      const escalations = await services.approvalEscalationService.getEscalationHistory({
+        instanceId: parseInt(instanceId, 10)
+      });
+
+      res.json({ success: true, data: escalations });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/approvals/escalations/task/:taskId', async (req, res) => {
+    try {
+      const { taskId } = req.params;
+      const escalations = await services.approvalEscalationService.getEscalationHistory({
+        taskId: parseInt(taskId, 10)
+      });
+
+      res.json({ success: true, data: escalations });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
   return router;
 };
 
