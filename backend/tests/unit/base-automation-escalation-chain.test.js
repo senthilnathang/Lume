@@ -5,6 +5,7 @@
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { EscalationChainHandler } from '../../src/modules/base_automation/services/escalation-chain-handler.js';
+import { ApprovalAnalyticsService } from '../../src/modules/base_automation/services/approval-analytics.js';
 
 describe('Escalation Chain Configuration', () => {
   let mockModels;
@@ -120,5 +121,79 @@ describe('EscalationChainHandler', () => {
     const isMaxReached = await handler.isMaxLevelReached(1, 5, 2);
 
     expect(isMaxReached).toBe(true);
+  });
+});
+
+describe('ApprovalAnalyticsService', () => {
+  let analyticsService;
+  let mockModels;
+
+  beforeEach(() => {
+    mockModels = {
+      ApprovalTask: { findAll: jest.fn() },
+      ApprovalEscalation: { findAll: jest.fn() }
+    };
+    analyticsService = new ApprovalAnalyticsService(mockModels);
+  });
+
+  it('should calculate approval metrics', async () => {
+    const tasks = [
+      { id: 1, status: 'approved', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-02'), dueAt: new Date('2026-01-05') },
+      { id: 2, status: 'approved', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-10'), dueAt: new Date('2026-01-05') }
+    ];
+
+    mockModels.ApprovalTask.findAll.mockResolvedValue({ rows: tasks, count: 2 });
+
+    const metrics = await analyticsService.getApprovalMetrics();
+
+    expect(metrics.totalApprovals).toBe(2);
+    expect(metrics.slaBreachers).toBe(1);
+    expect(metrics.breachRate).toBe(0.5);
+  });
+
+  it('should identify bottleneck tasks', async () => {
+    const now = new Date();
+    const bottlenecks = [
+      { id: 1, status: 'pending', taskId: 101, createdAt: new Date(now.getTime() - 86400000 * 10), assignedTo: 'user1' },
+      { id: 2, status: 'pending', taskId: 102, createdAt: new Date(now.getTime() - 86400000 * 5), assignedTo: 'user2' }
+    ];
+
+    mockModels.ApprovalTask.findAll.mockResolvedValue({ rows: bottlenecks, count: 2 });
+
+    const result = await analyticsService.getBottlenecks(10);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe(1);
+  });
+
+  it('should calculate escalation metrics by level', async () => {
+    const escalations = [
+      { id: 1, level: 1, reason: 'sla_breach' },
+      { id: 2, level: 1, reason: 'sla_breach' },
+      { id: 3, level: 2, reason: 'sla_breach' }
+    ];
+
+    mockModels.ApprovalEscalation.findAll.mockResolvedValue({ rows: escalations, count: 3 });
+
+    const metrics = await analyticsService.getEscalationMetrics();
+
+    expect(metrics.totalEscalations).toBe(3);
+    expect(metrics.byLevel[1]).toBe(2);
+    expect(metrics.byLevel[2]).toBe(1);
+  });
+
+  it('should calculate average approval time by role', async () => {
+    const tasks = [
+      { id: 1, assignedToRole: 'manager', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-02') },
+      { id: 2, assignedToRole: 'manager', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-04') },
+      { id: 3, assignedToRole: 'director', createdAt: new Date('2026-01-01'), decidedAt: new Date('2026-01-06') }
+    ];
+
+    mockModels.ApprovalTask.findAll.mockResolvedValue({ rows: tasks, count: 3 });
+
+    const metrics = await analyticsService.getApprovalTimeByRole('manager');
+
+    expect(metrics.role).toBe('manager');
+    expect(metrics.avgTimeHours).toBeGreaterThan(0);
   });
 });

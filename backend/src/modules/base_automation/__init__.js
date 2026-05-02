@@ -29,6 +29,7 @@ import { ApprovalRuntimeService } from './services/approval-runtime.js';
 import { WorkflowNotificationService } from './services/workflow-notifications.js';
 import { ApprovalEscalationService } from './services/approval-escalation.js';
 import { EscalationChainHandler } from './services/escalation-chain-handler.js';
+import { ApprovalAnalyticsService } from './services/approval-analytics.js';
 import { EscalationProcessor } from './jobs/escalation-processor.js';
 import { SchedulerService } from '../../core/services/scheduler.service.js';
 import { RuleEngineService } from '../../core/services/rule-engine.service.js';
@@ -70,6 +71,7 @@ const initializeBaseAutomation = async (context) => {
   const approvalRuntimeService = new ApprovalRuntimeService(adapters, prisma);
   const approvalEscalationService = new ApprovalEscalationService(adapters, workflowNotificationService);
   const escalationChainHandler = new EscalationChainHandler(adapters);
+  const approvalAnalyticsService = new ApprovalAnalyticsService(adapters);
   const automationService = new AutomationService(adapters, webhookService, workflowNotificationService, approvalRuntimeService);
   const autoTransitionProcessor = new AutoTransitionProcessor(automationService);
   const escalationProcessor = new EscalationProcessor(approvalEscalationService);
@@ -83,15 +85,17 @@ const initializeBaseAutomation = async (context) => {
     workflowNotificationService,
     approvalEscalationService,
     escalationChainHandler,
+    approvalAnalyticsService,
     escalationProcessor
   };
-  console.log('✅ Base Automation services created (scheduler + rule engine + auto-transition processor + approval runtime + notifications + escalation chain handler + escalation processor)');
+  console.log('✅ Base Automation services created (scheduler + rule engine + auto-transition processor + approval runtime + notifications + escalation chain handler + approval analytics + escalation processor)');
 
   // Register services globally for cross-module access (BaseService hooks)
   serviceRegistry.register('schedulerService', schedulerService);
   serviceRegistry.register('ruleEngineService', ruleEngineService);
   serviceRegistry.register('approvalEscalationService', approvalEscalationService);
   serviceRegistry.register('escalationChainHandler', escalationChainHandler);
+  serviceRegistry.register('approvalAnalyticsService', approvalAnalyticsService);
 
   const routes = createRoutes(adapters, services);
   app.use('/api/base_automation', routes);
