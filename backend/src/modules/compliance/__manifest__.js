@@ -20,7 +20,7 @@ export default {
   depends: ['base'],
 
   models: ['models/index.js'],
-  api: ['compliance.routes.js'],
+  api: ['api/index.js'],
   services: [],
 
   frontend: {
