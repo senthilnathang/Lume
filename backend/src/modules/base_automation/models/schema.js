@@ -232,3 +232,14 @@ export const automationApprovalEscalationChains = table('automation_approval_esc
   notificationTemplate: varchar('notification_template', { length: 100 }),
   metadata: json('metadata').$type().default({})
 });
+
+// Phase 11 Wave 4: Advanced Routing Rules
+export const automationRoutingRules = table('automation_routing_rules', {
+  ...baseColumns(),
+  chainId: idCol('chain_id').notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  conditions: json('conditions').$type().notNull(), // { operator: 'AND', conditions: [{field, type, value}] }
+  priority: int('priority').default(0), // Higher = evaluated first
+  enabled: boolean('enabled').default(true),
+  metadata: json('metadata').$type().default({})
+});
