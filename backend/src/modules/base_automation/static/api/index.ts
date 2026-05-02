@@ -236,3 +236,12 @@ export async function rejectWorkflowApprovalApi(instanceId: number, userId: stri
     userId
   });
 }
+
+// Escalation History
+export async function getEscalationHistoryApi(instanceId: number): Promise<any[]> {
+  return get<any[]>(`/base_automation/approvals/escalations/${instanceId}`);
+}
+
+export async function getTaskEscalationHistoryApi(taskId: number): Promise<any[]> {
+  return get<any[]>(`/base_automation/approvals/escalations/task/${taskId}`);
+}

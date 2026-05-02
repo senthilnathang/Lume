@@ -3,8 +3,9 @@
  * Tests SLA breach escalation tracking functionality
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { ApprovalEscalationService } from '../../src/modules/base_automation/services/approval-escalation.js';
+import { EscalationProcessor } from '../../src/modules/base_automation/jobs/escalation-processor.js';
 
 describe('Approval Escalation Tracking', () => {
   let mockModels;
@@ -379,6 +380,228 @@ describe('ApprovalEscalationService', () => {
 
       expect(history.length).toBe(1);
       expect(mockModels.ApprovalEscalation.findAll).toHaveBeenCalled();
+    });
+  });
+});
+
+describe('EscalationProcessor', () => {
+  let processor;
+  let mockEscalationService;
+
+  beforeEach(() => {
+    mockEscalationService = {
+      processOverdueTasks: jest.fn().mockResolvedValue([
+        { id: 1, taskId: 1, escalatedTo: 2, escalatedAt: new Date() }
+      ])
+    };
+    processor = new EscalationProcessor(mockEscalationService);
+  });
+
+  it('should process overdue tasks and return results', async () => {
+    const result = await processor.process({});
+
+    expect(result.success).toBe(true);
+    expect(result.escalationsProcessed).toBe(1);
+    expect(mockEscalationService.processOverdueTasks).toHaveBeenCalled();
+  });
+
+  it('should return timestamp in result', async () => {
+    const result = await processor.process({});
+
+    expect(result.timestamp).toBeInstanceOf(Date);
+  });
+
+  it('should handle empty escalations list', async () => {
+    mockEscalationService.processOverdueTasks.mockResolvedValue([]);
+
+    const result = await processor.process({});
+
+    expect(result.success).toBe(true);
+    expect(result.escalationsProcessed).toBe(0);
+  });
+
+  it('should handle multiple escalations', async () => {
+    mockEscalationService.processOverdueTasks.mockResolvedValue([
+      { id: 1, taskId: 1, escalatedTo: 2 },
+      { id: 2, taskId: 2, escalatedTo: 3 },
+      { id: 3, taskId: 3, escalatedTo: 4 }
+    ]);
+
+    const result = await processor.process({});
+
+    expect(result.escalationsProcessed).toBe(3);
+    expect(result.success).toBe(true);
+  });
+
+  it('should throw error when service fails', async () => {
+    const error = new Error('Service error');
+    mockEscalationService.processOverdueTasks.mockRejectedValue(error);
+
+    await expect(processor.process({})).rejects.toThrow('Service error');
+  });
+
+  it('should handle service timeout gracefully', async () => {
+    const error = new Error('Connection timeout');
+    mockEscalationService.processOverdueTasks.mockRejectedValue(error);
+
+    await expect(processor.process({})).rejects.toThrow('Connection timeout');
+  });
+
+  describe('startProcessor', () => {
+    let processorWithInterval;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      processorWithInterval = new EscalationProcessor(mockEscalationService);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      if (processorWithInterval.processingInterval) {
+        processorWithInterval.stopProcessor();
+      }
+    });
+
+    it('should start automatic processing every 5 minutes', () => {
+      processorWithInterval.startProcessor(300); // 5 minutes
+
+      expect(processorWithInterval.processingInterval).toBeDefined();
+    });
+
+    it('should prevent multiple processors from running', () => {
+      processorWithInterval.startProcessor(300);
+      const firstInterval = processorWithInterval.processingInterval;
+
+      processorWithInterval.startProcessor(300);
+      const secondInterval = processorWithInterval.processingInterval;
+
+      expect(firstInterval).toBe(secondInterval);
+    });
+
+    it('should stop the processor', () => {
+      processorWithInterval.startProcessor(300);
+      const interval = processorWithInterval.processingInterval;
+
+      processorWithInterval.stopProcessor();
+
+      expect(processorWithInterval.processingInterval).toBeNull();
+    });
+  });
+});
+
+describe('Escalation API Endpoints', () => {
+  let mockModels;
+  let escalationService;
+
+  beforeEach(() => {
+    mockModels = {
+      ApprovalEscalation: {
+        findAll: jest.fn()
+      }
+    };
+    escalationService = new ApprovalEscalationService(mockModels);
+  });
+
+  describe('GET /approvals/escalations/:instanceId', () => {
+    it('should return escalation history for an instance', async () => {
+      mockModels.ApprovalEscalation.findAll.mockResolvedValue({
+        rows: [
+          {
+            id: 1,
+            taskId: 1,
+            instanceId: 100,
+            escalatedTo: 2,
+            escalatedAt: new Date(),
+            reason: 'sla_breach'
+          }
+        ]
+      });
+
+      const escalations = await escalationService.getEscalationHistory({
+        instanceId: 100
+      });
+
+      expect(escalations.length).toBeGreaterThan(0);
+      expect(escalations[0].instanceId).toBe(100);
+    });
+
+    it('should handle instance not found', async () => {
+      mockModels.ApprovalEscalation.findAll.mockResolvedValue({ rows: [] });
+
+      const escalations = await escalationService.getEscalationHistory({
+        instanceId: 999
+      });
+
+      expect(escalations.length).toBe(0);
+    });
+
+    it('should return escalations ordered by escalatedAt DESC', async () => {
+      const time1 = new Date(Date.now() - 1000000);
+      const time2 = new Date(Date.now());
+
+      mockModels.ApprovalEscalation.findAll.mockResolvedValue({
+        rows: [
+          { id: 2, instanceId: 100, escalatedAt: time2 },
+          { id: 1, instanceId: 100, escalatedAt: time1 }
+        ]
+      });
+
+      const escalations = await escalationService.getEscalationHistory({
+        instanceId: 100
+      });
+
+      expect(escalations.length).toBe(2);
+      expect(escalations[0].escalatedAt >= escalations[1].escalatedAt).toBe(true);
+    });
+  });
+
+  describe('GET /approvals/escalations/task/:taskId', () => {
+    it('should return escalation history for a task', async () => {
+      mockModels.ApprovalEscalation.findAll.mockResolvedValue({
+        rows: [
+          {
+            id: 2,
+            taskId: 5,
+            instanceId: 101,
+            escalatedTo: 3,
+            escalatedAt: new Date(),
+            reason: 'manual'
+          }
+        ]
+      });
+
+      const escalations = await escalationService.getEscalationHistory({
+        taskId: 5
+      });
+
+      expect(escalations.length).toBeGreaterThan(0);
+      expect(escalations[0].taskId).toBe(5);
+    });
+
+    it('should handle task not found', async () => {
+      mockModels.ApprovalEscalation.findAll.mockResolvedValue({ rows: [] });
+
+      const escalations = await escalationService.getEscalationHistory({
+        taskId: 999
+      });
+
+      expect(escalations.length).toBe(0);
+    });
+
+    it('should return multiple escalations for same task', async () => {
+      mockModels.ApprovalEscalation.findAll.mockResolvedValue({
+        rows: [
+          { id: 3, taskId: 7, escalatedAt: new Date() },
+          { id: 4, taskId: 7, escalatedAt: new Date() }
+        ]
+      });
+
+      const escalations = await escalationService.getEscalationHistory({
+        taskId: 7
+      });
+
+      expect(escalations.length).toBe(2);
+      expect(escalations.every(e => e.taskId === 7)).toBe(true);
     });
   });
 });
