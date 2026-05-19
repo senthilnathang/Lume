@@ -79,8 +79,10 @@ services:
   # Frontend Admin Panel
   frontend:
     build:
-      context: ./frontend/apps/web-lume
-      dockerfile: Dockerfile
+      # frontend/Dockerfile at repo root expects root build context
+      # (it COPYs ./apps/web-lume from . — see Dockerfile line ~14).
+      context: .
+      dockerfile: ./frontend/Dockerfile
     container_name: lume-staging-frontend
     restart: unless-stopped
     environment:
@@ -91,7 +93,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./frontend/apps/web-lume/src:/app/src
+      - ./apps/web-lume/src:/app/src
     networks:
       - lume_staging
 

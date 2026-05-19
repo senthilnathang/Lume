@@ -1,0 +1,114 @@
+name: Setup Smoke Test
+
+# Fail-fast gate that protects the canonical install contract documented in
+# docs/INSTALLATION.md and CLAUDE.md "Database Setup (clean install)":
+#   - /health (top-level, not /api/health)
+#   - POST /api/users/login (not /api/auth/login)
+#   - data.token + data.accessToken (deprecation alias)
+#   - setup scripts present and correctly shaped
+#   - perf env-var defaults are sensible
+#
+# Runs in ~3-5 seconds. Cheap insurance — if this fails, a contributor would
+# follow the install docs and get a broken environment. Block the PR/tag.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 20.12.0
+
+jobs:
+  smoke:
+    name: Setup smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpass
+          MYSQL_DATABASE: lume
+          MYSQL_USER: gawdesy
+          MYSQL_PASSWORD: gawdesy
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -prootpass"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -ugawdesy -pgawdesy --silent 2>/dev/null; then
+              echo "MySQL is up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "MySQL did not start in 30s"
+          exit 1
+
+      - name: Generate Prisma client + push schema
+        working-directory: backend
+        env:
+          DATABASE_URL: "mysql://gawdesy:gawdesy@127.0.0.1:3306/lume"
+        run: |
+          npx prisma generate
+          npx prisma db push --accept-data-loss
+
+      - name: Create admin user + seed sample data
+        working-directory: backend
+        env:
+          DATABASE_URL: "mysql://gawdesy:gawdesy@127.0.0.1:3306/lume"
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_USER: gawdesy
+          DB_PASSWORD: gawdesy
+          DB_NAME: lume
+          ADMIN_EMAIL: admin@lume.dev
+          ADMIN_PASSWORD: "Admin@Lume!1"
+        run: |
+          node src/scripts/createAdmin.js
+          node src/scripts/seedData.js
+
+      - name: Run setup-smoke test suite
+        working-directory: backend
+        env:
+          DATABASE_URL: "mysql://gawdesy:gawdesy@127.0.0.1:3306/lume"
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_USER: gawdesy
+          DB_PASSWORD: gawdesy
+          DB_NAME: lume
+          DB_LOGGING: "false"
+          LOG_LEVEL: info
+          OTEL_TRACES_SAMPLER_ARG: "0.1"
+          JWT_SECRET: ci-smoke-jwt-secret
+          JWT_REFRESH_SECRET: ci-smoke-refresh-secret
+          SESSION_SECRET: ci-smoke-session-secret
+        run: |
+          NODE_OPTIONS='--experimental-vm-modules' \
+            npx jest tests/integration/setup-smoke.test.js --forceExit

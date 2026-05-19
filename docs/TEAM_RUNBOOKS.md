@@ -46,7 +46,7 @@ npm test
 cd backend && npm run dev
 
 # 5. Start frontend
-cd ../frontend/apps/web-lume && npm run dev
+cd ../apps/web-lume && npm run dev
 ```
 
 **Creating New Entity Field Type**:

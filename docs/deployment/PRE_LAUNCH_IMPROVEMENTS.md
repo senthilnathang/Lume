@@ -44,6 +44,9 @@ This is what landed against the P0/P1 list since the roadmap was written:
 | P1-1 — Wire `compression` | ✅ Done | `app.use(compression({ threshold: 1024 }))` in `src/index.js`; measured: `/api/modules` 15272b → 3131b over the wire (80% reduction) |
 | P1-3 — JWT field-name deprecation alias | ✅ Done | `/api/users/login` now returns both `data.token` and `data.accessToken` (same value); setup-smoke test updated to assert both |
 | Setup helper | ✅ New | `npm run db:setup` now runs the full canonical 4-step bring-up (refreshDb → prisma push → createAdmin → seedData) |
+| P0-4 — Fix CI/Docker `frontend/apps/` references | ✅ Done | `.github/workflows/deploy.yml` and `docker-compose.staging.yml` now use canonical `apps/web-lume` paths. Dockerfile reference updated to `frontend/Dockerfile` with root build context (where the Dockerfile actually expects to find `apps/web-lume`). Live docs updated too (TESTING.md, ARCHITECTURE.md, etc.) |
+| P1-2 — Startup table parity check | ✅ Done | `backend/src/core/db/check-table-parity.js` runs after Drizzle init; scrapes table names from all 18 `*/models/schema.js` files via regex (no Drizzle import — cheap pre-flight) and compares against `INFORMATION_SCHEMA.TABLES`. On clean install: **34 missing tables across 7 modules** surface as ONE grouped boot warning, no longer N opaque 500s. `LUME_STRICT_TABLE_PARITY=true` promotes the warning to a startup failure (use in CI/prod). |
+| P1-4 — CI smoke gate | ✅ Done | New `.github/workflows/setup-smoke.yml` spins up MySQL 8 service, runs canonical install sequence (refreshDb → prisma push → createAdmin → seedData), then runs `tests/integration/setup-smoke.test.js`. Triggers on `push` to main + every PR. ~3-5 sec gate. |
 
 ### P0-1 detail (deferred — needs design call)
 

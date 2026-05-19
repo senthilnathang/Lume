@@ -456,7 +456,7 @@ Docker Compose is the **production-recommended approach**. It orchestrates multi
      # Vue Admin Panel
      admin:
        build:
-         context: ./frontend/apps/web-lume
+         context: ./apps/web-lume
          dockerfile: Dockerfile
        container_name: lume-admin
        restart: always
@@ -467,7 +467,7 @@ Docker Compose is the **production-recommended approach**. It orchestrates multi
        depends_on:
          - backend
        volumes:
-         - ./frontend/apps/web-lume:/app
+         - ./apps/web-lume:/app
          - admin_node_modules:/app/node_modules
        networks:
          - lume-network
@@ -475,7 +475,7 @@ Docker Compose is the **production-recommended approach**. It orchestrates multi
      # Nuxt Public Site
      website:
        build:
-         context: ./frontend/apps/riagri-website
+         context: ./apps/riagri-website
          dockerfile: Dockerfile
        container_name: lume-website
        restart: always
@@ -486,7 +486,7 @@ Docker Compose is the **production-recommended approach**. It orchestrates multi
        depends_on:
          - backend
        volumes:
-         - ./frontend/apps/riagri-website:/app
+         - ./apps/riagri-website:/app
          - website_node_modules:/app/node_modules
        networks:
          - lume-network
@@ -654,7 +654,7 @@ For developers who want to modify the codebase, install from source.
 
 6. **Install admin panel dependencies**
    ```bash
-   cd ../frontend/apps/web-lume
+   cd ../apps/web-lume
    npm install
    ```
 
@@ -675,13 +675,13 @@ For developers who want to modify the codebase, install from source.
 
    **Terminal 2 — Admin Panel (http://localhost:5173)**
    ```bash
-   cd frontend/apps/web-lume
+   cd apps/web-lume
    npm run dev
    ```
 
    **Terminal 3 — Public Site (http://localhost:3007)**
    ```bash
-   cd frontend/apps/riagri-website
+   cd apps/riagri-website
    npm run dev
    ```
 
@@ -699,7 +699,7 @@ For developers who want to modify the codebase, install from source.
 
 #### Troubleshooting Source Installation
 
-- **Node modules not found**: Run `npm install` in both `backend/` and `frontend/apps/web-lume/` and `frontend/apps/riagri-website/`
+- **Node modules not found**: Run `npm install` in both `backend/` and `apps/web-lume/` and `apps/riagri-website/`
 - **Prisma client not generated**: Run `npx prisma generate` in `backend/`
 - **Database connection failed**: Verify `DATABASE_URL` in `.env` and that MySQL is running
 - **Port 3000 in use**: Change `PORT` in `backend/.env` to 3001, etc.
@@ -2120,8 +2120,8 @@ Before deploying to production, verify every item below. A single missed step ca
 
 **Important Paths**
 - Backend: `/opt/Lume/backend`
-- Admin Panel: `/opt/Lume/frontend/apps/web-lume`
-- Public Site: `/opt/Lume/frontend/apps/riagri-website`
+- Admin Panel: `/opt/Lume/apps/web-lume`
+- Public Site: `/opt/Lume/apps/riagri-website`
 - Documentation: `/opt/Lume/docs`
 
 **Key Commands**

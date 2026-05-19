@@ -7,8 +7,8 @@ Lume uses Jest with ESM support for backend unit testing and Vitest + Playwright
 | Component | Framework | Location |
 |-----------|-----------|----------|
 | Backend unit tests | Jest (ESM) | `backend/tests/unit/` |
-| Frontend unit tests | Vitest | `frontend/apps/web-lume/` |
-| E2E tests | Playwright | `frontend/apps/web-lume/` |
+| Frontend unit tests | Vitest | `apps/web-lume/` |
+| E2E tests | Playwright | `apps/web-lume/` |
 
 ---
 
@@ -170,14 +170,14 @@ for (const mod of modules) {
 ### Unit Tests (Vitest)
 
 ```bash
-cd frontend/apps/web-lume
+cd apps/web-lume
 npm run test
 ```
 
 ### E2E Tests (Playwright)
 
 ```bash
-cd frontend/apps/web-lume
+cd apps/web-lume
 
 # Install browsers
 npm run test:e2e:install

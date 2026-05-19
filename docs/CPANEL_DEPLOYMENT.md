@@ -273,7 +273,7 @@ If the admin panel can't connect to the API, you need to rebuild with the correc
 
 **Option A — Rebuild locally:**
 
-Create `frontend/apps/web-lume/.env.production`:
+Create `apps/web-lume/.env.production`:
 ```env
 VITE_API_URL=https://ri-agri.in/backend/api
 VITE_PUBLIC_SITE_URL=https://ri-agri.in/demo
@@ -281,7 +281,7 @@ VITE_PUBLIC_SITE_URL=https://ri-agri.in/demo
 
 Then rebuild and re-upload `dist/`:
 ```bash
-cd frontend/apps/web-lume
+cd apps/web-lume
 npm run build
 # Upload dist/* to server
 ```
@@ -479,7 +479,7 @@ npx prisma db push    # if schema changed
 ### Admin panel only
 ```bash
 # Local: rebuild
-cd frontend/apps/web-lume
+cd apps/web-lume
 npm run build
 
 # Server: upload dist/* to ~/ri-agri.in/frontend/

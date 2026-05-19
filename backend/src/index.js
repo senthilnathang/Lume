@@ -804,6 +804,21 @@ export const initializeDatabasesAndModules = async () => {
     await initDrizzle();
     console.log('✅ Drizzle connected (module tables)');
 
+    // Table parity check — surfaces missing Drizzle module tables at boot
+    // as ONE grouped warning instead of opaque per-query 500s later. See
+    // docs/deployment/PRE_LAUNCH_IMPROVEMENTS.md → P0-1. Skipped in test
+    // mode because Jest's per-suite setup races with this check.
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const { checkTableParity } = await import('./core/db/check-table-parity.js');
+        await checkTableParity(prisma);
+      } catch (err) {
+        // Strict-mode bypass only — propagate parity failures intentionally.
+        if (process.env.LUME_STRICT_TABLE_PARITY === 'true') throw err;
+        console.warn(`[table-parity] Skipped: ${err.message}`);
+      }
+    }
+
     return true;
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);
