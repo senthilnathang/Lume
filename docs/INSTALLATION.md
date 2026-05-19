@@ -19,8 +19,11 @@ git clone <repo-url> && cd lume
 # 2. Install backend dependencies
 cd backend && npm install && npx prisma generate
 
-# 3. Initialize the database
-npx prisma db push && npm run db:init
+# 3. Initialize the database (clean install — destroys existing data)
+node src/scripts/refreshDb.js              # Drop all tables
+npx prisma db push --accept-data-loss       # Recreate schema from prisma/schema.prisma
+node src/scripts/createAdmin.js             # admin@lume.dev / Admin@Lume!1 (super_admin)
+node src/scripts/seedData.js                # 5 activities, 6 team, 3 messages, 10 settings
 
 # 4. Install admin panel dependencies
 cd ../frontend/apps/web-lume && npm install
@@ -38,6 +41,8 @@ cd frontend/apps/web-lume && npm run dev
 # Terminal 3: public site on http://localhost:3007
 cd frontend/apps/riagri-website && npm run dev
 ```
+
+> **Note:** `npm run db:init` and `npm run db:seed` reference `prisma/seed.js`, which is outdated (uses a removed `username` field). Use the four-script sequence above instead.
 
 ---
 
@@ -109,28 +114,40 @@ cp .env.example .env
 
 ### 6. Database Initialization
 
+The canonical bring-up sequence uses four scripts in order. `prisma/seed.js` is outdated — do **not** run `npm run db:init` or `npm run db:seed` for fresh installs.
+
 ```bash
 cd backend
 
-# Push the Prisma schema to the database (creates core tables)
-npx prisma db push
+# Step 1 (destructive): drop every table in the lume schema.
+# Skip this for incremental schema changes; use only for fresh installs.
+node src/scripts/refreshDb.js
 
-# Seed roles, permissions, admin user, and default settings
-npm run db:init
+# Step 2: regenerate the schema from prisma/schema.prisma.
+# --accept-data-loss is required because refreshDb already dropped tables.
+npx prisma db push --accept-data-loss
+
+# Step 3: create the super_admin role + admin user.
+# Defaults: admin@lume.dev / Admin@Lume!1 (override via ADMIN_EMAIL / ADMIN_PASSWORD env vars).
+node src/scripts/createAdmin.js
+
+# Step 4: seed sample content (5 activities, 6 team members, 3 messages, 10 settings).
+node src/scripts/seedData.js
 ```
 
-The `db:init` script seeds:
+**What gets created:**
 
-- 6 default roles (super_admin, admin, manager, staff, user, guest)
-- 147+ permissions across all 23 modules
-- Admin user account (`admin@lume.dev` / `admin123`)
-- Default application settings
-- Editor templates (6 page templates)
+- `super_admin` role (system-protected)
+- Admin user account: `admin@lume.dev` / `Admin@Lume!1`
+- 5 activities, 6 team members, 3 messages, 10 settings entries
+- Prisma client regenerated against the live schema
 
-**The `--force` flag:** Drops and recreates all tables (destroys existing data):
+**Modules** are auto-discovered from `backend/src/modules/` on first backend boot — there is no separate "install modules" step. The `installed_modules` table is populated by the module loader.
+
+**Override admin credentials:**
 
 ```bash
-npm run db:init -- --force
+ADMIN_EMAIL=ops@example.com ADMIN_PASSWORD='YourStrongPass!1' node src/scripts/createAdmin.js
 ```
 
 ### 7. Running Development Servers
@@ -216,18 +233,31 @@ npx prisma db push
 ### Health Check
 
 ```bash
-curl http://localhost:3000/api/health
-# Expected: { "success": true, "message": "OK" }
+curl http://localhost:3000/health
+# Expected: { "success": true, "message": "Lume Framework is running", "metrics": {...} }
 ```
 
-### Admin Login
+> Health is at `/health` (top-level), not `/api/health`. The `/api/*` namespace is reserved for module-mounted resources (`/api/users`, `/api/activities`, `/api/modules`, etc.).
+
+### Admin Login (API)
+
+```bash
+curl -X POST http://localhost:3000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@lume.dev","password":"Admin@Lume!1"}'
+# Expected: { "success": true, "data": { "user": {...}, "token": "eyJ...", "refreshToken": "eyJ..." } }
+```
+
+> Login endpoint is `/api/users/login` (handled by the `user` module). The `auth` module owns roles/permissions but not the login endpoint.
+
+### Admin Login (UI)
 
 Open `http://localhost:5173` and log in:
 
 | Field | Value |
 |-------|-------|
 | Email | `admin@lume.dev` |
-| Password | `admin123` |
+| Password | `Admin@Lume!1` |
 
 ### Public Site
 

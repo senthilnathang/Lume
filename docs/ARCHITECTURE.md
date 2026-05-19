@@ -1259,6 +1259,22 @@ Multi-tenant filtering ensures clients only receive events for their company_id.
 - User ID, company ID, complexity score
 - Error count, HTTP status, resolver count
 
+#### Runtime Performance Settings (.env, config-only)
+
+Four env knobs control the request-path overhead; all can be flipped without code changes.
+
+| Setting | Default | Effect |
+|---------|---------|--------|
+| `DB_LOGGING` | `false` | When `true`, Prisma logs every SQL statement — high disk + serialization cost. Keep off unless diagnosing a specific slow query. |
+| `LOG_LEVEL` | `info` | `debug`/`trace` emit serialization on every log call; `info` is the perf-safe floor. |
+| `OTEL_TRACES_SAMPLER_ARG` | `0.1` (was `1.0`) | Sampling ratio 0.0–1.0. `1.0` carries trace-export overhead on every request; `0.1` (10%) preserves statistical sample at ~90% lower cost. Raise to `1.0` only for active trace debugging. |
+| `METRICS_ENABLED` | `true` | Prometheus `/metrics` endpoint; low overhead, keep on. |
+
+**Database indexing:** Unlike PostgreSQL, MySQL automatically creates an index on every `FOREIGN KEY` declaration — there's no equivalent of the "partial index on nullable FK" hygiene step that FastVue's PostgreSQL setup requires. Verify via `SELECT * FROM information_schema.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME IS NOT NULL AND NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS …)` — for the current Lume schema this query returns zero rows.
+
+**Already-installed but unwired wins** (potential future code-level additions, not currently mounted):
+- `compression` (in `package.json`) — could gzip responses; would need `app.use(compression())` in `src/index.js`. Skipped for now to keep "no core code change" boundary.
+
 ### AI-Native Querying (AgentGrid)
 
 **NL→GraphQL Translation:**

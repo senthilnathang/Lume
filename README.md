@@ -146,23 +146,33 @@ JWT_SECRET="your-secure-secret-here"
 JWT_REFRESH_SECRET="your-refresh-secret-here"
 PORT=3000
 NODE_ENV=development
+
+# Performance defaults (config-only — flip back only when diagnosing)
+DB_LOGGING=false                     # Prisma SQL echo off
+LOG_LEVEL=info                       # debug/trace are perf-sensitive
+OTEL_TRACES_SAMPLER_ARG=0.1          # 10% sampling; 1.0 in dev is wasteful
+METRICS_ENABLED=true                 # Low-overhead Prometheus endpoint
 ```
 
 ### 3. Initialize Database
 
 ```bash
 cd backend
-npx prisma db push
-npm run db:init
+node src/scripts/refreshDb.js           # Drop all tables (fresh install only)
+npx prisma db push --accept-data-loss   # Recreate schema from prisma/schema.prisma
+node src/scripts/createAdmin.js         # admin@lume.dev / Admin@Lume!1 (super_admin)
+node src/scripts/seedData.js            # 5 activities, 6 team, 3 messages, 10 settings
 ```
+
+> Note: `prisma/seed.js` is outdated (references a removed `username` field) — use the scripts above. The seed task `npm run db:seed` will fail until that file is rewritten.
 
 ### 4. Start Development Servers
 
 ```bash
-# Terminal 1: Backend (NestJS)
+# Terminal 1: Backend (Express + Prisma + Drizzle)
 cd backend
 npm run dev
-# → http://localhost:3000/api
+# → http://localhost:3000  (health: /health, login: POST /api/users/login)
 
 # Terminal 2: Admin Panel (Vue 3)
 cd frontend/apps/web-lume
@@ -180,13 +190,25 @@ npm run dev
 **Admin Panel (Vue 3)**
 - **URL:** http://localhost:5173
 - **Email:** admin@lume.dev
-- **Password:** admin123
+- **Password:** Admin@Lume!1
 
 **Public Website (Nuxt 3)**
 - **URL:** http://localhost:3001
 - Open to test pages, menus, and CMS content rendering
 
-That's it. Admin UI, authentication, and 23 modules are ready to use.
+That's it. Admin UI, authentication, and 25 modules are ready to use.
+
+### Performance Tuning
+
+See [`docs/ARCHITECTURE.md` → Performance & Observability → Runtime Performance Settings](docs/ARCHITECTURE.md#performance--observability) for the full breakdown of each env knob and why the defaults are tuned that way.
+
+| Setting | Default | Why |
+|---------|---------|-----|
+| `DB_LOGGING` | `false` | Prisma SQL echo is high I/O + serialization cost |
+| `LOG_LEVEL` | `info` | `debug`/`trace` add per-request log overhead |
+| `OTEL_TRACES_SAMPLER_ARG` | `0.1` | `1.0` carries trace-export overhead on every request — 10% sampling preserves observability at ~90% less cost |
+
+MySQL auto-indexes every `FOREIGN KEY` column, so the partial-index-on-nullable-FK hygiene step that FastVue's PostgreSQL setup requires is unnecessary here.
 
 ---
 

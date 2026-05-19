@@ -92,6 +92,38 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 - **Navigation**: Desktop dropdown menus (hover), mobile accordion (tap). Menu data from `GET /api/website/public/menus/header` with nested `children` arrays.
 - **Composables**: `useWebsiteData()` for menus/settings, `usePageContent(slug)` for page content.
 
+## Performance Settings (.env, config-only)
+
+Safe defaults applied — no code changes needed. Flip the relevant flag back only when actively diagnosing a problem.
+
+| Setting | Default | What it does |
+|---------|---------|--------------|
+| `DB_LOGGING` | `false` | When `true`, Prisma logs every SQL query (huge log volume + serialization cost). Flip on per-investigation only. |
+| `LOG_LEVEL` | `info` | `debug`/`trace` add request-path overhead via serialization on every log call. Keep at `info`. |
+| `OTEL_TRACES_SAMPLER_ARG` | `0.1` | Sampling ratio for distributed traces (0.0–1.0). `1.0` in dev is wasteful — every request carries trace-export overhead. `0.1` (10%) gives statistically useful traces at ~90% less overhead. Raise to `1.0` only when debugging a specific trace. |
+| `METRICS_ENABLED` | `true` | Prometheus metrics endpoint; low overhead, keep on for observability. |
+| `NODE_ENV` | `development` / `production` | Production unlocks helmet HSTS + tighter CORS; development is more permissive. Never set to `production` in dev (breaks hot reload). |
+
+**Setup pre-checks (run once after `git pull`):**
+1. `DB_LOGGING=false` — verify in `backend/.env`
+2. `OTEL_TRACES_SAMPLER_ARG=0.1` — verify in `backend/.env` (was `1.0` historically)
+3. MySQL auto-indexes every FK column — no equivalent of FastVue's "add partial index on nullable FK" work is needed for Lume.
+
+**Doc references:** `docs/ARCHITECTURE.md` → Performance Considerations.
+
+## Database Setup (clean install)
+
+```bash
+cd backend
+node src/scripts/refreshDb.js              # Drop all tables
+npx prisma db push --accept-data-loss       # Recreate schema from prisma/schema.prisma
+node src/scripts/createAdmin.js             # Creates admin@lume.dev / Admin@Lume!1 with super_admin role
+node src/scripts/seedData.js                # Activities (5), team (6), messages (3), settings (10)
+npm run dev                                  # Start backend on :3000
+```
+
+**Note:** `prisma/seed.js` is outdated (references removed `username` field) — use `createAdmin.js` instead. Login endpoint is `POST /api/users/login` (not `/api/auth/login`); auth module handles roles, user module handles login.
+
 ## Documentation
 
 - `docs/ARCHITECTURE.md` — System architecture, module system, ORM, page builder, CMS
