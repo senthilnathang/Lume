@@ -276,6 +276,16 @@ Open `http://localhost:5173` and log in:
 | Email | `admin@lume.dev` |
 | Password | `Admin@Lume!1` |
 
+### API Reference (Swagger UI)
+
+Open `http://localhost:3000/api/docs/` for the interactive API explorer:
+
+- Browse all documented endpoints by tag (`Platform`, `Auth`, `Activities`, …)
+- Click **Authorize** and paste `data.accessToken` from a login response to call protected endpoints in-browser
+- Raw spec for codegen / Postman / Insomnia at `http://localhost:3000/api/openapi.json`
+
+Mounted automatically in dev. Production deployments must opt in with `OPENAPI_ENABLED=true` — by default the public docs site (`docs.lume.dev`) is the canonical reference, not the runtime endpoint.
+
 ### Public Site
 
 Open `http://localhost:3007` to view the public website. Pages are rendered using TipTap content from the visual page builder.

@@ -252,7 +252,7 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration --testTimeou
 
 #### 0. Setup Smoke (`setup-smoke.test.js`) — RUN ON EVERY PR
 
-Cheap (~3-5 sec, 14 cases) contract test that prevents docs from drifting out of sync with the actual code. Wired into CI as a fail-fast gate (`.github/workflows/setup-smoke.yml`).
+Cheap (~3-5 sec, 18 cases) contract test that prevents docs from drifting out of sync with the actual code. Wired into CI as a fail-fast gate (`.github/workflows/setup-smoke.yml`).
 
 Covers:
 
@@ -261,10 +261,11 @@ Covers:
 - **Health endpoint contract** — `GET /health` returns 200, `/api/health` is 404, **Cache-Control: `public, max-age=5`** (P2-4)
 - **Login endpoint contract** — `POST /api/users/login` (NOT `/api/auth/login`); returns `data.token` AND `data.accessToken` (the deprecation alias from P1-3)
 - **Perf env-var defaults** — `DB_LOGGING` not `true`, `OTEL_TRACES_SAMPLER_ARG <= 0.5` in non-prod, `LOG_LEVEL` in `info|warn|error`
+- **OpenAPI surface (P2-2)** — `/api/openapi.json` is valid OpenAPI 3.0 with `/health`, `/api/modules`, `/api/users/login` documented and `Cache-Control: public, max-age=60`; `/api/docs/` serves Swagger UI; `LoginResponse` schema documents both `token` and `accessToken`
 
 ```bash
 NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/setup-smoke.test.js
-# Expect: Tests: 14 passed, 14 total, ~3-5s
+# Expect: Tests: 18 passed, 18 total, ~3-5s
 ```
 
 When this fails, a contributor following `docs/INSTALLATION.md` will get a broken environment. Block the PR.

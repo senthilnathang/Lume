@@ -5,10 +5,12 @@ import compression from 'compression';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
 import { config } from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { buildOpenApiSpec } from './core/openapi/openapi-spec.js';
 
 // ─── Observability: Initialize Tracing Early ────────────────────────────────────
 // IMPORTANT: Must be called before importing other modules to ensure
@@ -306,6 +308,46 @@ app.get('/metrics', (req, res) => {
     res.status(500).send('# Error generating metrics\n');
   }
 });
+
+// ─── OpenAPI / Swagger UI ─────────────────────────────────────────────────────
+// Available in:
+//   - all non-production environments by default
+//   - production only when OPENAPI_ENABLED=true (default off — keep the
+//     public API surface minimal; serve docs from docs.lume.dev instead)
+//
+// Endpoints:
+//   GET /api/openapi.json — raw OpenAPI 3.0 spec for codegen + SDKs
+//   GET /api/docs         — Swagger UI (interactive explorer)
+//
+// Implementation: backend/src/core/openapi/openapi-spec.js. The spec is
+// hand-curated for platform endpoints (health, login, modules) and merged
+// with `@swagger` JSDoc comments scraped from module route files.
+{
+  const openapiEnabledInProd = String(process.env.OPENAPI_ENABLED || '').toLowerCase() === 'true';
+  if (process.env.NODE_ENV !== 'production' || openapiEnabledInProd) {
+    try {
+      const spec = buildOpenApiSpec();
+
+      app.get('/api/openapi.json', (req, res) => {
+        // OpenAPI spec is public + cacheable. 1-minute window — short enough
+        // that hot-reloaded annotations show up quickly in dev, long enough
+        // that SDK codegen tools don't hammer the endpoint.
+        res.set('Cache-Control', 'public, max-age=60');
+        res.json(spec);
+      });
+
+      app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(spec, {
+        explorer: true,
+        customSiteTitle: 'Lume API — Reference',
+        swaggerOptions: { persistAuthorization: true },
+      }));
+
+      console.log('✅ OpenAPI mounted at /api/docs (spec at /api/openapi.json)');
+    } catch (err) {
+      console.warn(`⚠️  OpenAPI setup failed: ${err.message}`);
+    }
+  }
+}
 
 // ─── Public Config (no auth) ────────────────────────────────────────────────
 // Returns framework config including which modules are installed.
