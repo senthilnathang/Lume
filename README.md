@@ -156,15 +156,24 @@ METRICS_ENABLED=true                 # Low-overhead Prometheus endpoint
 
 ### 3. Initialize Database
 
+One command:
+
 ```bash
 cd backend
-node src/scripts/refreshDb.js           # Drop all tables (fresh install only)
-npx prisma db push --accept-data-loss   # Recreate schema from prisma/schema.prisma
-node src/scripts/createAdmin.js         # admin@lume.dev / Admin@Lume!1 (super_admin)
-node src/scripts/seedData.js            # 5 activities, 6 team, 3 messages, 10 settings
+npm run db:setup     # refreshDb → prisma db push → setupDrizzle → createAdmin → seedData
 ```
 
-> Note: `prisma/seed.js` is outdated (references a removed `username` field) — use the scripts above. The seed task `npm run db:seed` will fail until that file is rewritten.
+This creates 11 Prisma core tables + 96 Drizzle module tables, registers the `super_admin` role, creates `admin@lume.dev / Admin@Lume!1`, and seeds sample content (5 activities, 6 team, 3 messages, 10 settings).
+
+Or step-by-step:
+
+```bash
+node src/scripts/refreshDb.js              # Drop all tables (destructive)
+npx prisma db push --accept-data-loss      # Prisma core tables
+node src/scripts/setupDrizzle.js           # 33 Drizzle module tables
+node src/scripts/createAdmin.js            # admin + super_admin role
+node src/scripts/seedData.js               # sample content
+```
 
 ### 4. Start Development Servers
 
@@ -208,7 +217,29 @@ See [`docs/ARCHITECTURE.md` → Performance & Observability → Runtime Performa
 | `LOG_LEVEL` | `info` | `debug`/`trace` add per-request log overhead |
 | `OTEL_TRACES_SAMPLER_ARG` | `0.1` | `1.0` carries trace-export overhead on every request — 10% sampling preserves observability at ~90% less cost |
 
+What's also wired in (no env tuning needed):
+- **`compression` middleware** — `/api/modules` is 80% smaller over the wire (15 KB → 3 KB gzipped)
+- **Cache-Control on `/health`** — `public, max-age=5` cuts load-balancer probe cost
+- **JWT alias** — login returns both `data.token` and `data.accessToken` for SDK compatibility
+- **Table parity check at boot** — surfaces missing module tables as one grouped warning instead of opaque per-query 500s
+
 MySQL auto-indexes every `FOREIGN KEY` column, so the partial-index-on-nullable-FK hygiene step that FastVue's PostgreSQL setup requires is unnecessary here.
+
+### Production Deployment
+
+The repo ships with a pm2 ecosystem config (`ecosystem.config.cjs` at repo root):
+
+```bash
+cd backend
+npm run pm2:start     # pm2 start ecosystem.config.cjs --env production
+npm run pm2:reload    # zero-downtime restart after deploy
+npm run pm2:logs      # tail combined logs
+npm run pm2:status    # cluster state
+```
+
+Defaults baked in: NODE_ENV=production, cluster mode across all CPUs, 2 GB heap per worker, source maps enabled, 1.5 GB max-memory restart, `LUME_STRICT_TABLE_PARITY=true` so a fresh deploy with missing module tables crashes loudly instead of silently 500-ing.
+
+For dev, `npm run dev` uses **tsx watch** (~2s cold restart). The legacy nodemon path stays available as `npm run dev:nodemon`.
 
 ---
 

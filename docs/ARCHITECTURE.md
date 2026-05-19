@@ -1272,8 +1272,23 @@ Four env knobs control the request-path overhead; all can be flipped without cod
 
 **Database indexing:** Unlike PostgreSQL, MySQL automatically creates an index on every `FOREIGN KEY` declaration — there's no equivalent of the "partial index on nullable FK" hygiene step that FastVue's PostgreSQL setup requires. Verify via `SELECT * FROM information_schema.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME IS NOT NULL AND NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS …)` — for the current Lume schema this query returns zero rows.
 
-**Already-installed but unwired wins** (potential future code-level additions, not currently mounted):
-- `compression` (in `package.json`) — could gzip responses; would need `app.use(compression())` in `src/index.js`. Skipped for now to keep "no core code change" boundary.
+**Wired in `src/index.js` (no env tuning needed):**
+- `app.use(compression({ threshold: 1024 }))` — gzips responses larger than 1 KB. Measured on `/api/modules`: 15 KB → 3 KB over the wire (~80% saving).
+- `Cache-Control: public, max-age=5` on `/health` — health monitors typically poll every 10–30s; the 5s window cuts uptime/metric serialization without delaying failure detection. `/api/modules` is deliberately left as `no-cache` because module install/uninstall must be immediately visible.
+- JWT login response returns both `data.token` (canonical) and `data.accessToken` (deprecation alias for v2.x SDK compatibility; removed in v3).
+
+**Boot-time guard:**
+- `src/core/db/check-table-parity.js` runs after Drizzle init. Scrapes table names from every `src/modules/*/models/schema.js` via regex (no Drizzle import — cheap pre-flight) and compares against `INFORMATION_SCHEMA.TABLES`. Logs one grouped warning listing missing tables instead of dozens of opaque `ER_NO_SUCH_TABLE` errors at request time. `LUME_STRICT_TABLE_PARITY=true` promotes warning to startup failure for CI/prod.
+
+### Process Supervision
+
+| Mode | Tooling | Notes |
+|------|---------|-------|
+| Dev (default) | `tsx watch` (~2s cold restart) | `npm run dev` |
+| Dev (legacy) | nodemon | `npm run dev:nodemon` |
+| Production | pm2 cluster | `ecosystem.config.cjs` at repo root: all-CPU cluster, 2 GB heap per worker, `--enable-source-maps`, `max_memory_restart: 1500M`, `max_restarts: 10`, `min_uptime: 15s`. Zero-downtime reloads via `pm2 reload`. |
+
+Production env defaults baked into the ecosystem config: `DB_LOGGING=false`, `LOG_LEVEL=info`, `OTEL_TRACES_SAMPLER_ARG=0.1`, `LUME_STRICT_TABLE_PARITY=true`. Override per-host via shell env or `pm2 --env staging`.
 
 ### AI-Native Querying (AgentGrid)
 

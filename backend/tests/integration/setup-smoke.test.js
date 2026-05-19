@@ -60,6 +60,21 @@ describe('Setup smoke (canonical install flow)', () => {
       expect(src).toMatch(/role_id/);
       expect(src).toMatch(/super_admin/);
     });
+
+    // P0-1 — Drizzle programmatic migration script. Without this, 33+
+    // module tables are missing after `prisma db push` and the app
+    // surfaces opaque ER_NO_SUCH_TABLE errors at runtime.
+    it('setupDrizzle.js is present (P0-1 closes the Prisma/Drizzle gap)', () => {
+      expect(fs.existsSync(path.join(SCRIPTS_DIR, 'setupDrizzle.js'))).toBe(true);
+    });
+
+    // P2-5 — production process supervisor config. Required for any
+    // self-hosted deployment that doesn't want to roll its own systemd.
+    // Lives at repo root by pm2 convention (one level above backend/).
+    it('ecosystem.config.cjs is present (pm2 production config)', () => {
+      const ecosystemPath = path.join(__dirname, '..', '..', '..', 'ecosystem.config.cjs');
+      expect(fs.existsSync(ecosystemPath)).toBe(true);
+    });
   });
 
   describe('Health endpoint', () => {
@@ -72,6 +87,15 @@ describe('Setup smoke (canonical install flow)', () => {
     it('GET /api/health returns 404 (health is NOT prefixed with /api)', async () => {
       const res = await request(app).get('/api/health');
       expect(res.status).toBe(404);
+    });
+
+    // P2-4 — short public cache to cut health-probe cost without delaying
+    // failure detection. If this changes, the deployment cookbook for AWS
+    // ALB / k8s liveness probe intervals needs updating too.
+    it('GET /health returns Cache-Control: public, max-age=5', async () => {
+      const res = await request(app).get('/health');
+      expect(res.headers['cache-control']).toMatch(/max-age=5/);
+      expect(res.headers['cache-control']).toMatch(/public/);
     });
   });
 

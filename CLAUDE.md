@@ -113,16 +113,51 @@ Safe defaults applied — no code changes needed. Flip the relevant flag back on
 
 ## Database Setup (clean install)
 
+Single command (recommended):
+
 ```bash
 cd backend
-node src/scripts/refreshDb.js              # Drop all tables
-npx prisma db push --accept-data-loss       # Recreate schema from prisma/schema.prisma
-node src/scripts/createAdmin.js             # Creates admin@lume.dev / Admin@Lume!1 with super_admin role
-node src/scripts/seedData.js                # Activities (5), team (6), messages (3), settings (10)
-npm run dev                                  # Start backend on :3000
+npm run db:setup     # refreshDb → prisma db push → setupDrizzle → createAdmin → seedData
+npm run dev          # Start backend on :3000 (tsx watch — ~2s cold restart)
 ```
 
-**Note:** `prisma/seed.js` is outdated (references removed `username` field) — use `createAdmin.js` instead. Login endpoint is `POST /api/users/login` (not `/api/auth/login`); auth module handles roles, user module handles login.
+Step-by-step (when you need to skip a phase):
+
+```bash
+node src/scripts/refreshDb.js              # Drop all tables (destructive — fresh install only)
+npx prisma db push --accept-data-loss      # Create Prisma core tables (User, Role, ...)
+node src/scripts/setupDrizzle.js           # Create 33 Drizzle module tables (P0-1 fix)
+node src/scripts/createAdmin.js            # admin@lume.dev / Admin@Lume!1 with super_admin role
+node src/scripts/seedData.js               # Activities (5), team (6), messages (3), settings (10)
+```
+
+**Why setupDrizzle is needed:**
+`prisma db push` only creates Prisma's 11 core tables. The 18 Drizzle module schemas (96 tables across 25 modules) need their own migration pass. `drizzle-kit push` requires a TTY for conflict resolution, so the project ships its own programmatic creator (`src/scripts/setupDrizzle.js`) that uses `getTableConfig()` from `drizzle-orm/mysql-core`. Idempotent — safe to re-run.
+
+**Boot-time parity guard:** `src/core/db/check-table-parity.js` runs after Drizzle init and either prints `✅ Table parity OK (18 modules, 96 tables checked)` or a grouped warning listing missing tables. Set `LUME_STRICT_TABLE_PARITY=true` to escalate the warning into a startup failure (CI/prod).
+
+**Notes:**
+- `prisma/seed.js` is now a thin shim that delegates to `createAdmin.js` + `seedData.js`. `npm run db:seed` works.
+- Login endpoint is `POST /api/users/login` (not `/api/auth/login`); auth module owns roles/permissions, user module owns login.
+- Login response returns both `data.token` and `data.accessToken` (alias for v2.x SDK compat — `accessToken` becomes canonical in v3).
+
+## Dev vs Production
+
+| Mode | Command | Tooling | Restart speed |
+|------|---------|---------|---------------|
+| Dev (default) | `npm run dev` | tsx watch | ~2s |
+| Dev (legacy) | `npm run dev:nodemon` | nodemon | ~7s |
+| Production | `npm run pm2:start` | pm2 cluster, all CPUs, 2 GB heap each | zero-downtime via `npm run pm2:reload` |
+| Production (raw) | `npm run start` | node, single process | n/a |
+
+Production env defaults are baked into `ecosystem.config.cjs`:
+- `NODE_ENV=production`, `DB_LOGGING=false`, `LOG_LEVEL=info`, `OTEL_TRACES_SAMPLER_ARG=0.1`
+- `LUME_STRICT_TABLE_PARITY=true` — boot fails if module tables are missing (better than serving 500s)
+- `--max-old-space-size=2048 --enable-source-maps`
+- `max_memory_restart: 1500M` (preempt OOM)
+- `max_restarts: 10`, `min_uptime: 15s` (crashloop protection)
+
+`pm2 reload ecosystem.config.cjs --env production` does zero-downtime reloads worker-by-worker — use this after a deploy instead of `restart`.
 
 ## Documentation
 

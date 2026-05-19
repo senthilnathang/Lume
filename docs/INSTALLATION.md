@@ -20,10 +20,13 @@ git clone <repo-url> && cd lume
 cd backend && npm install && npx prisma generate
 
 # 3. Initialize the database (clean install — destroys existing data)
-node src/scripts/refreshDb.js              # Drop all tables
-npx prisma db push --accept-data-loss       # Recreate schema from prisma/schema.prisma
-node src/scripts/createAdmin.js             # admin@lume.dev / Admin@Lume!1 (super_admin)
-node src/scripts/seedData.js                # 5 activities, 6 team, 3 messages, 10 settings
+npm run db:setup     # refreshDb → prisma db push → setupDrizzle → createAdmin → seedData
+# Or step-by-step:
+#   node src/scripts/refreshDb.js              # Drop all tables
+#   npx prisma db push --accept-data-loss      # Prisma core tables (11)
+#   node src/scripts/setupDrizzle.js           # Drizzle module tables (33+)
+#   node src/scripts/createAdmin.js            # admin@lume.dev / Admin@Lume!1
+#   node src/scripts/seedData.js               # sample content
 
 # 4. Install admin panel dependencies
 cd ../apps/web-lume && npm install
@@ -42,7 +45,7 @@ cd apps/web-lume && npm run dev
 cd apps/riagri-website && npm run dev
 ```
 
-> **Note:** `npm run db:init` and `npm run db:seed` reference `prisma/seed.js`, which is outdated (uses a removed `username` field). Use the four-script sequence above instead.
+> **Note:** `prisma/seed.js` now delegates to `createAdmin.js` + `seedData.js` (rewritten in P0-2), so `npm run db:seed` works again — but the recommended path is the all-in-one `npm run db:setup` above.
 
 ---
 
@@ -114,7 +117,14 @@ cp .env.example .env
 
 ### 6. Database Initialization
 
-The canonical bring-up sequence uses four scripts in order. `prisma/seed.js` is outdated — do **not** run `npm run db:init` or `npm run db:seed` for fresh installs.
+The canonical bring-up runs five steps in order. The all-in-one helper does them all:
+
+```bash
+cd backend
+npm run db:setup
+```
+
+Or run them individually:
 
 ```bash
 cd backend
@@ -123,17 +133,24 @@ cd backend
 # Skip this for incremental schema changes; use only for fresh installs.
 node src/scripts/refreshDb.js
 
-# Step 2: regenerate the schema from prisma/schema.prisma.
+# Step 2: regenerate the Prisma core schema (User, Role, Permission, ...).
 # --accept-data-loss is required because refreshDb already dropped tables.
 npx prisma db push --accept-data-loss
 
-# Step 3: create the super_admin role + admin user.
+# Step 3: create the 33+ Drizzle module tables that `prisma db push`
+# does NOT create. P0-1 fix; bypasses drizzle-kit's TTY requirement.
+# Idempotent (CREATE TABLE IF NOT EXISTS).
+node src/scripts/setupDrizzle.js
+
+# Step 4: create the super_admin role + admin user.
 # Defaults: admin@lume.dev / Admin@Lume!1 (override via ADMIN_EMAIL / ADMIN_PASSWORD env vars).
 node src/scripts/createAdmin.js
 
-# Step 4: seed sample content (5 activities, 6 team members, 3 messages, 10 settings).
+# Step 5: seed sample content (5 activities, 6 team members, 3 messages, 10 settings).
 node src/scripts/seedData.js
 ```
+
+**Boot verification:** on startup, the backend runs a table-parity check and either logs `✅ Table parity OK (18 modules, 96 tables checked)` or a grouped warning listing missing tables. Set `LUME_STRICT_TABLE_PARITY=true` to turn the warning into a startup failure for CI/production.
 
 **What gets created:**
 
