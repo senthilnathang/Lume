@@ -3,6 +3,12 @@
  * Imported by module views as: import { get, post, put, del } from '#/api/request'
  */
 
+/* global axios */
+// `axios` is provided as a runtime global by the host frontend (apps/web-lume).
+// This file is loaded by the SFC runtime loader, not bundled — there's no
+// import resolver to wire it through, so we declare it as ambient.
+// Phase 2 (CODE_QUALITY.md): silences the no-undef false positive.
+
 // Create axios instance dynamically since this runs in browser
 const axiosInstance = axios.create({
   baseURL: '/api',
