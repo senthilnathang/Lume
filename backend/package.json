@@ -7,10 +7,11 @@
   "scripts": {
     "init": "tsx src/scripts/setup.ts",
     "seed": "tsx src/scripts/seed.ts",
-    "dev": "nodemon src/index.js",
+    "dev": "tsx watch --clear-screen=false src/index.js",
+    "dev:nodemon": "nodemon src/index.js",
     "start": "node src/index.js",
-    "dev:mysql": "DB_TYPE=mysql nodemon src/index.js",
-    "dev:postgres": "DB_TYPE=postgres nodemon src/index.js",
+    "dev:mysql": "DB_TYPE=mysql tsx watch --clear-screen=false src/index.js",
+    "dev:postgres": "DB_TYPE=postgres tsx watch --clear-screen=false src/index.js",
     "build": "echo 'No build step required'",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
@@ -24,6 +25,11 @@
     "db:refresh": "node src/scripts/refreshDb.js",
     "db:setup:drizzle": "node src/scripts/setupDrizzle.js",
     "db:setup": "node src/scripts/refreshDb.js && npx prisma db push --accept-data-loss && node src/scripts/setupDrizzle.js && node src/scripts/createAdmin.js && node src/scripts/seedData.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs --env production",
+    "pm2:reload": "pm2 reload ecosystem.config.cjs --env production",
+    "pm2:stop": "pm2 stop ecosystem.config.cjs",
+    "pm2:logs": "pm2 logs lume-backend",
+    "pm2:status": "pm2 status",
     "clean": "rm -rf dist coverage .jest"
   },
   "dependencies": {
