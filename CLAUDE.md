@@ -61,6 +61,7 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 - **Security Headers**: Automatically applied (CORS, CSP, X-Frame-Options, etc.). See `security/headers.config.js`.
 - **Token Refresh**: `RefreshTokenDto` used for `/api/auth/refresh` endpoint. Clients send `refreshToken` in body, receive new `accessToken`.
 - **Password Hashing**: Automatic via Prisma middleware — never manually hash in seed scripts.
+- **WebSocket tenant isolation (P2-1)**: `WebSocketManager.broadcast()` calls `canSubscriberReceive()` for every (subscription, record) pair. Subscriptions MUST pass `{ companyId, roles }` from the authenticated request at subscribe time; non-`super_admin` subscribers only receive events whose record `company_id`/`tenant_id` matches their own. Defensive default = deny. See `backend/src/core/realtime/websocket-manager.js` and `backend/tests/unit/websocket-permission.test.js`.
 
 ## Editor Module (Visual Page Builder)
 

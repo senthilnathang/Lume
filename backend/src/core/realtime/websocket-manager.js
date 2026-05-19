@@ -10,6 +10,8 @@ import logger from '../services/logger.js';
  * @property {string} id - Subscription ID
  * @property {string} entity - Entity slug
  * @property {string} userId - User ID
+ * @property {number|null} companyId - Tenant scope; null means "no tenant filter" (admin)
+ * @property {string[]} roles - Role names the user holds at subscribe time
  * @property {Object} filter - Optional filter conditions
  * @property {Function} onUpdate - Update callback
  * @property {number} createdAt - Creation timestamp
@@ -24,20 +26,43 @@ class WebSocketManager {
   }
 
   /**
-   * Create a new subscription
+   * Create a new subscription.
+   *
+   * P2-1 — the `companyId` and `roles` parameters were added so broadcasts
+   * can enforce tenant isolation and role-based read access without an
+   * extra DB roundtrip per event. Caller must pass the auth-context values
+   * already resolved at WebSocket handshake time (req.user.companyId,
+   * req.user.roles). Passing `companyId=null` means "subscriber sees every
+   * tenant" — only safe for super_admin connections.
+   *
    * @param {string} entity - Entity slug
    * @param {string} userId - User ID
-   * @param {Object} filter - Optional filter conditions
+   * @param {Object} [options]
+   * @param {number|null} [options.companyId=null] - Tenant scope; null = no tenant filter
+   * @param {string[]} [options.roles=[]] - Role names (used for super_admin bypass)
+   * @param {Object} [options.filter=null] - Optional filter conditions
    * @returns {string} Subscription ID
    */
-  subscribe(entity, userId, filter = null) {
+  subscribe(entity, userId, options = {}) {
+    // Backwards-compat: legacy callers pass (entity, userId, filter) as
+    // positional args. If `options` looks like a filter object (not the
+    // new options bag), unwrap it.
+    const opts =
+      options &&
+      typeof options === 'object' &&
+      !('companyId' in options || 'roles' in options || 'filter' in options)
+        ? { filter: options }
+        : options || {};
+
     const id = `sub_${++this.idCounter}_${Date.now()}`;
 
     const subscription = {
       id,
       entity,
       userId,
-      filter,
+      companyId: opts.companyId ?? null,
+      roles: Array.isArray(opts.roles) ? opts.roles : [],
+      filter: opts.filter ?? null,
       createdAt: Date.now(),
     };
 
@@ -55,9 +80,69 @@ class WebSocketManager {
     }
     this.entitySubscribers.get(entity).add(id);
 
-    logger.debug(`[WebSocket] Subscription created: ${id} for user ${userId} on ${entity}`);
+    logger.debug(
+      `[WebSocket] Subscription created: ${id} for user ${userId} on ${entity} (companyId=${subscription.companyId})`,
+    );
 
     return id;
+  }
+
+  /**
+   * Decide whether a given subscriber may receive a broadcast of a record.
+   *
+   * Current policy (v2.0):
+   *   1. super_admin: always allowed (no tenant filter)
+   *   2. Else: subscriber's companyId must match the record's company_id /
+   *      companyId / tenant_id / tenantId. If the record has no tenant
+   *      column at all, only allow when the subscriber has no tenant scope
+   *      either (defensive — better to drop than leak across tenants).
+   *
+   * Future policy (v2.x): wire AccessControlService.canRead() for
+   *   record-level row rules. The hook is here so adding it is one line.
+   *
+   * @param {Subscription} subscription
+   * @param {Object} record
+   * @returns {boolean}
+   */
+  canSubscriberReceive(subscription, record) {
+    if (!subscription || !record || typeof record !== 'object') {
+      return false;
+    }
+
+    // Bypass: super_admin sees everything. Match either the canonical role
+    // name or the historical 'admin' alias.
+    if (
+      subscription.roles &&
+      (subscription.roles.includes('super_admin') ||
+        subscription.roles.includes('admin'))
+    ) {
+      return true;
+    }
+
+    // Tenant isolation. Records may carry the tenant key under any of these
+    // names depending on which ORM produced them.
+    const recordTenant =
+      record.company_id ??
+      record.companyId ??
+      record.tenant_id ??
+      record.tenantId ??
+      null;
+
+    // No tenant column on the record + no tenant scope on the subscriber
+    // → ambient/global record (e.g. a public setting). Allow.
+    if (recordTenant === null && subscription.companyId === null) {
+      return true;
+    }
+
+    // Record has a tenant but subscriber has none (and isn't admin) → deny.
+    // Subscriber has a tenant but record doesn't → deny (defensive).
+    if (recordTenant === null || subscription.companyId === null) {
+      return false;
+    }
+
+    // Strict tenant equality. Coerce because IDs cross JSON.parse boundaries
+    // as numbers in some clients, strings in others.
+    return String(recordTenant) === String(subscription.companyId);
   }
 
   /**
@@ -112,6 +197,9 @@ class WebSocketManager {
       timestamp: Date.now(),
     };
 
+    let delivered = 0;
+    let denied = 0;
+
     for (const subscriptionId of subscribers) {
       const subscription = this.subscriptions.get(subscriptionId);
       if (!subscription) {
@@ -123,10 +211,28 @@ class WebSocketManager {
         continue;
       }
 
-      // TODO: Permission check - ensure user can see this record
-      // For now, assuming permission already checked at operation level
+      // P2-1: per-record permission check. Closes the data-leak risk where
+      // multi-tenant subscribers received events from other tenants.
+      // canSubscriberReceive enforces:
+      //   - super_admin: allowed (no tenant filter)
+      //   - else: subscriber.companyId must match record.company_id / tenant_id
+      if (!this.canSubscriberReceive(subscription, record)) {
+        denied++;
+        logger.debug(
+          `[WebSocket] Denied ${action} on ${entity} to subscriber ${subscriptionId} ` +
+          `(user=${subscription.userId} companyId=${subscription.companyId})`,
+        );
+        continue;
+      }
 
       this.sendToSubscriber(subscription, message);
+      delivered++;
+    }
+
+    if (denied > 0) {
+      logger.debug(
+        `[WebSocket] Broadcast ${action} on ${entity}: ${delivered} delivered, ${denied} denied`,
+      );
     }
   }
 

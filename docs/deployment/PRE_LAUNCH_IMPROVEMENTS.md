@@ -51,6 +51,7 @@ This is what landed against the P0/P1 list since the roadmap was written:
 | P1-5 — `tsx watch` instead of nodemon | ✅ Done | `npm run dev` now uses `tsx watch --clear-screen=false` (~2s cold restart vs ~7s with nodemon). Legacy nodemon kept as `npm run dev:nodemon`. |
 | P2-5 — Production process supervisor | ✅ Done | `ecosystem.config.cjs` at repo root: pm2 cluster across all CPUs, 2 GB heap per worker, `--enable-source-maps`, `max_memory_restart: 1500M`, `max_restarts: 10`, `min_uptime: 15s`. Defaults: `LUME_STRICT_TABLE_PARITY=true` so a deploy with missing module tables crash-loops instead of silently 500-ing. `npm run pm2:start \| pm2:reload \| pm2:stop \| pm2:logs \| pm2:status`. |
 | Smoke test coverage | ✅ Expanded | 14 cases (was 11): adds `setupDrizzle.js` presence, `ecosystem.config.cjs` presence, `/health` Cache-Control assertion. |
+| P2-1 — WebSocket per-record permission check | ✅ Done | `WebSocketManager.subscribe()` now accepts `{ companyId, roles, filter }`. New `canSubscriberReceive()` method enforces: super_admin sees everything; non-admin subscribers see only records whose `company_id`/`tenant_id` matches their own. Wired into `broadcast()` — replaces the `TODO: Permission check` that was the only real `TODO` in the source. Backwards-compat shim accepts the legacy `(entity, userId, filter)` positional signature. New unit suite `tests/unit/websocket-permission.test.js` covers 14 cases including the THE security check (mismatched tenant → denied). |
 
 ### P0-1 detail (DONE — see `backend/src/scripts/setupDrizzle.js`)
 
