@@ -25,6 +25,7 @@
     }
   },
   "devDependencies": {
+    "globals": "^17.6.0",
     "turbo": "^2.0.0"
   }
 }
