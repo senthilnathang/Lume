@@ -1,0 +1,105 @@
+name: Code Quality (warn-only)
+
+# Measurement workflow — runs lint + typecheck and posts the counts as a
+# summary, but does NOT fail the build. The codebase carries ~1670 lint
+# issues + ~700 TS errors as of v2.0; hard-gating would block every PR.
+#
+# Purpose:
+#   - Surface the trend (regressions visible in the action summary)
+#   - Give PR authors a heads-up without blocking
+#   - Establish the baseline for the v2.1 cleanup sprint
+#
+# Flip to a hard gate (`continue-on-error: false`) once counts drop below
+# a defensible threshold — see docs/CODE_QUALITY.md.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 20.12.0
+
+jobs:
+  lint:
+    name: ESLint (warn-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Run ESLint
+        working-directory: backend
+        id: eslint
+        continue-on-error: true
+        run: |
+          set +e
+          npm run lint 2>&1 | tee eslint-output.log
+          EXIT=$?
+          set -e
+          PROBLEMS=$(grep -oE '[0-9]+ problems' eslint-output.log | tail -1 | grep -oE '[0-9]+' || echo 0)
+          ERRORS=$(grep -oE '[0-9]+ errors' eslint-output.log | tail -1 | grep -oE '[0-9]+' || echo 0)
+          WARNINGS=$(grep -oE '[0-9]+ warnings' eslint-output.log | tail -1 | grep -oE '[0-9]+' || echo 0)
+          echo "problems=$PROBLEMS" >> $GITHUB_OUTPUT
+          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+          {
+            echo "## ESLint"
+            echo ""
+            echo "| Metric | Count |"
+            echo "|--------|-------|"
+            echo "| Problems | $PROBLEMS |"
+            echo "| Errors | $ERRORS |"
+            echo "| Warnings | $WARNINGS |"
+            echo ""
+            echo "Baseline (2026-05-19): 1671 problems / 1370 errors / 301 warnings."
+            echo "See \`docs/CODE_QUALITY.md\` for the cleanup roadmap."
+          } >> $GITHUB_STEP_SUMMARY
+
+  typecheck:
+    name: TypeScript typecheck (warn-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Run tsc --noEmit
+        working-directory: backend
+        id: tsc
+        continue-on-error: true
+        run: |
+          set +e
+          npm run typecheck 2>&1 | tee tsc-output.log
+          EXIT=$?
+          set -e
+          ERRORS=$(grep -cE "^[^:]+\.[jt]sx?: error" tsc-output.log || echo 0)
+          {
+            echo "## TypeScript"
+            echo ""
+            echo "| Metric | Count |"
+            echo "|--------|-------|"
+            echo "| Errors | $ERRORS |"
+            echo ""
+            echo "Baseline (2026-05-19): ~701 errors."
+            echo "See \`docs/CODE_QUALITY.md\` for the cleanup roadmap."
+          } >> $GITHUB_STEP_SUMMARY

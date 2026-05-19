@@ -81,6 +81,29 @@ The only deferred item is the **module-toggle admin UI** — explicitly scoped a
 
 **Next iteration** should be the v2.1 module-toggle Vue view, post-tag.
 
+---
+
+## Post-v2.0 — v2.1 Carryover
+
+Items deliberately scoped *out* of the v2.0 tag but flagged here so the next sprint has a starting point.
+
+### P2-3 (UI half) — Module-toggle Vue admin view
+
+Backend is done (the `actions` + `deps_resolved` fields on `GET /api/modules`). The frontend view is ~3-5 days of work:
+
+- New page at `/admin/modules` in `apps/web-lume`
+- List from `GET /api/modules`, render each module's `actions` as a button row
+- Confirmation modal for `uninstall` (destructive)
+- Dependency-cycle warning when `deps_resolved=false` (the API already tells the UI which deps are missing — read from `depends[]`)
+
+### P3-1 — Code-quality cleanup
+
+See [CODE_QUALITY.md](../CODE_QUALITY.md). Current debt: 1671 ESLint problems / ~701 TS errors. Measurement workflow runs warn-only in CI; cleanup plan is 4 phases over ~2-3 weeks of focused work.
+
+### P2-2 follow-on — Module `@swagger` annotations
+
+The OpenAPI baseline documents only platform routes (`/health`, `/api/modules`, `/api/users/login`). The 25 module routers will surface in the spec as their authors add `@swagger` JSDoc — no central work needed, but a coordinated pass would make the public docs site noticeably more useful.
+
 ### P0-1 detail (DONE — see `backend/src/scripts/setupDrizzle.js`)
 
 The drizzle-kit TTY blocker was bypassed by going one layer deeper: import each schema directly, read column definitions via `getTableConfig()`, and emit `CREATE TABLE IF NOT EXISTS` SQL through plain mysql2. The full implementation is ~220 lines, idempotent, and produces 0 failures on the current schema (33 tables created on a fresh DB; 0 conflicts on a re-run).
