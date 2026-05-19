@@ -75,6 +75,14 @@ router.post('/login', loginValidation, validateRequest, async (req, res) => {
     });
 
     if (result.success) {
+      // Compatibility alias: expose the access token under both `token` and
+      // `accessToken`. Lume v2.0 historically used `token`; many client SDKs
+      // and dashboards default to `accessToken`. Returning both during the
+      // v2.x window lets external integrations migrate without breaking.
+      // Drop `token` in v3.0; `accessToken` becomes the only name.
+      if (result.data && typeof result.data.token === 'string' && !result.data.accessToken) {
+        result.data.accessToken = result.data.token;
+      }
       res.json(result);
     } else {
       res.status(result.error.code === 'UNAUTHORIZED' ? 401 : 400).json(result);

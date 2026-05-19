@@ -103,9 +103,12 @@ describe('Setup smoke (canonical install flow)', () => {
       expect(res.body.data.token).toBeDefined();
       expect(typeof res.body.data.token).toBe('string');
       expect(res.body.data.token.length).toBeGreaterThan(50);
-      // Field MUST be `token`, not `access_token` — this caught a real bug
-      // where tooling assumed FastVue's `access_token` convention.
+      // The snake_case `access_token` field (FastVue convention) is never set.
       expect(res.body.data.access_token).toBeUndefined();
+      // Deprecation alias (P1-3): `accessToken` should equal `token` during
+      // v2.x so client SDKs defaulting to `accessToken` work. Drops in v3.0.
+      expect(res.body.data.accessToken).toBeDefined();
+      expect(res.body.data.accessToken).toBe(res.body.data.token);
       // refreshToken is also returned for the refresh flow.
       expect(res.body.data.refreshToken).toBeDefined();
     });

@@ -32,6 +32,44 @@ Audience: anyone preparing a release branch / cutting v2.0. Pair this with [PUBL
 
 ---
 
+## Progress Log — May 19, 2026
+
+This is what landed against the P0/P1 list since the roadmap was written:
+
+| Item | Status | Commit / Notes |
+|------|--------|----------------|
+| P0-2 — Rewrite `prisma/seed.js` | ✅ Done | File now delegates to `createAdmin.js` + `seedData.js`; `npm run db:seed` works |
+| P0-3 — Audit orphan `apps/` | ✅ Done — **finding was inverted** | `apps/` (top-level) is the **canonical** workspace (declared in `pnpm-workspace.yaml`); `frontend/apps/` is the orphan. All docs updated to use the correct path. CI workflow + Docker still reference `frontend/apps/web-lume` — see new P0-4 |
+| P0-1 — Drizzle schema parity | ⚠️ Partial | Audited: 18 Drizzle schemas under `src/modules/*/models/schema.js`. `npx drizzle-kit push` requires TTY (interactive table-conflict resolution). Full automation needs a follow-up — see "P0-1 detail" below |
+| P1-1 — Wire `compression` | ✅ Done | `app.use(compression({ threshold: 1024 }))` in `src/index.js`; measured: `/api/modules` 15272b → 3131b over the wire (80% reduction) |
+| P1-3 — JWT field-name deprecation alias | ✅ Done | `/api/users/login` now returns both `data.token` and `data.accessToken` (same value); setup-smoke test updated to assert both |
+| Setup helper | ✅ New | `npm run db:setup` now runs the full canonical 4-step bring-up (refreshDb → prisma push → createAdmin → seedData) |
+
+### P0-1 detail (deferred — needs design call)
+
+Drizzle parity isn't a 5-minute fix:
+
+- `npx drizzle-kit push` works in interactive shells but prompts on every table conflict (Prisma creates ~11 core tables that Drizzle also wants to manage). Non-interactive use needs `--strict` mode + a config option to auto-resolve, or a custom `db:push:drizzle` script that calls Drizzle's API directly.
+- The deeper question is *who owns which table*: a few tables (e.g. `users`, `roles`) are Prisma-only by design; others (e.g. `automation_*`, `base_security_*`) are Drizzle-owned. The migration tool needs a manifest of which tool owns what, and the right invocation order.
+- Recommended next step: write `backend/src/scripts/setupDrizzle.js` that imports each module's schema and uses Drizzle's `migrate()` programmatically to apply only that module's tables. Wire it into `db:setup` as step 2.5.
+
+Estimate: 1 day to design + 1 day to implement + 0.5 day to test.
+
+### P0-4 (new) — Fix CI and Docker references to old `frontend/apps/` paths
+
+Surfaced during P0-3. The migration to top-level `apps/` is incomplete:
+
+- `.github/workflows/deploy.yml` — 7 references to `frontend/apps/web-lume`
+- `docker-compose.staging.yml` — 2 references to `frontend/apps/web-lume`
+- `frontend/Dockerfile` exists but is now orphaned
+- Several docs (`docs/CODE_EXAMPLES_VERIFICATION.md`, `docs/TESTING.md`, `docs/ARCHITECTURE.md` line 696) still reference the old path
+
+**Action:** Either complete the migration (preferred) or revert to `frontend/apps/`. Right now the published deployment instructions don't match the actual workspace location, which will break CI builds and any contributor who follows the docs literally.
+
+**Estimate:** 1 day to audit + update + test the CI pipeline end-to-end.
+
+---
+
 ## What This Session Already Closed
 
 These are **done**, listed so the next reviewer doesn't redo them:

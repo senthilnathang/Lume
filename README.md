@@ -129,7 +129,7 @@ npm install
 npx prisma generate
 
 # Admin Panel (Vue 3)
-cd ../frontend/apps/web-lume
+cd ../apps/web-lume
 npm install
 
 # Public Website (Nuxt 3)
@@ -175,12 +175,12 @@ npm run dev
 # → http://localhost:3000  (health: /health, login: POST /api/users/login)
 
 # Terminal 2: Admin Panel (Vue 3)
-cd frontend/apps/web-lume
+cd apps/web-lume
 npm run dev
 # → http://localhost:5173
 
 # Terminal 3: Public Website (Nuxt 3)
-cd frontend/apps/riagri-website
+cd apps/riagri-website
 npm run dev
 # → http://localhost:3001
 ```

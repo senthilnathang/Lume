@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
+import compression from 'compression';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
@@ -149,6 +150,11 @@ app.use(cors({
   credentials: true,
   maxAge: 86400
 }));
+
+// Response compression — gzip responses larger than 1KB.
+// `compression` is already in package.json; this is the wire-up.
+// Skips already-compressed responses (images, gzipped assets) automatically.
+app.use(compression({ threshold: 1024 }));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
