@@ -26,7 +26,7 @@ node src/scripts/createAdmin.js             # admin@lume.dev / Admin@Lume!1 (sup
 node src/scripts/seedData.js                # 5 activities, 6 team, 3 messages, 10 settings
 
 # 4. Install admin panel dependencies
-cd ../frontend/apps/web-lume && npm install
+cd ../apps/web-lume && npm install
 
 # 5. Install public site dependencies
 cd ../riagri-website && npm install
@@ -36,10 +36,10 @@ cd ../riagri-website && npm install
 cd backend && npm run dev
 
 # Terminal 2: admin panel on http://localhost:5173
-cd frontend/apps/web-lume && npm run dev
+cd apps/web-lume && npm run dev
 
 # Terminal 3: public site on http://localhost:3007
-cd frontend/apps/riagri-website && npm run dev
+cd apps/riagri-website && npm run dev
 ```
 
 > **Note:** `npm run db:init` and `npm run db:seed` reference `prisma/seed.js`, which is outdated (uses a removed `username` field). Use the four-script sequence above instead.
@@ -68,7 +68,7 @@ npx prisma generate
 ### 3. Admin Panel Setup (Vue 3 SPA)
 
 ```bash
-cd frontend/apps/web-lume
+cd apps/web-lume
 npm install
 ```
 
@@ -77,7 +77,7 @@ The admin panel is a Vite + Vue 3 + TypeScript application with Ant Design Vue a
 ### 4. Public Site Setup (Nuxt 3 SSR)
 
 ```bash
-cd frontend/apps/riagri-website
+cd apps/riagri-website
 npm install
 ```
 
@@ -105,7 +105,7 @@ cp .env.example .env
 | `SMTP_PASSWORD` | SMTP authentication password | (your SMTP password) |
 | `APP_NAME` | Application display name | `Lume` |
 
-**Admin Panel** — Create `.env` in `frontend/apps/web-lume/`:
+**Admin Panel** — Create `.env` in `apps/web-lume/`:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -164,14 +164,14 @@ npm run dev
 **Terminal 2 — Admin Panel (port 5173):**
 
 ```bash
-cd frontend/apps/web-lume
+cd apps/web-lume
 npm run dev
 ```
 
 **Terminal 3 — Public Site (port 3007):**
 
 ```bash
-cd frontend/apps/riagri-website
+cd apps/riagri-website
 npm run dev
 ```
 
@@ -322,7 +322,7 @@ The backend uses ES modules (`"type": "module"`):
 ### Public Site Preview Not Working
 
 If the page editor preview shows "localhost refused to connect":
-- Check `VITE_PUBLIC_SITE_URL` in `frontend/apps/web-lume/.env`
+- Check `VITE_PUBLIC_SITE_URL` in `apps/web-lume/.env`
 - Ensure the Nuxt dev server is running on the configured port
 
 ---

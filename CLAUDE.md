@@ -21,15 +21,15 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 - Directory structure per module: `backend/src/modules/{name}/static/views/` for views, `backend/src/modules/{name}/static/api/` for API clients.
 - Use the `@modules` Vite alias to import from module directories: `import { ... } from '@modules/{module}/static/api/index'`.
 - Core/shared code (request.ts, auth API, stores, layouts, router) stays in the frontend `src/` directory.
-- Never create new view or API files under `frontend/apps/web-lume/src/views/` or `src/api/` for module-specific functionality.
+- Never create new view or API files under `apps/web-lume/src/views/` or `src/api/` for module-specific functionality.
 
 ### API Client
 - Axios interceptor unwraps `{success, data}` → returns `data` directly.
 - Frontend handlers must NOT re-check `result.success` after await — resolved promise = success, rejected = error (caught in catch block).
 
 ### General
-- The admin panel is a Vite + Vue 3 + TypeScript app at `frontend/apps/web-lume/`.
-- The public site is a Nuxt 3 SSR app at `frontend/apps/riagri-website/`.
+- The admin panel is a Vite + Vue 3 + TypeScript app at `apps/web-lume/`.
+- The public site is a Nuxt 3 SSR app at `apps/riagri-website/`.
 - API calls go through the Vite dev proxy (`/api` -> `http://localhost:3000`).
 - Backend serves module static views from `/modules/{moduleName}/static/views/`.
 - Icons use `lucide-vue-next` (NOT @ant-design/icons-vue).
@@ -86,7 +86,7 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 
 ## Public Website (Nuxt 3)
 
-- **Path**: `frontend/apps/riagri-website/` — SSR public-facing site.
+- **Path**: `apps/riagri-website/` — SSR public-facing site.
 - **Pages**: `index.vue`, `products.vue`, `services.vue`, `about.vue`, `contact.vue`, `[...slug].vue` (catch-all for CMS pages).
 - **Content rendering**: All pages use TipTap JSON rendered through `PageRenderer` → `BlockRenderer`.
 - **Navigation**: Desktop dropdown menus (hover), mobile accordion (tap). Menu data from `GET /api/website/public/menus/header` with nested `children` arrays.

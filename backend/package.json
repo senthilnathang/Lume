@@ -19,9 +19,10 @@
     "typecheck": "tsc --noEmit --skipLibCheck",
     "db:init": "node src/scripts/initDb.js --seed",
     "db:init:force": "node src/scripts/initDb.js --seed --force",
-    "db:seed": "node src/scripts/seedData.js",
+    "db:seed": "node prisma/seed.js",
     "db:admin": "node src/scripts/createAdmin.js",
     "db:refresh": "node src/scripts/refreshDb.js",
+    "db:setup": "node src/scripts/refreshDb.js && npx prisma db push --accept-data-loss && node src/scripts/createAdmin.js && node src/scripts/seedData.js",
     "clean": "rm -rf dist coverage .jest"
   },
   "dependencies": {
