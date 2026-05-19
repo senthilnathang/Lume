@@ -212,6 +212,12 @@ import { defineComponent, h, type PropType } from 'vue';
 const TreeItem = defineComponent({
   name: 'TreeItem',
   props: {
+    // Phase 2 (CODE_QUALITY.md): TreeNode is declared in the first
+    // <script> block but ESLint parses each <script setup> block in
+    // isolation, so it can't see the cross-block type. The type DOES
+    // resolve correctly through Volar / IDE / Vue compiler — this
+    // disable is purely lint-pass scoping noise.
+    // eslint-disable-next-line no-undef
     node: { type: Object as PropType<TreeNode>, required: true },
     expandedKeys: { type: Object as PropType<Set<string>>, required: true },
     selectedPos: { type: Number, required: true },

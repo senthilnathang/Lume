@@ -26,7 +26,10 @@ import {
   Tabs as ATabs,
   Tag as ATag,
   Tooltip as ATooltip,
-  TabPane,
+  // Phase 2 (CODE_QUALITY.md): was imported as `TabPane` but referenced
+  // as `ATabPane` below — triggered both unused-vars AND no-undef.
+  // Aliasing fixes both in one change.
+  TabPane as ATabPane,
 } from 'ant-design-vue';
 import {
   CalculatorOutlined,
@@ -68,7 +71,7 @@ export default {
     ATooltip,
     APopconfirm,
     ATabs,
-    ATabPane: ATabPane,
+    ATabPane,
     AAlert,
     AInputNumber,
     CalculatorOutlined,

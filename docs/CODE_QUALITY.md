@@ -6,15 +6,17 @@
 
 ## TL;DR
 
-The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. Phase 1 (config-only fixes) closed 264 lint problems and 698 TS errors with no source-code changes. Phase 2 (mechanical fixes) and Phase 3 (`any` triage) are still ahead.
+The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. Phase 1 (config) closed 264 lint + 698 TS errors. Phase 2 (mechanical fixes + surfaced bugs) closed the remaining 3 TS errors and the 3 no-undef bugs, but the broader autofix sweep produced essentially zero results — the high-count rules (`no-explicit-any`, `no-unused-vars`) have no programmatic fixers in this codebase. Phase 3 (manual `any` triage) is now the dominant remaining work.
 
 | Phase | Lint problems | TS errors | Status |
 |-------|--------------:|----------:|--------|
 | Baseline (2026-05-19) | 1671 | 701 | — |
-| **Phase 1 done** (2026-05-19) | **1407** | **3** | ✅ |
-| Phase 2 target | ~900 | 0 | pending |
+| Phase 1 done | 1407 | 3 | ✅ 2026-05-19 |
+| **Phase 2 done** | **1403** | **0** | ✅ 2026-05-20 |
 | Phase 3 target | < 200 | 0 | pending |
 | Phase 4 — hard gate | 0 net new | 0 net new | pending |
+
+The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The remaining 1403 lint problems are concentrated in 2 rules (1330 of them = `no-explicit-any` + `no-unused-vars`).
 
 ## Baseline → Phase 1 (2026-05-19)
 
@@ -28,8 +30,28 @@ Phase 1 delivered ~16% of the lint debt and ~99.6% of the TS debt — almost all
 
 ### What Phase 1 actually changed
 
-- **`packages/@lume/eslint-config/index.mjs`** — flat config now imports `globals` and applies node / browser / es2022 / jest globals per file-pattern (backend, frontend, tests). Previously every `process`, `Buffer`, `__dirname`, `window`, `document` triggered `no-undef`.
+- **`eslint.config.mjs`** (root, tracked) — added `globals` import; per-file-pattern globals for backend (node), frontend (browser), Vue SFCs, and tests (jest, additive). Lives in the root config because `packages/@lume/eslint-config/` is gitignored.
 - **`backend/tsconfig.json`** — adds `baseUrl` + `paths` for `@/*`, `@modules/*`, `#/*` aliases (mirrors Vite); excludes `src/core/graphql/**` (orphan NestJS scaffolding, no deps installed, no callers) and `src/modules/*/static/**` (Vue frontend files compiled by `apps/web-lume`'s own tsconfig). Adds `ignoreDeprecations: "6.0"` to silence the TS7 `baseUrl` warning.
+
+## Phase 2 — Surfaced bugs (2026-05-20)
+
+Phase 2 delivered the 6 real bugs that Phase 1's config cleanup exposed, plus discovered that the broad `eslint --fix` sweep is not viable on this codebase. Lint count went 1407 → 1403; TS errors went 3 → 0.
+
+### What Phase 2 actually changed
+
+- **Deleted `backend/src/scripts/seed.ts`** — referenced 3+ Prisma model names that no longer exist (`prisma.activity`, `prisma.team`, `prisma.message`), plus stale date/enum types from an old schema. The canonical seeding path is `prisma/seed.js` → `src/scripts/createAdmin.js` + `src/scripts/seedData.js` (documented in `INSTALLATION.md`). Repointed `npm run seed` to the canonical script. Drops 3 TS errors and removes a future foot-gun.
+- **`src/modules/base_automation/static/views/rollup-fields.vue`** — `TabPane` was imported under the wrong name (referenced as `ATabPane` later), triggering both `no-unused-vars` AND `no-undef`. Aliased the import: `TabPane as ATabPane`. Two errors gone with one line change.
+- **`src/modules/common/static/api/request.js`** — added `/* global axios */` ambient declaration. The file is loaded by the SFC runtime in the browser, not bundled — `axios` is a runtime-provided global. Genuine "lint is wrong" case.
+- **`src/modules/editor/static/components/NavigatorPanel.vue`** — added a single `eslint-disable-next-line no-undef` for a `PropType<TreeNode>` annotation. The TS interface IS defined in the same file's first `<script>` block, but ESLint's Vue parser scopes each `<script>` independently and can't see across blocks. Real fix would require type-aware lint setup; not worth the perf cost for one line.
+
+### What Phase 2 did NOT change (autofix sweep was a dud)
+
+`npm run lint:fix` produced zero diffs on this codebase. The high-count rules have no programmatic fixers:
+
+- `@typescript-eslint/no-explicit-any` (865) — requires semantic analysis to suggest a better type; no autofix
+- `@typescript-eslint/no-unused-vars` (466) — could in theory delete the var, but the safe-default is "manual", and that's how it's configured
+
+The original CODE_QUALITY.md Phase 2 estimate ("~487 autofix wins") was wrong. **The remaining cleanup is mostly hand work**. The few rules that DO have fixers (`no-useless-escape`, `no-prototype-builtins`) couldn't auto-fix on this codebase either — likely the typescript-eslint parser doesn't surface the fixable flag through. A separate JS-only autofix pass might recover those ~20 problems.
 
 ### ESLint — current top rules (post-Phase 1)
 
