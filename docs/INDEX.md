@@ -30,6 +30,9 @@ Core system design and technical specifications.
 - **[architecture/nestjs_migration_implementation.md](architecture/nestjs_migration_implementation.md)** — NestJS migration implementation details
 - **[architecture/nestjs_migration_verification.md](architecture/nestjs_migration_verification.md)** — Express to NestJS migration verification
 
+### Code Quality (v2.1+)
+- **[CODE_QUALITY.md](CODE_QUALITY.md)** — Lint + typecheck debt baseline (May 2026, post-v2.0). Cleanup roadmap in 4 phases.
+
 ### Deployment & Release
 Production deployment, launch planning, and public release strategy.
 
