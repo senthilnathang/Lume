@@ -1310,6 +1310,34 @@ Four env knobs control the request-path overhead; all can be flipped without cod
 
 Production env defaults baked into the ecosystem config: `DB_LOGGING=false`, `LOG_LEVEL=info`, `OTEL_TRACES_SAMPLER_ARG=0.1`, `LUME_STRICT_TABLE_PARITY=true`. Override per-host via shell env or `pm2 --env staging`.
 
+### API Surface — OpenAPI / Swagger (P2-2)
+
+The full HTTP API is described as OpenAPI 3.0. Two endpoints:
+
+- `GET /api/openapi.json` — raw spec (consumed by codegen + client SDKs); served with `Cache-Control: public, max-age=60`.
+- `GET /api/docs/` — Swagger UI, interactive request explorer.
+
+**Visibility:** mounted automatically in any non-production environment; in production, only when `OPENAPI_ENABLED=true`. The default-off in production keeps the public surface minimal — host docs on `docs.lume.dev` instead.
+
+**Spec composition** (`backend/src/core/openapi/openapi-spec.js`):
+
+1. **Hand-curated baseline** for platform routes — `/health`, `/api/modules`, `/api/users/login` — and reusable component schemas (`User`, `LoginRequest`, `LoginResponse`, `ApiSuccess`, `ApiError`, `HealthResponse`).
+2. **`swagger-jsdoc` merge layer** scrapes `@swagger` JSDoc comments from `src/modules/*/api/*.js` and `src/modules/*/*.routes.js`. Module authors document their own routes locally; the spec assembles them automatically at runtime.
+
+**Schema notes baked into the spec:**
+
+- The `LoginResponse.data` schema documents both `token` (deprecated) and `accessToken` (canonical from v3.0). This locks the P1-3 deprecation alias into the SDK contract.
+- `bearerAuth` security scheme is JWT; the Swagger UI "Authorize" button accepts the token from the login response and persists across page reloads.
+- Tag taxonomy: `Platform`, `Auth`, then one tag per major module (`Activities`, `Team`, `Website`, etc.).
+
+**Smoke-test coverage** (`tests/integration/setup-smoke.test.js` → OpenAPI surface):
+
+- `/api/openapi.json` returns valid OpenAPI 3.0 with non-empty paths.
+- All three platform paths are present in the spec.
+- `Cache-Control: public, max-age=60` is set.
+- `/api/docs/` serves Swagger UI HTML.
+- `LoginResponse.data` schema includes both `token` and `accessToken`.
+
 ### AI-Native Querying (AgentGrid)
 
 **NL→GraphQL Translation:**

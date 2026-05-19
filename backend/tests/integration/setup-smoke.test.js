@@ -99,6 +99,47 @@ describe('Setup smoke (canonical install flow)', () => {
     });
   });
 
+  describe('OpenAPI surface (P2-2)', () => {
+    // Mounted in non-production envs by default, in production when
+    // OPENAPI_ENABLED=true. NODE_ENV=test runs through the same gate
+    // as development, so these endpoints should exist here.
+    it('GET /api/openapi.json returns a valid OpenAPI 3.0 spec', async () => {
+      const res = await request(app).get('/api/openapi.json');
+      expect(res.status).toBe(200);
+      expect(res.body.openapi).toMatch(/^3\.0\./);
+      expect(res.body.info?.title).toBe('Lume API');
+      expect(res.body.info?.version).toBeDefined();
+      // Core platform paths MUST be documented — these are the routes a
+      // new integrator hits in the first 5 minutes.
+      expect(res.body.paths['/health']).toBeDefined();
+      expect(res.body.paths['/api/modules']).toBeDefined();
+      expect(res.body.paths['/api/users/login']).toBeDefined();
+    });
+
+    it('GET /api/openapi.json sets Cache-Control: public, max-age=60', async () => {
+      const res = await request(app).get('/api/openapi.json');
+      expect(res.headers['cache-control']).toMatch(/public/);
+      expect(res.headers['cache-control']).toMatch(/max-age=60/);
+    });
+
+    it('GET /api/docs/ serves Swagger UI HTML', async () => {
+      const res = await request(app).get('/api/docs/').redirects(1);
+      // swagger-ui-express either serves the HTML directly or 301-redirects
+      // /api/docs → /api/docs/ — both are valid.
+      expect([200, 301]).toContain(res.status);
+    });
+
+    it('LoginResponse schema documents both `token` and `accessToken`', async () => {
+      // Locks the P1-3 deprecation alias into the public contract — the
+      // OpenAPI spec is the source of truth that SDK codegen reads from.
+      const res = await request(app).get('/api/openapi.json');
+      const props = res.body.components?.schemas?.LoginResponse?.properties?.data?.properties;
+      expect(props).toBeDefined();
+      expect(props.token).toBeDefined();
+      expect(props.accessToken).toBeDefined();
+    });
+  });
+
   describe('Login endpoint contract', () => {
     it('POST /api/users/login is the login endpoint (NOT /api/auth/login)', async () => {
       const wrongPath = await request(app)

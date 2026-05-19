@@ -63,6 +63,32 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 - **Password Hashing**: Automatic via Prisma middleware — never manually hash in seed scripts.
 - **WebSocket tenant isolation (P2-1)**: `WebSocketManager.broadcast()` calls `canSubscriberReceive()` for every (subscription, record) pair. Subscriptions MUST pass `{ companyId, roles }` from the authenticated request at subscribe time; non-`super_admin` subscribers only receive events whose record `company_id`/`tenant_id` matches their own. Defensive default = deny. See `backend/src/core/realtime/websocket-manager.js` and `backend/tests/unit/websocket-permission.test.js`.
 
+## OpenAPI / Swagger (P2-2)
+
+- Spec served at `GET /api/openapi.json`, interactive UI at `GET /api/docs/`.
+- Mounted automatically in non-production environments. In production, gate behind `OPENAPI_ENABLED=true` — production docs typically live on `docs.lume.dev` rather than being part of the API surface.
+- **Hand-curated baseline** in `backend/src/core/openapi/openapi-spec.js`: `/health`, `/api/modules`, `/api/users/login`, plus reusable schemas (`User`, `LoginRequest`, `LoginResponse`, `ApiSuccess`, `ApiError`, `HealthResponse`).
+- **Module-level annotations** are scraped via `swagger-jsdoc` from `src/modules/*/api/*.js` and `src/modules/*/*.routes.js`. Add docs to a module route like:
+
+```js
+/**
+ * @swagger
+ * /api/activities:
+ *   get:
+ *     tags: [Activities]
+ *     summary: List activities
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of activities
+ */
+router.get('/', authenticate, async (req, res) => { ... });
+```
+
+- **Authentication for `/api/docs` UI**: when you "Authorize" in the UI, the token field is the JWT body of `data.accessToken` from `/api/users/login`. The Authorize button persists across page reloads (`persistAuthorization: true`).
+- **Cache-Control on `/api/openapi.json`**: `public, max-age=60` — short enough for dev hot-reload of `@swagger` comments to surface quickly, long enough that SDK codegen tools don't hammer the endpoint.
+
 ## Editor Module (Visual Page Builder)
 
 - **Path**: `backend/src/modules/editor/` — TipTap-based WYSIWYG + visual page builder.
