@@ -44,7 +44,7 @@ npx prisma db push
 npm run db:init
 
 # Frontend (admin panel)
-cd ../frontend/apps/web-lume
+cd ../apps/web-lume
 npm install
 
 # Frontend (public site)
@@ -65,7 +65,7 @@ NODE_ENV=development
 CORS_ORIGIN="http://localhost:5173"
 ```
 
-**Admin Frontend** (`frontend/apps/web-lume/.env`):
+**Admin Frontend** (`apps/web-lume/.env`):
 
 ```env
 VITE_API_URL=/api
@@ -81,8 +81,8 @@ You need three servers running for full development:
 | Server | Directory | Command | Port | Purpose |
 |--------|-----------|---------|------|---------|
 | Backend | `backend/` | `npm run dev` | 3000 | NestJS API |
-| Admin Panel | `frontend/apps/web-lume/` | `npm run dev` | 5173 | Vue 3 SPA |
-| Public Site | `frontend/apps/riagri-website/` | `npm run dev` | 3001 | Nuxt 3 SSR |
+| Admin Panel | `apps/web-lume/` | `npm run dev` | 5173 | Vue 3 SPA |
+| Public Site | `apps/riagri-website/` | `npm run dev` | 3001 | Nuxt 3 SSR |
 
 **Login credentials**: `admin@lume.dev` / `admin123`
 
@@ -507,7 +507,7 @@ export const deleteItem = (id: number) => del(`/my-module/${id}`)
 
 ### Register as Custom View
 
-In `frontend/apps/web-lume/src/router/index.ts`, add to the `customViews` map:
+In `apps/web-lume/src/router/index.ts`, add to the `customViews` map:
 
 ```typescript
 const customViews: Record<string, () => Promise<any>> = {
@@ -637,7 +637,7 @@ Pages can be assigned to hierarchical categories and flat tags:
 - **Tags**: Flat list. Admin view: `static/views/tags.vue`
 - **Pivot tables**: `website_page_categories`, `website_page_tags`
 - **Public endpoints**: `GET /api/website/public/categories/:slug/pages`, `GET /api/website/public/tags/:slug/pages`
-- **Archive pages**: `frontend/apps/riagri-website/pages/category/[slug].vue`, `tag/[slug].vue`
+- **Archive pages**: `apps/riagri-website/pages/category/[slug].vue`, `tag/[slug].vue`
 
 ### Page Access Control
 

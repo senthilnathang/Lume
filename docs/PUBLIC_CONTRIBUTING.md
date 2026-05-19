@@ -72,7 +72,7 @@ npm run dev
 ### Frontend (Admin Panel)
 
 ```bash
-cd frontend/apps/web-lume
+cd apps/web-lume
 npm install
 npm run dev
 # Open http://localhost:5173
@@ -81,7 +81,7 @@ npm run dev
 ### Frontend (Public Website)
 
 ```bash
-cd frontend/apps/riagri-website
+cd apps/riagri-website
 npm install
 npm run dev
 # Open http://localhost:3007

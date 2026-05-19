@@ -33,8 +33,8 @@ This is a major version update with significant improvements and architectural c
    ```
    v1.0:
    - backend/
-   - frontend/apps/web-lume/
-   - frontend/apps/riagri-website/
+   - apps/web-lume/
+   - apps/riagri-website/
 
    v2.0:
    - backend/                    (same)
@@ -179,7 +179,7 @@ npx prisma generate
 npx prisma db push
 
 # 5. Install any new admin panel dependencies
-cd ../frontend/apps/web-lume
+cd ../apps/web-lume
 npm install
 
 # 6. Install any new public site dependencies
@@ -197,11 +197,11 @@ npm install
 | Backend dependencies | `npm install` | `backend/` |
 | Prisma client | `npx prisma generate` | `backend/` |
 | Schema sync | `npx prisma db push` | `backend/` |
-| Admin panel dependencies | `npm install` | `frontend/apps/web-lume/` |
-| Public site dependencies | `npm install` | `frontend/apps/riagri-website/` |
+| Admin panel dependencies | `npm install` | `apps/web-lume/` |
+| Public site dependencies | `npm install` | `apps/riagri-website/` |
 | Restart backend | `npm run dev` | `backend/` |
-| Restart admin panel | `npm run dev` | `frontend/apps/web-lume/` |
-| Restart public site | `npm run dev` | `frontend/apps/riagri-website/` |
+| Restart admin panel | `npm run dev` | `apps/web-lume/` |
+| Restart public site | `npm run dev` | `apps/riagri-website/` |
 
 ---
 
@@ -434,7 +434,7 @@ git checkout <commit>      # Revert to it
 
 # Re-sync
 cd backend && npm install && npx prisma generate
-cd ../frontend/apps/web-lume && npm install
+cd ../apps/web-lume && npm install
 cd ../riagri-website && npm install
 ```
 
@@ -474,11 +474,11 @@ git checkout <last-known-good-commit>
 
 # 5. Re-sync
 cd backend && npm install && npx prisma generate
-cd ../frontend/apps/web-lume && npm install
-cd ../frontend/apps/riagri-website && npm install
+cd ../apps/web-lume && npm install
+cd ../apps/riagri-website && npm install
 
 # 6. Restart
 cd backend && npm run dev &
-cd ../frontend/apps/web-lume && npm run dev &
-cd ../frontend/apps/riagri-website && npm run dev &
+cd ../apps/web-lume && npm run dev &
+cd ../apps/riagri-website && npm run dev &
 ```

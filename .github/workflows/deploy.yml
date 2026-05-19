@@ -80,29 +80,29 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: frontend/apps/web-lume/package-lock.json
+          cache-dependency-path: apps/web-lume/package-lock.json
 
       - name: Install dependencies
-        working-directory: frontend/apps/web-lume
+        working-directory: apps/web-lume
         run: npm ci
 
       - name: Run linter
-        working-directory: frontend/apps/web-lume
+        working-directory: apps/web-lume
         run: npm run lint --if-present
 
       - name: Build frontend
-        working-directory: frontend/apps/web-lume
+        working-directory: apps/web-lume
         run: npm run build
 
       - name: Run tests
-        working-directory: frontend/apps/web-lume
+        working-directory: apps/web-lume
         run: npm test --if-present
 
       - name: Upload coverage
         if: always()
         uses: codecov/codecov-action@v3
         with:
-          directory: frontend/apps/web-lume/coverage
+          directory: apps/web-lume/coverage
           flags: frontend
           fail_ci_if_error: false
 
@@ -155,8 +155,8 @@ jobs:
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend/apps/web-lume
-          file: ./frontend/apps/web-lume/Dockerfile
+          context: .
+          file: ./frontend/Dockerfile
           push: ${{ github.actor != 'dependabot[bot]' }}
           tags: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}

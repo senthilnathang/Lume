@@ -370,7 +370,7 @@ PERFORMANCE_TUNING (Optimization)
 
 ### In Repository
 - **Backend Code**: `/backend/src/`
-- **Frontend Code**: `/frontend/apps/web-lume/src/`
+- **Frontend Code**: `/apps/web-lume/src/`
 - **Infrastructure**: `docker-compose*.yml`, `.github/workflows/`
 - **Scripts**: `/scripts/`
 

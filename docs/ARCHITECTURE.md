@@ -693,7 +693,7 @@ Message Types:
 ### Two Frontend Applications
 
 ```
-frontend/apps/
+apps/
 ├── web-lume/              # Vue 3 SPA — Admin panel
 │   ├── src/
 │   │   ├── api/           # Shared API client (request.ts)
@@ -989,7 +989,7 @@ Admin UI (menus.vue)
 
 ## Public Website (Nuxt 3)
 
-The public-facing website is a Nuxt 3 SSR application (`frontend/apps/riagri-website/`) that consumes the website module's public API.
+The public-facing website is a Nuxt 3 SSR application (`apps/riagri-website/`) that consumes the website module's public API.
 
 ### Page Routing
 
