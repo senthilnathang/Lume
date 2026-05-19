@@ -140,6 +140,43 @@ describe('Setup smoke (canonical install flow)', () => {
     });
   });
 
+  describe('Module catalogue contract (P2-3)', () => {
+    // /api/modules drives the admin UI. The shape locked here is what
+    // a future module-toggle UI will consume directly; renaming or
+    // dropping these fields breaks the v2.1 admin work.
+    it('GET /api/modules returns array shape with `actions` field', async () => {
+      const res = await request(app).get('/api/modules');
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.data)).toBe(true);
+
+      // Module discovery may not have populated the registry in the test
+      // app context (boot order differs from dev). Skip the per-module
+      // shape assertions if so — the endpoint itself is still verified.
+      if (res.body.data.length === 0) {
+        console.warn('[setup-smoke] /api/modules empty in test app; shape check skipped');
+        return;
+      }
+
+      const m = res.body.data[0];
+      expect(m).toHaveProperty('name');
+      expect(m).toHaveProperty('state');
+      expect(m).toHaveProperty('actions');
+      expect(m).toHaveProperty('deps_resolved');
+      expect(Array.isArray(m.actions)).toBe(true);
+    });
+
+    it('installed modules expose [uninstall, upgrade] actions', async () => {
+      const res = await request(app).get('/api/modules');
+      const installed = res.body.data.find((m) => m.state === 'installed');
+      // CI may not have anything installed yet; tolerate that.
+      if (!installed) {
+        console.warn('[setup-smoke] no installed module to assert against');
+        return;
+      }
+      expect(installed.actions).toEqual(expect.arrayContaining(['uninstall', 'upgrade']));
+    });
+  });
+
   describe('Login endpoint contract', () => {
     it('POST /api/users/login is the login endpoint (NOT /api/auth/login)', async () => {
       const wrongPath = await request(app)

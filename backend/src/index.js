@@ -393,6 +393,35 @@ app.use('/modules', express.static(modulesDir, {
 }));
 
 // Module management endpoints
+/**
+ * Compute which lifecycle actions are valid for a module in its current
+ * state. Lets the admin UI render buttons directly off the response
+ * (P2-3 backend hook — UI itself is v2.1).
+ *
+ * Decision matrix:
+ *   state=uninstalled  → ['install']    (if installable AND all deps installed)
+ *   state=installed    → ['uninstall', 'upgrade']
+ *   state=to_upgrade   → ['upgrade']    (resume an interrupted upgrade)
+ *   state=to_remove    → ['uninstall']  (resume an interrupted uninstall)
+ *   state=error        → ['install', 'uninstall']  (let admin retry either)
+ */
+function computeModuleActions(module, state, depsResolved) {
+  const installable = module.manifest?.installable !== false;
+  switch (state) {
+    case 'installed':
+      return ['uninstall', 'upgrade'];
+    case 'to_upgrade':
+      return ['upgrade'];
+    case 'to_remove':
+      return ['uninstall'];
+    case 'error':
+      return ['install', 'uninstall'];
+    case 'uninstalled':
+    default:
+      return installable && depsResolved ? ['install'] : [];
+  }
+}
+
 app.get('/api/modules', async (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.set('Pragma', 'no-cache');
@@ -414,6 +443,15 @@ app.get('/api/modules', async (req, res) => {
       const manifest = m.manifest || {};
       const dbRecord = dbStates[m.name];
       const state = dbRecord ? dbRecord.state : (m.initialized ? 'installed' : 'uninstalled');
+      const depends = manifest.depends || [];
+
+      // Dependency check: every non-`base` dep must be installed before
+      // this module can be installed. Pre-computed here so the admin UI
+      // can disable the "Install" button without making N more requests.
+      const depsResolved = depends
+        .filter((d) => d !== 'base')
+        .every((d) => dbStates[d]?.state === 'installed');
+
       return {
         name: m.name,
         display_name: manifest.name || m.name,
@@ -427,7 +465,12 @@ app.get('/api/modules', async (req, res) => {
         application: manifest.application || false,
         installable: manifest.installable !== false,
         state,
-        depends: manifest.depends || [],
+        depends,
+        deps_resolved: depsResolved,
+        // P2-3: drives the admin UI's button row. Lists the lifecycle
+        // actions valid for this module right now. Each action maps
+        // 1:1 to a POST /api/modules/:name/<action> endpoint.
+        actions: computeModuleActions(m, state, depsResolved),
         installed_at: dbRecord?.installedAt || (m.initialized ? new Date().toISOString() : null),
         module_path: `modules/${m.name}`,
         loaded: m.loaded,

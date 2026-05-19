@@ -224,6 +224,7 @@ What's also wired in (no env tuning needed):
 - **Table parity check at boot** — surfaces missing module tables as one grouped warning instead of opaque per-query 500s
 - **WebSocket tenant isolation** — broadcasts enforce per-record permission (`super_admin` bypass; everyone else sees only their `company_id` / `tenant_id`). 14-case unit test pins the policy.
 - **OpenAPI 3.0 spec + Swagger UI** — interactive explorer at [`/api/docs`](http://localhost:3000/api/docs), raw spec at [`/api/openapi.json`](http://localhost:3000/api/openapi.json). On in dev, gated by `OPENAPI_ENABLED=true` in production. Authoritative platform endpoints (`/health`, `/api/modules`, `/api/users/login`) are hand-curated; module routes opt in via `@swagger` JSDoc comments.
+- **Module catalogue with actions** — `/api/modules` now returns an `actions` array per module (`['install']`, `['uninstall', 'upgrade']`, etc.) plus a `deps_resolved` flag. Drives a future admin UI without N+1 dependency checks.
 
 MySQL auto-indexes every `FOREIGN KEY` column, so the partial-index-on-nullable-FK hygiene step that FastVue's PostgreSQL setup requires is unnecessary here.
 

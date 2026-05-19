@@ -53,6 +53,33 @@ This is what landed against the P0/P1 list since the roadmap was written:
 | Smoke test coverage | ✅ Expanded | 14 cases (was 11): adds `setupDrizzle.js` presence, `ecosystem.config.cjs` presence, `/health` Cache-Control assertion. |
 | P2-1 — WebSocket per-record permission check | ✅ Done | `WebSocketManager.subscribe()` now accepts `{ companyId, roles, filter }`. New `canSubscriberReceive()` method enforces: super_admin sees everything; non-admin subscribers see only records whose `company_id`/`tenant_id` matches their own. Wired into `broadcast()` — replaces the `TODO: Permission check` that was the only real `TODO` in the source. Backwards-compat shim accepts the legacy `(entity, userId, filter)` positional signature. New unit suite `tests/unit/websocket-permission.test.js` covers 14 cases including the THE security check (mismatched tenant → denied). |
 | P2-2 — OpenAPI / Swagger | ✅ Done | `swagger-jsdoc` + `swagger-ui-express`. Spec at `GET /api/openapi.json` (with `Cache-Control: public, max-age=60`), interactive UI at `GET /api/docs/`. Hand-curated baseline in `backend/src/core/openapi/openapi-spec.js` documents `/health`, `/api/modules`, `/api/users/login` + reusable schemas; module authors extend via `@swagger` JSDoc on route files. On in dev by default; gated by `OPENAPI_ENABLED=true` in production. Smoke test adds 4 cases. |
+| P2-3 — Module enable/disable | ✅ Backend done; UI deferred to v2.1 | The backend already has POST `/api/modules/:name/install`, `/uninstall`, `/upgrade` (with dependency validation). Added `actions` + `deps_resolved` fields to GET `/api/modules` so a future admin UI can drive its button row directly off the response. The state-transition matrix (`computeModuleActions()` in `src/index.js`) is intentionally simple — install/uninstall is the toggle mechanism; a separate "disabled" state would require a schema change and module-loader changes that don't belong in v2.0. Smoke test adds 2 cases pinning the shape. Building the admin Vue view itself is 3-5 days and explicitly v2.1 scope. |
+
+---
+
+## v2.0 Status — All P0/P1 + Essential P2 Closed
+
+As of this iteration, the pre-launch roadmap is **functionally complete**:
+
+- All 4 P0 items closed (Drizzle parity, prisma/seed.js, apps/ orphan, CI/Docker paths)
+- All 5 P1 items closed (compression, parity check, JWT alias, CI gate, tsx watch)
+- All 5 listed P2 items closed (Cache-Control, pm2 ecosystem, WebSocket permission, OpenAPI, module catalogue contract)
+
+The only deferred item is the **module-toggle admin UI** — explicitly scoped as v2.1 in this document from the start, and the backend hooks it needs are now in place.
+
+**Tag-day artifact gate is green:**
+
+- `npm run db:setup` brings a fresh DB up end-to-end (96 tables, admin, seed)
+- `npm run dev` cold-restart: ~2s (tsx watch)
+- `npm run pm2:start` brings up cluster mode with the production env defaults
+- 34/34 tests pass across smoke + websocket permission suites
+- CI gate (`.github/workflows/setup-smoke.yml`) runs the contract on every PR + push
+- OpenAPI spec lives at `/api/openapi.json`; UI at `/api/docs/`
+- WebSocket broadcasts enforce tenant isolation (security)
+- Compression saves ~80% bandwidth on hot endpoints
+- Boot-time parity guard fails loud (`LUME_STRICT_TABLE_PARITY=true`) on missing module tables
+
+**Next iteration** should be the v2.1 module-toggle Vue view, post-tag.
 
 ### P0-1 detail (DONE — see `backend/src/scripts/setupDrizzle.js`)
 

@@ -63,6 +63,15 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 - **Password Hashing**: Automatic via Prisma middleware — never manually hash in seed scripts.
 - **WebSocket tenant isolation (P2-1)**: `WebSocketManager.broadcast()` calls `canSubscriberReceive()` for every (subscription, record) pair. Subscriptions MUST pass `{ companyId, roles }` from the authenticated request at subscribe time; non-`super_admin` subscribers only receive events whose record `company_id`/`tenant_id` matches their own. Defensive default = deny. See `backend/src/core/realtime/websocket-manager.js` and `backend/tests/unit/websocket-permission.test.js`.
 
+## Module Catalogue (P2-3 backend)
+
+`GET /api/modules` returns each module with two fields that drive the admin UI:
+
+- `actions`: ordered list of lifecycle operations valid right now — `['install']` if uninstalled with deps resolved, `['uninstall', 'upgrade']` if installed, `['install', 'uninstall']` if errored, `[]` if uninstallable. Each value maps 1:1 to a `POST /api/modules/:name/<action>` endpoint.
+- `deps_resolved`: boolean. `true` only if every non-`base` dependency is `state=installed`. UI should disable the Install button when `false`.
+
+The state-transition matrix is `computeModuleActions(module, state, depsResolved)` in `backend/src/index.js`. There is no separate `disabled` state in v2.0 — install/uninstall is the toggle mechanism. A real disabled state would need a schema enum extension + module-loader changes; explicitly v2.1 scope.
+
 ## OpenAPI / Swagger (P2-2)
 
 - Spec served at `GET /api/openapi.json`, interactive UI at `GET /api/docs/`.
