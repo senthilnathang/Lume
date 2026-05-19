@@ -274,8 +274,16 @@ app.use(async (req, res, next) => {
 // Cache GET responses for frequently accessed routes (settings, menus, templates)
 app.use(responseCache);
 
-// Health check with observability metrics
+// Health check with observability metrics.
+//
+// Cache-Control: public, max-age=5 — health monitors typically poll every
+// 10-30s, browsers and L7 load balancers benefit from a 5-second cache.
+// Critical metrics (db_pool, cache, job_queue counts) lag at most 5s,
+// which is well inside reasonable SLO observation windows. Anything
+// shorter (or no-cache) wastes the LB's bandwidth and the backend's
+// uptime/metric serialization cost on every probe.
 app.get('/health', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=5');
   res.json({
     success: true,
     message: 'Lume Framework is running',
