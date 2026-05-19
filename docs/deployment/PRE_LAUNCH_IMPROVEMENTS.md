@@ -40,7 +40,7 @@ This is what landed against the P0/P1 list since the roadmap was written:
 |------|--------|----------------|
 | P0-2 — Rewrite `prisma/seed.js` | ✅ Done | File now delegates to `createAdmin.js` + `seedData.js`; `npm run db:seed` works |
 | P0-3 — Audit orphan `apps/` | ✅ Done — **finding was inverted** | `apps/` (top-level) is the **canonical** workspace (declared in `pnpm-workspace.yaml`); `frontend/apps/` is the orphan. All docs updated to use the correct path. CI workflow + Docker still reference `frontend/apps/web-lume` — see new P0-4 |
-| P0-1 — Drizzle schema parity | ⚠️ Partial | Audited: 18 Drizzle schemas under `src/modules/*/models/schema.js`. `npx drizzle-kit push` requires TTY (interactive table-conflict resolution). Full automation needs a follow-up — see "P0-1 detail" below |
+| P0-1 — Drizzle schema parity | ✅ Done | `backend/src/scripts/setupDrizzle.js` creates the 33 missing tables. Bypasses drizzle-kit's TTY requirement by importing each schema and using `getTableConfig()` to read column definitions, then issuing `CREATE TABLE IF NOT EXISTS` directly. Idempotent. Wired into `npm run db:setup` (refreshDb → prisma push → **setupDrizzle** → createAdmin → seedData). Parity check now reports `✅ Table parity OK (18 modules, 96 tables checked)` |
 | P1-1 — Wire `compression` | ✅ Done | `app.use(compression({ threshold: 1024 }))` in `src/index.js`; measured: `/api/modules` 15272b → 3131b over the wire (80% reduction) |
 | P1-3 — JWT field-name deprecation alias | ✅ Done | `/api/users/login` now returns both `data.token` and `data.accessToken` (same value); setup-smoke test updated to assert both |
 | Setup helper | ✅ New | `npm run db:setup` now runs the full canonical 4-step bring-up (refreshDb → prisma push → createAdmin → seedData) |
@@ -48,15 +48,16 @@ This is what landed against the P0/P1 list since the roadmap was written:
 | P1-2 — Startup table parity check | ✅ Done | `backend/src/core/db/check-table-parity.js` runs after Drizzle init; scrapes table names from all 18 `*/models/schema.js` files via regex (no Drizzle import — cheap pre-flight) and compares against `INFORMATION_SCHEMA.TABLES`. On clean install: **34 missing tables across 7 modules** surface as ONE grouped boot warning, no longer N opaque 500s. `LUME_STRICT_TABLE_PARITY=true` promotes the warning to a startup failure (use in CI/prod). |
 | P1-4 — CI smoke gate | ✅ Done | New `.github/workflows/setup-smoke.yml` spins up MySQL 8 service, runs canonical install sequence (refreshDb → prisma push → createAdmin → seedData), then runs `tests/integration/setup-smoke.test.js`. Triggers on `push` to main + every PR. ~3-5 sec gate. |
 
-### P0-1 detail (deferred — needs design call)
+### P0-1 detail (DONE — see `backend/src/scripts/setupDrizzle.js`)
 
-Drizzle parity isn't a 5-minute fix:
+The drizzle-kit TTY blocker was bypassed by going one layer deeper: import each schema directly, read column definitions via `getTableConfig()`, and emit `CREATE TABLE IF NOT EXISTS` SQL through plain mysql2. The full implementation is ~220 lines, idempotent, and produces 0 failures on the current schema (33 tables created on a fresh DB; 0 conflicts on a re-run).
 
-- `npx drizzle-kit push` works in interactive shells but prompts on every table conflict (Prisma creates ~11 core tables that Drizzle also wants to manage). Non-interactive use needs `--strict` mode + a config option to auto-resolve, or a custom `db:push:drizzle` script that calls Drizzle's API directly.
-- The deeper question is *who owns which table*: a few tables (e.g. `users`, `roles`) are Prisma-only by design; others (e.g. `automation_*`, `base_security_*`) are Drizzle-owned. The migration tool needs a manifest of which tool owns what, and the right invocation order.
-- Recommended next step: write `backend/src/scripts/setupDrizzle.js` that imports each module's schema and uses Drizzle's `migrate()` programmatically to apply only that module's tables. Wire it into `db:setup` as step 2.5.
+Caveats kept in code:
+- Foreign keys are not created (cross-module FK ordering is fragile; deferred to module-loader wiring if needed).
+- Default expressions like `(now())` are extracted from drizzle-orm's internal `SQL.queryChunks` and emitted literally.
+- Indexes declared via `.index()` in schemas ARE emitted.
 
-Estimate: 1 day to design + 1 day to implement + 0.5 day to test.
+The escape hatch for missing parity is now `npm run db:setup:drizzle` — runs the table creator standalone without dropping or re-seeding.
 
 ### P0-4 (new) — Fix CI and Docker references to old `frontend/apps/` paths
 

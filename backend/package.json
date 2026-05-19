@@ -22,7 +22,8 @@
     "db:seed": "node prisma/seed.js",
     "db:admin": "node src/scripts/createAdmin.js",
     "db:refresh": "node src/scripts/refreshDb.js",
-    "db:setup": "node src/scripts/refreshDb.js && npx prisma db push --accept-data-loss && node src/scripts/createAdmin.js && node src/scripts/seedData.js",
+    "db:setup:drizzle": "node src/scripts/setupDrizzle.js",
+    "db:setup": "node src/scripts/refreshDb.js && npx prisma db push --accept-data-loss && node src/scripts/setupDrizzle.js && node src/scripts/createAdmin.js && node src/scripts/seedData.js",
     "clean": "rm -rf dist coverage .jest"
   },
   "dependencies": {
