@@ -35,6 +35,7 @@ Production deployment, launch planning, and public release strategy.
 
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** — Deployment procedures and infrastructure
 - **[CPANEL_DEPLOYMENT.md](CPANEL_DEPLOYMENT.md)** — cPanel-specific deployment configuration
+- **[deployment/PRE_LAUNCH_IMPROVEMENTS.md](deployment/PRE_LAUNCH_IMPROVEMENTS.md)** — Forward-looking P0/P1/P2 improvements to land before v2.0 tag (refresh of the launch plan, May 2026)
 - **[deployment/master_launch_plan.md](deployment/master_launch_plan.md)** — V2 launch master plan
 - **[deployment/public_release_roadmap.md](deployment/public_release_roadmap.md)** — SEO & public release strategy
 - **[deployment/complete_roadmap_phases_2_5.md](deployment/complete_roadmap_phases_2_5.md)** — Comprehensive roadmap spanning Phases 2-5
