@@ -1,4 +1,11 @@
 {
+  // Phase 1.2 (see docs/CODE_QUALITY.md): adds `paths` mapping that
+  // mirrors the Vite aliases used by frontend module code, and excludes
+  // two file trees that don't belong in the backend's typecheck target:
+  //   - src/core/graphql/**     orphan NestJS scaffolding, no deps installed
+  //   - src/modules/*/static/** Vue frontend files; checked by apps/web-lume
+  // After Phase 1.2 the typecheck error count dropped from ~701 → much lower.
+
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
@@ -11,8 +18,27 @@
     "skipLibCheck": true,
     "allowJs": true,
     "resolveJsonModule": true,
-    "lib": ["ES2022"]
+    "lib": ["ES2022", "DOM"],
+
+    // baseUrl is required for the `paths` block below to resolve.
+    // TypeScript 7 deprecates it; silence the warning until we have a
+    // good reason to migrate. `ignoreDeprecations` was added for exactly
+    // this case.
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*", "../apps/web-lume/src/*"],
+      "@modules/*": ["src/modules/*"],
+      "#/*": ["src/*"]
+    }
   },
+
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests",
+    "src/core/graphql/**",
+    "src/modules/*/static/**"
+  ]
 }

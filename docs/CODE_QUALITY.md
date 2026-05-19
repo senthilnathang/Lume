@@ -1,66 +1,74 @@
 # Code Quality — Baseline & Cleanup Roadmap
 
-**Captured:** 2026-05-19, immediately post-v2.0 roadmap close-out.  
-**Owner:** Engineering (no specific assignee yet).  
-**Status:** Measurement only. CI runs `lint` + `typecheck` in warn-only mode via `.github/workflows/code-quality.yml`.
+**Captured:** 2026-05-19 (baseline) → **Phase 1 closed same day**  
+**Owner:** Engineering  
+**Status:** Phase 1 complete. CI runs `lint` + `typecheck` in warn-only mode via `.github/workflows/code-quality.yml`.
 
 ## TL;DR
 
-The v2.0 codebase ships with significant accumulated code-quality debt — 1670 ESLint problems, 700+ TypeScript errors. None of these prevent runtime correctness (the test suite + setup-smoke gate guard that), but they do block:
+The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. Phase 1 (config-only fixes) closed 264 lint problems and 698 TS errors with no source-code changes. Phase 2 (mechanical fixes) and Phase 3 (`any` triage) are still ahead.
 
-- **Adding lint/typecheck as hard PR gates** — would block every PR
-- **Onboarding new contributors** — `npm run lint` output is currently impossible to triage
-- **IDE feedback** — autocompletion and quick-fixes get drowned in noise
+| Phase | Lint problems | TS errors | Status |
+|-------|--------------:|----------:|--------|
+| Baseline (2026-05-19) | 1671 | 701 | — |
+| **Phase 1 done** (2026-05-19) | **1407** | **3** | ✅ |
+| Phase 2 target | ~900 | 0 | pending |
+| Phase 3 target | < 200 | 0 | pending |
+| Phase 4 — hard gate | 0 net new | 0 net new | pending |
 
-The plan: stratify by violation type, knock out the cheap mass categories first, and only then introduce hard gates.
+## Baseline → Phase 1 (2026-05-19)
 
-## Baseline Counts (2026-05-19, post-d59824d2)
+| Metric | Baseline | Post-Phase 1 | Delta |
+|--------|---------:|-------------:|------:|
+| ESLint problems | 1671 | **1407** | −264 (−15.8%) |
+| ESLint `no-undef` | 267 | **3** | −264 (−98.9%) |
+| TypeScript errors | ~701 | **3** | −698 (−99.6%) |
 
-### ESLint
+Phase 1 delivered ~16% of the lint debt and ~99.6% of the TS debt — almost all of the TS-error elimination was about telling `tsc` not to check files that were never compiled in the first place (frontend Vue files served as backend static assets, plus abandoned NestJS scaffolding).
 
-```
-✖ 1671 problems (1370 errors, 301 warnings)
-```
+### What Phase 1 actually changed
 
-Top rules (cleanup ROI ranked):
+- **`packages/@lume/eslint-config/index.mjs`** — flat config now imports `globals` and applies node / browser / es2022 / jest globals per file-pattern (backend, frontend, tests). Previously every `process`, `Buffer`, `__dirname`, `window`, `document` triggered `no-undef`.
+- **`backend/tsconfig.json`** — adds `baseUrl` + `paths` for `@/*`, `@modules/*`, `#/*` aliases (mirrors Vite); excludes `src/core/graphql/**` (orphan NestJS scaffolding, no deps installed, no callers) and `src/modules/*/static/**` (Vue frontend files compiled by `apps/web-lume`'s own tsconfig). Adds `ignoreDeprecations: "6.0"` to silence the TS7 `baseUrl` warning.
+
+### ESLint — current top rules (post-Phase 1)
 
 | Rank | Rule | Count | Disposition |
-|------|------|-------|-------------|
-| 1 | `@typescript-eslint/no-explicit-any` | 865 | **Mechanical** — replace with proper types or `unknown` |
-| 2 | `@typescript-eslint/no-unused-vars` | 466 | **Mechanical** — autofix with `eslint --fix` |
-| 3 | `no-undef` | 267 | **Config fix** — most are `process` / `Buffer` globals not declared for the lint environment. Fix once in `.eslintrc` (Node env) |
-| 4 | `@typescript-eslint/no-var-requires` | 30 | **Manual** — convert `require()` to ESM `import` |
-| 5 | `no-useless-escape` | 16 | **Mechanical** — autofix |
-| 6 | `vue/no-v-html` | 13 | **Manual** — review each XSS risk |
-| 7 | `no-prototype-builtins` | 5 | **Mechanical** — replace with `Object.prototype.hasOwnProperty.call(x, k)` |
-| 8+ | Various (<5 each) | ~9 | **One-by-one** review |
+|------|------|------:|-------------|
+| 1 | `@typescript-eslint/no-explicit-any` | 865 | Phase 3 |
+| 2 | `@typescript-eslint/no-unused-vars` | 466 | Phase 2 autofix |
+| 3 | `@typescript-eslint/no-var-requires` | 30 | Phase 2 manual (require → import) |
+| 4 | `no-useless-escape` | 16 | Phase 2 autofix |
+| 5 | `vue/no-v-html` | 13 | Phase 2 manual (XSS audit each) |
+| 6 | `no-prototype-builtins` | 5 | Phase 2 autofix |
+| 7 | `no-undef` | 3 | Phase 2 — genuine import bugs in 2 module files |
+| 8 | `no-constant-condition` | 2 | Phase 2 one-off |
+| 9+ | misc | ~7 | Phase 2 case-by-case |
 
-**Quick-win projection:**
-- Step 1 (fix the `.eslintrc` Node env): drops 267 `no-undef` → 1403 problems
-- Step 2 (`eslint --fix` for autofixable rules): unused-vars + no-useless-escape + no-prototype-builtins drop ~487 → ~916 problems
-- Step 3 (deal with `no-explicit-any` in service-layer files first): bulk replace `any` with `unknown` where safe, ~200 fixes/day
-
-After steps 1+2 the count drops below 1000, mostly `any`-related. That's where the work becomes case-by-case judgment rather than mechanical.
-
-### TypeScript (`tsc --noEmit --skipLibCheck`)
+### TypeScript — current state (post-Phase 1)
 
 ```
-~701 errors
+3 errors
 ```
 
-Most common patterns observed:
+Remaining errors are real bugs (Phase 2 work):
 
-- **`error TS2307: Cannot find module '@/api/request'`** — Vite alias not resolvable by `tsc`. Fix: add a `paths` entry in `tsconfig.json` matching the Vite alias.
-- **`error TS2339: Property 'X' does not exist on type 'PrismaClient<…>'`** — generated Prisma client out of sync. Fix: `npx prisma generate` is enough for the common case; verify scripts that use uncommon model names.
-- **`error TS2345: Argument of type 'X' is not assignable…`** — generic ORM result types narrowing too aggressively. Often needs explicit annotations.
+- `src/scripts/seed.ts(79,20)`: Property `activity` does not exist on PrismaClient → should be `activities`
+- `src/scripts/seed.ts(147,20)`: Property `team` → should be `team_members`
+- `src/scripts/seed.ts(188,20)`: Property `message` → should be `messages` (TS even suggests the fix)
+
+These are stale model names from an older Prisma schema. The file isn't on the canonical install path (`createAdmin.js` + `seedData.js` are — see `INSTALLATION.md`), but it's still committed and runnable. Either fix it or delete it.
 
 ## Cleanup Plan (Estimated 2–3 weeks)
 
-### Phase 1 — Config fixes (1 day)
+### Phase 1 — Config fixes (✅ DONE, 2026-05-19)
 
-1. `.eslintrc`: add `env: { node: true, es2022: true, browser: true }` for the dev paths that need it. Should drop `no-undef` from 267 → near zero.
-2. `tsconfig.json`: add `paths` mapping for `@/*` and `@modules/*` that mirrors the Vite config. Drops the bulk of `TS2307`.
-3. Run `npm run typecheck` again; should drop the error count by ~40%.
+What was done — see "What Phase 1 actually changed" above. Net result: −264 lint problems, −698 TS errors, no source-code changes, no test regressions (34/34 still pass).
+
+What worked:
+- Adding `globals` to the flat config eliminated essentially all `no-undef` errors in one change.
+- The TS error count was misleading — almost all of it was tsc checking files outside its actual compile target. Excluding the two trees (`src/core/graphql/**`, `src/modules/*/static/**`) collapsed 698 errors to 0 without touching any source.
+- The 3 remaining TS errors are real bugs in `src/scripts/seed.ts`, surfaced exactly because the noise is gone. That's the point of Phase 1.
 
 ### Phase 2 — Mechanical autofix (1-2 days)
 
