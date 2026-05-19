@@ -47,8 +47,9 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 | Error Handler | `error-handler.test.js` | ~30 | Global error handling middleware |
 | Editor Service | `editor-service.test.js` | ~200 | Block extensions, views, renders, widget manager, Phase 9–18 |
 | Website Service | `website-service.test.js` | ~100 | Manifest, schema tables, services, taxonomy, scheduling, locking |
+| **WebSocket Permission (P2-1)** | `websocket-permission.test.js` | 14 | Per-record permission enforcement; pins tenant isolation policy — see P2-1 in PRE_LAUNCH_IMPROVEMENTS.md |
 
-**Total: 577 tests across 8 suites** (as of Phase 18).
+**Total: 591 tests across 9 suites** (as of P2-1, May 2026).
 
 ### Configuration
 

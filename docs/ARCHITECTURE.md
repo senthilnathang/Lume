@@ -1238,7 +1238,27 @@ subscription {
 }
 ```
 
-Multi-tenant filtering ensures clients only receive events for their company_id.
+**Multi-tenant filtering (P2-1):** `WebSocketManager.canSubscriberReceive()` enforces strict tenant isolation on every broadcast.
+
+```js
+// At subscribe time, capture the auth context:
+wsManager.subscribe(entity, userId, {
+  companyId: req.user.companyId,
+  roles: req.user.roles,           // ['super_admin'] bypasses tenant filter
+  filter: { status: 'active' },    // optional record-level filter
+});
+
+// At broadcast time, canSubscriberReceive() is called for every (sub, record):
+//   1. super_admin (or legacy 'admin'): allowed unconditionally
+//   2. else: subscription.companyId must match record.company_id /
+//      companyId / tenant_id / tenantId (any of those keys)
+//   3. record with no tenant + subscriber with no tenant: allowed (global)
+//   4. any other mismatch (incl. subscriber-with-tenant ↔ record-without):
+//      denied. Defensive default — better to drop than leak.
+```
+
+Implementation: `backend/src/core/realtime/websocket-manager.js` (`canSubscriberReceive`).  
+Test coverage: `backend/tests/unit/websocket-permission.test.js` — 14 cases pinning the policy, including the explicit "mismatched tenant → denied" data-leak guard.
 
 ### Performance & Observability
 

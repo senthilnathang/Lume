@@ -222,6 +222,7 @@ What's also wired in (no env tuning needed):
 - **Cache-Control on `/health`** — `public, max-age=5` cuts load-balancer probe cost
 - **JWT alias** — login returns both `data.token` and `data.accessToken` for SDK compatibility
 - **Table parity check at boot** — surfaces missing module tables as one grouped warning instead of opaque per-query 500s
+- **WebSocket tenant isolation** — broadcasts enforce per-record permission (`super_admin` bypass; everyone else sees only their `company_id` / `tenant_id`). 14-case unit test pins the policy.
 
 MySQL auto-indexes every `FOREIGN KEY` column, so the partial-index-on-nullable-FK hygiene step that FastVue's PostgreSQL setup requires is unnecessary here.
 
