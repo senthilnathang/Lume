@@ -89,8 +89,11 @@ class FieldFilter {
    * @returns {boolean}
    */
   static isFieldReadable(fieldName, fieldFilters = {}) {
-    // If field not in filters, assume readable
-    if (!fieldFilters.hasOwnProperty(fieldName)) {
+    // If field not in filters, assume readable.
+    // `Object.prototype.hasOwnProperty.call(...)` is safer than
+    // `obj.hasOwnProperty(...)` because the latter can be overridden
+    // by user-supplied data (`{ hasOwnProperty: 'oops' }`).
+    if (!Object.prototype.hasOwnProperty.call(fieldFilters, fieldName)) {
       return true;
     }
 
@@ -107,8 +110,8 @@ class FieldFilter {
   static isFieldWritable(fieldName, fieldFilters = {}, writeFilters = null) {
     const filters = writeFilters || fieldFilters;
 
-    // If field not in filters, assume writable
-    if (!filters.hasOwnProperty(fieldName)) {
+    // If field not in filters, assume writable.
+    if (!Object.prototype.hasOwnProperty.call(filters, fieldName)) {
       return true;
     }
 

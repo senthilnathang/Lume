@@ -45,7 +45,7 @@
 const FIELD_TYPE_VALIDATORS = {
   text: (value) => typeof value === 'string',
   email: (value) => typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-  phone: (value) => typeof value === 'string' && /^[\d\s\-\+\(\)]+$/.test(value),
+  phone: (value) => typeof value === 'string' && /^[\d\s\-+()]+$/.test(value),
   number: (value) => typeof value === 'number' && !isNaN(value),
   date: (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value),
   datetime: (value) => typeof value === 'string' && !isNaN(Date.parse(value)),
@@ -122,16 +122,18 @@ export class RecordService {
   validateRecord(fields, data) {
     const errors = {};
 
-    // Check required fields
+    // Check required fields. Use Object.prototype.hasOwnProperty.call —
+    // safer than data.hasOwnProperty since `data` is user-supplied and may
+    // not inherit from Object.prototype, or may have overridden the method.
     for (const field of fields) {
-      if (field.required && (!data.hasOwnProperty(field.name) || data[field.name] === null || data[field.name] === '')) {
+      if (field.required && (!Object.prototype.hasOwnProperty.call(data, field.name) || data[field.name] === null || data[field.name] === '')) {
         errors[field.name] = `${field.label || field.name} is required`;
       }
     }
 
     // Check field types
     for (const field of fields) {
-      if (data.hasOwnProperty(field.name) && data[field.name] !== null && data[field.name] !== '') {
+      if (Object.prototype.hasOwnProperty.call(data, field.name) && data[field.name] !== null && data[field.name] !== '') {
         const validator = FIELD_TYPE_VALIDATORS[field.type];
 
         if (validator && !validator(data[field.name])) {

@@ -103,7 +103,7 @@ export const AuthenticationSecurity = {
       uppercase: /[A-Z]/.test(password),
       lowercase: /[a-z]/.test(password),
       numbers: /[0-9]/.test(password),
-      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+      special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
     };
 
     const score = Object.values(checks).filter(Boolean).length;
@@ -139,7 +139,7 @@ export const CORSSecurity = {
       if (allowed === '*') return false; // Don't use *
       if (allowed.includes('*')) {
         // Support subdomain wildcards like *.example.com
-        const regex = new RegExp(`^${allowed.replace(/\*/g, '[^/]+')}\$`);
+        const regex = new RegExp(`^${allowed.replace(/\*/g, '[^/]+')}$`);
         return regex.test(origin);
       }
       return origin === allowed;

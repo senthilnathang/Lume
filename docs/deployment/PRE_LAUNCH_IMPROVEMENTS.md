@@ -100,7 +100,7 @@ Backend is done (the `actions` + `deps_resolved` fields on `GET /api/modules`). 
 
 See [CODE_QUALITY.md](../CODE_QUALITY.md). 
 
-**Progress as of 2026-05-20:** 1671 → **162** ESLint problems (−90.3%), 701 → **0** TS errors. Under the documented 200-problem hard-gate threshold. Phase 3.2 (`require → import`, 30 sites) is also done — all CommonJS migrated to ESM, six orphan files deleted in the process. Remaining work: 3.3 (no-useless-escape, 15), 3.4 (no-explicit-any, 12), and tail-end no-unused-vars (123 scattered ≤3/file). Phase 4 (CI hard-gate flip) is now defensible.
+**Progress as of 2026-05-20:** 1671 → **124** ESLint problems (−92.6%), 701 → **0** TS errors. Phases 3.3 (`no-useless-escape`), 3.4 (`no-explicit-any`), and 3.5 (misc: `no-prototype-builtins`, `no-const-assign`, `no-constant-condition`, `no-empty`, `no-case-declarations`, JSDoc parsing-error) all closed. **Every rule category except `no-unused-vars` is at 0.** The remaining 123 are scattered ≤3/file across ~50 files. Phase 4 (CI hard-gate flip) is now genuinely defensible.
 
 ### P2-2 follow-on — Module `@swagger` annotations
 

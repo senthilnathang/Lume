@@ -124,12 +124,13 @@ export class SafeExpressionEvaluator {
     }
 
     // CRITICAL FIX #1: Block IIFE patterns - (function...) and (async function...)
-    if (/\(\s*function\s*[\(\{]/.test(expression) || /\(\s*async\s+function\s*[\(\{]/.test(expression)) {
+    // Inside [] character classes, ( and { are already literal — no escape needed.
+    if (/\(\s*function\s*[({]/.test(expression) || /\(\s*async\s+function\s*[({]/.test(expression)) {
       return false;
     }
 
     // CRITICAL FIX #2: Block arrow functions - () => or (x) => or x =>
-    if (/=>\s*[\{\(]?/.test(expression)) {
+    if (/=>\s*[{(]?/.test(expression)) {
       return false;
     }
 

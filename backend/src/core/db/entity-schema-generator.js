@@ -152,10 +152,13 @@ function formatDefaultValue(fieldType, value) {
     case 'lookup':
     case 'formula':
     case 'count':
-    default:
-      // Escape single quotes by doubling them
+    default: {
+      // Phase 3.5 (CODE_QUALITY.md): wrap the `default` case in a block so
+      // the lexical declaration below doesn't leak into sibling cases.
+      // Escape single quotes by doubling them.
       const escaped = String(value).replace(/'/g, "''");
       return `DEFAULT '${escaped}'`;
+    }
   }
 }
 

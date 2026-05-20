@@ -22,7 +22,11 @@ export class ExecutionEngineService {
       }
     });
 
-    const queue = [];
+    // Phase 3.5 (CODE_QUALITY.md): `queue` was `const` but reassigned on
+    // line 49 — that was a real bug masked by the lint noise. The
+    // topological-sort BFS rebuilds `queue` each iteration, so it has to
+    // be `let`.
+    let queue = [];
     const groups = [];
     let currentGroup = [];
 

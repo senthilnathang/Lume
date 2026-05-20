@@ -117,7 +117,7 @@ export class SecurityAuditService {
     const users = await this.prisma.user.findMany({ take: 1 });
     if (users.length > 0) {
       // Verify password hashing is used (should be enforced in Prisma middleware)
-      const hasPasswordField = users[0].hasOwnProperty('password');
+      const hasPasswordField = Object.prototype.hasOwnProperty.call(users[0], 'password');
       if (hasPasswordField && users[0].password?.length < 50) {
         issues.push({
           type: 'WEAK_PASSWORD_HASHING',

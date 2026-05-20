@@ -220,7 +220,12 @@ class DataImportExport {
     const records = [];
     let offset = 0;
 
-    while (true) {
+    // Phase 3.5: `while (true)` → idiomatic break-on-empty paginator.
+    // The exit condition (`batch.length === 0`) is inside the loop, so
+    // a constant truthy condition is the right shape — but lint prefers
+    // `for (;;)` for the "intentional infinite loop with internal break"
+    // pattern. Same logic, lint-clean.
+    for (;;) {
       const batch = await this.adapter.list(entity, {
         ...filters,
         limit: batchSize,
@@ -255,7 +260,8 @@ class DataImportExport {
     const records = [];
     let offset = 0;
 
-    while (true) {
+    // Phase 3.5: same paginator pattern as exportToJSON above.
+    for (;;) {
       const batch = await this.adapter.list(entity, {
         ...filters,
         limit: batchSize,
