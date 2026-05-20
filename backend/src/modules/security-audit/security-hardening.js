@@ -3,6 +3,9 @@
  * Best practices from OWASP and Anthropic Cybersecurity Skills
  */
 
+// Phase 3.2 (CODE_QUALITY.md): inline require() hoisted; ESM-only codebase.
+import crypto from 'crypto';
+
 /**
  * Input Validation Utilities
  */
@@ -114,7 +117,6 @@ export const AuthenticationSecurity = {
 
   // Generate secure random token
   generateSecureToken: (length = 32) => {
-    const crypto = require('crypto');
     return crypto.randomBytes(length).toString('hex');
   },
 

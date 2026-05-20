@@ -5,6 +5,7 @@
  */
 
 import logger from '../services/logger.js';
+import crypto from 'crypto';
 
 const CACHE_LAYERS = {
   L1_MEMORY: 'memory',      // In-process Map (instant)
@@ -264,7 +265,7 @@ class CacheOptimizer {
    * @returns {string} ETag value
    */
   generateETag(data) {
-    const crypto = require('crypto');
+    // Phase 3.2 (CODE_QUALITY.md): inline require() hoisted to top of file.
     return crypto
       .createHash('sha256')
       .update(JSON.stringify(data))

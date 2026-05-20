@@ -98,7 +98,9 @@ Backend is done (the `actions` + `deps_resolved` fields on `GET /api/modules`). 
 
 ### P3-1 — Code-quality cleanup
 
-See [CODE_QUALITY.md](../CODE_QUALITY.md). Current debt: 1671 ESLint problems / ~701 TS errors. Measurement workflow runs warn-only in CI; cleanup plan is 4 phases over ~2-3 weeks of focused work.
+See [CODE_QUALITY.md](../CODE_QUALITY.md). 
+
+**Progress as of 2026-05-20:** 1671 → **162** ESLint problems (−90.3%), 701 → **0** TS errors. Under the documented 200-problem hard-gate threshold. Phase 3.2 (`require → import`, 30 sites) is also done — all CommonJS migrated to ESM, six orphan files deleted in the process. Remaining work: 3.3 (no-useless-escape, 15), 3.4 (no-explicit-any, 12), and tail-end no-unused-vars (123 scattered ≤3/file). Phase 4 (CI hard-gate flip) is now defensible.
 
 ### P2-2 follow-on — Module `@swagger` annotations
 
