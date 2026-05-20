@@ -98,7 +98,10 @@ export const automationProcessors = {
    * Execute automation workflow
    */
   async executeWorkflow(job) {
-    const { workflowId, recordId, entityId, userId } = job.data;
+    // Phase 3.1 (CODE_QUALITY.md): unused destructured fields are
+    // prefixed with `_` to match the lint config's varsIgnorePattern.
+    // `entityId` IS used below (line ~124 — executeWorkflowStep call).
+    const { workflowId, recordId, entityId, userId: _userId } = job.data;
 
     console.log(`⚙️ Executing workflow ${workflowId} for record ${recordId}`);
 
@@ -131,7 +134,7 @@ export const automationProcessors = {
    * Execute business rule
    */
   async executeBusinessRule(job) {
-    const { ruleId, recordId, entityId } = job.data;
+    const { ruleId, recordId, entityId: _entityId } = job.data;
 
     console.log(`📋 Executing business rule ${ruleId} for record ${recordId}`);
 
@@ -161,7 +164,7 @@ export const notificationProcessors = {
    * Send email notification
    */
   async sendEmail(job) {
-    const { to, subject, template, data } = job.data;
+    const { to, subject, template: _template, data: _data } = job.data;
 
     console.log(`📧 Sending email to ${to}: ${subject}`);
 
@@ -178,7 +181,7 @@ export const notificationProcessors = {
    * Send webhook notification
    */
   async sendWebhook(job) {
-    const { url, event, payload, retryCount = 0 } = job.data;
+    const { url, event, payload, retryCount: _retryCount = 0 } = job.data;
 
     console.log(`🔗 Sending webhook to ${url} for event ${event}`);
 
@@ -217,7 +220,7 @@ export const exportProcessors = {
    * Generate CSV export
    */
   async generateCsvExport(job) {
-    const { entityId, viewId, companyId, userId } = job.data;
+    const { entityId, viewId: _viewId, companyId: _companyId, userId: _userId } = job.data;
 
     console.log(`📊 Generating CSV export for entity ${entityId}`);
 
@@ -233,7 +236,7 @@ export const exportProcessors = {
    * Generate Excel export
    */
   async generateExcelExport(job) {
-    const { entityId, viewId, companyId, userId } = job.data;
+    const { entityId, viewId: _viewId, companyId: _companyId, userId: _userId } = job.data;
 
     console.log(`📊 Generating Excel export for entity ${entityId}`);
 
@@ -248,7 +251,7 @@ export const exportProcessors = {
    * Generate PDF export
    */
   async generatePdfExport(job) {
-    const { entityId, viewId, companyId, userId } = job.data;
+    const { entityId, viewId: _viewId, companyId: _companyId, userId: _userId } = job.data;
 
     console.log(`📊 Generating PDF export for entity ${entityId}`);
 
@@ -268,7 +271,7 @@ export const mediaProcessors = {
    * Process and optimize media file
    */
   async processMedia(job) {
-    const { mediaId, fileName, mimeType } = job.data;
+    const { mediaId, fileName, mimeType: _mimeType } = job.data;
 
     console.log(`🖼️ Processing media ${mediaId}: ${fileName}`);
 
@@ -303,7 +306,7 @@ export const reportProcessors = {
    * Generate report
    */
   async generateReport(job) {
-    const { reportId, entityId, filters, format = 'pdf' } = job.data;
+    const { reportId, entityId, filters: _filters, format = 'pdf' } = job.data;
 
     console.log(`📈 Generating report ${reportId} for entity ${entityId}`);
 

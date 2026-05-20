@@ -55,6 +55,12 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 ### Testing
 - Jest with ESM: requires `NODE_OPTIONS='--experimental-vm-modules'` and `transform: {}` in jest.config.cjs.
 - Use `import { jest } from '@jest/globals'` for jest globals in test files.
+- `npm run check` — pre-commit/pre-tag aggregator: lint (warn) + typecheck (warn) + smoke + websocket-permission. The hard gate in CI is `setup-smoke.test.js`; lint/typecheck are measured but non-blocking until `docs/CODE_QUALITY.md` Phase 4.
+
+### Lint / Typecheck (CODE_QUALITY.md)
+- ESLint flat config is in `eslint.config.mjs` at repo root, importing a reusable base from `packages/@lume/eslint-config/` (gitignored). Per-file-pattern globals + ignores live in the root config so they ship.
+- **Excluded from backend lint** (Phase 3.0): `backend/src/core/graphql/**` (orphan NestJS scaffolding) and `backend/src/modules/*/static/**` (Vue frontend files, compiled by apps/web-lume). Same exclusions live in `backend/tsconfig.json`.
+- Current debt is tracked in `docs/CODE_QUALITY.md` (275 lint problems / 0 TS errors as of Phase 3.0). Run `npm run lint` from backend/ to see the current count; CI surfaces it in the Action summary.
 
 ### Security & Rate Limiting
 - **ThrottlerGuard**: Enabled globally via `app.use(ThrottlerModule)` in main app setup. Configure limits per endpoint in route decorators: `@Throttle(limit, ttl_seconds)`.

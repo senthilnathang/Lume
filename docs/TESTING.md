@@ -19,6 +19,9 @@ Lume uses Jest with ESM support for backend unit testing and Vitest + Playwright
 ```bash
 cd backend
 
+# Pre-commit / pre-tag aggregator (lint+typecheck+smoke+unit)
+npm run check
+
 # Run all tests
 npm test
 
@@ -34,6 +37,8 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --watch
 # Run tests matching a pattern
 NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 ```
+
+**Lint and typecheck** are currently warn-only in CI (`.github/workflows/code-quality.yml`); the hard gate is `setup-smoke.test.js`. Cleanup roadmap and current counts live in [`docs/CODE_QUALITY.md`](CODE_QUALITY.md).
 
 ### Test Suites
 

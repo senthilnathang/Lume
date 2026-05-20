@@ -97,4 +97,25 @@ export default [
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     },
   },
+
+  // Phase 3.1 (CODE_QUALITY.md): unused-vars policy for JS files.
+  // The base flat config wires @typescript-eslint/no-unused-vars only
+  // on .ts/.tsx files but it's coming through for .js too via the
+  // typescript-eslint recommended rules. We need both:
+  //   - Disable @typescript-eslint/no-unused-vars on .js (not its target).
+  //   - Enable the core no-unused-vars on .js with the `^_` ignore
+  //     pattern so destructured "documentation fields" can be marked
+  //     `_fieldName` to silence the lint.
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      }],
+    },
+  },
 ]

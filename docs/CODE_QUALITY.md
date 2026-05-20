@@ -13,7 +13,8 @@ The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. 
 | Baseline (2026-05-19) | 1671 | 701 | — |
 | Phase 1 done | 1407 | 3 | ✅ 2026-05-19 |
 | Phase 2 done | 1403 | 0 | ✅ 2026-05-20 |
-| **Phase 3.0 done** | **275** | **0** | ✅ 2026-05-20 |
+| Phase 3.0 done | 275 | 0 | ✅ 2026-05-20 |
+| **Phase 3.1 ongoing** | **243** | **0** | 🟡 2026-05-20 |
 | Phase 3 (rest) target | < 100 | 0 | pending |
 | Phase 4 — hard gate | 0 net new | 0 net new | pending |
 
@@ -75,6 +76,47 @@ This is the same logic as Phase 1.2's `tsconfig.json` exclude — the backend's 
 | 7 | `no-empty` / `no-const-assign` | 2 | Phase 3.5 one-off |
 
 The biggest surprise: only **12** `no-explicit-any` in the real backend (was 865 across the whole tree). The "Phase 3 = 1 week of `any` triage" estimate was way off — actual `any` triage is < 1 hour now. The dominant remaining work is `no-unused-vars` (207 sites, semi-mechanical).
+
+## Phase 3.1 — `no-unused-vars` cleanup (ongoing, 2026-05-20)
+
+Pattern: most unused vars are destructured fields documenting a job/event payload shape — prefix with `_` to match the lint config's `varsIgnorePattern: '^_'` and keep the documentation. Genuinely dead code gets removed.
+
+Config fix needed first: the base `@lume/eslint-config` only wires `@typescript-eslint/no-unused-vars` (with `_` ignore pattern) on `.ts`/`.tsx`. JS files were getting checked by the base `no-unused-vars` rule WITHOUT the ignore pattern, which made `_` prefixing a no-op. Added to `eslint.config.mjs`:
+
+```js
+{
+  files: ['**/*.{js,mjs,cjs}'],
+  rules: {
+    '@typescript-eslint/no-unused-vars': 'off',
+    'no-unused-vars': ['error', {
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_',
+      destructuredArrayIgnorePattern: '^_',
+      caughtErrorsIgnorePattern: '^_',
+    }],
+  },
+}
+```
+
+Files cleaned so far (run-by-run):
+
+| File | Sites cleared | Notes |
+|------|--------------:|-------|
+| `src/core/services/job-processors.js` | 16 | Destructured payload fields in stub processors; all `_`-prefixed |
+| `src/core/db/adapters/base-adapter.js` | 9 | Abstract interface methods; all args `_`-prefixed |
+
+Net count: **275 → 243** (and the config fix surfaced 187 previously-hidden JS `no-unused-vars` issues — those are now visible signal, not a regression).
+
+Heaviest remaining files:
+
+```
+   7  src/core/modules/lume/index.js
+   7  src/core/modules/gawdesy/index.js
+   5  src/modules/flowgrid/nodes/base.node.js
+   5  src/core/workflows/action-executor.js
+   4  src/modules/website/website.routes.js
+   4  src/modules/website/services/page.service.js
+```
 
 ### TypeScript — current state (post-Phase 1)
 
