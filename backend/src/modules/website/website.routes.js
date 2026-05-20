@@ -312,7 +312,8 @@ router.get('/public/styles.css', async (req, res) => {
 
     // Parse design_tokens JSON — shape: { colors: {...}, typography: {...} }
     let tokens = { colors: {}, typography: {} };
-    try { tokens = { colors: {}, typography: {}, ...JSON.parse(s['design_tokens'] || '{}') }; } catch {}
+    try { tokens = { colors: {}, typography: {}, ...JSON.parse(s['design_tokens'] || '{}') }; }
+    catch { /* keep default empty tokens on parse failure — intentional */ }
 
     // Flatten token groups into CSS custom properties
     const tokenLines = [];

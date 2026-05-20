@@ -16,8 +16,11 @@ The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. 
 | Phase 3.0 done | 275 | 0 | ✅ 2026-05-20 |
 | Phase 3.1 batch 1 | 243 | 0 | ✅ 2026-05-20 |
 | Phase 3.1 batch 2 | 195 | 0 | ✅ 2026-05-20 (under-200 gate hit) |
-| **Phase 3.2 done** | **162** | **0** | ✅ 2026-05-20 (all no-var-requires gone) |
-| Phase 4 — hard gate | 0 net new | 0 net new | ready when team agrees |
+| Phase 3.2 done | 162 | 0 | ✅ 2026-05-20 (all no-var-requires gone) |
+| Phase 3.3 done | 147 | 0 | ✅ 2026-05-20 (all no-useless-escape gone) |
+| Phase 3.4 done | 135 | 0 | ✅ 2026-05-20 (all no-explicit-any gone) |
+| **Phase 3.5 done** | **124** | **0** | ✅ 2026-05-20 (all misc rules + parsing-error gone) |
+| Phase 4 — hard gate | 0 net new | 0 net new | **ready** — only no-unused-vars left, no rule category > 0 except the tail |
 
 The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The Phase 3.0 drop revealed that almost all of the previously-counted `any` and `unused-vars` problems were in frontend Vue files (`src/modules/*/static/**`) served as static assets — those are owned by `apps/web-lume`'s own lint chain, not the backend's. Once excluded, the **real** backend debt is much smaller and dominated by `no-unused-vars` (207) rather than `no-explicit-any` (12).
 
@@ -136,6 +139,32 @@ Several orphan files surfaced during the conversion:
 - `backend/src/scripts/manage.ts` — orphan dispatcher with no callers
 
 `createAdmin.js` + `seedData.js` are the canonical user/data scripts (wired via `npm run db:admin` / `db:seed`), so the deletes don't break any documented path.
+
+## Phases 3.3 → 3.5 — Final categorical cleanup (2026-05-20)
+
+Three short sweeps that closed every remaining rule category except `no-unused-vars`.
+
+### Phase 3.3 — `no-useless-escape` (15 → 0)
+
+Mostly regex character classes where `(`, `{`, `+`, `.` were escaped despite being inside `[...]` (where they're literal anyway). Edited:
+
+- `core/permissions/safe-evaluator.js` (6) — IIFE/arrow-function detection regexes
+- `core/services/record.service.js` (3) — phone validator
+- `modules/security-audit/security-hardening.js` (3) — password-strength + CORS wildcard regex
+- `modules/base_automation/services/notification-enhanced.js` (3) — phone-number regex
+
+### Phase 3.4 — `no-explicit-any` (12 → 0)
+
+All 12 lived in `core/agents/types.ts` — JSON-payload shapes where `any` was the lazy choice. Bulk-replaced with `unknown` (consumers must narrow before using; same usability + actually safe). TS errors stay at 0.
+
+### Phase 3.5 — Misc rules (10 → 0)
+
+- `no-prototype-builtins` (5) — `obj.hasOwnProperty(k)` → `Object.prototype.hasOwnProperty.call(obj, k)`. Real safety win: the old form can be hijacked by user-supplied objects with their own `hasOwnProperty`.
+- `no-const-assign` (1) — caught a real bug in `flowgrid/services/execution-engine.service.js`: BFS queue declared `const` but reassigned inside the loop. Changed to `let`.
+- `no-constant-condition` (2) — `while (true)` paginators → `for (;;)` (idiomatic "intentional infinite loop with internal break").
+- `no-empty` (1) — empty `catch {}` block got an intent-revealing comment.
+- `no-case-declarations` (1) — wrapped a `default:` case in `{ ... }` so the `const` declaration doesn't leak.
+- `parsing-error` (1) — JSDoc on `core/runtime/types.js` contained a literal cron `*/4` that closed the comment block; reworded.
 
 ### TypeScript — current state (post-Phase 1)
 

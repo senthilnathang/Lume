@@ -105,7 +105,7 @@
  * @typedef {Object} AgentDefinition
  * @property {string} id - Unique agent ID (e.g., 'auto_escalate_ticket')
  * @property {string} trigger - Trigger expression (e.g., "status != 'closed' && daysOpen > 2")
- * @property {string} [schedule] - Cron schedule for scheduled agents (e.g., '0 */4 * * *')
+ * @property {string} [schedule] - Cron schedule for scheduled agents (e.g., every 4 hours)
  * @property {Object} action - Agent action
  * @property {'escalate'|'workflow'|'mutate'|'notify'} action.type - Action type
  * @property {Object} [action.updates] - Field updates for escalate action

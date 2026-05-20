@@ -1,3 +1,9 @@
+// Phase 3.4 (CODE_QUALITY.md): `any` → `unknown` across the file.
+// All previous `any` uses were JSON-payload shapes (Record<string, any>,
+// inputSchema/outputSchema, etc.) where `unknown` is strictly safer:
+// consumers must narrow before using a value, eliminating accidental
+// .toUpperCase() / .map() calls on whatever happens to be inside.
+
 export type AgentStatus = 'registered' | 'active' | 'paused' | 'failed' | 'removed';
 export type ResponseStatus = 'pending' | 'processing' | 'success' | 'failed' | 'timeout';
 export type CircuitBreakerState = 'closed' | 'open' | 'half-open';
@@ -6,15 +12,15 @@ export type CircuitBreakerState = 'closed' | 'open' | 'half-open';
 export interface SubscriptionCondition {
   field: string;
   operator: 'eq' | 'neq' | 'gt' | 'lt' | 'in' | 'contains';
-  value: any;
+  value: unknown;
 }
 
 /** Agent capability (like a skill or function) */
 export interface AgentCapability {
   name: string;
   description?: string;
-  inputSchema?: Record<string, any>; // JSON Schema
-  outputSchema?: Record<string, any>;
+  inputSchema?: Record<string, unknown>; // JSON Schema
+  outputSchema?: Record<string, unknown>;
   timeout?: number; // Execution timeout in seconds
   maxRetries?: number;
 }
@@ -49,7 +55,7 @@ export interface AgentRequest {
   id: string;
   agentId: string;
   capability: string;
-  input: Record<string, any>;
+  input: Record<string, unknown>;
   correlationId?: string; // For request tracing
   createdAt: Date;
   timeout?: number; // Override default timeout
@@ -61,7 +67,7 @@ export interface AgentResponse {
   id: string;
   requestId: string;
   agentId: string;
-  output?: Record<string, any>;
+  output?: Record<string, unknown>;
   status: ResponseStatus;
   error?: string;
   executionTimeMs?: number;
@@ -73,9 +79,9 @@ export interface AgentJob {
   id: string;
   agentId: string;
   capability: string;
-  input: Record<string, any>;
+  input: Record<string, unknown>;
   status: 'queued' | 'running' | 'completed' | 'failed';
-  result?: any;
+  result?: unknown;
   error?: string;
   createdAt: Date;
 }
@@ -85,8 +91,8 @@ export interface ExecutionContext {
   requestId: string;
   agentId: string;
   capability: string;
-  input: Record<string, any>;
-  eventData?: Record<string, any>; // Original event that triggered
+  input: Record<string, unknown>;
+  eventData?: Record<string, unknown>; // Original event that triggered
   retryCount: number;
   timeout: number;
   circuitBreakerState?: CircuitBreakerState;
@@ -95,7 +101,7 @@ export interface ExecutionContext {
 /** Result of agent execution */
 export interface RequestResult {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
   executionTimeMs?: number;
 }
@@ -105,7 +111,7 @@ export interface AgentEvent {
   event: 'agent:registered' | 'agent:subscribed' | 'agent:executed' | 'agent:failed' | 'agent:circuit-opened';
   agentId: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /** Agent registry interface */
@@ -113,7 +119,7 @@ export interface IAgentRegistry {
   registerAgent(agent: AgentDef): void;
   getAgent(agentId: string): AgentDef | undefined;
   listAgents(enabled?: boolean): AgentDef[];
-  executeCapability(agentId: string, capability: string, input: Record<string, any>): Promise<RequestResult>;
+  executeCapability(agentId: string, capability: string, input: Record<string, unknown>): Promise<RequestResult>;
   subscribe(agentId: string, subscription: AgentSubscription): void;
   unsubscribe(agentId: string, subscriptionId: string): void;
   respond(response: AgentResponse): Promise<void>;
