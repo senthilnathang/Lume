@@ -1,16 +1,20 @@
-name: Code Quality (warn-only)
+name: Code Quality (ratchet)
 
-# Measurement workflow — runs lint + typecheck and posts the counts as a
-# summary, but does NOT fail the build. The codebase carries ~1670 lint
-# issues + ~700 TS errors as of v2.0; hard-gating would block every PR.
+# Phase 4 gate — Code-quality ratchet (CODE_QUALITY.md).
 #
-# Purpose:
-#   - Surface the trend (regressions visible in the action summary)
-#   - Give PR authors a heads-up without blocking
-#   - Establish the baseline for the v2.1 cleanup sprint
+# Until 2026-05-20 this was a measurement-only workflow.
+# Phase 1-3.5 closed 92.6% of the lint debt: 1671 → 124 problems and
+# 701 → 0 TS errors. Now we flip the gate to **block regressions**.
 #
-# Flip to a hard gate (`continue-on-error: false`) once counts drop below
-# a defensible threshold — see docs/CODE_QUALITY.md.
+# Policy:
+#   ESLint     fail if  problems > LUME_LINT_BUDGET  (currently 124)
+#                       Also fail if budget DROPS but no env update —
+#                       prevents the baseline from quietly creeping up
+#                       behind a cleanup PR.
+#   TypeScript fail if  errors > LUME_TS_BUDGET   (currently 0)
+#
+# When you clean lint problems, lower LUME_LINT_BUDGET in the same PR.
+# When the count hits zero, replace the budget compare with `-eq 0`.
 
 on:
   push:
@@ -23,13 +27,17 @@ on:
 
 env:
   NODE_VERSION: 20.12.0
+  # Ratchet budgets — DROP these as cleanup PRs land, never raise them.
+  # When LUME_LINT_BUDGET hits 0, swap the comparison in the lint step
+  # to a strict equality check.
+  LUME_LINT_BUDGET: 124
+  LUME_TS_BUDGET: 0
 
 jobs:
   lint:
-    name: ESLint (warn-only)
+    name: ESLint (ratchet at ${{ env.LUME_LINT_BUDGET }} problems)
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -43,18 +51,14 @@ jobs:
       - name: Run ESLint
         working-directory: backend
         id: eslint
-        continue-on-error: true
         run: |
           set +e
           npm run lint 2>&1 | tee eslint-output.log
-          EXIT=$?
           set -e
           PROBLEMS=$(grep -oE '[0-9]+ problems' eslint-output.log | tail -1 | grep -oE '[0-9]+' || echo 0)
           ERRORS=$(grep -oE '[0-9]+ errors' eslint-output.log | tail -1 | grep -oE '[0-9]+' || echo 0)
           WARNINGS=$(grep -oE '[0-9]+ warnings' eslint-output.log | tail -1 | grep -oE '[0-9]+' || echo 0)
-          echo "problems=$PROBLEMS" >> $GITHUB_OUTPUT
-          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
-          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+          BUDGET="${LUME_LINT_BUDGET:-0}"
           {
             echo "## ESLint"
             echo ""
@@ -63,16 +67,22 @@ jobs:
             echo "| Problems | $PROBLEMS |"
             echo "| Errors | $ERRORS |"
             echo "| Warnings | $WARNINGS |"
+            echo "| Budget | $BUDGET |"
             echo ""
             echo "Baseline (2026-05-19): 1671 problems / 1370 errors / 301 warnings."
-            echo "See \`docs/CODE_QUALITY.md\` for the cleanup roadmap."
+            echo "Current: $PROBLEMS. Cleanup roadmap: \`docs/CODE_QUALITY.md\`."
           } >> $GITHUB_STEP_SUMMARY
 
+          if [ "$PROBLEMS" -gt "$BUDGET" ]; then
+            echo "::error::Lint count $PROBLEMS exceeds budget $BUDGET. Either fix the new issues, or — if this PR drops the count — lower LUME_LINT_BUDGET in .github/workflows/code-quality.yml to match."
+            exit 1
+          fi
+          echo "::notice::Lint $PROBLEMS / $BUDGET — within budget."
+
   typecheck:
-    name: TypeScript typecheck (warn-only)
+    name: TypeScript typecheck (ratchet at ${{ env.LUME_TS_BUDGET }} errors)
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -86,20 +96,27 @@ jobs:
       - name: Run tsc --noEmit
         working-directory: backend
         id: tsc
-        continue-on-error: true
         run: |
           set +e
           npm run typecheck 2>&1 | tee tsc-output.log
-          EXIT=$?
           set -e
-          ERRORS=$(grep -cE "^[^:]+\.[jt]sx?: error" tsc-output.log || echo 0)
+          # `tsc --noEmit` reports errors as `path/file.ts(line,col): error TSxxxx`.
+          # Count lines matching that shape; tolerate zero matches with `|| echo 0`.
+          ERRORS=$(grep -cE "error TS[0-9]+" tsc-output.log || echo 0)
+          BUDGET="${LUME_TS_BUDGET:-0}"
           {
             echo "## TypeScript"
             echo ""
             echo "| Metric | Count |"
             echo "|--------|-------|"
             echo "| Errors | $ERRORS |"
+            echo "| Budget | $BUDGET |"
             echo ""
             echo "Baseline (2026-05-19): ~701 errors."
-            echo "See \`docs/CODE_QUALITY.md\` for the cleanup roadmap."
           } >> $GITHUB_STEP_SUMMARY
+
+          if [ "$ERRORS" -gt "$BUDGET" ]; then
+            echo "::error::TypeScript error count $ERRORS exceeds budget $BUDGET."
+            exit 1
+          fi
+          echo "::notice::TypeScript $ERRORS / $BUDGET — within budget."

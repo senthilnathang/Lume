@@ -2,7 +2,7 @@
 
 **Captured:** 2026-05-19 (baseline) → **Phase 3 ongoing**  
 **Owner:** Engineering  
-**Status:** Phases 1–3.0 complete. CI runs `lint` + `typecheck` in warn-only mode via `.github/workflows/code-quality.yml`.
+**Status:** Phases 1–4 complete. CI runs `lint` + `typecheck` as a **ratchet hard-gate** via `.github/workflows/code-quality.yml` (fails if count > budget; cleanup PRs ratchet the budget down).
 
 ## TL;DR
 
@@ -19,8 +19,8 @@ The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. 
 | Phase 3.2 done | 162 | 0 | ✅ 2026-05-20 (all no-var-requires gone) |
 | Phase 3.3 done | 147 | 0 | ✅ 2026-05-20 (all no-useless-escape gone) |
 | Phase 3.4 done | 135 | 0 | ✅ 2026-05-20 (all no-explicit-any gone) |
-| **Phase 3.5 done** | **124** | **0** | ✅ 2026-05-20 (all misc rules + parsing-error gone) |
-| Phase 4 — hard gate | 0 net new | 0 net new | **ready** — only no-unused-vars left, no rule category > 0 except the tail |
+| Phase 3.5 done | 124 | 0 | ✅ 2026-05-20 (all misc rules + parsing-error gone) |
+| **Phase 4 done — ratchet** | **124** (budget) | **0** (budget) | ✅ 2026-05-20 — `.github/workflows/code-quality.yml` fails on >budget |
 
 The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The Phase 3.0 drop revealed that almost all of the previously-counted `any` and `unused-vars` problems were in frontend Vue files (`src/modules/*/static/**`) served as static assets — those are owned by `apps/web-lume`'s own lint chain, not the backend's. Once excluded, the **real** backend debt is much smaller and dominated by `no-unused-vars` (207) rather than `no-explicit-any` (12).
 
@@ -180,6 +180,34 @@ Remaining errors are real bugs (Phase 2 work):
 
 These are stale model names from an older Prisma schema. The file isn't on the canonical install path (`createAdmin.js` + `seedData.js` are — see `INSTALLATION.md`), but it's still committed and runnable. Either fix it or delete it.
 
+## Phase 4 — CI ratchet gate (2026-05-20)
+
+`.github/workflows/code-quality.yml` is no longer warn-only. It now fails the build when the lint or TS count exceeds the budget:
+
+```yaml
+env:
+  LUME_LINT_BUDGET: 124    # Drops on cleanup PRs, never raises
+  LUME_TS_BUDGET: 0         # Always zero now
+```
+
+**How a cleanup PR works:**
+
+1. Fix lint problems locally; verify `npm run lint` shows a lower count.
+2. Lower `LUME_LINT_BUDGET` in the workflow file to the new local count.
+3. CI re-runs and passes because count == budget.
+
+If you forget step 2, the gate still passes (count is below budget). But this is detected by the secondary "budget drift" check: a cleanup PR that lowers `npm run lint` without ratcheting the budget gets flagged in code review via the action summary.
+
+**When net-new issues appear**, CI fails with:
+
+```
+::error::Lint count 127 exceeds budget 124. Either fix the new
+issues, or — if this PR drops the count — lower LUME_LINT_BUDGET
+in .github/workflows/code-quality.yml to match.
+```
+
+When the budget reaches 0, replace the `>` comparison with `-ne` in the workflow to forbid any reintroduction.
+
 ## Cleanup Plan (Estimated 2–3 weeks)
 
 ### Phase 1 — Config fixes (✅ DONE, 2026-05-19)
@@ -221,7 +249,7 @@ Once the count is under 200 problems and 100 TS errors, flip `continue-on-error:
 
 ## Operational Notes
 
-- The CI workflow runs **warn-only** (`continue-on-error: true`). Build never fails on lint/typecheck regression. The action summary shows the counts for PR reviewers to spot trends.
+- The CI workflow runs as a **ratchet hard-gate** (`continue-on-error: false`, fails if count > budget). Cleanup PRs must lower `LUME_LINT_BUDGET` in the workflow file to match the new local count. Action summary still shows the live counts.
 - Local: `npm run lint` and `npm run typecheck` work as expected from `backend/`.
 - VS Code: install the official ESLint and Volar extensions; the existing `.eslintrc` will surface issues inline.
 
