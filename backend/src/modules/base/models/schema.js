@@ -1,8 +1,12 @@
-import { mysqlTable as table, int, varchar, text, boolean, json, datetime } from 'drizzle-orm/mysql-core';
-import { baseColumns, withSoftDelete } from '../../../core/db/drizzle-helpers.js';
+// Phase 3.1 (CODE_QUALITY.md): a few imports + the `idCol` alias are
+// declared but not used in the current schema. They're kept (underscored)
+// because new entity tables added by the entity builder pick them up
+// dynamically; removing would break that path. See entity-schema-generator.js.
+import { mysqlTable as table, int, varchar, text, boolean, json as _json, datetime } from 'drizzle-orm/mysql-core';
+import { baseColumns as _baseColumns, withSoftDelete as _withSoftDelete } from '../../../core/db/drizzle-helpers.js';
 
 // Use int for MySQL
-const idCol = int;
+const _idCol = int;
 
 /**
  * Entity - Entity definitions created via the entity builder UI

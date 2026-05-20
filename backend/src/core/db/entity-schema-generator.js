@@ -12,15 +12,18 @@ import {
   boolean,
   decimal,
   datetime,
-  json,
-  timestamp,
+  // `json` and `timestamp` are part of the dialect's full column-type
+  // surface but the current entity generator doesn't emit those types.
+  // `_`-prefixed per CODE_QUALITY.md; un-prefix if you add support.
+  json as _json,
+  timestamp as _timestamp,
 } from 'drizzle-orm/mysql-core';
 
 /**
  * Map entity field types to Drizzle column types
  * Returns a column builder function, not yet called
  */
-function getDrizzleColumnType(fieldType, fieldName, fieldConfig = {}) {
+function getDrizzleColumnType(fieldType, fieldName, _fieldConfig = {}) {
   const columnName = fieldName.toLowerCase().replace(/\s+/g, '_');
 
   switch (fieldType) {
@@ -52,7 +55,7 @@ function getDrizzleColumnType(fieldType, fieldName, fieldConfig = {}) {
 /**
  * Map entity field types to MySQL column types (for SQL generation)
  */
-function getMySQLColumnType(fieldType, fieldConfig = {}) {
+function getMySQLColumnType(fieldType, _fieldConfig = {}) {
   switch (fieldType) {
     case 'text':
     case 'email':

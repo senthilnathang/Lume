@@ -1,11 +1,14 @@
 import manifest from './__manifest__.js';
 
-const preInit = async (db, context) => {
+// Module lifecycle hooks. Args (`db`, `context`) document the runtime
+// interface even when a given hook doesn't use them — `_`-prefixed to
+// match the lint config. See CODE_QUALITY.md → Phase 3.1.
+const preInit = async (_db, _context) => {
     console.log('[Lume Module] Pre-initialization...');
     return true;
 };
 
-const postInit = async (db, context) => {
+const postInit = async (db, _context) => {
     console.log('[Lume Module] Post-initialization...');
 
     try {
@@ -32,12 +35,12 @@ const postInit = async (db, context) => {
     return true;
 };
 
-const postLoad = async (db, context) => {
+const postLoad = async (_db, _context) => {
     console.log('[Lume Module] Loaded successfully');
     return true;
 };
 
-const uninstall = async (db, context) => {
+const uninstall = async (_db, _context) => {
     console.log('[Lume Module] Uninstalling...');
     return true;
 };

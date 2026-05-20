@@ -131,7 +131,9 @@ class ViewAccessControl {
    * @param {Object} context - Execution context
    * @returns {string[]}
    */
-  getVisibleFields(viewId, allFields, context) {
+  // `_context` args document the API surface but the current logic
+  // doesn't branch on it; `_`-prefixed per CODE_QUALITY.md.
+  getVisibleFields(viewId, allFields, _context) {
     const policy = this.getPolicy(viewId);
     if (!policy) return allFields;
 
@@ -191,7 +193,7 @@ class ViewAccessControl {
    * @param {Object} context - Execution context
    * @returns {boolean}
    */
-  canReadField(viewId, fieldName, context) {
+  canReadField(viewId, fieldName, _context) {
     const restriction = this.getFieldRestriction(viewId, fieldName);
     if (!restriction) return true;
 
@@ -205,7 +207,7 @@ class ViewAccessControl {
    * @param {Object} context - Execution context
    * @returns {boolean}
    */
-  canWriteField(viewId, fieldName, context) {
+  canWriteField(viewId, fieldName, _context) {
     const restriction = this.getFieldRestriction(viewId, fieldName);
     if (!restriction) return true;
 
@@ -231,7 +233,7 @@ class ViewAccessControl {
    * @param {Object} context - Execution context
    * @returns {Object}
    */
-  getFilterOverrides(viewId, context) {
+  getFilterOverrides(viewId, _context) {
     const policy = this.getPolicy(viewId);
     if (!policy) return {};
 
