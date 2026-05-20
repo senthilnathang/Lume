@@ -38,7 +38,7 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --watch
 NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 ```
 
-**Lint and typecheck** run as a **ratchet hard-gate** in CI (`.github/workflows/code-quality.yml`). The workflow fails if lint problems exceed `LUME_LINT_BUDGET` (currently 124) or if TS errors exceed `LUME_TS_BUDGET` (currently 0). Cleanup PRs must lower the budget in the same commit. Cleanup roadmap and current counts live in [`docs/CODE_QUALITY.md`](CODE_QUALITY.md).
+**Lint and typecheck** run as a **ratchet hard-gate** in CI (`.github/workflows/code-quality.yml`). The workflow fails if lint problems exceed `LUME_LINT_BUDGET` (currently 95) or if TS errors exceed `LUME_TS_BUDGET` (currently 0). Cleanup PRs must lower the budget in the same commit. Cleanup roadmap and current counts live in [`docs/CODE_QUALITY.md`](CODE_QUALITY.md).
 
 ### Test Suites
 

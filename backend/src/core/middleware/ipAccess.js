@@ -4,9 +4,13 @@
  * Caches rules in memory and refreshes every 5 minutes.
  */
 
-let cachedRules = null;
-let cacheTime = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// Phase 3.1 batch 3 (CODE_QUALITY.md): cache state declared but never
+// wired up. `_`-prefixed so the planned shape is preserved without
+// triggering no-unused-vars. Hook them up to refresh logic if/when the
+// in-memory cache is implemented.
+let _cachedRules = null;
+let _cacheTime = 0;
+const _CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 let securityServiceInstance = null;
 

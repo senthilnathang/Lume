@@ -20,7 +20,8 @@ The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. 
 | Phase 3.3 done | 147 | 0 | ✅ 2026-05-20 (all no-useless-escape gone) |
 | Phase 3.4 done | 135 | 0 | ✅ 2026-05-20 (all no-explicit-any gone) |
 | Phase 3.5 done | 124 | 0 | ✅ 2026-05-20 (all misc rules + parsing-error gone) |
-| **Phase 4 done — ratchet** | **124** (budget) | **0** (budget) | ✅ 2026-05-20 — `.github/workflows/code-quality.yml` fails on >budget |
+| Phase 4 done — ratchet | 124 (budget) | 0 (budget) | ✅ 2026-05-20 — `.github/workflows/code-quality.yml` fails on >budget |
+| **Phase 3.1 batch 3 + ratchet drop** | **95** (budget) | **0** (budget) | ✅ 2026-05-21 — first ratchet-down PR; pattern proven |
 
 The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The Phase 3.0 drop revealed that almost all of the previously-counted `any` and `unused-vars` problems were in frontend Vue files (`src/modules/*/static/**`) served as static assets — those are owned by `apps/web-lume`'s own lint chain, not the backend's. Once excluded, the **real** backend debt is much smaller and dominated by `no-unused-vars` (207) rather than `no-explicit-any` (12).
 

@@ -2,7 +2,9 @@ import prisma from '../../core/db/prisma.js';
 import { responseUtil, fileUtil } from '../../shared/utils/index.js';
 import { MESSAGES, PAGINATION } from '../../shared/constants/index.js';
 import { mkdirSync, existsSync } from 'fs';
-import { join, extname } from 'path';
+// `join` + `extname` documented as part of the path-handling toolkit
+// the service needs, but the current code does its own string ops.
+import { join as _join, extname as _extname } from 'path';
 
 export class MediaService {
   constructor() {

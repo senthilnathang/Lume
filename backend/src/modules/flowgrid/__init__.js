@@ -1,4 +1,6 @@
-export const preInit = async (services) => {
+// Module lifecycle hooks. Unused `services` args underscored per the
+// project lint convention (CODE_QUALITY.md).
+export const preInit = async (_services) => {
   console.log('[FlowGrid] Pre-initialization');
 };
 
@@ -9,6 +11,6 @@ export const init = async (services) => {
   }
 };
 
-export const postInit = async (services) => {
+export const postInit = async (_services) => {
   console.log('[FlowGrid] Post-initialization complete');
 };

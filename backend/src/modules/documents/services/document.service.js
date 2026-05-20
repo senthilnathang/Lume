@@ -81,7 +81,9 @@ export class DocumentService {
     });
   }
 
-  async publishDocument(documentId, userId) {
+  async publishDocument(documentId, _userId) {
+    // `_userId` documents the publish-actor audit trail but isn't wired
+    // to AuditLog yet.
     return await this.models.Document.update(documentId, {
       status: 'published',
       publishedAt: new Date(),

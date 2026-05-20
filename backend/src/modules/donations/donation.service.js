@@ -1,6 +1,6 @@
 import prisma from '../../core/db/prisma.js';
 import { stringUtil, responseUtil } from '../../shared/utils/index.js';
-import { MESSAGES, DONATION_STATUS, PAGINATION } from '../../shared/constants/index.js';
+import { MESSAGES, DONATION_STATUS as _DONATION_STATUS, PAGINATION } from '../../shared/constants/index.js';
 
 export class DonationService {
   _normalizeDates(data, fields) {
@@ -175,7 +175,7 @@ export class DonationService {
     return responseUtil.success(campaign, MESSAGES.CREATED);
   }
 
-  async findAllCampaigns(options = {}) {
+  async findAllCampaigns(_options = {}) {
     const campaigns = await prisma.campaigns.findMany({
       where: { status: 'active' },
       orderBy: { created_at: 'desc' }

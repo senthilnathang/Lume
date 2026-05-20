@@ -60,8 +60,8 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 ### Lint / Typecheck (CODE_QUALITY.md)
 - ESLint flat config is in `eslint.config.mjs` at repo root, importing a reusable base from `packages/@lume/eslint-config/` (gitignored). Per-file-pattern globals + ignores live in the root config so they ship.
 - **Excluded from backend lint** (Phase 3.0): `backend/src/core/graphql/**` (orphan NestJS scaffolding) and `backend/src/modules/*/static/**` (Vue frontend files, compiled by apps/web-lume). Same exclusions live in `backend/tsconfig.json`.
-- Current debt is tracked in `docs/CODE_QUALITY.md` (**124 lint problems / 0 TS errors** as of Phase 4). Every rule category except `no-unused-vars` is at 0; the remaining 123 are scattered ≤3/file.
-- **CI is now a ratchet hard-gate** — `.github/workflows/code-quality.yml` fails if `npm run lint` returns more problems than `LUME_LINT_BUDGET` (currently 124) or if `npm run typecheck` returns more than `LUME_TS_BUDGET` (currently 0). Cleanup PRs must lower the budget in the workflow file to match the new local count.
+- Current debt is tracked in `docs/CODE_QUALITY.md` (**95 lint problems / 0 TS errors** as of Phase 3.1 batch 3). Every rule category except `no-unused-vars` is at 0; the remaining 95 are scattered ≤2/file.
+- **CI is a ratchet hard-gate** — `.github/workflows/code-quality.yml` fails if `npm run lint` returns more problems than `LUME_LINT_BUDGET` (currently 95) or if `npm run typecheck` returns more than `LUME_TS_BUDGET` (currently 0). Cleanup PRs must lower the budget in the workflow file to match the new local count.
 
 ### Security & Rate Limiting
 - **ThrottlerGuard**: Enabled globally via `app.use(ThrottlerModule)` in main app setup. Configure limits per endpoint in route decorators: `@Throttle(limit, ttl_seconds)`.

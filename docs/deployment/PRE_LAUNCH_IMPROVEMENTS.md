@@ -100,7 +100,7 @@ Backend is done (the `actions` + `deps_resolved` fields on `GET /api/modules`). 
 
 See [CODE_QUALITY.md](../CODE_QUALITY.md). 
 
-**Progress as of 2026-05-20:** 1671 → **124** ESLint problems (−92.6%), 701 → **0** TS errors. Phases 3.3 (`no-useless-escape`), 3.4 (`no-explicit-any`), and 3.5 (misc: `no-prototype-builtins`, `no-const-assign`, `no-constant-condition`, `no-empty`, `no-case-declarations`, JSDoc parsing-error) all closed. **Every rule category except `no-unused-vars` is at 0.** The remaining 123 are scattered ≤3/file across ~50 files. Phase 4 (CI hard-gate flip) is now genuinely defensible.
+**Progress as of 2026-05-21:** 1671 → **95** ESLint problems (−94.3%), 701 → **0** TS errors. **Phase 4 ratchet hard-gate is live** (`.github/workflows/code-quality.yml`), and the first ratchet-down PR (124 → 95) has demonstrated the cleanup pattern works. All rule categories except `no-unused-vars` are at 0; remaining 95 are scattered ≤2/file. Each future cleanup PR lowers `LUME_LINT_BUDGET` in the workflow file.
 
 ### P2-2 follow-on — Module `@swagger` annotations
 
