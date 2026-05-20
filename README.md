@@ -207,6 +207,15 @@ npm run dev
 
 That's it. Admin UI, authentication, and 25 modules are ready to use.
 
+### Pre-Commit Sanity Check
+
+```bash
+cd backend
+npm run check     # lint (warn) + typecheck (warn) + smoke + websocket-permission tests
+```
+
+`npm run check` is the pre-tag local-verify helper. Lint and typecheck are non-fatal — they print counts so you can see the trend, but tests are the actual gate. Same set of checks runs in CI: smoke gate (`.github/workflows/setup-smoke.yml`, hard-fail) plus code-quality measurement (`.github/workflows/code-quality.yml`, warn-only until `docs/CODE_QUALITY.md` cleanup reaches Phase 4).
+
 ### Performance Tuning
 
 See [`docs/ARCHITECTURE.md` → Performance & Observability → Runtime Performance Settings](docs/ARCHITECTURE.md#performance--observability) for the full breakdown of each env knob and why the defaults are tuned that way.
@@ -351,6 +360,8 @@ Lume/
 | [Module System](backend/docs/MODULE_SYSTEM.md) | Creating custom modules |
 | [Security](backend/docs/SECURITY.md) | Auth, RBAC, audit, compliance |
 | [API Reference](backend/docs/API.md) | All endpoints, request/response formats |
+| [Code Quality Roadmap](docs/CODE_QUALITY.md) | Lint/typecheck debt baseline + 4-phase cleanup (May 2026; warn-only CI gate already wired) |
+| [Pre-Launch Improvements](docs/deployment/PRE_LAUNCH_IMPROVEMENTS.md) | v2.0 hardening roadmap (all closed) + v2.1 carryover |
 
 ---
 

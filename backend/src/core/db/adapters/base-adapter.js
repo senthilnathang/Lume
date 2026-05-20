@@ -17,7 +17,10 @@ export class BaseAdapter {
    * @param {*} options.include - ORM-specific eager loading config
    * @returns {{ rows: Object[], count: number }}
    */
-  async findAll(options) {
+  // Args are `_`-prefixed per the lint config — this class only declares
+  // the interface; concrete adapters (prisma-adapter, drizzle-adapter)
+  // override these methods and consume the args. See CODE_QUALITY.md.
+  async findAll(_options) {
     throw new Error('findAll() not implemented');
   }
 
@@ -27,7 +30,7 @@ export class BaseAdapter {
    * @param {Object} options - { include }
    * @returns {Object|null}
    */
-  async findById(id, options = {}) {
+  async findById(_id, _options = {}) {
     throw new Error('findById() not implemented');
   }
 
@@ -36,7 +39,7 @@ export class BaseAdapter {
    * @param {Object} data - Field values
    * @returns {Object} Created record
    */
-  async create(data) {
+  async create(_data) {
     throw new Error('create() not implemented');
   }
 
@@ -46,7 +49,7 @@ export class BaseAdapter {
    * @param {Object} data - Fields to update
    * @returns {Object|null} Updated record
    */
-  async update(id, data) {
+  async update(_id, _data) {
     throw new Error('update() not implemented');
   }
 
@@ -55,7 +58,7 @@ export class BaseAdapter {
    * @param {number|string} id
    * @returns {boolean} Whether a record was deleted
    */
-  async destroy(id) {
+  async destroy(_id) {
     throw new Error('destroy() not implemented');
   }
 
@@ -64,7 +67,7 @@ export class BaseAdapter {
    * @param {Array} where - Domain tuples
    * @returns {number}
    */
-  async count(where = []) {
+  async count(_where = []) {
     throw new Error('count() not implemented');
   }
 
@@ -73,7 +76,7 @@ export class BaseAdapter {
    * @param {Object[]} records
    * @returns {Object[]}
    */
-  async bulkCreate(records) {
+  async bulkCreate(_records) {
     throw new Error('bulkCreate() not implemented');
   }
 
@@ -82,7 +85,7 @@ export class BaseAdapter {
    * @param {number[]|string[]} ids
    * @returns {number} Number deleted
    */
-  async bulkDestroy(ids) {
+  async bulkDestroy(_ids) {
     throw new Error('bulkDestroy() not implemented');
   }
 
