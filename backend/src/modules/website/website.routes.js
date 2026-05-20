@@ -1,7 +1,13 @@
 import { Router } from 'express';
-import { body, param, query } from 'express-validator';
+// Phase 3.1: `query` is exported by express-validator but not used here
+// (routes use body+param only). Kept in the import for symmetry with the
+// other route modules; underscored to silence the lint warning without
+// losing the documentation of "this is what express-validator gives you".
+import { body, param, query as _query } from 'express-validator';
 import { validateRequest } from '../../api/validators/validateRequest.js';
-import { authenticate, authorize, optionalAuth } from '../../core/middleware/auth.js';
+// authorize() exists but every route here is authenticated-only without
+// role gating. Underscored to indicate the import is intentional.
+import { authenticate, authorize as _authorize, optionalAuth } from '../../core/middleware/auth.js';
 import { responseUtil } from '../../shared/utils/index.js';
 import { PageService, MenuService, MediaService, SettingsService, RevisionService, FormService, SubmissionService, ThemeTemplateService, PopupService, QueryService, FontService, IconService, RedirectService, CategoryService, TagService } from './services/page.service.js';
 import { AiService } from './services/ai.service.js';
@@ -262,8 +268,10 @@ router.post('/public/contact', [
   body('phone').optional().trim(),
 ], validateRequest, async (req, res) => {
   try {
-    const { name, email, phone, subject, message } = req.body;
-    // Log submission (could be extended to store in DB or send email)
+    const { name, email, phone: _phone, subject, message: _message } = req.body;
+    // Log submission (could be extended to store in DB or send email).
+    // `phone` + `message` validated via express-validator above but not
+    // logged yet (PII concerns); `_`-prefixed per CODE_QUALITY.md.
     console.log(`[Contact Form] From: ${name} <${email}>, Subject: ${subject}`);
     res.json(responseUtil.success({ received: true }, 'Message received successfully. We will get back to you shortly.'));
   } catch (error) {

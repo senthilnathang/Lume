@@ -14,8 +14,9 @@ The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. 
 | Phase 1 done | 1407 | 3 | ✅ 2026-05-19 |
 | Phase 2 done | 1403 | 0 | ✅ 2026-05-20 |
 | Phase 3.0 done | 275 | 0 | ✅ 2026-05-20 |
-| **Phase 3.1 ongoing** | **243** | **0** | 🟡 2026-05-20 |
-| Phase 3 (rest) target | < 100 | 0 | pending |
+| Phase 3.1 batch 1 | 243 | 0 | ✅ 2026-05-20 |
+| **Phase 3.1 batch 2** | **195** | **0** | ✅ 2026-05-20 (under-200 hard-gate threshold) |
+| Phase 3.2 target (no-var-requires) | ~165 | 0 | pending |
 | Phase 4 — hard gate | 0 net new | 0 net new | pending |
 
 The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The Phase 3.0 drop revealed that almost all of the previously-counted `any` and `unused-vars` problems were in frontend Vue files (`src/modules/*/static/**`) served as static assets — those are owned by `apps/web-lume`'s own lint chain, not the backend's. Once excluded, the **real** backend debt is much smaller and dominated by `no-unused-vars` (207) rather than `no-explicit-any` (12).

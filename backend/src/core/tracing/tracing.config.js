@@ -43,7 +43,10 @@ export async function initTracing() {
     OTEL_EXPORTER_OTLP_ENDPOINT,
     OTEL_SERVICE_NAME = 'lume-backend',
     OTEL_SERVICE_VERSION = '2.0.0',
-    OTEL_TRACES_SAMPLER = 'parentbased_traceidratio',
+    // OTEL_TRACES_SAMPLER documents the env var convention but the
+    // actual sampler is configured via OTEL_TRACES_SAMPLER_ARG below.
+    // `_`-prefixed per CODE_QUALITY.md.
+    OTEL_TRACES_SAMPLER: _OTEL_TRACES_SAMPLER = 'parentbased_traceidratio',
     NODE_ENV = 'development',
   } = process.env;
 
@@ -93,7 +96,8 @@ export async function initTracing() {
         getNodeAutoInstrumentations({
           // Configure auto-instrumentations
           '@opentelemetry/instrumentation-http': {
-            requestHook: (span, request) => {
+            // `_request` documents the hook signature; we only touch `span`.
+            requestHook: (span, _request) => {
               // Add custom attributes to HTTP spans
               span.setAttribute('http.request.body.truncated', false);
             },
@@ -103,7 +107,9 @@ export async function initTracing() {
           },
           '@opentelemetry/instrumentation-mysql2': {
             enabled: true,
-            responseHook: (span, response) => {
+            // Both args documented but no body — placeholder for future
+            // response-driven span enrichment.
+            responseHook: (_span, _response) => {
               // Log response info if needed
             },
           },

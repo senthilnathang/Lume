@@ -145,7 +145,11 @@ export class ActionExecutor {
    * @param {Record<string, unknown>} contextData - Additional context data
    * @returns {Promise<unknown>} Promise resolving to action result data
    */
-  async executeAction(action, instance, contextData) {
+  async executeAction(action, _instance, _contextData) {
+    // `instance` + `contextData` are part of the documented API but
+    // not consumed by the dispatch logic below. Will be threaded into
+    // the placeholder methods (sendNotification, callWebhook, etc.)
+    // when those get real implementations. `_`-prefixed per CODE_QUALITY.md.
     switch (action.type) {
       case 'create-entity':
         return this.entityStore.create(action.target, action.payload);
@@ -180,7 +184,7 @@ export class ActionExecutor {
    * @param {Record<string, unknown>} payload - Notification payload
    * @returns {Promise<unknown>} Promise resolving to notification result
    */
-  async sendNotification(payload) {
+  async sendNotification(_payload) {
     // Placeholder: actual implementation would call notification service
     return Promise.resolve({ sent: true });
   }
@@ -192,7 +196,7 @@ export class ActionExecutor {
    * @param {Record<string, unknown>} payload - Webhook payload
    * @returns {Promise<unknown>} Promise resolving to webhook result
    */
-  async callWebhook(payload) {
+  async callWebhook(_payload) {
     // Placeholder: actual implementation would make HTTP request
     return Promise.resolve({ success: true });
   }
@@ -204,7 +208,7 @@ export class ActionExecutor {
    * @param {Record<string, unknown>} payload - Custom action payload
    * @returns {Promise<unknown>} Promise resolving to custom action result
    */
-  async executeCustomAction(payload) {
+  async executeCustomAction(_payload) {
     // Placeholder: actual implementation would execute custom logic
     return Promise.resolve({ executed: true });
   }

@@ -1,11 +1,12 @@
 import manifest from './__manifest__.js';
 
-const preInit = async (db, context) => {
+// Module lifecycle hooks; unused args `_`-prefixed (see CODE_QUALITY.md).
+const preInit = async (_db, _context) => {
     console.log('[Gawdesy Module] Pre-initialization...');
     return true;
 };
 
-const postInit = async (db, context) => {
+const postInit = async (db, _context) => {
     console.log('[Gawdesy Module] Post-initialization...');
 
     try {
@@ -32,12 +33,12 @@ const postInit = async (db, context) => {
     return true;
 };
 
-const postLoad = async (db, context) => {
+const postLoad = async (_db, _context) => {
     console.log('[Gawdesy Module] Loaded successfully');
     return true;
 };
 
-const uninstall = async (db, context) => {
+const uninstall = async (_db, _context) => {
     console.log('[Gawdesy Module] Uninstalling...');
     return true;
 };

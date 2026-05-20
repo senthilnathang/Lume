@@ -108,14 +108,16 @@ export class PageService {
       // Return a gate response unless the correct password token was provided
       const { passwordToken } = options;
       if (!passwordToken || passwordToken !== row.passwordHash) {
-        // Don't expose content — return metadata only with requiresPassword flag
-        const { content, contentHtml, passwordHash, ...meta } = row;
+        // Don't expose content — return metadata only with requiresPassword flag.
+        // The destructured `content`, `contentHtml`, `passwordHash` are stripped
+        // from the returned `meta`; `_`-prefixed per CODE_QUALITY.md.
+        const { content: _content, contentHtml: _contentHtml, passwordHash: _passwordHash, ...meta } = row;
         return responseUtil.success({ ...meta, requiresPassword: true, content: null, contentHtml: null });
       }
     }
 
     // Strip sensitive field before returning
-    const { passwordHash, ...safeRow } = row;
+    const { passwordHash: _passwordHash, ...safeRow } = row;
     return responseUtil.success(safeRow);
   }
 
