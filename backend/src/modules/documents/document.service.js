@@ -1,6 +1,6 @@
 import prisma from '../../core/db/prisma.js';
-import { responseUtil, fileUtil } from '../../shared/utils/index.js';
-import { MESSAGES, DOCUMENT_TYPES, PAGINATION } from '../../shared/constants/index.js';
+import { responseUtil, fileUtil as _fileUtil } from '../../shared/utils/index.js';
+import { MESSAGES, DOCUMENT_TYPES as _DOCUMENT_TYPES, PAGINATION } from '../../shared/constants/index.js';
 
 export class DocumentService {
   constructor() {}

@@ -1,6 +1,7 @@
 import { getDrizzle } from '../../../core/db/drizzle.js';
 import { agentgridExecutions, agentgridExecutionLogs } from '../models/index.js';
-import { eq, and, count as drizzleCount, asc, desc } from 'drizzle-orm';
+// Same shape as flowgrid/services/execution.service.js (Phase 3.1 batch 3).
+import { eq, and as _and, count as drizzleCount, asc, desc } from 'drizzle-orm';
 
 export class ExecutionService {
   _db() {
@@ -11,7 +12,8 @@ export class ExecutionService {
     const db = this._db();
     const now = new Date();
 
-    const result = await db.insert(agentgridExecutions).values({
+    // INSERT result is unused — row id is recovered separately below.
+    await db.insert(agentgridExecutions).values({
       agentId: Number(agentId),
       parentExecutionId: context.parentExecutionId ? Number(context.parentExecutionId) : null,
       status: 'pending',

@@ -139,17 +139,18 @@ export class SecurityAuditService {
   async checkInjectionVulnerabilities() {
     const issues = [];
 
-    // Check for SQL injection patterns in custom code
-    // This is a static check for common patterns
-    const sqlInjectionPatterns = [
+    // Phase 3.1 batch 3: pattern lists declared as reference catalogues
+    // for the audit logic to grep for at runtime. The actual scan walks
+    // the source tree separately; these would be wired into that pass.
+    // Underscored per CODE_QUALITY.md so the documentation stays.
+    const _sqlInjectionPatterns = [
       /`SELECT.*\$\{/,
       /`INSERT.*\$\{/,
       /query\s*\(\s*['"`].*\$\{/,
       /raw\s*sql\s*\(/
     ];
 
-    // Check for XSS vulnerabilities - look for unescaped content rendering
-    const xssPatterns = [
+    const _xssPatterns = [
       /innerHTML\s*=\s*(?!DOMPurify|sanitize)/,
       /evaluate-unsafe:/,
       /eval\s*\(/

@@ -214,7 +214,7 @@ cd backend
 npm run check     # lint (warn) + typecheck (warn) + smoke + websocket-permission tests
 ```
 
-`npm run check` is the pre-tag local-verify helper. Lint and typecheck are locally non-fatal (they print counts), but in CI both are **ratchet hard-gates**: `.github/workflows/code-quality.yml` fails if lint problems exceed `LUME_LINT_BUDGET` (124 at v2.0) or TS errors exceed `LUME_TS_BUDGET` (0). The smoke gate (`.github/workflows/setup-smoke.yml`) is the install-contract hard-gate.
+`npm run check` is the pre-tag local-verify helper. Lint and typecheck are locally non-fatal (they print counts), but in CI both are **ratchet hard-gates**: `.github/workflows/code-quality.yml` fails if lint problems exceed `LUME_LINT_BUDGET` (currently 95) or TS errors exceed `LUME_TS_BUDGET` (0). Cleanup PRs lower the budget in the workflow file. The smoke gate (`.github/workflows/setup-smoke.yml`) is the install-contract hard-gate.
 
 ### Performance Tuning
 

@@ -1,4 +1,7 @@
-import { table, int, integer, varchar, text, longtext, boolean, json, timestamp, dbEnum } from '../../../core/db/dialect.js';
+// Phase 3.1 batch 3: `json` + `dbEnum` exported by the dialect but not
+// referenced by the current schema. Kept (underscored) for the same reason
+// as base/models/schema.js — entity-builder dynamic tables may use them.
+import { table, int, integer, varchar, text, longtext, boolean, json as _json, timestamp, dbEnum as _dbEnum } from '../../../core/db/dialect.js';
 import { baseColumns, withSoftDelete } from '../../../core/db/drizzle-helpers.js';
 
 // Use int for MySQL, integer for PostgreSQL

@@ -1,7 +1,10 @@
 import prisma from '../../core/db/prisma.js';
 import bcrypt from 'bcryptjs';
 import { passwordUtil, jwtUtil, responseUtil } from '../../shared/utils/index.js';
-import { MESSAGES, USER_ROLES, PAGINATION } from '../../shared/constants/index.js';
+// USER_ROLES exported but only referenced via role_id FKs in the
+// current code; kept imported (underscored) so the role enum is one
+// import away when adding role-aware logic.
+import { MESSAGES, USER_ROLES as _USER_ROLES, PAGINATION } from '../../shared/constants/index.js';
 import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
 import { sessions, twoFactor } from '../base_security/models/schema.js';
 
@@ -154,8 +157,10 @@ export class UserService {
     return responseUtil.success(this._toSnakeCase(updated, updatedRole?.name), MESSAGES.UPDATED);
   }
 
-  // Delete user (deactivate)
-  async delete(id, deletedBy) {
+  // Delete user (deactivate). `_deletedBy` documents the audit-trail
+  // hook but the soft-delete path currently doesn't record actor —
+  // wire to AuditLog once that's enabled.
+  async delete(id, _deletedBy) {
     const user = await prisma.user.findUnique({ where: { id } });
 
     if (!user) {

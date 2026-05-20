@@ -16,7 +16,9 @@ import logger from '../core/services/logger.js';
  * @param {MetadataRegistry} registry - Metadata registry
  * @returns {express.Router}
  */
-function createEntityRoutes(entityStore, registry) {
+// `_registry` part of the public API surface but not consumed yet — the
+// metadata-driven routes would use it; placeholder for that integration.
+function createEntityRoutes(entityStore, _registry) {
   const router = express.Router();
 
   // GET /api/entities - List all entities
@@ -63,7 +65,9 @@ function createEntityRoutes(entityStore, registry) {
   // POST /api/entities - Create entity dynamically (runtime registration)
   router.post('/', async (req, res) => {
     try {
-      const { defineEntity, entity: builderFunc } = await import('../domains/entity/entity-builder.js');
+      // Destructure documents the entity-builder API surface; only the
+      // entity definition itself is used below. Underscored per CODE_QUALITY.md.
+      const { defineEntity: _defineEntity, entity: _builderFunc } = await import('../domains/entity/entity-builder.js');
       const { entity: entityDef } = req.body;
 
       if (!entityDef) {

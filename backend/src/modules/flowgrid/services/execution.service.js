@@ -1,6 +1,9 @@
 import { getDrizzle } from '../../../core/db/drizzle.js';
 import { flowgridExecutions, flowgridNodeExecutions } from '../models/index.js';
-import { eq, and, count as drizzleCount, asc } from 'drizzle-orm';
+// Phase 3.1 batch 3: `and` is part of the drizzle helper set but the
+// current queries don't compose multi-condition WHERE clauses — kept
+// imported for symmetry, underscored to silence lint.
+import { eq, and as _and, count as drizzleCount, asc } from 'drizzle-orm';
 
 export class ExecutionService {
   _db() {
@@ -10,7 +13,8 @@ export class ExecutionService {
   async startExecution(workflowId, input = {}, context = {}) {
     const db = this._db();
     const now = new Date();
-    const result = await db.insert(flowgridExecutions).values({
+    // INSERT result is unused — the row id is recovered via getLatestExecution.
+    await db.insert(flowgridExecutions).values({
       workflowId: Number(workflowId),
       status: 'pending',
       input,

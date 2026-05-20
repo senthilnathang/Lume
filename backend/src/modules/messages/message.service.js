@@ -1,6 +1,6 @@
 import prisma from '../../core/db/prisma.js';
 import { responseUtil } from '../../shared/utils/index.js';
-import { MESSAGES, MESSAGE_STATUS, PAGINATION } from '../../shared/constants/index.js';
+import { MESSAGES, MESSAGE_STATUS as _MESSAGE_STATUS, PAGINATION } from '../../shared/constants/index.js';
 
 export class MessageService {
   constructor() {}
@@ -93,7 +93,7 @@ export class MessageService {
     return responseUtil.success(updated);
   }
 
-  async reply(id, replyData) {
+  async reply(id, _replyData) {
     const message = await prisma.messages.findUnique({ where: { id: Number(id) } });
 
     if (!message) {
