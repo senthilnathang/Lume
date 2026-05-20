@@ -1,22 +1,23 @@
 # Code Quality — Baseline & Cleanup Roadmap
 
-**Captured:** 2026-05-19 (baseline) → **Phase 1 closed same day**  
+**Captured:** 2026-05-19 (baseline) → **Phase 3 ongoing**  
 **Owner:** Engineering  
-**Status:** Phase 1 complete. CI runs `lint` + `typecheck` in warn-only mode via `.github/workflows/code-quality.yml`.
+**Status:** Phases 1–3.0 complete. CI runs `lint` + `typecheck` in warn-only mode via `.github/workflows/code-quality.yml`.
 
 ## TL;DR
 
-The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. Phase 1 (config) closed 264 lint + 698 TS errors. Phase 2 (mechanical fixes + surfaced bugs) closed the remaining 3 TS errors and the 3 no-undef bugs, but the broader autofix sweep produced essentially zero results — the high-count rules (`no-explicit-any`, `no-unused-vars`) have no programmatic fixers in this codebase. Phase 3 (manual `any` triage) is now the dominant remaining work.
+The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. After Phases 1 + 2 + 3.0, the count is **275 lint problems / 0 TS errors** — an 83.5% drop in the lint debt and 100% elimination of the TS noise. The remaining 275 are real backend code issues, no longer drowning in config or static-asset noise.
 
 | Phase | Lint problems | TS errors | Status |
 |-------|--------------:|----------:|--------|
 | Baseline (2026-05-19) | 1671 | 701 | — |
 | Phase 1 done | 1407 | 3 | ✅ 2026-05-19 |
-| **Phase 2 done** | **1403** | **0** | ✅ 2026-05-20 |
-| Phase 3 target | < 200 | 0 | pending |
+| Phase 2 done | 1403 | 0 | ✅ 2026-05-20 |
+| **Phase 3.0 done** | **275** | **0** | ✅ 2026-05-20 |
+| Phase 3 (rest) target | < 100 | 0 | pending |
 | Phase 4 — hard gate | 0 net new | 0 net new | pending |
 
-The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The remaining 1403 lint problems are concentrated in 2 rules (1330 of them = `no-explicit-any` + `no-unused-vars`).
+The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The Phase 3.0 drop revealed that almost all of the previously-counted `any` and `unused-vars` problems were in frontend Vue files (`src/modules/*/static/**`) served as static assets — those are owned by `apps/web-lume`'s own lint chain, not the backend's. Once excluded, the **real** backend debt is much smaller and dominated by `no-unused-vars` (207) rather than `no-explicit-any` (12).
 
 ## Baseline → Phase 1 (2026-05-19)
 
@@ -51,21 +52,29 @@ Phase 2 delivered the 6 real bugs that Phase 1's config cleanup exposed, plus di
 - `@typescript-eslint/no-explicit-any` (865) — requires semantic analysis to suggest a better type; no autofix
 - `@typescript-eslint/no-unused-vars` (466) — could in theory delete the var, but the safe-default is "manual", and that's how it's configured
 
-The original CODE_QUALITY.md Phase 2 estimate ("~487 autofix wins") was wrong. **The remaining cleanup is mostly hand work**. The few rules that DO have fixers (`no-useless-escape`, `no-prototype-builtins`) couldn't auto-fix on this codebase either — likely the typescript-eslint parser doesn't surface the fixable flag through. A separate JS-only autofix pass might recover those ~20 problems.
+The original CODE_QUALITY.md Phase 2 estimate ("~487 autofix wins") was wrong. **The remaining cleanup is mostly hand work**. The few rules that DO have fixers (`no-useless-escape`, `no-prototype-builtins`) couldn't auto-fix on this codebase either — likely the typescript-eslint parser doesn't surface the fixable flag through.
 
-### ESLint — current top rules (post-Phase 1)
+## Phase 3.0 — Exclude frontend static/ assets (2026-05-20)
+
+Massive single-change win: the `eslint.config.mjs` `ignores` block now drops `backend/src/core/graphql/**` (orphan NestJS scaffolding, see Phase 1.2) and `backend/src/modules/*/static/**` (Vue frontend files served by the backend as static assets but compiled by `apps/web-lume`'s own toolchain).
+
+**Lint count: 1403 → 275 (−1128, −80%)** in a single ignore block.
+
+This is the same logic as Phase 1.2's `tsconfig.json` exclude — the backend's lint chain was checking files outside its own compile target. The exclusions are content-true (`apps/web-lume` does lint those files via its own pipeline) but were missing from the backend config.
+
+### ESLint — current top rules (post-Phase 3.0)
 
 | Rank | Rule | Count | Disposition |
 |------|------|------:|-------------|
-| 1 | `@typescript-eslint/no-explicit-any` | 865 | Phase 3 |
-| 2 | `@typescript-eslint/no-unused-vars` | 466 | Phase 2 autofix |
-| 3 | `@typescript-eslint/no-var-requires` | 30 | Phase 2 manual (require → import) |
-| 4 | `no-useless-escape` | 16 | Phase 2 autofix |
-| 5 | `vue/no-v-html` | 13 | Phase 2 manual (XSS audit each) |
-| 6 | `no-prototype-builtins` | 5 | Phase 2 autofix |
-| 7 | `no-undef` | 3 | Phase 2 — genuine import bugs in 2 module files |
-| 8 | `no-constant-condition` | 2 | Phase 2 one-off |
-| 9+ | misc | ~7 | Phase 2 case-by-case |
+| 1 | `@typescript-eslint/no-unused-vars` | 207 | Phase 3.1 — semi-mechanical (prefix with `_`) |
+| 2 | `@typescript-eslint/no-var-requires` | 30 | Phase 3.2 — manual require → import |
+| 3 | `no-useless-escape` | 15 | Phase 3.3 — manual one-by-one |
+| 4 | `@typescript-eslint/no-explicit-any` | 12 | Phase 3.4 — manual type narrowing |
+| 5 | `no-prototype-builtins` | 5 | Phase 3.5 — `Object.prototype.hasOwnProperty.call(...)` |
+| 6 | `no-constant-condition` | 2 | Phase 3.5 one-off |
+| 7 | `no-empty` / `no-const-assign` | 2 | Phase 3.5 one-off |
+
+The biggest surprise: only **12** `no-explicit-any` in the real backend (was 865 across the whole tree). The "Phase 3 = 1 week of `any` triage" estimate was way off — actual `any` triage is < 1 hour now. The dominant remaining work is `no-unused-vars` (207 sites, semi-mechanical).
 
 ### TypeScript — current state (post-Phase 1)
 
