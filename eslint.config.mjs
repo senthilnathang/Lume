@@ -14,6 +14,27 @@ import globals from 'globals'
 export default [
   ...lumeEslintConfig,
 
+  // Phase 3 (CODE_QUALITY.md): paths excluded from lint because they're
+  // not part of the actual compile target.
+  //
+  // backend/src/core/graphql/**:
+  //   Orphan NestJS scaffolding from a planned/abandoned migration.
+  //   Zero callers in the codebase, dependencies (@nestjs/common,
+  //   @nestjs/apollo, graphql, etc.) not even installed. Already excluded
+  //   from tsconfig (Phase 1.2). Excluding from lint drops 173 problems.
+  //   Drop this ignore if/when the GraphQL adapter is actually wired in.
+  //
+  // backend/src/modules/*/static/**:
+  //   Vue frontend files served as backend static assets. Linted (and
+  //   compiled) by apps/web-lume's own toolchain. Backend lint of these
+  //   produces false positives for browser globals + @tiptap/* imports.
+  {
+    ignores: [
+      'backend/src/core/graphql/**',
+      'backend/src/modules/*/static/**',
+    ],
+  },
+
   // Backend (Node/ESM): backend/src + scripts.
   {
     files: ['backend/**/*.{js,mjs,cjs,ts}', 'scripts/**/*.{js,mjs,cjs,ts}'],
