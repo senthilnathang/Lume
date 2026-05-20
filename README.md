@@ -214,7 +214,7 @@ cd backend
 npm run check     # lint (warn) + typecheck (warn) + smoke + websocket-permission tests
 ```
 
-`npm run check` is the pre-tag local-verify helper. Lint and typecheck are non-fatal — they print counts so you can see the trend, but tests are the actual gate. Same set of checks runs in CI: smoke gate (`.github/workflows/setup-smoke.yml`, hard-fail) plus code-quality measurement (`.github/workflows/code-quality.yml`, warn-only until `docs/CODE_QUALITY.md` cleanup reaches Phase 4).
+`npm run check` is the pre-tag local-verify helper. Lint and typecheck are locally non-fatal (they print counts), but in CI both are **ratchet hard-gates**: `.github/workflows/code-quality.yml` fails if lint problems exceed `LUME_LINT_BUDGET` (124 at v2.0) or TS errors exceed `LUME_TS_BUDGET` (0). The smoke gate (`.github/workflows/setup-smoke.yml`) is the install-contract hard-gate.
 
 ### Performance Tuning
 
@@ -360,7 +360,7 @@ Lume/
 | [Module System](backend/docs/MODULE_SYSTEM.md) | Creating custom modules |
 | [Security](backend/docs/SECURITY.md) | Auth, RBAC, audit, compliance |
 | [API Reference](backend/docs/API.md) | All endpoints, request/response formats |
-| [Code Quality Roadmap](docs/CODE_QUALITY.md) | Lint/typecheck debt baseline + 4-phase cleanup (May 2026; warn-only CI gate already wired) |
+| [Code Quality Roadmap](docs/CODE_QUALITY.md) | Lint/typecheck debt baseline + 4-phase cleanup (May 2026; **CI ratchet hard-gate live** at 124 lint / 0 TS, ratchets down on cleanup PRs) |
 | [Pre-Launch Improvements](docs/deployment/PRE_LAUNCH_IMPROVEMENTS.md) | v2.0 hardening roadmap (all closed) + v2.1 carryover |
 
 ---
