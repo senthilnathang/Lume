@@ -1,10 +1,12 @@
-const express = require('express');
+// Phase 3.2 (CODE_QUALITY.md): CommonJS → ESM. Same shape as the
+// adjacent gawdesy/routes.js.
+import express from 'express';
+import manifest from './__manifest__.js';
 
 const createLumeRoutes = (db) => {
     const router = express.Router();
 
     router.get('/info', async (req, res) => {
-        const manifest = require('./__manifest__');
         res.json({
             success: true,
             data: {
@@ -36,7 +38,7 @@ const createLumeRoutes = (db) => {
     router.get('/statistics', async (req, res) => {
         try {
             const { User, Donation, Activity, Document } = db.models;
-            
+
             const [totalUsers, totalDonations, totalActivities, totalDocuments] = await Promise.all([
                 User?.count?.() || 0,
                 Donation?.count?.() || 0,
@@ -88,10 +90,9 @@ const createLumeRoutes = (db) => {
     });
 
     router.get('/menus', async (req, res) => {
-        const manifest = require('./__manifest__');
         const userMenus = global.__MENUS__ || [];
         const allMenus = [...userMenus, ...manifest.menus];
-        
+
         res.json({
             success: true,
             data: allMenus
@@ -99,7 +100,6 @@ const createLumeRoutes = (db) => {
     });
 
     router.get('/permissions', async (req, res) => {
-        const manifest = require('./__manifest__');
         res.json({
             success: true,
             data: manifest.permissions
@@ -107,7 +107,6 @@ const createLumeRoutes = (db) => {
     });
 
     router.get('/settings', async (req, res) => {
-        const manifest = require('./__manifest__');
         res.json({
             success: true,
             data: manifest.settings
@@ -117,4 +116,5 @@ const createLumeRoutes = (db) => {
     return router;
 };
 
-module.exports = { createLumeRoutes };
+export { createLumeRoutes };
+export default { createLumeRoutes };

@@ -1,4 +1,5 @@
-const EventEmitter = require('events');
+// Phase 3.2 (CODE_QUALITY.md): CommonJS → ESM.
+import EventEmitter from 'events';
 
 class HookRegistry extends EventEmitter {
     constructor() {
@@ -104,7 +105,19 @@ function constrains(model_name, field, priority = 10) {
     };
 }
 
-module.exports = {
+export {
+    HookRegistry,
+    registry,
+    before_create,
+    after_create,
+    before_update,
+    after_update,
+    before_delete,
+    after_delete,
+    onchange,
+    constrains
+};
+export default {
     HookRegistry,
     registry,
     before_create,

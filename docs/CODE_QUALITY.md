@@ -15,9 +15,9 @@ The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. 
 | Phase 2 done | 1403 | 0 | ✅ 2026-05-20 |
 | Phase 3.0 done | 275 | 0 | ✅ 2026-05-20 |
 | Phase 3.1 batch 1 | 243 | 0 | ✅ 2026-05-20 |
-| **Phase 3.1 batch 2** | **195** | **0** | ✅ 2026-05-20 (under-200 hard-gate threshold) |
-| Phase 3.2 target (no-var-requires) | ~165 | 0 | pending |
-| Phase 4 — hard gate | 0 net new | 0 net new | pending |
+| Phase 3.1 batch 2 | 195 | 0 | ✅ 2026-05-20 (under-200 gate hit) |
+| **Phase 3.2 done** | **162** | **0** | ✅ 2026-05-20 (all no-var-requires gone) |
+| Phase 4 — hard gate | 0 net new | 0 net new | ready when team agrees |
 
 The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The Phase 3.0 drop revealed that almost all of the previously-counted `any` and `unused-vars` problems were in frontend Vue files (`src/modules/*/static/**`) served as static assets — those are owned by `apps/web-lume`'s own lint chain, not the backend's. Once excluded, the **real** backend debt is much smaller and dominated by `no-unused-vars` (207) rather than `no-explicit-any` (12).
 
@@ -108,16 +108,34 @@ Files cleaned so far (run-by-run):
 
 Net count: **275 → 243** (and the config fix surfaced 187 previously-hidden JS `no-unused-vars` issues — those are now visible signal, not a regression).
 
-Heaviest remaining files:
+Heaviest remaining files (Phase 3.1 batch 2):
 
 ```
-   7  src/core/modules/lume/index.js
-   7  src/core/modules/gawdesy/index.js
-   5  src/modules/flowgrid/nodes/base.node.js
-   5  src/core/workflows/action-executor.js
-   4  src/modules/website/website.routes.js
-   4  src/modules/website/services/page.service.js
+   3  src/modules/flowgrid/services/execution.service.js
+   3  src/core/middleware/ipAccess.js
+   3  src/api/entity.routes.js
+   ... (scattered ≤3/file, diminishing returns)
 ```
+
+## Phase 3.2 — `no-var-requires` cleanup (2026-05-20)
+
+Mechanical CommonJS → ESM conversion across the 30 sites that still used `require()` in this ESM-`"type": "module"` codebase. Two patterns:
+
+- **Top-level requires** in routes/services → static `import` at top of file
+- **Inline requires** (`const crypto = require('crypto')` mid-function) → hoist to top-level import
+
+Net: 30 `no-var-requires` → 0.
+
+### What got deleted in Phase 3.2
+
+Several orphan files surfaced during the conversion:
+
+- `backend/src/core/modules/lume/lume.service.js` — referenced a non-existent `crud.mixin`, used abandoned Sequelize-style ORM, zero callers
+- `backend/src/core/modules/gawdesy/gawdesy.service.js` — same story
+- `backend/src/scripts/createUser.js`, `listUsers.js`, `loadDemoData.js` — JSON-file "database" scaffolding from before MySQL+Prisma+Drizzle; only referenced by `manage.ts` which is itself orphan
+- `backend/src/scripts/manage.ts` — orphan dispatcher with no callers
+
+`createAdmin.js` + `seedData.js` are the canonical user/data scripts (wired via `npm run db:admin` / `db:seed`), so the deletes don't break any documented path.
 
 ### TypeScript — current state (post-Phase 1)
 

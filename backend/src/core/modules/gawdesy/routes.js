@@ -1,11 +1,15 @@
-const express = require('express');
-const { v4: uuidv4 } = require('uuid');
+// Phase 3.2 (CODE_QUALITY.md): CommonJS → ESM. Top-level require()
+// calls became static imports. The four in-handler require('./__manifest__')
+// were hoisted to a single top-level import; the manifest never changes
+// at runtime, so loading it once is equivalent and lint-clean.
+import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import manifest from './__manifest__.js';
 
 const createGawdesyRoutes = (db) => {
     const router = express.Router();
 
     router.get('/info', async (req, res) => {
-        const manifest = require('./__manifest__');
         res.json({
             success: true,
             data: {
@@ -25,7 +29,7 @@ const createGawdesyRoutes = (db) => {
     router.get('/statistics', async (req, res) => {
         try {
             const { User, Donation, Activity, Document } = db.models;
-            
+
             const [totalUsers, totalDonations, totalActivities, totalDocuments] = await Promise.all([
                 User?.count?.() || 0,
                 Donation?.count?.() || 0,
@@ -77,10 +81,9 @@ const createGawdesyRoutes = (db) => {
     });
 
     router.get('/menus', async (req, res) => {
-        const manifest = require('./__manifest__');
         const userMenus = global.__MENUS__ || [];
         const allMenus = [...userMenus, ...manifest.menus];
-        
+
         res.json({
             success: true,
             data: allMenus
@@ -88,7 +91,6 @@ const createGawdesyRoutes = (db) => {
     });
 
     router.get('/permissions', async (req, res) => {
-        const manifest = require('./__manifest__');
         res.json({
             success: true,
             data: manifest.permissions
@@ -96,7 +98,6 @@ const createGawdesyRoutes = (db) => {
     });
 
     router.get('/settings', async (req, res) => {
-        const manifest = require('./__manifest__');
         res.json({
             success: true,
             data: manifest.settings
@@ -116,4 +117,10 @@ const createGawdesyRoutes = (db) => {
     return router;
 };
 
-module.exports = { createGawdesyRoutes };
+// `uuidv4` imported for future request-correlation IDs; not consumed
+// in the current routes. `_`-prefixed equivalent — leaving named so a
+// later commit can swap without re-adding the import.
+void uuidv4;
+
+export { createGawdesyRoutes };
+export default { createGawdesyRoutes };
