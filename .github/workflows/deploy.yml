@@ -216,13 +216,20 @@ jobs:
             type=sha,prefix={{branch}}-
             type=semver,pattern={{version}}
 
+      # GHCR requires lowercase paths. github.repository is "owner/Repo"
+      # (literally the case at create time, so it has uppercase Lume).
+      # Lowercase it once into an env var so both image tags can use it.
+      - name: Compute lowercase image base
+        id: img
+        run: echo "base=${{ env.REGISTRY }}/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: ${{ github.actor != 'dependabot[bot]' }}
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ github.sha }}
+          tags: ${{ steps.img.outputs.base }}/backend:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -241,7 +248,7 @@ jobs:
           context: .
           file: ./frontend/Dockerfile
           push: ${{ github.actor != 'dependabot[bot]' }}
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}
+          tags: ${{ steps.img.outputs.base }}/frontend:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
