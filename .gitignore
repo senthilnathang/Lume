@@ -59,10 +59,15 @@ uploads/
 *.sqlite3
 
 # FastVue leftovers (not used by Lume)
-packages/
 frontend/fastvue/
 frontend/fastvue-backend/
 internal/
+
+# packages/@lume/* hosts shared workspace configs (eslint, tsconfig,
+# tailwind, prettier) imported by tracked root configs like
+# eslint.config.mjs. The directory MUST be in git so CI can resolve
+# `./packages/@lume/eslint-config/index.mjs`. node_modules/ is already
+# ignored globally above.
 
 # Development artifacts
 *.png
