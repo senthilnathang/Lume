@@ -30,17 +30,23 @@ jobs:
     timeout-minutes: 5
 
     services:
-      mysql:
-        image: mysql:8.0
+      # MariaDB 10.11 matches local dev (where the schema is introspected
+      # from). The Prisma schema has `@db.LongText @default("{}")` columns
+      # on EntityView.config and entity_sync_history.changes, which
+      # MySQL 8.0 rejects (MySQL has a hard constraint against DEFAULT on
+      # TEXT/BLOB/JSON columns; not a sql_mode setting). MariaDB allows it.
+      # If/when the schema drops those defaults, this can switch to mysql:8.0.
+      mariadb:
+        image: mariadb:10.11
         env:
-          MYSQL_ROOT_PASSWORD: rootpass
-          MYSQL_DATABASE: lume
-          MYSQL_USER: gawdesy
-          MYSQL_PASSWORD: gawdesy
+          MARIADB_ROOT_PASSWORD: rootpass
+          MARIADB_DATABASE: lume
+          MARIADB_USER: gawdesy
+          MARIADB_PASSWORD: gawdesy
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h localhost -uroot -prootpass"
+          --health-cmd="mariadb-admin ping -h localhost -uroot -prootpass"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
@@ -60,15 +66,17 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      - name: Wait for MySQL
+      - name: Wait for MariaDB
+        # `mysqladmin` is preinstalled on ubuntu-latest runners and speaks
+        # the same wire protocol as MariaDB — no need for mariadb-admin here.
         run: |
           for i in {1..30}; do
             if mysqladmin ping -h 127.0.0.1 -ugawdesy -pgawdesy --silent 2>/dev/null; then
-              echo "MySQL is up"; exit 0
+              echo "Database is up"; exit 0
             fi
             sleep 1
           done
-          echo "MySQL did not start in 30s"
+          echo "Database did not start in 30s"
           exit 1
 
       - name: Generate Prisma client + push schema
