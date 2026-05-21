@@ -135,7 +135,7 @@ const createRoutes = (models, services) => {
 
   router.post('/export/preview', async (req, res) => {
     try {
-      const { model_name, fields, search, format } = req.body;
+      const { model_name, fields, search } = req.body;
 
       if (!model_name) {
         return res.status(400).json({ success: false, error: 'model_name is required' });

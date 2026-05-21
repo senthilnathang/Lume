@@ -213,7 +213,7 @@ async function seed() {
     console.log('\n🍔 Seeding navigation menu...');
     const menuExisting = await db.select().from(websiteMenus).where(eq(websiteMenus.location, 'header'));
     if (menuExisting.length === 0) {
-      const menuResult = await db.insert(websiteMenus).values({
+      await db.insert(websiteMenus).values({
         name: 'Header Menu',
         location: 'header',
         description: 'Main navigation menu',

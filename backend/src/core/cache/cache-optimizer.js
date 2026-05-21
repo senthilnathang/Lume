@@ -7,14 +7,6 @@
 import logger from '../services/logger.js';
 import crypto from 'crypto';
 
-const CACHE_LAYERS = {
-  L1_MEMORY: 'memory',      // In-process Map (instant)
-  L2_METADATA: 'metadata',  // Redis (1h entity, 30m permissions, 5m fields)
-  L3_QUERY: 'query',        // Redis query results (30s TTL)
-  L4_ETAG: 'etag',          // HTTP ETags (last-modified headers)
-  L5_CDN: 'cdn',            // Cache-Control headers for CDN
-};
-
 class CacheOptimizer {
   /**
    * @param {Object} config - Cache configuration
@@ -104,7 +96,6 @@ class CacheOptimizer {
     try {
       const result = await fetchFn();
 
-      const ttl1 = options.ttl1 || 300000; // 5 minutes default
       const ttl2 = options.ttl2 || 1800; // 30 minutes default
       const ttl3 = options.ttl3 || 30; // 30 seconds default
 

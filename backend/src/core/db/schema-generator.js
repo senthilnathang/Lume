@@ -66,7 +66,7 @@ class SchemaGenerator {
    * @param {EntityDefinition} entity - Parent entity
    * @returns {Object|null} Column definition or null if computed
    */
-  static generateColumn(field, entity) {
+  static generateColumn(field, _entity) {
     // Skip computed fields - they're virtual
     if (field.computed) {
       return null;

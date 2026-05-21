@@ -111,7 +111,7 @@ export class AuthService {
     return responseUtil.success(role, MESSAGES.CREATED);
   }
 
-  async getAllRoles(options = {}) {
+  async getAllRoles(_options = {}) {
     const roles = await prisma.role.findMany({
       where: { isActive: true },
       orderBy: { id: 'asc' }

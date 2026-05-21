@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body, param, query } from 'express-validator';
+import { body, param } from 'express-validator';
 import { validateRequest } from '../../api/validators/validateRequest.js';
 import { DocumentService } from './document.service.js';
 import { authenticate, authorize } from '../../core/middleware/auth.js';

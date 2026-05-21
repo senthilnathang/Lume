@@ -121,7 +121,6 @@ export class ExecutionEngineService {
         );
         context.nodeRecords.set(nodeId, recordId);
 
-        const input = node.input || {};
         const output = await nodeImpl.execute(node.config, context);
 
         context.nodeOutputs[nodeId] = output;

@@ -72,7 +72,7 @@ export class WorkerAgent extends AbstractAgent {
     };
   }
 
-  async callLLM(model, messages, tools, context) {
+  async callLLM(model, messages, tools, _context) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error('OPENAI_API_KEY not set');
 

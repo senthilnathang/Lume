@@ -155,7 +155,7 @@ export class AgentNode extends AbstractWorkflowNode {
     }
   }
 
-  async queryDatabase(args, context) {
+  async queryDatabase(_args, _context) {
     return { error: 'Database query not yet implemented' };
   }
 

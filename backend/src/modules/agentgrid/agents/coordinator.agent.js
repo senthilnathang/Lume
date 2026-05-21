@@ -81,7 +81,7 @@ export class CoordinatorAgent extends AbstractAgent {
     }
   }
 
-  async synthesize(results, model, context) {
+  async synthesize(results, model, _context) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) return 'Could not synthesize results';
 

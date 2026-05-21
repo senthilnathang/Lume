@@ -155,13 +155,13 @@ export function checkModuleCircularity(registry) {
   const circles = [];
   const visited = new Set();
   const recursionStack = new Set();
-  const pathStack = [];
+  const _pathStack = [];
 
 
   /**
    * DFS helper function to detect cycles
    */
-  function dfs(moduleName, path) {
+  function _dfs(moduleName, path) {
     visited.add(moduleName);
     recursionStack.add(moduleName);
     path.push(moduleName);
@@ -170,7 +170,7 @@ export function checkModuleCircularity(registry) {
     if (module && module.depends) {
       for (const dependency of module.depends) {
         if (!visited.has(dependency)) {
-          dfs(dependency, [...path]);
+          _dfs(dependency, [...path]);
         } else if (recursionStack.has(dependency)) {
           // Found a cycle - record from the dependency back to the start
           const cycleStart = path.indexOf(dependency);

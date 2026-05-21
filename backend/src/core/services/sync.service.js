@@ -104,7 +104,7 @@ export class SyncService {
    * @returns {Promise<Object>} Result {created, updated, synced, errors}
    */
   async syncToDb(codeDefs, options = {}) {
-    const { deleteOrphaned = false } = options;
+    const { deleteOrphaned: _deleteOrphaned = false } = options;
     const result = {
       created: 0,
       updated: 0,

@@ -101,7 +101,7 @@ export class TriggerEvaluator {
    * @param {Object} data The data (not used for time triggers)
    * @returns {Object} TriggerResult (always false because scheduler handles execution)
    */
-  evaluateTimeTrigger(trigger, data) {
+  evaluateTimeTrigger(trigger, _data) {
     if (!this.isValidCron(trigger.cron)) {
       throw new Error(`Invalid cron expression: '${trigger.cron}'`);
     }
@@ -119,7 +119,7 @@ export class TriggerEvaluator {
    * @param {Object} data The data (not used for manual triggers)
    * @returns {Object} TriggerResult (always triggered=true)
    */
-  evaluateManualTrigger(trigger, data) {
+  evaluateManualTrigger(trigger, _data) {
     return {
       triggered: true,
       reason: 'Manual trigger initiated by user',

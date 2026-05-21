@@ -173,7 +173,7 @@ export class RelationshipService {
    * @param {any} linkedEntity - Unused parameter (for compatibility)
    * @returns {Promise<Array<Object>>} Records with 'linkedIds' array added
    */
-  async resolveRelationships(records, relationshipId, linkedEntity) {
+  async resolveRelationships(records, relationshipId, _linkedEntity) {
     if (!Array.isArray(records) || records.length === 0) {
       return records;
     }

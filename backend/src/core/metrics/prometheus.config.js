@@ -286,7 +286,6 @@ export const getMetricsJson = async () => {
         // Parse metric line: name{labels} value timestamp
         const match = line.match(/^([a-zA-Z_:][a-zA-Z0-9_:]*)\{([^}]*)\}\s+([\d.e+-]+)(?:\s+(\d+))?/);
         if (match) {
-          const metricName = match[1];
           const labelStr = match[2];
           const value = parseFloat(match[3]);
 

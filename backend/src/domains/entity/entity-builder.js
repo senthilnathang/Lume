@@ -243,7 +243,7 @@ export function defineEntity(options = {}) {
  * @param {Object} hooksConfig - Hooks configuration
  * @returns {Object} Normalized hooks
  */
-function normalizeHooks(hooksConfig = {}) {
+function _normalizeHooks(hooksConfig = {}) {
   const normalized = {
     beforeCreate: [],
     afterCreate: [],

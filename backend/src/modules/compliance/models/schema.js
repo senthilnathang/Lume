@@ -1,4 +1,4 @@
-import { table, int, integer, varchar, text, boolean, json, timestamp, date } from '../../../core/db/dialect.js';
+import { table, int, integer, varchar, text, boolean, json, date } from '../../../core/db/dialect.js';
 import { baseColumns, withSoftDelete } from '../../../core/db/drizzle-helpers.js';
 
 const idCol = int || integer;

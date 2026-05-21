@@ -14,7 +14,7 @@ export {
   EntityBuilderService
 };
 
-export const createServices = (models, config = {}) => {
+export const createServices = (models, _config = {}) => {
   const securityService = new SecurityService(models);
   const moduleService = new ModuleService(models);
 

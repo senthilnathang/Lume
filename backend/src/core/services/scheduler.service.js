@@ -153,7 +153,7 @@ export class SchedulerService {
     return { result };
   }
 
-  _getNextCronRun(cronExpr) {
+  _getNextCronRun(_cronExpr) {
     // Simple estimation — node-cron doesn't expose next run time natively
     // Just set it to null and let the cron job handle timing
     return null;
@@ -197,7 +197,7 @@ export class SchedulerService {
    * Stop all jobs (for graceful shutdown).
    */
   stopAll() {
-    for (const [id, job] of this.jobs) {
+    for (const [_id, job] of this.jobs) {
       job.stop();
     }
     this.jobs.clear();

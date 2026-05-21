@@ -28,10 +28,10 @@ on:
 env:
   NODE_VERSION: 20.12.0
   # Ratchet budgets — DROP these as cleanup PRs land, never raise them.
-  # When LUME_LINT_BUDGET hits 0, swap the comparison in the lint step
-  # to a strict equality check.
-  # History: 124 (Phase 3.5, 2026-05-20) → 95 (Phase 3.1 batch 3, 2026-05-21).
-  LUME_LINT_BUDGET: 95
+  # Lint hit 0 on 2026-05-21; the gate is now strict equality, see lint step.
+  # History: 124 (Phase 3.5, 2026-05-20) → 95 (Phase 3.1 batch 3, 2026-05-21)
+  #        → 0 (Phase 3.1 final, 2026-05-21).
+  LUME_LINT_BUDGET: 0
   LUME_TS_BUDGET: 0
 
 jobs:
@@ -74,11 +74,13 @@ jobs:
             echo "Current: $PROBLEMS. Cleanup roadmap: \`docs/CODE_QUALITY.md\`."
           } >> $GITHUB_STEP_SUMMARY
 
-          if [ "$PROBLEMS" -gt "$BUDGET" ]; then
-            echo "::error::Lint count $PROBLEMS exceeds budget $BUDGET. Either fix the new issues, or — if this PR drops the count — lower LUME_LINT_BUDGET in .github/workflows/code-quality.yml to match."
+          # Lint debt is paid off — enforce strict zero. To temporarily allow
+          # slack, raise LUME_LINT_BUDGET above and swap this back to `-gt`.
+          if [ "$PROBLEMS" -ne 0 ]; then
+            echo "::error::Lint count $PROBLEMS — must be 0. Fix new issues before merging."
             exit 1
           fi
-          echo "::notice::Lint $PROBLEMS / $BUDGET — within budget."
+          echo "::notice::Lint $PROBLEMS / 0 — clean."
 
   typecheck:
     name: TypeScript typecheck (ratchet at ${{ env.LUME_TS_BUDGET }} errors)

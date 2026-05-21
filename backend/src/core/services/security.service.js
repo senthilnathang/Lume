@@ -126,7 +126,7 @@ export class SecurityService {
         return ip >= start && ip <= end;
     }
 
-    async check_time_restriction(user) {
+    async check_time_restriction(_user) {
         // No Profile model in Prisma — time-based restrictions
         // can be enhanced later with a dedicated config model.
         return true;

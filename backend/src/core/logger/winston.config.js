@@ -17,7 +17,6 @@ const {
   LOG_DIR = 'logs',
   NODE_ENV = 'development',
   LOGTAIL_SOURCE_TOKEN = '',
-  DATADOG_API_KEY = '',
 } = process.env;
 
 // Custom log format with timestamp, level, message, and context

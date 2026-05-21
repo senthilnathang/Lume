@@ -179,7 +179,7 @@ class WebSocketManager {
    * @param {Object} record - Changed record
    * @param {Object} executionContext - User context for permission checking
    */
-  async broadcast(entity, action, record, executionContext) {
+  async broadcast(entity, action, record, _executionContext) {
     const subscribers = this.entitySubscribers.get(entity);
     if (!subscribers || subscribers.size === 0) {
       return;

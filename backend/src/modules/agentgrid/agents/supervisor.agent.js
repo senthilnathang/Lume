@@ -83,7 +83,7 @@ Capabilities: data_analysis, web_search, code_generation, content_writing, image
       plan = [{ id: 'task-1', description: task, capability: 'general', dependencies: [] }];
     }
 
-    const groups = this.topoSort(plan, plan.flatMap((task, idx) =>
+    const groups = this.topoSort(plan, plan.flatMap((task, _idx) =>
       (task.dependencies || []).map(dep => ({ source: dep, target: task.id }))
     ));
 
@@ -140,7 +140,7 @@ Provide a concise, integrated answer based on these results.`;
     return synthesisResponse.content;
   }
 
-  async callLLM(model, messages, tools, context) {
+  async callLLM(model, messages, tools, _context) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error('OPENAI_API_KEY not set');
 

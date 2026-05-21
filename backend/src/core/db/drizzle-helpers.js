@@ -23,7 +23,7 @@ export function withSoftDelete() {
   };
 }
 
-export function withStatus(values, defaultVal) {
+export function withStatus(_values, _defaultVal) {
   // Helper — import mysqlEnum/pgEnum from dialect.js and use directly
   // This is just a documentation helper
 }

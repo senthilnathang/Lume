@@ -86,7 +86,7 @@ export class SecurityService {
   /**
    * Check record rules for an action
    */
-  async checkRecordRules(modelName, action, record, context = {}) {
+  async checkRecordRules(modelName, action, record, _context = {}) {
     const rules = await prisma.recordRule.findMany({
       where: {
         modelName,
@@ -110,7 +110,7 @@ export class SecurityService {
   /**
    * Get domain filter from record rules
    */
-  async getRecordRuleDomain(modelName, action, context = {}) {
+  async getRecordRuleDomain(modelName, action, _context = {}) {
     const rules = await prisma.recordRule.findMany({
       where: {
         modelName,

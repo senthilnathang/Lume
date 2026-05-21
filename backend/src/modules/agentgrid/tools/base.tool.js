@@ -4,7 +4,8 @@ export class AbstractTool {
     this.config = config;
   }
 
-  async execute(args, context) {
+  // Abstract — concrete tools override and consume the args.
+  async execute(_args, _context) {
     throw new Error(`${this.name} tool execute() not implemented`);
   }
 

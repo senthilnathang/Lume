@@ -5,7 +5,7 @@
  * Run with: npm run init
  */
 
-import { existsSync, copyFileSync, readFileSync } from 'fs';
+import { existsSync, copyFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';

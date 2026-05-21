@@ -215,7 +215,7 @@ class DataImportExport {
    * @returns {Promise<string>}
    */
   async exportToJSON(entity, options = {}) {
-    const { fields, filters, includeRelations, batchSize = 100 } = options;
+    const { fields, filters, batchSize = 100 } = options;
 
     const records = [];
     let offset = 0;

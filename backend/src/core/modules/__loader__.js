@@ -495,7 +495,7 @@ const registerModuleRoutes = (app, module) => {
 /**
  * Seed demo data for a module
  */
-const seedModuleDemoData = async (module, database) => {
+const seedModuleDemoData = async (module, _database) => {
   if (module.demoData && module.manifest?.demo) {
     try {
       console.log(`🌱 Seeding demo data for ${module.name}...`);

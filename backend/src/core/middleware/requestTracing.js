@@ -14,7 +14,6 @@ export const requestTracing = (req, res, next) => {
   const method = req.method;
   const path = req.path;
   const query = Object.keys(req.query).length > 0 ? JSON.stringify(req.query) : '';
-  const userAgent = req.headers['user-agent'] || 'unknown';
   const clientIp = req.ip || req.connection.remoteAddress;
 
   logger.debug(`[${traceId}] ${method} ${path} ${query} - Client: ${clientIp}`);

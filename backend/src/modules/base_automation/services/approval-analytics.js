@@ -13,7 +13,7 @@ export class ApprovalAnalyticsService {
    * @param {Object} filters - Optional filters for approval tasks
    * @returns {Promise<Object>} Metrics object with totalApprovals, avgTime, slaBreachers, breachRate
    */
-  async getApprovalMetrics(filters = {}) {
+  async getApprovalMetrics(_filters = {}) {
     const result = await this.models.ApprovalTask.findAll({
       where: []  // Get all, then filter completed
     });
