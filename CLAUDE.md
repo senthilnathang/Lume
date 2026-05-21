@@ -48,7 +48,7 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 - Core models use `{ softDelete: false }` — they lack `deleted_at` columns.
 
 ### Database
-- DB type: MySQL. Credentials: `gawdesy`/`gawdesy`, database `lume`.
+- DB type: **MariaDB 10.11** (MySQL-compatible wire protocol). Credentials: `gawdesy`/`gawdesy`, database `lume`. The Prisma schema is introspected from MariaDB and includes `@default("{}")` on `@db.LongText` columns, which is MariaDB-specific (MySQL 8.0 rejects DEFAULT on TEXT/BLOB/JSON). CI also uses MariaDB to match — see `.github/workflows/setup-smoke.yml`.
 - Password hashing is automatic via Prisma middleware on create/update. Never manually hash in seed scripts.
 - AuditLog model is owned by the Base module. Do not re-register it elsewhere.
 
