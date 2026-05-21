@@ -56,12 +56,23 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install pnpm 10.28.2
-        # Direct global install — pnpm/action-setup@v4 was failing in
-        # ~11s with no useful error, and corepack has signature-check
-        # issues with pnpm 10 on some Node 20 minor versions.
         run: npm install -g pnpm@10.28.2
+      - name: Environment debug
+        run: |
+          echo "node: $(node --version)"
+          echo "npm: $(npm --version)"
+          echo "pnpm: $(pnpm --version)"
+          echo "pwd: $(pwd)"
+          echo "--- repo layout ---"
+          ls -la
+          echo "--- pnpm-workspace.yaml ---"
+          cat pnpm-workspace.yaml
+          echo "--- .npmrc ---"
+          cat .npmrc
+          echo "--- packageManager ---"
+          node -e "console.log(require('./package.json').packageManager)"
       - name: Install workspace dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --reporter=append-only 2>&1 || (echo "===INSTALL FAILED==="; tail -100 ~/.npm/_logs/*.log 2>/dev/null; exit 1)
       - name: Run ESLint
         working-directory: backend
         id: eslint
