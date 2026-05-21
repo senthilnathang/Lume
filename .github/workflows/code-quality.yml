@@ -6,15 +6,20 @@ name: Code Quality (ratchet)
 # Phase 1-3.5 closed 92.6% of the lint debt: 1671 → 124 problems and
 # 701 → 0 TS errors. Now we flip the gate to **block regressions**.
 #
-# Policy:
-#   ESLint     fail if  problems > LUME_LINT_BUDGET  (currently 124)
-#                       Also fail if budget DROPS but no env update —
-#                       prevents the baseline from quietly creeping up
-#                       behind a cleanup PR.
-#   TypeScript fail if  errors > LUME_TS_BUDGET   (currently 0)
+# Policy (2026-05-21 onward):
+#   ESLint     fail if  problems != 0     (strict zero — debt is paid off)
+#   TypeScript fail if  errors  > LUME_TS_BUDGET  (currently 0)
 #
-# When you clean lint problems, lower LUME_LINT_BUDGET in the same PR.
-# When the count hits zero, replace the budget compare with `-eq 0`.
+# Lint reached 0 on 2026-05-21. The lint env var (LUME_LINT_BUDGET) is
+# retained at 0 only so the step summary still renders a "budget" column;
+# the actual gate is strict equality. To re-introduce slack temporarily,
+# raise LUME_LINT_BUDGET AND swap the lint compare back to `-gt`.
+#
+# Note: `env` context is NOT available inside `jobs.<id>.name:` (only
+# github/inputs/vars/needs/strategy/matrix are). Earlier revisions of
+# this file interpolated `${{ env.LUME_LINT_BUDGET }}` into job names,
+# which caused a silent startup-failure (0 check-runs) on every push
+# from 2026-05-20 (c14ea623) until 2026-05-21. Don't re-add it.
 
 on:
   push:
@@ -36,7 +41,7 @@ env:
 
 jobs:
   lint:
-    name: ESLint (ratchet at ${{ env.LUME_LINT_BUDGET }} problems)
+    name: ESLint (strict-zero gate)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -83,7 +88,7 @@ jobs:
           echo "::notice::Lint $PROBLEMS / 0 — clean."
 
   typecheck:
-    name: TypeScript typecheck (ratchet at ${{ env.LUME_TS_BUDGET }} errors)
+    name: TypeScript typecheck (strict-zero gate)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
