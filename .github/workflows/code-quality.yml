@@ -52,15 +52,15 @@ jobs:
       # A per-workspace `npm ci` from backend/ does NOT install those, and
       # ESM resolution from the config file walks up looking for them in
       # /opt/Lume/node_modules — only pnpm install at root creates that.
-      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Install workspace dependencies (pnpm)
-        # Cache is intentionally NOT enabled via setup-node's `cache: pnpm`
-        # — it has a known ordering bug (pnpm-store path lookup runs before
-        # pnpm is in PATH, failing in ~10s with no useful log). Without
-        # cache install is slower (~60s) but reliable.
+      - name: Install pnpm 10.28.2
+        # Direct global install — pnpm/action-setup@v4 was failing in
+        # ~11s with no useful error, and corepack has signature-check
+        # issues with pnpm 10 on some Node 20 minor versions.
+        run: npm install -g pnpm@10.28.2
+      - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
       - name: Run ESLint
         working-directory: backend
@@ -110,11 +110,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Install workspace dependencies (pnpm)
+      - name: Install pnpm 10.28.2
+        run: npm install -g pnpm@10.28.2
+      - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
       - name: Run tsc --noEmit
         working-directory: backend
