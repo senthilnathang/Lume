@@ -257,7 +257,10 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     needs: build-and-push
-    if: github.ref == 'refs/heads/framework' && github.event_name == 'push'
+    # Opt-in (same pattern as deploy-production). Triggers only on the
+    # `framework` branch + LUME_DEPLOY_STAGING=true repo variable, so
+    # main pushes skip cleanly while staging is unconfigured.
+    if: github.ref == 'refs/heads/framework' && github.event_name == 'push' && vars.LUME_DEPLOY_STAGING == 'true'
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -322,7 +325,11 @@ jobs:
   deploy-production:
     name: Deploy to Production
     needs: build-and-push
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Opt-in: set repo variable LUME_DEPLOY_PROD=true once prod secrets
+    # (PROD_DB_HOST, PROD_DEPLOY_KEY, PROD_URL, SLACK_WEBHOOK, etc.) are
+    # configured in repo settings. Until then the job skips so a push to
+    # main doesn't fail on missing-secrets.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.LUME_DEPLOY_PROD == 'true'
     runs-on: ubuntu-latest
     environment: production
     steps:
