@@ -60,7 +60,16 @@ jobs:
         run: |
           set +e
           npm run lint 2>&1 | tee eslint-output.log
+          LINT_EXIT=${PIPESTATUS[0]}
           set -e
+          # eslint exit codes: 0 = clean, 1 = lint findings, >=2 = fatal
+          # (config-load, parser, or system error — NOT "0 problems").
+          # Without this guard the bash below parses "no problems found"
+          # from a fatal-error log and reports the run as green.
+          if [ "$LINT_EXIT" -ge 2 ]; then
+            echo "::error::eslint exited $LINT_EXIT — fatal error, not lint findings. Check the log above for config/parser/system issues."
+            exit 1
+          fi
           PROBLEMS=$(grep -oE '[0-9]+ problems' eslint-output.log | tail -1 | grep -oE '[0-9]+' || echo 0)
           ERRORS=$(grep -oE '[0-9]+ errors' eslint-output.log | tail -1 | grep -oE '[0-9]+' || echo 0)
           WARNINGS=$(grep -oE '[0-9]+ warnings' eslint-output.log | tail -1 | grep -oE '[0-9]+' || echo 0)
@@ -107,7 +116,15 @@ jobs:
         run: |
           set +e
           npm run typecheck 2>&1 | tee tsc-output.log
+          TSC_EXIT=${PIPESTATUS[0]}
           set -e
+          # tsc exits 0 = clean, 1 = type errors. Anything else is fatal
+          # (invalid args, missing tsconfig, OOM). Don't count fatal output
+          # as "0 errors".
+          if [ "$TSC_EXIT" -ge 2 ]; then
+            echo "::error::tsc exited $TSC_EXIT — fatal error, not type-check findings."
+            exit 1
+          fi
           # `tsc --noEmit` reports errors as `path/file.ts(line,col): error TSxxxx`.
           # Count lines matching that shape; tolerate zero matches with `|| echo 0`.
           ERRORS=$(grep -cE "error TS[0-9]+" tsc-output.log || echo 0)
