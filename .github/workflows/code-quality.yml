@@ -56,8 +56,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
       - name: Install workspace dependencies (pnpm)
+        # Cache is intentionally NOT enabled via setup-node's `cache: pnpm`
+        # — it has a known ordering bug (pnpm-store path lookup runs before
+        # pnpm is in PATH, failing in ~10s with no useful log). Without
+        # cache install is slower (~60s) but reliable.
         run: pnpm install --frozen-lockfile
       - name: Run ESLint
         working-directory: backend
@@ -111,7 +114,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
       - name: Install workspace dependencies (pnpm)
         run: pnpm install --frozen-lockfile
       - name: Run tsc --noEmit
