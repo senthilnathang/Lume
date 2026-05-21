@@ -72,24 +72,26 @@ jobs:
           echo "--- packageManager ---"
           node -e "console.log(require('./package.json').packageManager)"
       - name: Install workspace dependencies
-        # Capture pnpm output into the step summary so we can debug
-        # without GHA log access. --frozen-lockfile dropped to test
-        # whether the failure was lockfile-strictness.
+        id: pnpm-install
         run: |
           set +e
           pnpm install 2>&1 | tee install.log
           EXIT=${PIPESTATUS[0]}
-          set -e
-          {
-            echo "## pnpm install (exit $EXIT)"
-            echo '```'
-            tail -80 install.log
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [ "$EXIT" -ne 0 ]; then
-            echo "::error::pnpm install exited $EXIT"
-            exit $EXIT
-          fi
+          echo "exit=$EXIT" >> $GITHUB_OUTPUT
+          exit $EXIT
+        continue-on-error: true
+      - name: Upload install log on failure
+        if: steps.pnpm-install.outputs.exit != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-install-log
+          path: install.log
+          retention-days: 1
+      - name: Fail if install failed
+        if: steps.pnpm-install.outputs.exit != '0'
+        run: |
+          echo "::error::pnpm install exited ${{ steps.pnpm-install.outputs.exit }} — see uploaded artifact 'pnpm-install-log'"
+          exit 1
       - name: Run ESLint
         working-directory: backend
         id: eslint
