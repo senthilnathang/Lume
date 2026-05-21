@@ -16,7 +16,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(frontendRoot, 'src'),
-      '@modules': path.resolve(frontendRoot, '../../../backend/src/modules'),
+      '@modules': path.resolve(frontendRoot, '../../backend/src/modules'),
       // Explicit aliases so backend module views (via @modules) resolve
       // third-party packages from the frontend's node_modules
       '@ant-design/icons-vue': nm('@ant-design/icons-vue'),
@@ -60,7 +60,7 @@ export default defineConfig({
     fs: {
       allow: [
         path.resolve(frontendRoot, '..'),
-        path.resolve(frontendRoot, '../../../backend/src/modules'),
+        path.resolve(frontendRoot, '../../backend/src/modules'),
       ],
     },
     proxy: {
