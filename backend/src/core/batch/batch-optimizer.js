@@ -260,7 +260,6 @@ class BatchOptimizer {
     const singleOpTime = recordCount * baseTime;
 
     // Batch optimization reduces overhead (per-op overhead is ~1ms)
-    const batchOverhead = 0.2; // 20% overhead per batch
     const batchCount = Math.ceil(recordCount / 100);
     const batchOpTime = recordCount * baseTime * 0.8 + batchCount * 10; // 20% reduction + batch overhead
 

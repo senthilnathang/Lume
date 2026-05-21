@@ -34,7 +34,7 @@ class FieldFilter {
    * @param {EntityDefinition} entity - Entity definition
    * @returns {Object} Filtered record
    */
-  static filterRecord(record, fieldFilters = {}, entity = null) {
+  static filterRecord(record, fieldFilters = {}, _entity = null) {
     if (!record || typeof record !== 'object') {
       return record;
     }
@@ -175,7 +175,7 @@ class FieldFilter {
       return { valid: true, errors: [] };
     }
 
-    for (const [field, value] of Object.entries(updateData)) {
+    for (const [field, _value] of Object.entries(updateData)) {
       if (!this.isFieldWritable(field, fieldFilters)) {
         errors.push(`Not allowed to write field: ${field}`);
       }

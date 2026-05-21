@@ -14,7 +14,7 @@ import logger from '../core/services/logger.js';
  * @param {Object} options - Router options
  * @returns {express.Router}
  */
-function createEntityRouter(slug, runtime, options = {}) {
+function createEntityRouter(slug, runtime, _options = {}) {
   const router = express.Router();
 
   /**
@@ -61,10 +61,7 @@ function createEntityRouter(slug, runtime, options = {}) {
   router.get('/:id', (req, res) => executeOperation(req, res, 'read'));
 
   // PUT /api/{slug}/:id - Update
-  router.put('/:id', (req, res) => {
-    const data = { ...req.body, id: req.params.id };
-    executeOperation(req, res, 'update', { id: req.params.id });
-  });
+  router.put('/:id', (req, res) => executeOperation(req, res, 'update', { id: req.params.id }));
 
   // DELETE /api/{slug}/:id - Delete
   router.delete('/:id', (req, res) => executeOperation(req, res, 'delete', { id: req.params.id }));

@@ -219,7 +219,7 @@ class TenantManager {
    * @param {string} userId - User ID
    * @returns {boolean}
    */
-  async isUserInTenant(tenantId, userId) {
+  async isUserInTenant(tenantId, _userId) {
     const tenant = this.getTenant(tenantId);
     if (!tenant) {
       return false;

@@ -6,9 +6,6 @@
  * Compatible with reflect-metadata if installed, falls back to direct property storage
  */
 
-// Fallback metadata storage (WeakMap for internal tracking)
-const metadataMap = new WeakMap();
-
 /**
  * Internal helper to set metadata on a function/object
  * Uses Reflect.defineMetadata if available, otherwise falls back to direct property storage

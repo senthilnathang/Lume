@@ -3,8 +3,6 @@
  * Auto-generates OpenAPI 3.0 spec from entity definitions
  */
 
-import logger from '../services/logger.js';
-
 class OpenAPIGenerator {
   /**
    * Generate complete OpenAPI spec for all entities

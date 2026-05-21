@@ -40,7 +40,7 @@ class WaitStep extends BaseStepRunner {
    * @param {StepExecutionContext} context - Execution context
    * @returns {Promise<Object>} { success, data }
    */
-  async execute(context) {
+  async execute(_context) {
     try {
       let waitSeconds = this.config.seconds || 0;
 

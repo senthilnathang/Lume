@@ -3,7 +3,6 @@
  * Single execute() method that flows all operations through interceptor pipeline
  */
 
-import MetadataRegistry from './registry.js';
 import InterceptorPipeline from './interceptor-pipeline.js';
 import ContextLoader from './execution-context.js';
 import logger from '../services/logger.js';

@@ -24,7 +24,7 @@ const refreshTokenLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => {
+  skip: (_req) => {
     // Skip rate limiting for internal/trusted IPs if needed
     return false;
   }

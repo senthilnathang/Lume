@@ -50,7 +50,7 @@ export class HookExecutor {
    * @example
    * const transformedData = await executor.executeBeforeHook('create', entity, data, context);
    */
-  async executeBeforeHook(action, entity, data, context, recordId) {
+  async executeBeforeHook(action, entity, data, context, _recordId) {
     // If entity has no hooks, return data unchanged
     if (!entity.hooks) {
       return data;

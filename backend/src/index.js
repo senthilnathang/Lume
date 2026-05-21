@@ -54,7 +54,7 @@ import { initDrizzle } from './core/db/drizzle.js';
 import {
   initializeModuleSystem,
   getAllModules,
-  getAllMenus,
+  getAllMenus as _getAllMenus,
   getAllPermissions,
   runInstallHook,
   runUninstallHook
@@ -540,8 +540,9 @@ app.post('/api/modules/:name/install', async (req, res) => {
       }
     }
 
-    // Upsert InstalledModule record
-    const record = await prisma.installedModule.upsert({
+    // Upsert InstalledModule record. Return value unused — we re-read
+    // the catalogue via getAllModules below.
+    await prisma.installedModule.upsert({
       where: { name: moduleName },
       create: {
         name: moduleName,

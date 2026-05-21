@@ -299,7 +299,7 @@ export class FeaturesDataService {
    * Get export data from a model
    */
   async getExportData(modelName, options = {}) {
-    const { fields, search, limit, orderBy } = options;
+    const { search, limit, orderBy } = options;
     const adapter = this.models[modelName];
     if (!adapter) throw new Error(`Model "${modelName}" not found`);
 

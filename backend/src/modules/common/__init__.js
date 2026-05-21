@@ -6,7 +6,7 @@
  * No backend models, services, or API routes.
  */
 
-const initializeCommon = async (context) => {
+const initializeCommon = async (_context) => {
   console.log('🔧 Initializing Common Module...');
   console.log('✅ Common Module initialized (frontend-only)');
 

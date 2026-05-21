@@ -5,7 +5,7 @@ import { AgentTool } from '../tools/agent.tool.js';
 import { SearchTool } from '../tools/search.tool.js';
 import { getDrizzle } from '../../../core/db/drizzle.js';
 import { agentgridAgents } from '../models/index.js';
-import { eq, like } from 'drizzle-orm';
+import { like } from 'drizzle-orm';
 
 export class ToolRegistryService {
   constructor() {

@@ -168,10 +168,6 @@ export class RecordService {
     const mergedData = { ...existingData, ...updates };
 
     // Validate merged data
-    const entity = await this.prisma.entity.findUnique({
-      where: { id: existing.entityId }
-    });
-
     const fields = await this.prisma.entityField.findMany({
       where: { entityId: existing.entityId, deletedAt: null }
     });

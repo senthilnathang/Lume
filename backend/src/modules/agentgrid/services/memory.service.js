@@ -1,6 +1,6 @@
 import { getDrizzle } from '../../../core/db/drizzle.js';
 import { agentgridMemory } from '../models/index.js';
-import { eq, and, gt, lt, like, isNotNull } from 'drizzle-orm';
+import { eq, and, lt, like, isNotNull } from 'drizzle-orm';
 
 export class MemoryService {
   _db() {

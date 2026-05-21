@@ -20,7 +20,7 @@ class QueryOptimizationInterceptor {
    * @param {ExecutionContext} executionContext - Execution context
    * @returns {Promise<void>}
    */
-  async handle(request, entity, executionContext) {
+  async handle(request, entity, _executionContext) {
     // Only optimize SELECT operations
     if (!['read', 'list', 'search'].includes(request.action)) {
       return;
@@ -44,7 +44,7 @@ class QueryOptimizationInterceptor {
    * @param {OperationRequest} request
    * @param {EntityDefinition} entity
    */
-  optimizePagination(request, entity) {
+  optimizePagination(request, _entity) {
     if (request.action === 'read') {
       // Single record read, no pagination needed
       return;

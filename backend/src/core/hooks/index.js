@@ -30,7 +30,7 @@ class HookRegistry extends EventEmitter {
         for (const { fn } of hooks) {
             const result = fn(context);
             if (result && typeof result.then === 'function') {
-                return result.then(r => context);
+                return result.then(_r => context);
             }
         }
         return context;

@@ -80,7 +80,6 @@ let accessRules = [
 ];
 
 let roleIdCounter = 5;
-let permissionIdCounter = 12;
 let ruleIdCounter = 2;
 
 // Get all roles

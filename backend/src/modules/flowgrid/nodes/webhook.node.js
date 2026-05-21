@@ -30,7 +30,7 @@ export class WebhookNode extends AbstractWorkflowNode {
     throw lastError;
   }
 
-  async execute(nodeConfig, context) {
+  async execute(nodeConfig, _context) {
     const {
       url,
       method = 'GET',

@@ -2,7 +2,7 @@
  * Core Module Initialization
  */
 
-const initializeCore = async (context) => {
+const initializeCore = async (_context) => {
   // context may contain { app } and other framework references
   
   console.log('🔧 Initializing Core Module...');

@@ -3,11 +3,9 @@
  * Uses otplib for TOTP generation/verification and qrcode for QR code generation.
  */
 
-import { TOTP, generateSecret as otpGenerateSecret, generateURI, verifySync } from 'otplib';
+import { generateSecret as otpGenerateSecret, generateURI, verifySync } from 'otplib';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
-
-const totp = new TOTP();
 
 export class TotpService {
   /**

@@ -1,7 +1,7 @@
 import { responseUtil } from '../../shared/utils/index.js';
 import { HTTP_STATUS } from '../../shared/constants/index.js';
 
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, _next) => {
   // Log error details differently in production vs development
   const isProduction = process.env.NODE_ENV === 'production';
   if (isProduction) {

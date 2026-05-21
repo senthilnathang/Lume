@@ -5,7 +5,6 @@
 import { Router } from 'express';
 import { AutomationService } from '../services/index.js';
 import { ApprovalAnalyticsService } from '../services/approval-analytics.js';
-import { getDrizzle } from '../../../core/db/drizzle.js';
 import createAutomationModels from '../models/index.js';
 import SettingService from '../../settings/setting.service.js';
 import createNotificationRoutes from './notification.routes.js';

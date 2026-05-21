@@ -429,13 +429,13 @@ export async function sendAlert(severity, title, message, context = {}) {
 
     // Schedule manager page at 15 minutes
     if (severity === 'critical') {
-      scheduleEscalation(fingerprint, 15, (escalatingAlert) => {
+      scheduleEscalation(fingerprint, 15, (_escalatingAlert) => {
         console.log(`📞 Paging manager for critical alert: ${title}`);
         // Page manager via escalation service
       });
 
       // Schedule director escalation at 30 minutes
-      scheduleEscalation(fingerprint, 30, (escalatingAlert) => {
+      scheduleEscalation(fingerprint, 30, (_escalatingAlert) => {
         console.log(`🔴 Escalating to director for critical alert: ${title}`);
         // Escalate to director
       });

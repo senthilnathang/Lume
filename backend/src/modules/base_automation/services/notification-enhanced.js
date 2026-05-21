@@ -35,6 +35,14 @@ export class EnhancedNotificationService {
       throw new Error(`Unsupported notification channel: ${template.channel}`);
     }
 
+    // Validate recipient format based on channel
+    if (template.channel === 'email' && !this._isValidEmail(recipient)) {
+      throw new Error(`Invalid email address: ${recipient}`);
+    }
+    if (template.channel === 'sms' && !this._isValidPhoneNumber(recipient)) {
+      throw new Error(`Invalid phone number: ${recipient}`);
+    }
+
     // Create delivery tracking record
     const delivery = await this.createDeliveryRecord(template, recipient, 'pending');
 
@@ -148,6 +156,26 @@ export class EnhancedNotificationService {
   }
 
   /**
+   * Validate email address format
+   * @param {string} email - Email address to validate
+   * @returns {boolean} True if valid email format
+   */
+  _isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  /**
+   * Validate phone number format
+   * @param {string} phone - Phone number to validate
+   * @returns {boolean} True if valid phone number format
+   */
+  _isValidPhoneNumber(phone) {
+    const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
+    return phoneRegex.test(phone);
+  }
+
+  /**
    * Substitute template variables with actual values
    * Replaces {{variable_name}} with corresponding values from variables object
    * @param {string} text - Text with template variables
@@ -157,6 +185,10 @@ export class EnhancedNotificationService {
   _substituteVariables(text, variables = {}) {
     if (!text || typeof text !== 'string') {
       return text;
+    }
+
+    if (!variables || typeof variables !== 'object') {
+      variables = {};
     }
 
     return text.replace(/\{\{(\w+)\}\}/g, (match, variable) => {
@@ -173,7 +205,7 @@ export class EnhancedNotificationService {
    * @param {number} deliveryId - Delivery tracking ID
    * @returns {Promise<Object>} Result with success flag
    */
-  async _sendByChannel(channel, recipient, subject, body, deliveryId) {
+  async _sendByChannel(channel, recipient, subject, body, _deliveryId) {
     switch (channel) {
       case 'email':
         return this._sendEmail(recipient, subject, body);
@@ -196,12 +228,12 @@ export class EnhancedNotificationService {
    * @returns {Promise<Object>} Result with success flag
    */
   async _sendEmail(email, subject, body) {
-    try {
-      const emailService = serviceRegistry.get('emailService');
-      if (!emailService) {
-        return { success: false, error: 'Email service not available' };
-      }
+    const emailService = serviceRegistry.get('emailService');
+    if (!emailService) {
+      throw new Error('Email service not available - notifications cannot be sent');
+    }
 
+    try {
       await emailService.send({
         to: email,
         subject,
@@ -211,6 +243,7 @@ export class EnhancedNotificationService {
 
       return { success: true };
     } catch (error) {
+      console.error(`Email send failed for ${email}:`, error.message);
       return { success: false, error: error.message };
     }
   }
@@ -222,16 +255,17 @@ export class EnhancedNotificationService {
    * @returns {Promise<Object>} Result with success flag
    */
   async _sendSlack(userId, body) {
-    try {
-      const slackService = serviceRegistry.get('slackService');
-      if (!slackService) {
-        return { success: false, error: 'Slack service not available' };
-      }
+    const slackService = serviceRegistry.get('slackService');
+    if (!slackService) {
+      throw new Error('Slack service not available - notifications cannot be sent');
+    }
 
+    try {
       await slackService.sendDirectMessage(userId, body);
 
       return { success: true };
     } catch (error) {
+      console.error(`Slack send failed for ${userId}:`, error.message);
       return { success: false, error: error.message };
     }
   }
@@ -244,12 +278,12 @@ export class EnhancedNotificationService {
    * @returns {Promise<Object>} Result with success flag
    */
   async _sendInApp(userId, subject, body) {
-    try {
-      const notificationService = serviceRegistry.get('notificationService');
-      if (!notificationService) {
-        return { success: false, error: 'Notification service not available' };
-      }
+    const notificationService = serviceRegistry.get('notificationService');
+    if (!notificationService) {
+      throw new Error('Notification service not available - notifications cannot be sent');
+    }
 
+    try {
       await notificationService.dispatch(userId, {
         title: subject,
         message: body,
@@ -258,6 +292,7 @@ export class EnhancedNotificationService {
 
       return { success: true };
     } catch (error) {
+      console.error(`In-app send failed for ${userId}:`, error.message);
       return { success: false, error: error.message };
     }
   }
@@ -269,16 +304,17 @@ export class EnhancedNotificationService {
    * @returns {Promise<Object>} Result with success flag
    */
   async _sendSMS(phoneNumber, body) {
-    try {
-      const smsService = serviceRegistry.get('smsService');
-      if (!smsService) {
-        return { success: false, error: 'SMS service not available' };
-      }
+    const smsService = serviceRegistry.get('smsService');
+    if (!smsService) {
+      throw new Error('SMS service not available - notifications cannot be sent');
+    }
 
+    try {
       await smsService.send(phoneNumber, body);
 
       return { success: true };
     } catch (error) {
+      console.error(`SMS send failed for ${phoneNumber}:`, error.message);
       return { success: false, error: error.message };
     }
   }

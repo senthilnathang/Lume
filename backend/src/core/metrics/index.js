@@ -22,7 +22,6 @@ import {
   cacheHitsTotal,
   cacheMissesTotal,
   cacheDurationSeconds,
-  getMetricsText,
   getMetricsTextSync,
   getMetricsJson,
   updateMetricsCache,

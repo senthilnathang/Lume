@@ -40,7 +40,7 @@ export class AgentRegistry {
    * Executes an agent capability.
    * Placeholder - actual execution delegated to executor.
    */
-  async executeCapability(agentId, capability, input) {
+  async executeCapability(agentId, capability, _input) {
     const agent = this.agents.get(agentId);
     if (!agent) {
       return { success: false, error: `Agent '${agentId}' not found` };

@@ -24,7 +24,7 @@ class BaseStepRunner {
    * @param {StepExecutionContext} context - Execution context
    * @returns {Promise<Object>} { success, data, error }
    */
-  async execute(context) {
+  async execute(_context) {
     throw new Error('execute() must be implemented by subclass');
   }
 

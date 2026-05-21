@@ -16,7 +16,7 @@ export class EscalationProcessor {
    * @param {Object} job - Job object (may be empty for interval-based processing)
    * @returns {Promise<Object>} Result object with success flag and escalation count
    */
-  async process(job = {}) {
+  async process(_job = {}) {
     try {
       const escalations = await this.escalationService.processOverdueTasks();
 

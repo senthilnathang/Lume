@@ -107,6 +107,9 @@ const createNotificationRoutes = (models, services) => {
       const template = await notificationService.updateTemplate(req.params.id, req.body);
       res.json({ success: true, data: template });
     } catch (error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ success: false, error: error.message });
+      }
       res.status(400).json({ success: false, error: error.message });
     }
   });
@@ -124,6 +127,9 @@ const createNotificationRoutes = (models, services) => {
       await notificationService.deleteTemplate(req.params.id);
       res.json({ success: true, message: 'Template deleted' });
     } catch (error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ success: false, error: error.message });
+      }
       res.status(400).json({ success: false, error: error.message });
     }
   });
@@ -174,6 +180,12 @@ const createNotificationRoutes = (models, services) => {
 
       res.json({ success: result.success, data: { deliveryId: result.deliveryId, error: result.error } });
     } catch (error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ success: false, error: error.message });
+      }
+      if (error.message.includes('Disabled') || error.message.includes('Invalid')) {
+        return res.status(400).json({ success: false, error: error.message });
+      }
       res.status(400).json({ success: false, error: error.message });
     }
   });
@@ -198,27 +210,43 @@ const createNotificationRoutes = (models, services) => {
       }
 
       const results = [];
+      let successCount = 0;
+      let failureCount = 0;
+
       for (const recipient of recipients) {
-        const result = await notificationService.sendFromTemplate(
-          templateId,
-          recipient,
-          variables || {}
-        );
-        results.push({
-          recipient,
-          success: result.success,
-          deliveryId: result.deliveryId,
-          error: result.error
-        });
+        try {
+          const result = await notificationService.sendFromTemplate(
+            templateId,
+            recipient,
+            variables || {}
+          );
+          results.push({
+            recipient,
+            success: result.success,
+            deliveryId: result.deliveryId,
+            error: result.error
+          });
+          if (result.success) {
+            successCount++;
+          } else {
+            failureCount++;
+          }
+        } catch (error) {
+          results.push({
+            recipient,
+            success: false,
+            error: error.message
+          });
+          failureCount++;
+        }
       }
 
-      const successCount = results.filter(r => r.success).length;
       res.json({
-        success: true,
+        success: failureCount === 0,
         data: {
           total: results.length,
           sent: successCount,
-          failed: results.length - successCount,
+          failed: failureCount,
           results
         }
       });

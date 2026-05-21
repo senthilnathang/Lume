@@ -1,12 +1,12 @@
 # Code Quality — Baseline & Cleanup Roadmap
 
-**Captured:** 2026-05-19 (baseline) → **Phase 3 ongoing**  
+**Captured:** 2026-05-19 (baseline) → **2026-05-21 (debt paid off)**  
 **Owner:** Engineering  
-**Status:** Phases 1–4 complete. CI runs `lint` + `typecheck` as a **ratchet hard-gate** via `.github/workflows/code-quality.yml` (fails if count > budget; cleanup PRs ratchet the budget down).
+**Status:** Phases 1–4 complete; lint debt is at 0. CI gate via `.github/workflows/code-quality.yml` is now **strict zero** for lint (any new problem fails) and **strict zero** for TypeScript.
 
 ## TL;DR
 
-The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. After Phases 1 + 2 + 3.0, the count is **275 lint problems / 0 TS errors** — an 83.5% drop in the lint debt and 100% elimination of the TS noise. The remaining 275 are real backend code issues, no longer drowning in config or static-asset noise.
+The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. As of 2026-05-21 the count is **0 lint problems / 0 TS errors** — a 100% payoff of the v2.0 debt. The CI gate now enforces strict zero; any new lint problem fails the build.
 
 | Phase | Lint problems | TS errors | Status |
 |-------|--------------:|----------:|--------|
@@ -21,7 +21,8 @@ The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. 
 | Phase 3.4 done | 135 | 0 | ✅ 2026-05-20 (all no-explicit-any gone) |
 | Phase 3.5 done | 124 | 0 | ✅ 2026-05-20 (all misc rules + parsing-error gone) |
 | Phase 4 done — ratchet | 124 (budget) | 0 (budget) | ✅ 2026-05-20 — `.github/workflows/code-quality.yml` fails on >budget |
-| **Phase 3.1 batch 3 + ratchet drop** | **95** (budget) | **0** (budget) | ✅ 2026-05-21 — first ratchet-down PR; pattern proven |
+| Phase 3.1 batch 3 + ratchet drop | 95 (budget) | 0 (budget) | ✅ 2026-05-21 — first ratchet-down PR; pattern proven |
+| **Phase 3.1 final — debt paid off** | **0** (strict gate) | **0** (strict gate) | ✅ 2026-05-21 — last `no-unused-vars` cleared; CI now enforces zero |
 
 The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The Phase 3.0 drop revealed that almost all of the previously-counted `any` and `unused-vars` problems were in frontend Vue files (`src/modules/*/static/**`) served as static assets — those are owned by `apps/web-lume`'s own lint chain, not the backend's. Once excluded, the **real** backend debt is much smaller and dominated by `no-unused-vars` (207) rather than `no-explicit-any` (12).
 

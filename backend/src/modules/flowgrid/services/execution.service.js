@@ -62,7 +62,7 @@ export class ExecutionService {
     const db = this._db();
     const now = new Date();
 
-    const result = await db.insert(flowgridNodeExecutions).values({
+    await db.insert(flowgridNodeExecutions).values({
       executionId: Number(executionId),
       nodeId: String(nodeId),
       nodeType: String(nodeType),

@@ -1,6 +1,6 @@
 import prisma from '../../core/db/prisma.js';
 import { stringUtil, responseUtil } from '../../shared/utils/index.js';
-import { MESSAGES, ACTIVITY_STATUS, PAGINATION } from '../../shared/constants/index.js';
+import { MESSAGES, PAGINATION } from '../../shared/constants/index.js';
 
 export class ActivityService {
   constructor() {}

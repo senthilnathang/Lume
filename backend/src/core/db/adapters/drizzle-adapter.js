@@ -5,7 +5,7 @@
 
 import { BaseAdapter } from './base-adapter.js';
 import { getDrizzle } from '../drizzle.js';
-import { eq, ne, gt, gte, lt, lte, like, inArray, notInArray, and, asc, desc, sql, count as drizzleCount } from 'drizzle-orm';
+import { eq, ne, gt, gte, lt, lte, like, inArray, notInArray, and, asc, desc, count as drizzleCount } from 'drizzle-orm';
 
 export class DrizzleAdapter extends BaseAdapter {
   /**
@@ -53,7 +53,7 @@ export class DrizzleAdapter extends BaseAdapter {
     return { rows, count };
   }
 
-  async findById(id, options = {}) {
+  async findById(id, _options = {}) {
     const db = this._db();
     const rows = await db.select().from(this.table).where(eq(this.table.id, Number(id))).limit(1);
     return rows[0] || null;

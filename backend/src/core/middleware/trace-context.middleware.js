@@ -18,7 +18,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { trace, context } from '@opentelemetry/api';
+import { trace } from '@opentelemetry/api';
 
 /**
  * Parse W3C traceparent header

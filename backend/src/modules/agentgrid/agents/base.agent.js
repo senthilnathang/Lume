@@ -11,7 +11,8 @@ export class AbstractAgent {
     return errors;
   }
 
-  async execute(task, context) {
+  // Abstract — concrete agents override and consume the args.
+  async execute(_task, _context) {
     throw new Error(`${this.type} agent execute() not implemented`);
   }
 

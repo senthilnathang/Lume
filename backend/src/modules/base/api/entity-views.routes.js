@@ -10,13 +10,9 @@
 
 import { Router } from 'express';
 import prisma from '../../../core/db/prisma.js';
-import { ViewRendererService } from '../../../core/services/view-renderer.service.js';
 
 const createEntityViewsRoutes = () => {
   const router = Router({ mergeParams: true });
-
-  // Initialize service
-  const viewRendererService = new ViewRendererService(prisma);
 
   // GET /entities/:id/views/:viewId/render - Render view with metadata
   router.get('/:id/views/:viewId/render', async (req, res) => {
