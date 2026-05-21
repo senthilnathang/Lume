@@ -1,0 +1,12 @@
+{
+  "name": "@lume/tailwind-config",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^4.2.2"
+  }
+}

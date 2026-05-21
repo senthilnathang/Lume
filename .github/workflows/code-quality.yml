@@ -46,14 +46,19 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      # Workspace install is mandatory: eslint.config.mjs (at the root)
+      # imports `./packages/@lume/eslint-config/index.mjs`, which itself
+      # depends on @eslint/js, eslint-plugin-vue, typescript-eslint, globals.
+      # A per-workspace `npm ci` from backend/ does NOT install those, and
+      # ESM resolution from the config file walks up looking for them in
+      # /opt/Lume/node_modules — only pnpm install at root creates that.
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm ci
+          cache: pnpm
+      - name: Install workspace dependencies (pnpm)
+        run: pnpm install --frozen-lockfile
       - name: Run ESLint
         working-directory: backend
         id: eslint
@@ -102,14 +107,13 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm ci
+          cache: pnpm
+      - name: Install workspace dependencies (pnpm)
+        run: pnpm install --frozen-lockfile
       - name: Run tsc --noEmit
         working-directory: backend
         id: tsc
