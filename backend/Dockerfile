@@ -36,7 +36,6 @@ RUN npm ci --only=production
 
 # Copy built application from builder
 COPY --from=builder /app/src ./src/
-COPY --from=builder /app/public ./public/
 
 # Create required directories
 RUN mkdir -p /app/uploads /app/logs
