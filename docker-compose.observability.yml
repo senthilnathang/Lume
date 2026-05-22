@@ -246,10 +246,10 @@ services:
     labels:
       - "com.example.description=Redis for cache and sessions"
 
-  # MySQL - Application Database (optional - for testing with observability)
-  mysql:
-    image: mysql:8.0
-    container_name: lume-mysql-observability
+  # MariaDB - Application Database (optional - for testing with observability)
+  mariadb:
+    image: mariadb:10.11
+    container_name: lume-mariadb-observability
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass123
@@ -259,9 +259,9 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -269,7 +269,7 @@ services:
     networks:
       - lume_observability
     labels:
-      - "com.example.description=MySQL for application data"
+      - "com.example.description=MariaDB for application data"
 
   # ============================================================================
   # INSTRUMENTATION AGENTS (Optional)
@@ -314,7 +314,7 @@ volumes:
     driver: local
   redis_data:
     driver: local
-  mysql_data:
+  mariadb_data:
     driver: local
 
 networks:

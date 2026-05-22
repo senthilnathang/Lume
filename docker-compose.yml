@@ -1,10 +1,13 @@
 version: '3.8'
 
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: ${COMPOSE_PROJECT_NAME:-lume}-mysql
+  mariadb:
+    image: mariadb:10.11
+    container_name: ${COMPOSE_PROJECT_NAME:-lume}-mariadb
     restart: unless-stopped
+    # mariadb:10.11 accepts both MARIADB_* and MYSQL_* env vars; keeping
+    # MYSQL_* for parity with cPanel hosting and the Prisma `mysql://`
+    # URL scheme. Migrate to MARIADB_* if you ever drop MYSQL_* support.
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
       MYSQL_DATABASE: ${DB_NAME:-lume}
@@ -13,10 +16,10 @@ services:
     ports:
       - "${DB_PORT:-3306}:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,7 +33,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DB_HOST: mysql
+      DB_HOST: mariadb
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-lume}
       DB_USER: ${DB_USER:-root}
@@ -40,7 +43,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      mysql:
+      mariadb:
         condition: service_healthy
     volumes:
       - uploads:/app/uploads
@@ -58,7 +61,7 @@ services:
       - backend
 
 volumes:
-  mysql_data:
+  mariadb_data:
   uploads:
   logs:
 

@@ -1,11 +1,14 @@
 version: '3.9'
 
 services:
-  # MySQL Database with Backup Automation
-  mysql:
-    image: mysql:8.0
+  # MariaDB Database with Backup Automation
+  mariadb:
+    image: mariadb:10.11
     container_name: lume-prod-db
     restart: always
+    # mariadb:10.11 accepts both MARIADB_* and MYSQL_* env vars.
+    # MYSQL_* kept for parity with the Prisma `mysql://` URL scheme
+    # and the existing .env.prod conventions.
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-lume}
@@ -14,10 +17,10 @@ services:
       MYSQL_INITDB_SKIP_TZINFO: 1
       MYSQL_ROOT_HOST: '%'
     volumes:
-      - mysql_data_prod:/var/lib/mysql
+      - mariadb_data_prod:/var/lib/mysql
       - ./scripts/db-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
+      test: [ "CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -64,7 +67,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mariadb:3306/${MYSQL_DATABASE}
       DATABASE_POOL_MIN: 10
       DATABASE_POOL_MAX: 30
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
@@ -73,7 +76,7 @@ services:
       LOG_LEVEL: info
       SENTRY_DSN: ${SENTRY_DSN:-}
     depends_on:
-      mysql:
+      mariadb:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -216,7 +219,7 @@ services:
         max-file: "3"
 
 volumes:
-  mysql_data_prod:
+  mariadb_data_prod:
     driver: local
   redis_data_prod:
     driver: local
