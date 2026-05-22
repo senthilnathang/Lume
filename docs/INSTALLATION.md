@@ -4,10 +4,11 @@
 
 | Requirement | Minimum Version | Notes |
 |-------------|----------------|-------|
-| Node.js | 18+ | LTS recommended |
-| MySQL | 8.0+ | Default database |
-| PostgreSQL | 14+ | Alternative database |
-| pnpm | 8+ | Package manager (monorepo workspaces) |
+| Node.js | **20.12+** | Repo's `engines` requires `>=20.12.0`; LTS recommended |
+| MariaDB | **10.11+** | **Project standard** (open-source). What CI + docker-compose run. |
+| MySQL | 8.0+ | Supported alternative; schema is portable as of 2026-05-22 |
+| PostgreSQL | 14+ | Supported via the adapter layer; requires `schema.prisma` provider switch + Drizzle dialect change |
+| pnpm | **10+** | Package manager (monorepo workspaces); `packageManager: pnpm@10.28.2` in root |
 | Git | 2.30+ | For cloning the repository |
 
 ## Quick Start
@@ -22,11 +23,11 @@ cd backend && npm install && npx prisma generate
 # 3. Initialize the database (clean install — destroys existing data)
 npm run db:setup     # refreshDb → prisma db push → setupDrizzle → createAdmin → seedData
 # Or step-by-step:
-#   node src/scripts/refreshDb.js              # Drop all tables
-#   npx prisma db push --accept-data-loss      # Prisma core tables (11)
-#   node src/scripts/setupDrizzle.js           # Drizzle module tables (33+)
+#   node src/scripts/refreshDb.js              # Drop all tables (destructive)
+#   npx prisma db push --accept-data-loss      # Prisma core tables (15)
+#   node src/scripts/setupDrizzle.js           # Drizzle module tables (96 across 18 modules)
 #   node src/scripts/createAdmin.js            # admin@lume.dev / Admin@Lume!1
-#   node src/scripts/seedData.js               # sample content
+#   node src/scripts/seedData.js               # sample content (3 messages + 10 settings)
 
 # 4. Install admin panel dependencies
 cd ../apps/web-lume && npm install
@@ -198,7 +199,7 @@ The admin panel's Vite dev proxy routes `/api` requests to `http://localhost:300
 
 ## Database Configuration
 
-### MySQL Setup (Default)
+### MariaDB Setup (Default — project standard)
 
 ```sql
 CREATE DATABASE lume CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -210,6 +211,15 @@ FLUSH PRIVILEGES;
 ```env
 DATABASE_URL="mysql://gawdesy:gawdesy@localhost:3306/lume"
 ```
+
+The URL scheme stays `mysql://` — that's the wire protocol identifier
+MariaDB shares with MySQL, used by the `mysql2` driver and Prisma's
+`provider = "mysql"`. The actual engine is MariaDB.
+
+### MySQL 8.0+ Setup (Alternative)
+
+Same DDL as MariaDB. The schema is portable to MySQL 8.0+ as of
+2026-05-22 — no `prisma.schema` changes needed.
 
 ### PostgreSQL Setup (Alternative)
 

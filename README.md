@@ -98,7 +98,8 @@ Lume is a framework that ships with **23 pre-built modules** covering everything
                 └────────────┬────────────┘
                              ▼
                 ┌──────────────────────────┐
-                │  MySQL / PostgreSQL      │
+                │  MariaDB 10.11+ (default)│
+                │  MySQL 8.0+ / PostgreSQL │
                 └──────────────────────────┘
 ```
 
@@ -113,8 +114,12 @@ Lume is a framework that ships with **23 pre-built modules** covering everything
 ## ⚡ Quick Start
 
 ### Requirements
-- Node.js 20.12+ and npm
-- MySQL 8.0+ (or PostgreSQL 14+)
+- Node.js 20.12+ and npm (or pnpm 10+ — the repo is a pnpm workspace)
+- **MariaDB 10.11+** (project standard, open-source). MySQL 8.0+ and
+  PostgreSQL 14+ are also supported — the adapter layer is engine-
+  agnostic. The current `schema.prisma` uses the `mysql` provider
+  (MariaDB-compatible); switch the provider + adjust Drizzle dialect
+  for PostgreSQL.
 - Git
 
 ### 1. Clone & Install
@@ -235,7 +240,7 @@ What's also wired in (no env tuning needed):
 - **OpenAPI 3.0 spec + Swagger UI** — interactive explorer at [`/api/docs`](http://localhost:3000/api/docs), raw spec at [`/api/openapi.json`](http://localhost:3000/api/openapi.json). On in dev, gated by `OPENAPI_ENABLED=true` in production. Authoritative platform endpoints (`/health`, `/api/modules`, `/api/users/login`) are hand-curated; module routes opt in via `@swagger` JSDoc comments.
 - **Module catalogue with actions** — `/api/modules` now returns an `actions` array per module (`['install']`, `['uninstall', 'upgrade']`, etc.) plus a `deps_resolved` flag. Drives a future admin UI without N+1 dependency checks.
 
-MySQL auto-indexes every `FOREIGN KEY` column, so the partial-index-on-nullable-FK hygiene step that FastVue's PostgreSQL setup requires is unnecessary here.
+MariaDB/MySQL auto-indexes every `FOREIGN KEY` column, so the partial-index-on-nullable-FK hygiene step that FastVue's PostgreSQL setup requires is unnecessary here.
 
 ### Production Deployment
 
@@ -282,7 +287,7 @@ For dev, `npm run dev` uses **tsx watch** (~2s cold restart). The legacy nodemon
 | **Admin Panel** | Vue 3.6+, TypeScript 5.7+, Vite 5.6, Ant Design Vue 4.3 |
 | **Public Website** | Nuxt 3.15+, Vue 3.6+, TypeScript 5.7+, SSR ready |
 | **CSS** | Tailwind CSS 4.2 with CSS Variables |
-| **Database** | MySQL 8.0+ (primary), PostgreSQL 14+ (supported) |
+| **Database** | MariaDB 10.11+ (primary, open-source); MySQL 8.0+ and PostgreSQL 14+ supported via the adapter layer |
 | **ORM** | Prisma 5.24 (core) + Drizzle 0.46 (modules) |
 | **Package Manager** | pnpm 10.28+ (monorepo) |
 | **Build** | Turbo v2.0 (orchestration), Vite 5.6, Nuxt 3.15 |
