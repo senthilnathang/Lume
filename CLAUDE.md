@@ -48,7 +48,8 @@ Lume is a modular NestJS framework with 23 pluggable modules, a hybrid ORM (Pris
 - Core models use `{ softDelete: false }` — they lack `deleted_at` columns.
 
 ### Database
-- DB type: **MariaDB 10.11** (MySQL-compatible wire protocol). Credentials: `gawdesy`/`gawdesy`, database `lume`. The Prisma schema is introspected from MariaDB and includes `@default("{}")` on `@db.LongText` columns, which is MariaDB-specific (MySQL 8.0 rejects DEFAULT on TEXT/BLOB/JSON). CI also uses MariaDB to match — see `.github/workflows/setup-smoke.yml`.
+- DB type: **MariaDB 10.11** (open-source, project standard). Credentials: `gawdesy`/`gawdesy`, database `lume`. CI uses `mariadb:10.11` containers (see `.github/workflows/setup-smoke.yml` and `deploy.yml`). The schema is portable to MySQL 8.0+ as of 2026-05-22 (the previous `@default("{}")` on `@db.LongText` columns was removed), but MariaDB is the standard everywhere — local dev, CI, docker-compose files.
+- The `mysql://` URL scheme in `DATABASE_URL`, `provider = "mysql"` in `schema.prisma`, and the `mysql2` npm driver are all wire-protocol identifiers that MariaDB shares — these don't get renamed.
 - Password hashing is automatic via Prisma middleware on create/update. Never manually hash in seed scripts.
 - AuditLog model is owned by the Base module. Do not re-register it elsewhere.
 
@@ -150,7 +151,7 @@ Safe defaults applied — no code changes needed. Flip the relevant flag back on
 **Setup pre-checks (run once after `git pull`):**
 1. `DB_LOGGING=false` — verify in `backend/.env`
 2. `OTEL_TRACES_SAMPLER_ARG=0.1` — verify in `backend/.env` (was `1.0` historically)
-3. MySQL auto-indexes every FK column — no equivalent of FastVue's "add partial index on nullable FK" work is needed for Lume.
+3. MariaDB auto-indexes every FK column — no equivalent of FastVue's "add partial index on nullable FK" work is needed for Lume.
 
 **Doc references:** `docs/ARCHITECTURE.md` → Performance Considerations.
 

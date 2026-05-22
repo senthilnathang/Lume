@@ -21,7 +21,7 @@ curl -w "@curl-format.txt" -o /dev/null -s https://lume.dev/api/entities
 node scripts/load-test.js run --rps=100 --duration=300
 
 # 3. Database metrics
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql -e "SHOW STATUS LIKE '%query%';"
 
 # 4. Memory profile
@@ -69,14 +69,14 @@ docker exec lume-prod-backend top -bn1
 #!/bin/bash
 # 1. Review slow queries from weekend
 
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql lume -e "SELECT * FROM mysql.slow_log ORDER BY query_time DESC LIMIT 10;"
 
 # Store top slow query
 # Example: INSERT with default [json] takes 500ms
 
 # 2. Check table fragmentation
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql lume -e "
   SELECT 
     TABLE_NAME,
@@ -106,15 +106,15 @@ du -sh /var/lib/mysql/*
 # Quick 5-minute daily health check
 
 echo "=== Database Health ==="
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql -e "SHOW STATUS LIKE 'Threads%';"
 
 echo "=== Top Connections ==="
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql -e "SHOW PROCESSLIST;" | head -10
 
 echo "=== Replication Status ==="
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql -e "SHOW SLAVE STATUS\G" | grep -E "Seconds_Behind|Last_Error"
 
 echo "=== Disk Usage ==="
@@ -134,14 +134,14 @@ docker exec lume-prod-backend free -h | grep Mem
 
 ```bash
 # Enable slow query logging
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql -e "SET GLOBAL slow_query_log = 'ON';"
 
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql -e "SET GLOBAL long_query_time = 0.5;"
 
 # Let it run for 1 hour, then review
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql lume -e "SELECT * FROM mysql.slow_log ORDER BY query_time DESC LIMIT 20;"
 ```
 
@@ -216,7 +216,7 @@ DATABASE_POOL_MAX=30
 
 ```bash
 # Check current connection count
-docker-compose -f docker-compose.prod.yml exec mysql \
+docker-compose -f docker-compose.prod.yml exec mariadb \
   mysql -e "SHOW STATUS LIKE 'Threads_connected';"
 
 # If approaching max (>25):

@@ -30,12 +30,10 @@ jobs:
     timeout-minutes: 5
 
     services:
-      # MariaDB 10.11 matches local dev (where the schema is introspected
-      # from). The Prisma schema has `@db.LongText @default("{}")` columns
-      # on EntityView.config and entity_sync_history.changes, which
-      # MySQL 8.0 rejects (MySQL has a hard constraint against DEFAULT on
-      # TEXT/BLOB/JSON columns; not a sql_mode setting). MariaDB allows it.
-      # If/when the schema drops those defaults, this can switch to mysql:8.0.
+      # MariaDB 10.11 — project standard (open-source, matches local dev
+      # and docker-compose files). The schema is also portable to MySQL
+      # 8.0+ as of 2026-05-22 (commit 5161a31f), so switching the image
+      # is purely an engine-choice decision.
       mariadb:
         image: mariadb:10.11
         env:

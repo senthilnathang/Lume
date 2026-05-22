@@ -12,7 +12,6 @@ on:
 env:
   REGISTRY: ghcr.io
   NODE_VERSION: 20.12.0
-  MYSQL_VERSION: 8.0
 
 jobs:
   # Test Backend
@@ -20,9 +19,8 @@ jobs:
     name: Test Backend
     runs-on: ubuntu-latest
     services:
-      # MariaDB 10.11 matches local dev. The Prisma schema has
-      # `@default("{}") @db.LongText` columns that MySQL 8 rejects;
-      # see setup-smoke.yml for the same reason.
+      # MariaDB 10.11 — project standard (open-source). Matches local
+      # dev, docker-compose files, and setup-smoke.yml.
       mariadb:
         image: mariadb:10.11
         env:
