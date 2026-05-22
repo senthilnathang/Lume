@@ -255,278 +255,229 @@ fi
 print_section "Generating README.md"
 
 cat > "$DEPLOY_DIR/README.md" << 'README'
-# Lume — cPanel Deployment Guide
+# Lume — cPanel Deployment (quick-start)
 
 Domain: **ri-agri.in**
 
-| Path | App | Type |
-|------|-----|------|
-| `ri-agri.in/demo` | Public Website | Nuxt 3 SSR (Node.js) |
-| `ri-agri.in/frontend` | Admin Panel | Vue 3 SPA (static) |
-| `ri-agri.in/backend` | Backend API | Express.js (Node.js) |
+| Path | App | Runtime | Startup |
+|------|-----|---------|---------|
+| `ri-agri.in/backend` | Backend API | Node.js (Express) | `src/index.js` |
+| `ri-agri.in/frontend` | Admin Panel | Static SPA | (none — static) |
+| `ri-agri.in/demo` | Public Site | Nuxt 3 SSR | `app.js` |
+
+> **Canonical guide:** the full, up-to-date instructions are in
+> `docs/CPANEL_DEPLOYMENT.md` in the source repository. This README is a
+> quick-start; if you hit anything subtle, defer to that doc.
 
 ---
 
 ## Prerequisites
 
-- cPanel with **Node.js Selector** (Node.js 18+)
-- MySQL 8.0+ database created
-- SSH access (recommended) or cPanel File Manager
+- cPanel with **Node.js Selector**, version **20.x** (the repo's
+  `engines` field requires `>= 20.12.0`; Node 18 fails on transitive
+  native deps).
+- A database (MariaDB on most cPanel hosts; cPanel labels the menu
+  "MySQL Databases" regardless of the underlying engine).
+- SSH or cPanel Terminal.
+- SSL/HTTPS active on the domain.
 
 ---
 
-## Step 1: Deploy Backend API
+## 1. Database
 
-The backend powers both the admin panel and the public site.
+In **cPanel → MySQL Databases**, create:
+- Database (e.g. `riagri_lume`)
+- User (e.g. `riagri_admin`) with a strong password
+- Add the user to the database with **ALL PRIVILEGES**
 
-### 1.1 Upload files
+cPanel auto-prefixes both names with your account name.
 
-Upload the contents of the `backend/` folder to:
-```
-~/ri-agri.in/backend/
-```
+---
 
-### 1.2 Create Node.js application in cPanel
+## 2. Backend (Node.js App)
 
-1. Go to **cPanel → Setup Node.js App → Create Application**
-2. Configure:
-   - **Node.js version**: 18+ (LTS)
-   - **Application mode**: Production
-   - **Application root**: `ri-agri.in/backend`
-   - **Application URL**: `ri-agri.in/backend`
-   - **Application startup file**: `src/index.js`
-3. Click **Create**
-
-### 1.3 Install dependencies
-
-Via SSH or cPanel Terminal:
 ```bash
+# After uploading backend/ to ~/ri-agri.in/backend/ and creating the
+# Node.js App in cPanel (Node 20, startup file `src/index.js`):
+source /home/<user>/nodevenv/ri-agri.in/backend/20/bin/activate
 cd ~/ri-agri.in/backend
-source /home/<cpanel-user>/nodevenv/ri-agri.in/backend/18/bin/activate
-npm install --production
+npm install --omit=dev
 npx prisma generate
 ```
 
-### 1.4 Configure environment
+### Create `.env`
 
-Create/edit `.env` in `~/ri-agri.in/backend/`:
 ```env
 NODE_ENV=production
-PORT=3000
-
-# Database — use your cPanel MySQL credentials
-DATABASE_URL="mysql://cpanel_user:password@localhost:3306/cpanel_lume"
-DB_TYPE=mysql
+DATABASE_URL="mysql://riagri_admin:PASSWORD@localhost:3306/riagri_lume"
 DB_HOST=localhost
 DB_PORT=3306
-DB_NAME=cpanel_lume
-DB_USER=cpanel_user
-DB_PASSWORD=password
+DB_NAME=riagri_lume
+DB_USER=riagri_admin
+DB_PASSWORD=PASSWORD
+DB_POOL_SIZE=10
+DB_LOGGING=false
 
-# JWT secrets — generate random strings
-JWT_SECRET=your-production-jwt-secret
-JWT_REFRESH_SECRET=your-production-refresh-secret
+LOG_LEVEL=info
+OTEL_TRACES_SAMPLER_ARG=0.1
+
+JWT_SECRET=$(openssl rand -hex 32)
+JWT_REFRESH_SECRET=$(openssl rand -hex 32)
+SESSION_SECRET=$(openssl rand -hex 32)
 JWT_EXPIRES_IN=7d
 
-# CORS — allow admin panel and public site
 CORS_ORIGIN=https://ri-agri.in
 FRONTEND_URL=https://ri-agri.in/frontend
 PUBLIC_WEBSITE_URL=https://ri-agri.in/demo
 
-# Email
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-EMAIL_FROM=noreply@ri-agri.in
-
 UPLOAD_DIR=./uploads
 MAX_FILE_SIZE=10485760
-SESSION_SECRET=your-production-session-secret
 ```
 
-### 1.5 Initialize the database
+### Initialize the schema (BOTH ORMs — critical)
+
+Lume is hybrid Prisma + Drizzle. Skipping `setupDrizzle.js` leaves 96
+module tables un-created — the app crashes at runtime with
+`ER_NO_SUCH_TABLE`.
 
 ```bash
-cd ~/ri-agri.in/backend
-npx prisma db push
-npm run db:init
+npx prisma db push --accept-data-loss
+node src/scripts/setupDrizzle.js
+node src/scripts/createAdmin.js
+node src/scripts/seedData.js
 ```
 
-This creates tables and seeds:
-- Admin user: `admin@lume.dev` / `admin123`
-- 6 roles, 147+ permissions, default settings
-
-### 1.6 Restart the application
-
-In cPanel → Node.js Apps → click **Restart** on the backend app.
-
-### 1.7 Verify
+### Restart and verify
 
 ```bash
-curl https://ri-agri.in/backend/api/health
-# Expected: {"success":true,"message":"OK"}
+# In cPanel → Setup Node.js App → backend → Restart, then:
+curl -s https://ri-agri.in/backend/health | head -c 200
+# Expected JSON: success:true, framework:"Lume"
 ```
+
+Default super-admin: `admin@lume.dev` / `Admin@Lume!1` — **change it
+immediately after first login.**
 
 ---
 
-## Step 2: Deploy Admin Panel (Vue 3 SPA)
+## 3. Admin Panel (static)
 
-The admin panel is a static SPA — only the `dist/` folder needs to be served.
+Upload `frontend/dist/*` to `~/ri-agri.in/frontend/`. Include the hidden
+`.htaccess` (toggle "Show Hidden Files" in File Manager).
 
-### 2.1 Upload built files
+`VITE_API_URL` is baked at build time. If the SPA can't reach the API,
+rebuild locally with the right `.env.production`:
 
-Upload the contents of `frontend/dist/` (NOT the `frontend/` folder itself) to:
-```
-~/ri-agri.in/frontend/
-```
-
-The `.htaccess` file inside `dist/` handles SPA routing — make sure it's uploaded too.
-
-### 2.2 Configure API URL
-
-Before building (if you need to rebuild), set in `.env.production`:
 ```env
 VITE_API_URL=https://ri-agri.in/backend/api
 VITE_PUBLIC_SITE_URL=https://ri-agri.in/demo
 ```
 
-If uploading the pre-built `dist/`, the API URL is baked into the build.
-To change it, rebuild locally with the correct `.env.production` values.
-
-### 2.3 Verify
-
-Open `https://ri-agri.in/frontend` in a browser.
-Log in with: `admin@lume.dev` / `admin123`
-
-### 2.4 Rebuilding on server (optional)
-
-If you need to rebuild on the server instead of uploading pre-built dist:
-```bash
-cd ~/ri-agri.in/frontend
-npm install
-npm run build
-# Then copy dist/* to the served directory
-```
-
-The `frontend/` folder contains both source code and `dist/` for this purpose.
-
 ---
 
-## Step 3: Deploy Public Site (Nuxt 3 SSR)
-
-The public site is a server-side rendered app — it needs Node.js to run.
-
-### 3.1 Upload files
-
-Upload the contents of the `demo/` folder to:
-```
-~/ri-agri.in/demo/
-```
-
-### 3.2 Create Node.js application in cPanel
-
-1. Go to **cPanel → Setup Node.js App → Create Application**
-2. Configure:
-   - **Node.js version**: 18+ (LTS)
-   - **Application mode**: Production
-   - **Application root**: `ri-agri.in/demo`
-   - **Application URL**: `ri-agri.in/demo`
-   - **Application startup file**: `app.js`
-3. Click **Create**
-
-### 3.3 Install dependencies (if rebuilding)
+## 4. Public Site (Nuxt 3 SSR — Node.js App)
 
 ```bash
-cd ~/ri-agri.in/demo
-source /home/<cpanel-user>/nodevenv/ri-agri.in/demo/18/bin/activate
-npm install --production
+# After uploading demo/ to ~/ri-agri.in/demo/ and creating the Node.js
+# App in cPanel (Node 20, startup file `app.js`):
 ```
 
-The `.output/` directory contains the pre-built SSR app. If it's present, `npm install` is not required for running — only for rebuilding.
+### Create `.env`
 
-### 3.4 Configure environment
-
-Create `.env` in `~/ri-agri.in/demo/`:
 ```env
-NUXT_PUBLIC_API_URL=https://ri-agri.in/backend/api
+NUXT_PUBLIC_API_URL=https://ri-agri.in/backend
+NUXT_PUBLIC_API_BASE=https://ri-agri.in/backend/api/website/public
+NUXT_PUBLIC_SITE_NAME=Ri-Agri
+NUXT_PUBLIC_SITE_TITLE=Ri-Agri
+NUXT_PUBLIC_SITE_DESCRIPTION=Welcome to Ri-Agri
+NUXT_PUBLIC_SITE_URL=https://ri-agri.in/demo
+NUXT_PUBLIC_THEME_COLOR=#3B82F6
 ```
 
-### 3.5 Restart the application
+### How `app.js` works
 
-In cPanel → Node.js Apps → click **Restart** on the demo app.
+`app.js` is auto-generated by this deploy script. It does:
 
-### 3.6 Verify
+```js
+process.env.NITRO_PORT = process.env.PORT || 3007;
+process.env.NITRO_HOST = '0.0.0.0';
+import('./.output/server/index.mjs');
+```
 
-Open `https://ri-agri.in/demo` in a browser. The public website should load with all pages.
+Passenger (cPanel's app server) injects `PORT`; the shim copies it to
+`NITRO_PORT` (Nitro doesn't read `PORT` directly).
+
+### Don't `npm install` unless you're rebuilding
+
+`.output/` is self-contained — Nuxt SSR runs without `node_modules`.
+Only run `npm install` if you change source files on the server.
+
+### Verify
+
+```bash
+curl -sI https://ri-agri.in/demo | head -3
+# HTTP/2 200, content-type: text/html
+
+curl -I https://ri-agri.in/demo/robots.txt
+curl -I https://ri-agri.in/demo/sitemap.xml
+# Both should 200; they proxy to backend /api/website/public/*
+```
 
 ---
 
-## Folder Structure on Server
+## Folder layout on server
 
 ```
 ~/ri-agri.in/
-├── backend/              ← Node.js app (Express API)
-│   ├── src/
-│   ├── prisma/
-│   ├── package.json
-│   ├── .env
-│   ├── uploads/
-│   └── logs/
-│
-├── frontend/             ← Static files (Vue 3 SPA dist/)
-│   ├── index.html
-│   ├── assets/
-│   └── .htaccess
-│
-└── demo/                 ← Node.js app (Nuxt 3 SSR)
-    ├── .output/
-    ├── app.js
-    ├── package.json
-    └── (source code for rebuilds)
+├── backend/              # Node.js App: Express, src/index.js
+│   ├── src/, prisma/, .env, uploads/, logs/
+├── frontend/             # Static SPA (no Node.js app)
+│   ├── index.html, assets/, .htaccess
+└── demo/                 # Node.js App: Nuxt 3 SSR, app.js
+    ├── .output/, app.js, .env
 ```
-
----
-
-## Post-Deployment Checklist
-
-- [ ] Backend `/api/health` returns OK
-- [ ] Admin panel loads at `/frontend`
-- [ ] Admin login works (`admin@lume.dev` / `admin123`)
-- [ ] Change admin password after first login
-- [ ] Public site loads at `/demo`
-- [ ] Pages render correctly (Home, Products, Services, About, Contact)
-- [ ] Menu navigation works on public site
-- [ ] Image uploads work in admin panel
-- [ ] SSL certificate is active (HTTPS)
 
 ---
 
 ## Troubleshooting
 
-### API returns 502/503
-- Check Node.js app is running in cPanel → Node.js Apps
-- Check `~/ri-agri.in/backend/logs/` for error logs
-- Verify `.env` DATABASE_URL is correct
+### Backend 502 / 503
+- Node.js app stopped — check **cPanel → Setup Node.js App**.
+- Crash at boot — see `~/ri-agri.in/backend/logs/` and the per-app
+  Passenger log.
+- Run manually to surface the error:
+  ```bash
+  source /home/<user>/nodevenv/ri-agri.in/backend/20/bin/activate
+  cd ~/ri-agri.in/backend && node src/index.js
+  ```
 
-### Admin panel shows blank page
-- Ensure `.htaccess` is uploaded (may be hidden)
-- Verify `RewriteBase` matches the subpath (`/frontend/`)
-- Check browser console for API connection errors
+### `ER_NO_SUCH_TABLE` at runtime
+You skipped `node src/scripts/setupDrizzle.js`. It's idempotent — re-run.
 
-### Public site shows "Cannot connect"
-- Verify Node.js app is running for demo
-- Check `app.js` exists and `.output/` directory is present
-- Verify `NUXT_PUBLIC_API_URL` points to the backend
+### Admin panel blank / 404 on refresh
+`.htaccess` missing or `RewriteBase` doesn't match the URL path.
+
+### Public site 500 / `Cannot find module './.output/server/index.mjs'`
+- `app.js` or `.output/` missing in the upload.
+- Re-upload `demo/` and Restart the Node.js app.
 
 ### CORS errors
-- Update `CORS_ORIGIN` in backend `.env` to include the exact domain
-- Restart the backend Node.js app after changes
+- `CORS_ORIGIN` must exactly match the browser's origin (no trailing
+  slash). Restart the backend app after editing `.env`.
 
-### Database connection refused
-- Verify MySQL credentials in cPanel → MySQL Databases
-- cPanel MySQL users are usually prefixed: `cpaneluser_dbuser`
-- Database names are also prefixed: `cpaneluser_dbname`
+### Default password change
+After first login: admin profile → Change password. The default
+`Admin@Lume!1` is widely documented and must not stay.
+
+### Missing native binding (`@oxc-parser/binding-linux-x64-gnu`)
+Re-install with `npm install --omit=dev --include=optional` (npm
+sometimes skips optional native deps).
+
+---
+
+For the full guide including a NestJS deployment path, rebuild flows,
+performance tips, and exhaustive troubleshooting, see
+`docs/CPANEL_DEPLOYMENT.md` in the source repository.
 README
 
 print_success "README.md generated"
