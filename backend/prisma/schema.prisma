@@ -875,7 +875,7 @@ model EntityView {
   name      String   @db.VarChar(255)
   type      String   @db.VarChar(50)
   isDefault Boolean? @default(false) @map("is_default")
-  config    String?  @default("{}") @db.LongText
+  config    String?  @db.LongText
 
   @@index([entityId], map: "entity_views_entity_id")
   @@unique([entityId, name], map: "entity_views_entity_id_name")
@@ -1045,7 +1045,7 @@ model entity_sync_history {
   entity_id  Int?
   source     String    @db.VarChar(50)
   action     String    @db.VarChar(50)
-  changes    String?   @default("{}") @db.LongText
+  changes    String?   @db.LongText
   synced_at  DateTime? @db.Timestamp(0)
   status     String    @db.VarChar(50)
 
