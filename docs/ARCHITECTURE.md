@@ -107,8 +107,8 @@ This document describes the system architecture of the Lume Framework, covering 
 │                       DATABASE LAYER                             │
 │                                                                  │
 │  ┌──────────────────┐    ┌───────────────────┐                   │
-│  │   MySQL 8.0+     │    │  PostgreSQL 14+   │                   │
-│  │   (Primary)      │    │  (Supported)      │                   │
+│  │  MariaDB 10.11+  │    │  MySQL 8.0+ /     │                   │
+│  │  (Primary, OSS)  │    │  PostgreSQL 14+   │                   │
 │  └──────────────────┘    └───────────────────┘                   │
 │                                                                  │
 │  ┌──────────────────┐    ┌───────────────────┐                   │
@@ -388,7 +388,7 @@ backend/src/
 │  Prisma Client (core)  |  Drizzle ORM (modules)   │
 ├────────────────────────────────────────────────────┤
 │               DATABASE LAYER                        │
-│  MySQL 8.0+ / PostgreSQL 14+                       │
+│  MariaDB 10.11+ (default) — MySQL / PostgreSQL too │
 └────────────────────────────────────────────────────┘
 ```
 
@@ -426,7 +426,14 @@ Lume uses two ORMs for different purposes. This is a deliberate architectural ch
 | RecordRule | Row-level access rules |
 | Sequence | Auto-increment sequences |
 
-### Module Schemas (Drizzle — 14 modules)
+### Module Schemas (Drizzle — 18 modules, 96 tables)
+
+Each module declares its Drizzle tables in `backend/src/modules/<name>/models/schema.js`.
+The `node src/scripts/setupDrizzle.js` script reads every schema file and
+creates the corresponding tables via idempotent `CREATE TABLE IF NOT EXISTS`.
+This step is **required** after `prisma db push` — Prisma only knows
+about its own 11 core tables, so without `setupDrizzle.js` the module
+tables don't exist and the app crashes at runtime with `ER_NO_SUCH_TABLE`.
 
 | Module | Tables |
 |--------|--------|
@@ -1190,8 +1197,8 @@ The GraphQL API layer provides a unified, type-safe interface to all four Grid a
    └────────┬──────────────────────────────────┘
             │
    ┌────────┴──────────────────────────────────┐
-   │      MySQL Database                       │
-   │  (49+ tables, multi-tenant schema)        │
+   │      MariaDB (primary) / MySQL / PG       │
+   │  (111 tables: 15 Prisma + 96 Drizzle)     │
    └──────────────────────────────────────────┘
 ```
 
@@ -1290,7 +1297,7 @@ Four env knobs control the request-path overhead; all can be flipped without cod
 | `OTEL_TRACES_SAMPLER_ARG` | `0.1` (was `1.0`) | Sampling ratio 0.0–1.0. `1.0` carries trace-export overhead on every request; `0.1` (10%) preserves statistical sample at ~90% lower cost. Raise to `1.0` only for active trace debugging. |
 | `METRICS_ENABLED` | `true` | Prometheus `/metrics` endpoint; low overhead, keep on. |
 
-**Database indexing:** Unlike PostgreSQL, MySQL automatically creates an index on every `FOREIGN KEY` declaration — there's no equivalent of the "partial index on nullable FK" hygiene step that FastVue's PostgreSQL setup requires. Verify via `SELECT * FROM information_schema.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME IS NOT NULL AND NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS …)` — for the current Lume schema this query returns zero rows.
+**Database indexing:** Unlike PostgreSQL, MariaDB/MySQL automatically creates an index on every `FOREIGN KEY` declaration — there's no equivalent of the "partial index on nullable FK" hygiene step that FastVue's PostgreSQL setup requires. Verify via `SELECT * FROM information_schema.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_NAME IS NOT NULL AND NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS …)` — for the current Lume schema this query returns zero rows.
 
 **Wired in `src/index.js` (no env tuning needed):**
 - `app.use(compression({ threshold: 1024 }))` — gzips responses larger than 1 KB. Measured on `/api/modules`: 15 KB → 3 KB over the wire (~80% saving).
@@ -1416,7 +1423,7 @@ StorageAdapter (abstract)
 3. **Database Agnostic** — Hybrid ORM allows mixing Prisma and Drizzle per use case
 4. **Module Isolation** — Each module owns its models, services, routes, and frontend code
 5. **Security by Default** — Auth, CORS, rate limiting, Helmet enabled out of the box
-6. **Progressive Enhancement** — Start with MySQL + local storage; add Redis, S3, PostgreSQL as needed
+6. **Progressive Enhancement** — Start with MariaDB + local storage; add Redis, S3, swap to MySQL or PostgreSQL as needed
 7. **Visual Content Editing** — TipTap-based page builder with 30+ reusable widget blocks
 8. **SSR Public Site** — Nuxt 3 for SEO-optimized public pages, separate from admin SPA
 

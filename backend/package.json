@@ -30,7 +30,7 @@
     "pm2:stop": "pm2 stop ecosystem.config.cjs",
     "pm2:logs": "pm2 logs lume-backend",
     "pm2:status": "pm2 status",
-    "check": "npm run lint || true && npm run typecheck || true && NODE_OPTIONS='--experimental-vm-modules' jest tests/integration/setup-smoke.test.js tests/unit/websocket-permission.test.js --forceExit",
+    "check": "npm run lint || true && npm run typecheck || true && NODE_OPTIONS='--experimental-vm-modules' jest tests/integration/setup-smoke.test.js tests/unit/websocket-permission.test.js tests/unit/schema-portability.test.js --forceExit",
     "clean": "rm -rf dist coverage .jest"
   },
   "dependencies": {

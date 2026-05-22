@@ -40,8 +40,17 @@ git clone <repo-url> && cd lume
 cd backend
 npm install
 npx prisma generate
-npx prisma db push
-npm run db:init
+
+# Hybrid ORM setup — BOTH steps are required. Prisma owns 15 core
+# tables; Drizzle owns 96 module tables. Without setupDrizzle.js the
+# app crashes at runtime with ER_NO_SUCH_TABLE.
+npx prisma db push --accept-data-loss
+node src/scripts/setupDrizzle.js
+node src/scripts/createAdmin.js
+node src/scripts/seedData.js
+
+# Shorthand for all of the above (including a destructive refreshDb):
+# npm run db:setup
 
 # Frontend (admin panel)
 cd ../apps/web-lume
@@ -84,7 +93,7 @@ You need three servers running for full development:
 | Admin Panel | `apps/web-lume/` | `npm run dev` | 5173 | Vue 3 SPA |
 | Public Site | `apps/riagri-website/` | `npm run dev` | 3001 | Nuxt 3 SSR |
 
-**Login credentials**: `admin@lume.dev` / `admin123`
+**Login credentials**: `admin@lume.dev` / `Admin@Lume!1` — **change immediately after first login.**
 
 The admin panel's Vite dev server proxies `/api` requests to `http://localhost:3000`.
 
