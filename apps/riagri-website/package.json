@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5.5.0",
+    "typescript": "^6.0.3",
     "@types/node": "^22.19.0",
     "@types/lodash-es": "^4.17.0",
     "eslint": "^8.55.0",
