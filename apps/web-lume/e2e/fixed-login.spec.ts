@@ -15,7 +15,7 @@ test.describe('Fixed Login Test', () => {
     const submitButton = page.locator('button[type="submit"]').first();
     
     await emailInput.fill('admin@gawdesy.org');
-    await passwordInput.fill('***REDACTED***');
+    await passwordInput.fill((process.env.LUME_TEST_ADMIN_PASSWORD || 'Admin@Lume!1'));
     
     console.log('Form filled, submitting login...');
     
