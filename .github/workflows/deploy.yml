@@ -302,7 +302,7 @@ jobs:
 
       - name: Slack notification
         if: failure()
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
           payload: |
@@ -399,7 +399,7 @@ jobs:
 
       - name: Slack notification - Success
         if: success()
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
           payload: |
@@ -418,7 +418,7 @@ jobs:
 
       - name: Slack notification - Failure
         if: failure()
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
           payload: |
