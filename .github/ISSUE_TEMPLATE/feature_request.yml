@@ -1,0 +1,37 @@
+name: 💡 Feature request
+description: Suggest an idea or enhancement for Lume
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem does this solve? Who is it for?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe what you'd like to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Backend / module
+        - Admin panel
+        - Public site / CMS
+        - Page builder (editor)
+        - ORM / data model
+        - DevEx / tooling / CI
+        - Docs
+        - Other
+    validations:
+      required: true
