@@ -127,14 +127,15 @@
 
 ### 3. SEO Preparation 🔄
 
+<!-- Updated 2026-05-29: SEO hardening implemented — see docs/deployment/SEO_AUDIT.md -->
 **Meta Tags & Structured Data**
-- [ ] Meta tags configured in Nuxt (title, description, keywords)
-- [ ] Open Graph tags (og:title, og:description, og:image)
-- [ ] Twitter Card meta tags
-- [ ] JSON-LD schema markup (SoftwareApplication)
-- [ ] Canonical URLs set on all pages
-- [ ] Robots.txt created (/robots.txt)
-- [ ] Sitemap XML created (/sitemap.xml endpoint)
+- [x] Meta tags configured in Nuxt (title, description, keywords) — `nuxt.config.ts` + per-page `useSeoMeta`
+- [x] Open Graph tags (og:title, og:description, og:image, og:url, og:type) — defaults + per-page
+- [x] Twitter Card meta tags — `summary_large_image` default
+- [x] JSON-LD schema markup — WebSite + Organization (`app.vue`) + Article/FAQ/Breadcrumb (CMS). *SoftwareApplication still TODO (SEO_AUDIT.md).*
+- [x] Canonical URLs set on all pages — computed in `app.vue`
+- [x] Robots.txt created (/robots.txt) — hardened (Disallow /admin /api + Sitemap line)
+- [x] Sitemap XML created (/sitemap.xml endpoint) — XML-escaped, single `site_url` source
 - [ ] Alt text on all images
 - [ ] Heading hierarchy correct (H1, H2, H3)
 
@@ -213,7 +214,7 @@
 **Infrastructure Security**
 - [ ] SSL/TLS certificate valid (A+ rating)
 - [ ] Security headers (HSTS, CSP, X-Frame-Options)
-- [ ] Secrets management (.env, no Git tracking)
+- [x] Secrets management (.env gitignored; leaked `GawdesyAdmin@2024!` scrubbed from history 2026-05-29). ⚠️ Rotate it in the gawdesy deployment + GitHub Support to purge `refs/pull/*` (see SEO_AUDIT.md / security notes)
 - [ ] Dependency audit (npm audit clean)
 - [ ] Docker image scanning
 - [ ] Database backups encrypted
@@ -278,8 +279,8 @@
 
 **Communication Channels**
 - [ ] GitHub repository (public, well-documented)
-- [ ] GitHub Issues template created
-- [ ] GitHub Discussions enabled
+- [x] GitHub Issues template created — `.github/ISSUE_TEMPLATE/` (bug + feature forms + config)
+- [ ] GitHub Discussions enabled — *repo setting (enable in GitHub UI)*
 - [ ] Discord server created and moderated
 - [ ] Twitter/X account active
 - [ ] Email support setup
@@ -287,8 +288,8 @@
 - [ ] FAQ page created
 
 **Community Building**
-- [ ] Contributing guide written
-- [ ] Code of conduct established
+- [x] Contributing guide written — `CONTRIBUTING.md`
+- [x] Code of conduct established — `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1)
 - [ ] Community guidelines posted
 - [ ] Discord channel structure planned
 - [ ] Moderation team assigned
@@ -340,7 +341,7 @@
 ### 9. Legal & Compliance 🔄
 
 **Licenses & IP**
-- [ ] LICENSE.md selected and included (MIT/Apache 2.0)
+- [x] LICENSE selected and included — MIT (`LICENSE`, per docs/FAQ.md)
 - [ ] Third-party licenses documented
 - [ ] Copyright notices in file headers
 - [ ] NOTICE file created (if required)
@@ -359,7 +360,7 @@
 - [ ] Code audit passed
 - [ ] No critical vulnerabilities
 - [ ] Dependencies up to date
-- [ ] Security disclosure policy documented
+- [x] Security disclosure policy documented — `SECURITY.md` (private vuln reporting)
 
 ---
 
