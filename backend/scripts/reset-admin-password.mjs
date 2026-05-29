@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const ADMIN_EMAIL = 'admin@gawdesy.org';
-const NEW_PASSWORD = 'GawdesyAdmin@2024!';
+const NEW_PASSWORD = (process.env.LUME_TEST_ADMIN_PASSWORD || 'Admin@Lume!1');
 
 async function resetAdminPassword() {
   console.log('Admin Password Reset Tool');

@@ -11,7 +11,7 @@ test.describe('Final Login Verification', () => {
     
     // Fill the login form
     await page.locator('input[type="email"]').fill('admin@gawdesy.org');
-    await page.locator('input[type="password"]').fill('GawdesyAdmin@2024!');
+    await page.locator('input[type="password"]').fill((process.env.LUME_TEST_ADMIN_PASSWORD || 'Admin@Lume!1'));
     
     console.log('Submitting login form...');
     await page.locator('button[type="submit"]').click();
@@ -59,7 +59,7 @@ test.describe('Final Login Verification', () => {
           },
           body: JSON.stringify({
             email: 'admin@gawdesy.org',
-            password: 'GawdesyAdmin@2024!'
+            password: (process.env.LUME_TEST_ADMIN_PASSWORD || 'Admin@Lume!1')
           })
         });
         

@@ -17,7 +17,7 @@ test.describe('Admin Login Tests', () => {
     const submitButton = page.locator('button[type="submit"]').first();
     
     await emailInput.fill('admin@gawdesy.org');
-    await passwordInput.fill('GawdesyAdmin@2024!');
+    await passwordInput.fill((process.env.LUME_TEST_ADMIN_PASSWORD || 'Admin@Lume!1'));
     
     // Submit the form
     await submitButton.click();
