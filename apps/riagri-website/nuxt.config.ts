@@ -43,10 +43,14 @@ export default defineNuxtConfig({
     head: {
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
+      htmlAttrs: { lang: process.env.NUXT_PUBLIC_SITE_LANG || 'en' },
       title: process.env.NUXT_PUBLIC_SITE_TITLE || process.env.NUXT_PUBLIC_SITE_NAME || 'My Website',
       meta: [
         { name: 'description', content: process.env.NUXT_PUBLIC_SITE_DESCRIPTION || 'Welcome to our website' },
         { property: 'og:site_name', content: process.env.NUXT_PUBLIC_SITE_NAME || 'My Website' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:image', content: `${(process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3100').replace(/\/+$/, '')}/og-image.png` },
+        { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'theme-color', content: process.env.NUXT_PUBLIC_THEME_COLOR || '#3B82F6' },
       ],
       link: [

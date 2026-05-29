@@ -4,6 +4,18 @@
 **Status**: Pre-Launch Implementation  
 **Target**: May 31, 2026 Public Release
 
+> ⚠️ **Accuracy note (2026-05-29).** Code snippets below targeting
+> `backend/lume-nestjs/.../sitemap.controller.ts` describe a **NestJS** backend
+> that does not exist in this repo — the live backend is **Express** at
+> `backend/src/modules/website/` (sitemap/robots in `website.routes.js`, page
+> data in `services/page.service.js`). Treat the NestJS snippets as reference
+> intent, not file paths. For the **current implemented vs. outstanding** state,
+> see [`SEO_AUDIT.md`](./SEO_AUDIT.md). As of 2026-05-29 the backend sitemap now
+> XML-escapes URLs, resolves a single `site_url`, and serves a hardened
+> robots.txt; the Nuxt site now sets `<html lang>`, canonical/og:url,
+> WebSite+Organization JSON-LD, default OG/Twitter tags, real HTTP 404s, and
+> noindex on preview/unpublished pages.
+
 ---
 
 ## Quick Reference: What to Implement Before Launch

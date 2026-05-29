@@ -202,16 +202,57 @@ router.get('/public/sitemap', async (req, res) => {
   }
 });
 
+// ── SEO helpers ──────────────────────────────────────────────────────────
+// XML-escape a URL/text node so a slug containing & < > " ' can't break the
+// sitemap (an unescaped & produces invalid XML that crawlers reject).
+function escapeXml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+// Single source of truth for the public site origin (no trailing slash).
+// Prefer an admin-configured `site_url` setting, then env, then dev fallback.
+function resolveSiteUrl(settings) {
+  const raw = (settings && settings.site_url)
+    || process.env.SITE_URL
+    || process.env.PUBLIC_WEBSITE_URL
+    || 'http://localhost:3100';
+  return String(raw).replace(/\/+$/, '');
+}
+
+function defaultRobots(siteUrl) {
+  return [
+    'User-agent: *',
+    'Allow: /',
+    '',
+    'Disallow: /admin',
+    'Disallow: /api',
+    'Disallow: /.env',
+    'Disallow: /.git',
+    '',
+    'Sitemap: ' + siteUrl + '/sitemap.xml',
+  ].join('\n');
+}
+
 router.get('/public/sitemap.xml', async (req, res) => {
   try {
-    const pages = await pageService.getSitemap();
-    const siteUrl = process.env.SITE_URL || 'http://localhost:3100';
+    const [pages, settings] = await Promise.all([
+      pageService.getSitemap(),
+      settingsService.getAll().catch(() => ({})),
+    ]);
+    const siteUrl = resolveSiteUrl(settings);
 
     const urlEntries = pages.map(p => {
-      const priority = p.slug === '' || p.slug === 'home' ? '1.0' : p.parentId ? '0.6' : '0.8';
-      const loc = siteUrl + '/' + p.slug;
+      const isHome = p.slug === '' || p.slug === 'home';
+      const priority = isHome ? '1.0' : p.parentId ? '0.6' : '0.8';
+      const changefreq = isHome ? 'weekly' : 'monthly';
+      const loc = escapeXml(siteUrl + '/' + String(p.slug || '').replace(/^\/+/, ''));
       const lastmod = (p.updatedAt || p.createdAt || new Date()).toISOString().split('T')[0];
-      return '  <url>\n    <loc>' + loc + '</loc>\n    <lastmod>' + lastmod + '</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>' + priority + '</priority>\n  </url>';
+      return '  <url>\n    <loc>' + loc + '</loc>\n    <lastmod>' + lastmod + '</lastmod>\n    <changefreq>' + changefreq + '</changefreq>\n    <priority>' + priority + '</priority>\n  </url>';
     }).join('\n');
 
     const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urlEntries + '\n</urlset>';
@@ -225,18 +266,18 @@ router.get('/public/sitemap.xml', async (req, res) => {
 });
 
 router.get('/public/robots.txt', async (req, res) => {
+  let siteUrl = resolveSiteUrl(null);
   try {
+    // settingsService.getAll() returns an object keyed by setting name.
     const settings = await settingsService.getAll();
-    const s = {};
-    for (const row of settings) s[row.key] = row.value;
-    const siteUrl = process.env.SITE_URL || 'http://localhost:3100';
-    const robotsTxt = s['robots_txt'] || 'User-agent: *\nAllow: /\nSitemap: ' + siteUrl + '/sitemap.xml';
+    siteUrl = resolveSiteUrl(settings);
+    const robotsTxt = (settings && settings.robots_txt) || defaultRobots(siteUrl);
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.send(robotsTxt);
   } catch (error) {
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.send('User-agent: *\nAllow: /');
+    res.send(defaultRobots(siteUrl));
   }
 });
 

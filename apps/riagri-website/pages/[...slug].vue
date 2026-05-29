@@ -150,6 +150,12 @@ const unlockedPage = ref<any>(null);
 
 // displayPage: prefer unlocked (password-verified) page over initial fetch result
 const page = computed(() => unlockedPage.value || fetchedPage.value);
+
+// SEO: return a real HTTP 404 for unknown slugs instead of a soft-404 (200).
+if (import.meta.server && (error.value || !fetchedPage.value)) {
+  const event = useRequestEvent();
+  if (event) setResponseStatus(event, 404);
+}
 const {
   active: editActive,
   currentContent,
@@ -275,6 +281,11 @@ useSeoMeta({
   ogTitle: () => seo.value.ogTitle,
   ogDescription: () => seo.value.ogDescription,
   ogImage: () => seo.value.ogImage || undefined,
+  // Keep preview, password-gated, and CMS-flagged pages out of the index.
+  robots: () =>
+    (isThemePreview.value || requiresPassword.value || page.value?.noIndex)
+      ? 'noindex, nofollow'
+      : undefined,
 });
 
 // Content wrapper class based on page template
