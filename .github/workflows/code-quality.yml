@@ -52,7 +52,7 @@ jobs:
       # A per-workspace `npm ci` from backend/ does NOT install those, and
       # ESM resolution from the config file walks up looking for them in
       # /opt/Lume/node_modules — only pnpm install at root creates that.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install pnpm 10.28.2
@@ -111,7 +111,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install pnpm 10.28.2
