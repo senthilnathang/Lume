@@ -222,7 +222,7 @@ jobs:
         run: echo "base=${{ env.REGISTRY }}/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Build and push backend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./backend
           file: ./backend/Dockerfile
@@ -241,7 +241,7 @@ jobs:
         # this until the frontend cleanup ratchet completes; deploys are
         # already skipped on main anyway.
         continue-on-error: true
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./frontend/Dockerfile
