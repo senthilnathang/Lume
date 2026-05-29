@@ -103,10 +103,10 @@
 - [x] DEVELOPMENT.md (developer guide, setup, coding standards)
 - [x] TESTING.md (test configuration, running tests)
 - [x] CODE_OF_CONDUCT.md (community guidelines)
-- [ ] API_REFERENCE.md (all 100+ endpoints) - *In progress*
-- [ ] DEPLOYMENT.md (production setup, Docker, scaling) - *In progress*
-- [ ] SECURITY.md (security best practices, hardening) - *In progress*
-- [ ] TROUBLESHOOTING.md (common issues, solutions) - *In progress*
+- [x] API_REFERENCE.md — `docs/API_REFERENCE.md` (conventions, auth, curated platform + website endpoints, Swagger discovery). *Per-endpoint coverage of all module routes via `@swagger` annotations still growing.*
+- [x] DEPLOYMENT.md (production setup, Docker, scaling) — `docs/DEPLOYMENT.md`
+- [x] SECURITY.md — `SECURITY.md` (disclosure policy) + `backend/docs/SECURITY.md` (hardening)
+- [x] TROUBLESHOOTING.md (common issues, solutions) — `docs/TROUBLESHOOTING.md`
 
 **User-Facing Documentation**
 - [ ] Getting started guide (installation, first project)
