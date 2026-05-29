@@ -347,13 +347,13 @@
 - [ ] NOTICE file created (if required)
 - [ ] Contributor agreement ready (if applicable)
 
-**Policies**
-- [ ] Privacy policy drafted
-- [ ] Terms of service drafted
-- [ ] Cookie consent (if needed)
-- [ ] GDPR compliance checklist
-- [ ] CCPA compliance (if US-based)
-- [ ] Accessibility statement (WCAG compliance)
+**Policies** — *starter DRAFTS added in `docs/legal/` (require attorney review before publishing)*
+- [x] Privacy policy drafted — `docs/legal/PRIVACY_POLICY.md` (DRAFT, placeholders)
+- [x] Terms of service drafted — `docs/legal/TERMS_OF_SERVICE.md` (DRAFT, placeholders)
+- [ ] Cookie consent (if needed) — *impl; privacy draft notes the consent mechanism*
+- [ ] GDPR compliance checklist — *privacy draft has a GDPR rights section; full checklist TODO*
+- [ ] CCPA compliance (if US-based) — *privacy draft has a CCPA/CPRA note*
+- [x] Accessibility statement (WCAG compliance) — `docs/legal/ACCESSIBILITY_STATEMENT.md` (DRAFT — verify claims via audit)
 
 **Compliance**
 - [ ] Security audit passed
