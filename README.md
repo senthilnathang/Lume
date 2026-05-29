@@ -2,6 +2,12 @@
 
 **Full-stack application platform. Enterprise software. 10x faster.**
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Code of Conduct](https://img.shields.io/badge/Contributor%20Covenant-2.1-blue.svg)](CODE_OF_CONDUCT.md)
+[![Node](https://img.shields.io/badge/node-%3E%3D20.12-339933.svg)](#requirements)
+[![Stack](https://img.shields.io/badge/stack-Vue%20%7C%20Nuxt%20%7C%20Express-42b883.svg)](#-architecture-at-a-glance)
+
 ---
 
 ## 🚀 One-Line Pitch
@@ -381,6 +387,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 - Testing requirements
 - PR process
 - Module development
+
+By participating you agree to our [Code of Conduct](CODE_OF_CONDUCT.md).
+Found a security issue? Please follow [SECURITY.md](SECURITY.md) — do **not** open a public issue.
+See the [Changelog](CHANGELOG.md) for release history.
 
 ---
 
