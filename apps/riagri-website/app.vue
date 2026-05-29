@@ -22,36 +22,52 @@ const canonical = computed(() => {
   return siteUrl + (path === '/' ? '' : path)
 })
 
-useHead({
+// JSON-LD: WebSite + Organization on every page; SoftwareApplication on home.
+const jsonLd = computed(() => {
+  const blocks: Record<string, unknown>[] = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: siteName,
+      url: siteUrl,
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: `${siteUrl}/search?q={search_term_string}`,
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: siteName,
+      url: siteUrl,
+      logo: `${siteUrl}/logo.png`,
+    },
+  ]
+  if ((route.path || '/') === '/') {
+    blocks.push({
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: siteName,
+      description: String(config.public.siteDescription || ''),
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Linux, macOS, Windows',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      url: siteUrl,
+      image: `${siteUrl}/og-image.png`,
+    })
+  }
+  return blocks
+})
+
+useHead(() => ({
   titleTemplate: (title?: string) =>
     title && title !== siteName ? `${title} · ${siteName}` : siteName,
-  link: [{ rel: 'canonical', href: canonical }],
-  meta: [{ property: 'og:url', content: canonical }],
-  script: [
-    {
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        name: siteName,
-        url: siteUrl,
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: `${siteUrl}/search?q={search_term_string}`,
-          'query-input': 'required name=search_term_string',
-        },
-      }),
-    },
-    {
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'Organization',
-        name: siteName,
-        url: siteUrl,
-        logo: `${siteUrl}/logo.png`,
-      }),
-    },
-  ],
-})
+  link: [{ rel: 'canonical', href: canonical.value }],
+  meta: [{ property: 'og:url', content: canonical.value }],
+  script: jsonLd.value.map((b) => ({
+    type: 'application/ld+json',
+    innerHTML: JSON.stringify(b),
+  })),
+}))
 </script>
