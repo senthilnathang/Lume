@@ -125,8 +125,8 @@ router.get('/', authenticate, async (req, res) => { ... });
 - **Page editor**: `page-editor.vue` detects TipTap content via `isTipTapJson()` — shows PageBuilder for TipTap content, form editor for legacy JSON.
 - **Public API**: `/api/website/public/pages/:slug`, `/api/website/public/menus/:location`, `/api/website/public/settings`.
 - **Menu reorder**: `PUT /api/website/menus/:id/reorder` accepts `{ items: [{ id, parentId, sequence }] }`.
-- **SEO Features**: Meta titles, descriptions, Open Graph tags (`og_image`, `og_title`), XML sitemap (`/sitemap.xml`), robots.txt, Schema.org JSON-LD. All editable in Settings > SEO tab.
-- **SEO Analysis Panel**: Live per-page score (title length, keyword density, H1 count, content length, image alt text) shown in page editor sidebar.
+- **SEO Features**: Per-page meta titles/descriptions, Open Graph (`og_image`, `og_title`, `og_description`), `canonical_url`, `no_index`/`no_follow` (schema `models/schema.js`); backend XML sitemap (`/api/website/public/sitemap.xml`, XML-escaped, single `site_url` source) + hardened robots.txt (`website.routes.js`); Nuxt site emits `<html lang>`, canonical, og:url, default OG/Twitter tags, WebSite+Organization JSON-LD (`app.vue`), Article/FAQ/Breadcrumb JSON-LD on CMS pages, real HTTP 404s, and noindex on preview/unpublished pages. **Current state + remaining gaps tracked in `docs/deployment/SEO_AUDIT.md`** (the older `SEO_IMPLEMENTATION_GUIDE.md` references a non-existent NestJS backend — the real backend is Express).
+- **SEO Analysis Panel**: Live per-page score (title length, focus-keyword presence, H1 count, content length, image alt text, slug length) in the admin page editor sidebar (`page-editor.vue`).
 
 ## Public Website (Nuxt 3)
 

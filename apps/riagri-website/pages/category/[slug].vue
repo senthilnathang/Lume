@@ -77,6 +77,12 @@ const apiBase = config.public.apiBase;
 const { data: catData, pending, error } = await useFetch<any>(`${apiBase}/categories/${slug}`);
 const category = computed(() => catData.value?.data || null);
 
+// SEO: real HTTP 404 for unknown category (not a soft-404).
+if (import.meta.server && (error.value || !category.value)) {
+  const event = useRequestEvent();
+  if (event) setResponseStatus(event, 404);
+}
+
 const { data: pagesData } = await useFetch<any>(`${apiBase}/categories/${slug}/pages`);
 const pages = computed(() => pagesData.value?.data || []);
 

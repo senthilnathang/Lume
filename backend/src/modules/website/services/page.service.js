@@ -208,7 +208,14 @@ export class PageService {
       pageType: websitePages.pageType,
       metaTitle: websitePages.metaTitle,
       metaDescription: websitePages.metaDescription,
+      ogTitle: websitePages.ogTitle,
+      ogDescription: websitePages.ogDescription,
+      ogImage: websitePages.ogImage,
+      canonicalUrl: websitePages.canonicalUrl,
+      noIndex: websitePages.noIndex,
+      noFollow: websitePages.noFollow,
       publishedAt: websitePages.publishedAt,
+      updatedAt: websitePages.updatedAt,
     }).from(websitePages)
       .where(and(eq(websitePages.isPublished, true), isNull(websitePages.deletedAt)))
       .orderBy(asc(websitePages.sequence));
