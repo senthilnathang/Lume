@@ -22,10 +22,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   password-gated pages are `noindex`.
 
 ### Security
-- Removed the suspicious `***REDACTED***` literal from e2e specs and the
+- Removed a hardcoded admin password literal from the e2e specs and the
   reset-admin script; admin password is now env-driven
-  (`LUME_TEST_ADMIN_PASSWORD`, default `Admin@Lume!1`). **Rotate that value if it
-  was ever live.**
+  (`LUME_TEST_ADMIN_PASSWORD`). **Rotate that credential anywhere it was used.**
 - Removed `frontend/lume-admin/test-credentials.mjs` (debug artifact).
 
 ## [2.0.0]
