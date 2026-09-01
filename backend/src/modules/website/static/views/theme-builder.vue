@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, Ref } from 'vue';
 import { message, Modal } from 'ant-design-vue';
 import { Layout, Plus, Edit3, Trash2, Search, ExternalLink, Eye, Code, PanelRight } from 'lucide-vue-next';
 import {
@@ -14,22 +14,50 @@ import { PageBuilder } from '@modules/editor/static/components/index';
 
 defineOptions({ name: 'WebsiteThemeBuilder' });
 
+interface EditingTemplate {
+  id: number | null;
+  name: string;
+  type: string;
+  content: string;
+  contentHtml: string;
+  conditions: any;
+  priority: number;
+  isActive: boolean;
+}
+
 const loading = ref(false);
-const templates = ref<any[]>([]);
+const templates: Ref<any[]> = ref([]);
 const total = ref(0);
 const page = ref(1);
 const searchQuery = ref('');
 const activeFilter = ref('all');
+interface FilterOptions {
+  label: string;
+  value: string;
+}
+const filterOptions: FilterOptions[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Header', value: 'header' },
+  { label: 'Footer', value: 'footer' },
+  { label: 'Sidebar', value: 'sidebar' },
+  { label: 'Single-Post', value: 'single-post' },
+  { label: 'Archive', value: 'archive' },
+  { label: 'Error-404', value: 'error-404' },
+  { label: 'Search-Results', value: 'search-results' },
+];
 
 const filterOptions = ['All', 'Header', 'Footer', 'Sidebar', 'Single-Post', 'Archive', 'Error-404', 'Search-Results'];
 
-// Page slugs for conditions multi-select
-const pageSlugs = ref<{ label: string; value: string }[]>([]);
+interface PageSlug {
+  label: string;
+  value: string;
+}
+const pageSlugs = ref<PageSlug[]>([]);
 
 // Drawer state
-const drawerVisible = ref(false);
-const drawerLoading = ref(false);
-const editingTemplate = reactive({
+const drawerVisible = ref<boolean>(false);
+const drawerLoading = ref<boolean>(false);
+const editingTemplate = reactive<EditingTemplate>({
   id: null as number | null,
   name: '',
   type: 'header' as string,
