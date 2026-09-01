@@ -2,22 +2,23 @@
 
 This document describes the system architecture of Lume Framework v2.0, a comprehensive modernization covering monorepo structure, build tooling, dependency upgrades, testing infrastructure, security hardening, and observability enhancements.
 
-**Latest Version:** 2.0.0 (Release Date: 2026-04-28)  
-**Patch Update:** 2.0.1 - Security hardening & bug fixes (2026-04-28)  
-**Previous Version:** 1.0.0 → 2.0.0 (Migration Guide: [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md))
+**Latest Version:** 2.0.1 (Release Date: 2026-09-01)  
+**Patch Update:** 2.0.1 - Security hardening & package upgrades (2026-09-01)  
+**Previous Version:** 2.0.0 → 2.0.1 (Security audit & package upgrades)
 
 ### Key Improvements in v2.0
 
 - **Monorepo Architecture:** pnpm workspace + Turbo build orchestration
 - **Tailwind 4 Migration:** CSS variables for theming, reduced config duplication
-- **Modern Tooling:** Jest 30 backend, Vitest 4.1 frontend, Playwright 1.49 E2E
+- **Modern Tooling:** Jest 29 backend, Vitest 4.1 frontend, Playwright 1.40 E2E
 - **Security Hardened:** Helmet 7.1, Express Rate Limit 7.1, response caching, OWASP Top 10 scanning
-- **Security Audit Module:** Comprehensive vulnerability scanning, OWASP compliance checking, API security assessment
+- **Security Audit Module:** Comprehensive vulnerability scanning, 70+ packages updated across 3 projects, `npm audit` passes for all apps
 - **Observability:** Request tracing, metrics collection, structured logging
 - **Performance:** Response caching with Redis, query optimization, benchmarking
-- **Testing:** Unit tests (577+), integration tests, performance benchmarks (97.3% pass rate)
-- **Node.js 20.12.0+:** Modern JavaScript features, better performance
+- **Testing:** 2,079 tests across 81 suites (1,918 passing), integration tests, performance benchmarks
+- **Node.js 20.12.0+:** Modern JavaScript features, better performance (tested on Node 22)
 - **Documentation:** PERFORMANCE.md, OBSERVABILITY.md, updated TESTING.md, SECURITY_HARDENING_GUIDE.md
+- **Single-Command Setup:** `npm run db:setup` for full application initialization
 
 ---
 

@@ -27,6 +27,33 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`LUME_TEST_ADMIN_PASSWORD`). **Rotate that credential anywhere it was used.**
 - Removed `frontend/lume-admin/test-credentials.mjs` (debug artifact).
 
+## [2.0.1]
+
+Security hardening and package upgrades (2026-09-01):
+- `@opentelemetry/auto-instrumentations-node`: ^0.74.0 → ^0.80.0 (Prometheus exporter crash fix)
+- `@grpc/grpc-js`: ^1.14.3 → ^1.14.4 (server crash vulnerability fix)
+- `@opentelemetry/core`: ^2.8.0 → ^2.11.0 (unbounded memory allocation fix)
+- `@opentelemetry/configuration`: ^0.218.0 → ^0.222.0
+- `axios`: ^1.15.0 → ^1.20.0 (prototype pollution/auth bypass fixes)
+- `vite`: ^5.4.0 → ^8.2.2 (security patches)
+- `vitest`: ^2.1.0 → ^4.1.11 (critical vulnerability fixes)
+- `nuxt`: ^3.10.0 → ^3.21.11 (critical CVE fixes)
+- `@nuxt/devtools`: Added (was critical unauthenticated RCE CVE)
+- `brace-expansion`: ^1.1.14 → ^5.0.9 (DoS fix)
+- `xlsx`, `linkify-it`, `markdown-it`, `nanoid`: Updated to latest
+- `sharp`, `ws`, `drizzle-orm`, `nodemailer`: Updated to latest
+- Comprehensive `npm audit` across all 3 projects: 0 critical vulns (website), resolved 70+ moderate/high across backend/admin
+
+### Added
+- `docs/SINGLE_COMMAND_SETUP.md` — One-command application setup guide
+- `README.md` security audit summary row in Tech Stack
+
+### Changed
+- Backend `@opentelemetry/*` packages upgraded to latest secure versions
+- Admin panel `@vitejs/plugin-vue` and `@vueuse/*` updated for Vite 8 compatibility
+- Website `@nuxt/jest-preset` and `@nuxt/test-utils` updated for Nuxt 3.21
+- All `package.json` engine specifications aligned with Node 20.12+ requirements
+
 ## [2.0.0]
 
 Production-ready v2.0: 23+ pluggable modules, hybrid Prisma + Drizzle ORM,

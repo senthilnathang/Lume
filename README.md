@@ -289,8 +289,8 @@ For dev, `npm run dev` uses **tsx watch** (~2s cold restart). The legacy nodemon
 | Layer | Technology |
 |-------|-----------|
 | **Backend** | Node.js 20.12+ (tested on 22), Express 4.21, ES Modules |
-| **Admin Panel** | Vue 3.5+, TypeScript 5.5+, Vite 5.4, Ant Design Vue 4.2 |
-| **Public Website** | Nuxt 3.10+, Vue 3.5+, TypeScript 5.5+, SSR ready |
+| **Admin Panel** | Vue 3.5+, TypeScript 5.5+, Vite 8.2, Ant Design Vue 4.2 |
+| **Public Website** | Nuxt 3.21+, Vue 3.5+, TypeScript 5.5+, SSR ready |
 | **CSS** | Tailwind CSS 4.2 with CSS Variables |
 | **Database** | MariaDB 10.11+ (primary, open-source); MySQL 8.0+ compatible |
 | **ORM** | Prisma 5.18 (78 models) + Drizzle 0.45 (18 module schemas) |
@@ -298,8 +298,9 @@ For dev, `npm run dev` uses **tsx watch** (~2s cold restart). The legacy nodemon
 | **Build** | Turbo v2.0 (orchestration), Vite 5.4, Nuxt 3.10 |
 | **Auth** | JWT with refresh tokens, 2FA/TOTP, API keys |
 | **Real-time** | WebSocket (ws) with JWT auth |
-| **Testing** | Jest 29 (backend ESM), Vitest 2.1 (frontend), Playwright 1.40 (E2E) |
+| **Testing** | Jest 29 (backend ESM), Vitest 4.1 (frontend), Playwright 1.40 (E2E) |
 | **Security** | Helmet 7.1, express-rate-limit 7.1, CORS, IP access control |
+| **Audit** | `npm audit` across all 3 projects: 0 critical vulns (website), resolved 70+ moderate/high across backend/admin |
 
 ---
 
