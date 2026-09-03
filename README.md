@@ -238,7 +238,18 @@ node packages/create-lume-app/bin/create-lume-app.js grants \
 cd backend && node src/scripts/setupDrizzle.js   # create tables
 ```
 
-The module loader discovers the new directory automatically (manifest, Drizzle schema, auth API routes, admin list view included). See `docs/roadmap/ENTERPRISE_PARITY_ROADMAP.md` for the TwentyHQ/Huly/ServiceNow/Salesforce parity roadmap driving current development.
+The module loader discovers the new directory automatically (manifest, Drizzle schema, auth API routes, admin list view included). Start from a template pack:
+
+```bash
+node packages/create-lume-app/bin/create-lume-app.js deals --template crm-pipeline
+# packs: crm-pipeline, ats, helpdesk (--list-templates to browse)
+```
+
+AI assistants can drive your workspace through the MCP server (`packages/lume-mcp` — entities, schema graph, records over stdio; see its README for Claude Desktop config).
+
+Automation APIs accept `model`, `model_name`, and `entity_type` interchangeably on workflows, flows, rules, approvals, validation/assignment rules (create + update).
+
+See `docs/roadmap/ENTERPRISE_PARITY_ROADMAP.md` for the TwentyHQ/Huly/ServiceNow/Salesforce parity roadmap driving current development.
 
 ### Pre-Commit Sanity Check
 

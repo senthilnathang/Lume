@@ -14,12 +14,12 @@ Benchmarks: Twenty (open CRM, table/kanban/calendar + saved views + `defineObjec
 - [x] P0-1e `custom-views.vue` designer polish (`ViewConfigDesigner.vue`: display/filters/sort + kanban/calendar/chart sections, Visual/JSON toggle, same-JSON compat)
 - [x] P0-2a Visual Form Builder (`FormLayoutDesigner.vue`: palette/canvas/inspector, DnD reorder, sections, `visibleIf` rules, Visual/JSON toggle, same-JSON compat)
 - [x] P0-2b Block manifest (`block-manifest.js`: 14 blocks, targets/formFactors/props) + palette driven by manifest + device (desktop/phone) + profile preview + phone-constrained preview
-- [ ] P0-2c `record-page-builder.vue` (highlights/path/related-list on record pages)
+- [x] P0-2c `record-page-builder.vue` (highlights/path/related-list composer, live preview, localStorage autosave, JSON export/import; `/settings/customization/record-pages`)
 - [ ] P0-3 Security hardening follow-ups (done: fail-closed JWT, weak-secret check, /metrics gate — see below)
 - [ ] P1-1 Enterprise entity builder (composite fields, ERD, formula/rollup)
 - [ ] P1-2 Enforce profiles/OWD/sharing/field-security in query builder
 - [ ] P1-3 UX polish (Cmd+K, skeletons, dynamic interactions, theming)
-- [ ] P2-1 DX + AI (create-lume-app, MCP server, template gallery)
+- [x] P2-1 DX + AI (create-lume-app + template gallery + MCP server done; Build Agent prompt flow remaining)
 
 ## P0-1 Dynamic Views parity [high]
 **Gap:** `ModuleView.vue` (1353 lines, list-table only), `custom-views.vue` is CRUD list, no inline designer. Twenty has table/kanban/calendar/grouped-table/widgets + per-view filters AND/OR + sort + group + resizable/reorderable columns.

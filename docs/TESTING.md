@@ -70,6 +70,7 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 | Permission Merge | `permission-merge.test.js` | 3 | Role ∪ grants, inactive-role deny, cache invalidation |
 | Field Validation | `field-validation.test.js` | 7 | Rule engine + unique enforcement on create/update |
 | Refresh Reuse | `refresh-reuse.test.js` | 3 | Rotation, replay revokes family, forged tokens ignored |
+| Model Aliases | `model-alias.test.js` | 2 | Automation model/model_name/entity_type normalization |
 
 Run the parity set:
 
@@ -84,6 +85,12 @@ Known pre-existing failures (not regressions): 2 in `view-store.test.js`
 
 ```bash
 node --test packages/create-lume-app/test/generate.test.js
+```
+
+### MCP Server Tests (node:test, no Jest)
+
+```bash
+node --test packages/lume-mcp/test/server.test.js
 ```
 
 ### Configuration

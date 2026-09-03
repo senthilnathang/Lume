@@ -8,6 +8,7 @@ import { ApprovalAnalyticsService } from '../services/approval-analytics.js';
 import createAutomationModels from '../models/index.js';
 import SettingService from '../../settings/setting.service.js';
 import createNotificationRoutes from './notification.routes.js';
+import { resolveModel, stripAliases } from './model-alias.js';
 
 let automationServiceInstance = null;
 let analyticsServiceInstance = null;
@@ -159,16 +160,6 @@ const createRoutes = (models, services) => {
       res.status(500).json({ success: false, error: error.message });
     }
   });
-
-  const resolveModel = (body) => {
-    const { model, model_name, entity_type } = body || {};
-    return model || model_name || entity_type || null;
-  };
-
-  const stripAliases = (body) => {
-    const { model_name: _modelName, entity_type: _entityType, ...rest } = body || {};
-    return rest;
-  };
 
   router.post('/flows', async (req, res) => {
     try {

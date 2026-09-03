@@ -118,7 +118,14 @@ cd backend && node src/scripts/setupDrizzle.js
 
 Generates manifest, Drizzle schema, service, authenticated API routes, and an
 admin list view with create form (11 files). The module loader picks the new
-directory up automatically — no registry edits.
+directory up automatically — no registry edits. Use `--template crm-pipeline`
+(or `ats`, `helpdesk`) for staged pipeline fields, or inline select options
+with `priority:select:low|medium|high|urgent`.
+
+Record pages (highlights/path/details/related lists) are composed per entity
+in the admin panel at `/settings/customization/record-pages` with live
+preview; entity relationships are visualized at `/settings/customization/schema`
+(drag a node grip onto another entity to create lookup/master-detail fields).
 
 ### Metadata-Driven Approach (defineModule and defineEntity)
 
