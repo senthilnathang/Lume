@@ -40,7 +40,7 @@ export function parseFields(specs) {
     return fallback;
   }
   return specs.map((spec) => {
-    const [rawName, rawType] = String(spec).split(':');
+    const [rawName, rawType, rawOptions] = String(spec).split(':');
     const name = slugify(rawName) || 'field';
     const type = Object.keys(DRIZZLE).includes((rawType || 'text').toLowerCase())
       ? rawType.toLowerCase()
@@ -48,7 +48,8 @@ export function parseFields(specs) {
     const label = rawName.trim().replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
     const field = { name, label, type };
     if (type === 'select') {
-      field.options = ['new', 'active', 'done'];
+      const custom = String(rawOptions || '').split('|').map((s) => s.trim()).filter(Boolean);
+      field.options = custom.length ? custom : ['new', 'active', 'done'];
     }
     return field;
   });

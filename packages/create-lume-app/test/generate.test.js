@@ -5,6 +5,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { planModule, buildModuleFiles, writeModule } from '../src/generate.js';
+import { listTemplates, getTemplate } from '../src/templates.js';
 
 describe('create-lume-app', () => {
   it('plans technical names, titles, and fields', () => {
@@ -21,6 +22,25 @@ describe('create-lume-app', () => {
 
   it('rejects empty names', () => {
     assert.throws(() => planModule({ name: '!!!' }), /letters or numbers/);
+  });
+
+  it('lists three template packs', () => {
+    const names = listTemplates().map((t) => t.name).sort();
+    assert.deepEqual(names, ['ats', 'crm-pipeline', 'helpdesk']);
+  });
+
+  it('scaffolds from a template with staged options', () => {
+    const plan = planModule({ name: 'deals', template: 'crm-pipeline' });
+    assert.equal(plan.title, 'Deal Pipeline');
+    const stage = plan.fields.find((f) => f.name === 'stage');
+    assert.deepEqual(stage.options, ['new', 'qualified', 'proposal', 'negotiation', 'won', 'lost']);
+    assert.throws(() => planModule({ name: 'x', template: 'nope' }), /Unknown template/);
+  });
+
+  it('parses inline select options from field specs', () => {
+    const plan = planModule({ name: 't', fieldSpecs: ['priority:select:low|high'] });
+    assert.deepEqual(plan.fields[0].options, ['low', 'high']);
+    assert.equal(getTemplate('ATS').label, 'Applicant Tracking');
   });
 
   it('writes a complete module that imports cleanly', async () => {

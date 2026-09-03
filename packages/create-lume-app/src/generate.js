@@ -1,17 +1,30 @@
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { slugify, parseFields, drizzleColumn, formInputType } from './field-map.js';
+import { getTemplate } from './templates.js';
 
-export function planModule({ name, label, fieldSpecs = [] }) {
+export function planModule({ name, label, fieldSpecs = [], template = null } = {}) {
   const technicalName = slugify(name);
   if (!technicalName) {
     throw new Error('Module name must contain letters or numbers');
   }
-  const title = (label || name).trim().replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  let effectiveLabel = label;
+  let effectiveSpecs = fieldSpecs;
+  if (template) {
+    const pack = getTemplate(template);
+    if (!pack) {
+      throw new Error(`Unknown template: ${template}`);
+    }
+    effectiveLabel = effectiveLabel || pack.label;
+    if (!effectiveSpecs.length) {
+      effectiveSpecs = pack.fields;
+    }
+  }
+  const title = (effectiveLabel || name).trim().replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   const className = technicalName.replace(/(^|_)([a-z])/g, (_, __, c) => c.toUpperCase());
   const tableName = technicalName;
-  const fields = parseFields(fieldSpecs);
-  return { technicalName, title, className, tableName, fields };
+  const fields = parseFields(effectiveSpecs);
+  return { technicalName, title, className, tableName, fields, template: template || null };
 }
 
 export function buildModuleFiles(plan) {
