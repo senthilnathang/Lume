@@ -46,48 +46,52 @@ const createEntityViewsRoutes = () => {
       });
 
       let columns = [];
+      let kanban = null;
+      let calendar = null;
+      const parseOptions = (f) => {
+        try {
+          if (!f?.selectOptions) return [];
+          const p = typeof f.selectOptions === 'string' ? JSON.parse(f.selectOptions) : f.selectOptions;
+          return Array.isArray(p) ? p : [];
+        } catch { return []; }
+      };
 
-      if (view.type === 'list') {
+      if (view.type === 'list' || view.type === 'table') {
         const columnNames = config.columns || fields.map(f => f.name).slice(0, 5);
         columns = columnNames.map(name => {
-          const field = fieldMap[name];
+          const n = name?.name || name;
+          const field = fieldMap[n];
           if (!field) return null;
-          return {
-            name,
-            label: field.label || name,
-            type: field.type,
-            width: config.columnWidths?.[name] || 150,
-            sortable: true,
-            filterable: true
-          };
+          return { name: n, label: field.label || n, type: field.type, width: config.columnWidths?.[n] || 150, sortable: true, filterable: true };
         }).filter(Boolean);
-      } else if (view.type === 'grid') {
-        columns = fields.map(f => ({
-          name: f.name,
-          label: f.label,
-          type: f.type
-        }));
+      } else if (view.type === 'kanban' || view.type === 'board') {
+        const kcfg = config.kanban || {};
+        const colField = fields.find(f => f.name === (kcfg.columnField || config.columnField))
+          || fields.find(f => ['select', 'multi-select'].includes(f.type));
+        const opts = parseOptions(colField).map(o => (typeof o === 'string' ? o : o.value ?? o.label));
+        const ordered = Array.isArray(kcfg.columnOrder) && kcfg.columnOrder.length > 0 ? kcfg.columnOrder : opts;
+        kanban = { columnField: colField?.name || null, columnFieldLabel: colField?.label || null, columns: ordered, columnWidths: kcfg.columnWidths || {}, showNoValue: kcfg.showNoValue ?? true };
+        columns = (config.visibleFields || ['id']).map(n => fieldMap[n] ? { name: n, label: fieldMap[n].label, type: fieldMap[n].type } : null).filter(Boolean);
+      } else if (view.type === 'calendar') {
+        const ccfg = config.calendar || {};
+        const dateField = fields.find(f => f.name === (ccfg.dateField || config.dateField)) || fields.find(f => ['date', 'datetime'].includes(f.type));
+        calendar = { dateField: dateField?.name || null, endField: ccfg.endField || config.endField || null };
+        columns = fields.slice(0, 5).map(f => ({ name: f.name, label: f.label, type: f.type }));
+      } else if (view.type === 'grid' || view.type === 'gallery') {
+        columns = fields.map(f => ({ name: f.name, label: f.label, type: f.type }));
       } else if (view.type === 'form') {
-        columns = fields.map(f => ({
-          name: f.name,
-          label: f.label,
-          type: f.type,
-          required: f.required,
-          helpText: f.helpText
-        }));
+        columns = fields.map(f => ({ name: f.name, label: f.label, type: f.type, required: f.required, helpText: f.helpText }));
       }
 
       res.json({
         success: true,
         data: {
-          id: view.id,
-          name: view.name,
-          type: view.type,
-          isDefault: view.isDefault,
-          columns,
+          id: view.id, name: view.name, type: view.type, isDefault: view.isDefault, columns,
           pageSize: config.pageSize || 20,
-          defaultSort: config.defaultSort || [{ field: 'createdAt', direction: 'desc' }],
-          filters: config.filters || []
+          defaultSort: config.defaultSort || config.sortBy || [{ field: 'createdAt', direction: 'desc' }],
+          filters: config.filters || [], groupBy: config.groupBy || null,
+          visibleFields: config.visibleFields || [], kanban, calendar,
+          visibility: config.visibility || { profiles: [], recordTypes: [], devices: [] }
         }
       });
     } catch (error) {

@@ -16,3 +16,5 @@ export { useToast } from './useToast';
 export { useColumnSettings } from './useColumnSettings';
 export type { Column } from './useColumnSettings';
 export { useWebSocket } from './useWebSocket';
+export { useDynamicInteractions, emitInteraction, onInteraction } from './useDynamicInteractions';
+export type { InteractionEvent } from './useDynamicInteractions';

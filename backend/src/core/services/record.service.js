@@ -41,6 +41,8 @@
  *   const restored = await recordService.restoreRecord(123, 5);
  */
 
+import ValidationRules from './field-validation.service.js';
+
 // Field type validators
 const FIELD_TYPE_VALIDATORS = {
   text: (value) => typeof value === 'string',
@@ -55,6 +57,21 @@ const FIELD_TYPE_VALIDATORS = {
   'rich-text': (value) => typeof value === 'string' || typeof value === 'object',
   url: (value) => typeof value === 'string' && /^https?:\/\//.test(value),
   color: (value) => typeof value === 'string' && /^#[0-9A-Fa-f]{6}$/.test(value),
+  currency: (value) => typeof value === 'number' && !isNaN(value)
+    || (typeof value === 'object' && value !== null && typeof value.amount === 'number' && !isNaN(value.amount)),
+  address: (value) => typeof value === 'string'
+    || (typeof value === 'object' && value !== null && ['street', 'city', 'country'].some(k => typeof value[k] === 'string')),
+  fullname: (value) => typeof value === 'string'
+    || (typeof value === 'object' && value !== null && (typeof value.first === 'string' || typeof value.last === 'string')),
+  file: (value) => typeof value === 'string'
+    || (typeof value === 'object' && value !== null && typeof value.url === 'string'),
+  signature: (value) => typeof value === 'string' && /^(data:image\/[a-zA-Z+]+;base64,|https?:\/\/)/.test(value),
+  lookup: (value) => typeof value === 'number' && Number.isInteger(value)
+    || typeof value === 'string' && value !== ''
+    || (typeof value === 'object' && value !== null && (typeof value.id === 'number' || typeof value.id === 'string')),
+  'master-detail': (value) => typeof value === 'number' && Number.isInteger(value)
+    || typeof value === 'string' && value !== ''
+    || (typeof value === 'object' && value !== null && (typeof value.id === 'number' || typeof value.id === 'string')),
 };
 
 export class RecordService {
@@ -121,12 +138,23 @@ export class RecordService {
    */
   validateRecord(fields, data) {
     const errors = {};
+    for (const field of fields) {
+      if (Object.prototype.hasOwnProperty.call(data, field.name)) {
+        const ruleError = ValidationRules.applyRules(field, data[field.name]);
+        if (ruleError) {
+          errors[field.name] = ruleError;
+        }
+      }
+    }
 
     // Check required fields. Use Object.prototype.hasOwnProperty.call —
     // safer than data.hasOwnProperty since `data` is user-supplied and may
     // not inherit from Object.prototype, or may have overridden the method.
+    // Formula fields are server-computed, so they are exempt from the
+    // required check — a missing value means the expression needs attention,
+    // not that the client must supply the value.
     for (const field of fields) {
-      if (field.required && (!Object.prototype.hasOwnProperty.call(data, field.name) || data[field.name] === null || data[field.name] === '')) {
+      if (field.required && !field.formulaExpression && (!Object.prototype.hasOwnProperty.call(data, field.name) || data[field.name] === null || data[field.name] === '')) {
         errors[field.name] = `${field.label || field.name} is required`;
       }
     }
@@ -172,7 +200,7 @@ export class RecordService {
     // Get entity schema
     const schema = await this.getEntitySchema(entityId);
 
-    // Validate data
+    // Validate client-supplied data (formula fields are computed below)
     const validation = this.validateRecord(schema.fields, data);
     if (!validation.valid) {
       const err = new Error('Record validation failed');
@@ -180,13 +208,21 @@ export class RecordService {
       throw err;
     }
 
+    // Materialize server-computed formula fields (client values never trusted)
+    const { computeFormulaFields } = await import('./formula.service.js');
+    const finalData = computeFormulaFields(schema.fields, data);
+
+    await this.assertUnique(schema.fields, finalData, entityId, companyId, null);
+
+    const visibility = await this.accessControl.resolveRecordVisibility(entityId, data.visibility);
+
     // Create record
     const record = await this.prisma.entityRecord.create({
       data: {
         entityId,
-        data: JSON.stringify(data),
+        data: JSON.stringify(finalData),
         companyId,
-        visibility: 'private',
+        visibility,
         createdBy: 1, // Default system user
       },
     });
@@ -308,19 +344,25 @@ export class RecordService {
       ...data,
     };
 
+    // Recompute formula fields from the merged inputs
+    const { computeFormulaFields } = await import('./formula.service.js');
+    const finalData = computeFormulaFields(schema.fields, mergedData);
+
     // Validate merged data
-    const validation = this.validateRecord(schema.fields, mergedData);
+    const validation = this.validateRecord(schema.fields, finalData);
     if (!validation.valid) {
       const err = new Error('Record validation failed');
       err.errors = validation.errors;
       throw err;
     }
 
+    await this.assertUnique(schema.fields, finalData, existingRecord.entityId, companyId, recordId);
+
     // Update record
     const updated = await this.prisma.entityRecord.update({
       where: { id: recordId },
       data: {
-        data: JSON.stringify(mergedData),
+        data: JSON.stringify(finalData),
         updatedAt: new Date(),
       },
     });
@@ -329,6 +371,30 @@ export class RecordService {
       ...updated,
       data: JSON.parse(updated.data),
     };
+  }
+
+  async assertUnique(fields, data, entityId, companyId, excludeId) {
+    const uniqueFields = (fields || []).filter((f) => ValidationRules.requiresUnique(f));
+    if (!uniqueFields.length) {
+      return;
+    }
+    const errors = {};
+    const findRecords = (id) => this.prisma.entityRecord.findMany({
+      where: { entityId: id, companyId, deletedAt: null },
+    });
+    for (const field of uniqueFields) {
+      const conflict = await ValidationRules.findUniqueConflict(
+        findRecords, entityId, field, data[field.name], excludeId
+      );
+      if (conflict) {
+        errors[field.name] = `${field.label || field.name} must be unique`;
+      }
+    }
+    if (Object.keys(errors).length > 0) {
+      const err = new Error('Record validation failed');
+      err.errors = errors;
+      throw err;
+    }
   }
 
   /**
@@ -354,6 +420,9 @@ export class RecordService {
         },
       });
 
+      const { cascadeDeleteRecords } = await import('./cascade.service.js');
+      await cascadeDeleteRecords(this.prisma, updated.entityId, recordId, { soft: true });
+
       return {
         ...updated,
         data: JSON.parse(updated.data),
@@ -363,6 +432,9 @@ export class RecordService {
       const deleted = await this.prisma.entityRecord.delete({
         where: { id: recordId },
       });
+
+      const { cascadeDeleteRecords } = await import('./cascade.service.js');
+      await cascadeDeleteRecords(this.prisma, deleted.entityId, recordId, { soft: false });
 
       return {
         ...deleted,

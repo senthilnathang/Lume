@@ -32,15 +32,22 @@ const categoryService = new CategoryService();
 const tagService = new TagService();
 
 // Multer config for file uploads (memory storage for sharp processing)
+// Explicit MIME allowlist: broad `application/*` would admit executables and
+// script-bearing SVG payloads. 10 MB per file; batch endpoints cap counts below.
+const UPLOAD_ALLOWLIST = new Set([
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml',
+  'video/mp4', 'video/webm', 'audio/mpeg', 'audio/wav', 'audio/ogg',
+  'application/pdf', 'application/zip',
+  'font/woff', 'font/woff2', 'application/font-woff', 'application/font-woff2', 'font/ttf', 'font/otf',
+]);
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760') },
   fileFilter: (req, file, cb) => {
-    const allowed = /^(image|video|audio|application)\//;
-    if (allowed.test(file.mimetype)) {
+    if (UPLOAD_ALLOWLIST.has(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('File type not allowed'), false);
+      cb(new Error(`File type not allowed: ${file.mimetype}`), false);
     }
   },
 });
@@ -1024,7 +1031,7 @@ router.post('/icons/upload', authenticate, upload.single('file'), async (req, re
   }
 });
 
-router.post('/icons/upload-multiple', authenticate, upload.array('files', 50), async (req, res) => {
+  router.post('/icons/upload-multiple', authenticate, upload.array('files', 20), async (req, res) => {
   try {
     if (!req.files?.length) return res.status(400).json(responseUtil.error('No files provided'));
     const result = await iconService.uploadMultipleIcons(req.files);

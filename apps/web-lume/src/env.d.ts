@@ -1,5 +1,13 @@
 /// <reference types="vite/client" />
 
+// DataTable.vue is a plain-JS SFC (no lang="ts"), so vue-tsc cannot infer
+// its type. Targeted shim keeps imports working without weakening other SFCs.
+declare module '*/DataTable.vue' {
+  import type { DefineComponent } from 'vue';
+  const component: DefineComponent<Record<string, unknown>, Record<string, unknown>, unknown>;
+  export default component;
+}
+
 // Ambient module declarations for packages used in backend module views.
 // These files live outside the frontend's node_modules tree, so TypeScript
 // can't resolve bare specifiers from their directory. We re-declare them here.

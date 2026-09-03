@@ -252,11 +252,12 @@ export class UserService {
     const userRole = await prisma.role.findUnique({ where: { id: user.role_id } });
     const roleName = userRole?.name || 'viewer';
 
-    // Generate tokens
+    // Generate tokens (role_id enables field-level policy enforcement)
     const token = jwtUtil.generateToken({
       id: user.id,
       email: user.email,
-      role: roleName
+      role: roleName,
+      role_id: user.role_id
     });
 
     const refreshToken = jwtUtil.generateRefreshToken(user.id);
@@ -350,7 +351,8 @@ export class UserService {
     const token = jwtUtil.generateToken({
       id: user.id,
       email: user.email,
-      role: roleName
+      role: roleName,
+      role_id: user.role_id
     });
 
     const refreshToken = jwtUtil.generateRefreshToken(user.id);

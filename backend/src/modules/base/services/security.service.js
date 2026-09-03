@@ -5,34 +5,66 @@
 
 import prisma from '../../../core/db/prisma.js';
 
+const EFFECTIVE_PERMISSIONS_TTL_MS = 60 * 1000;
+
 export class SecurityService {
-  constructor(models) {
+  constructor(models, db = prisma) {
     this.models = models;
+    this.db = db;
     this.permissionCache = new Map();
     this.recordRuleCache = new Map();
+  }
+
+  async getDirectGrants(userId) {
+    try {
+      const row = await this.db.setting.findFirst({ where: { key: `permsets.user.${userId}` } });
+      const raw = row?.value;
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return Array.isArray(parsed) ? parsed.filter((p) => typeof p === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getEffectivePermissions(userId) {
+    const cached = this.permissionCache.get(userId);
+    if (cached && Date.now() - cached.at < EFFECTIVE_PERMISSIONS_TTL_MS) {
+      return cached.permissions;
+    }
+    const permissions = await this.computeEffectivePermissions(userId);
+    this.permissionCache.set(userId, { permissions, at: Date.now() });
+    return permissions;
+  }
+
+  async computeEffectivePermissions(userId) {
+    const user = await this.db.user.findUnique({ where: { id: userId } });
+    if (!user) return [];
+
+    const role = await this.db.role.findUnique({ where: { id: user.role_id } });
+    if (!role) return [];
+    if (role.name === 'admin' || role.name === 'super_admin') {
+      const allPerms = await this.db.permission.findMany({ where: { isActive: true } });
+      return allPerms.map((p) => p.name);
+    }
+    if (!role.isActive) return [];
+
+    const rolePermissions = await this.db.rolePermission.findMany({
+      where: { roleId: role.id },
+      include: { permission: { select: { name: true } } },
+    });
+    const merged = new Set(rolePermissions.map((rp) => rp.permission.name));
+    for (const grant of await this.getDirectGrants(userId)) {
+      merged.add(grant);
+    }
+    return [...merged];
   }
 
   /**
    * Check if user has a specific permission
    */
   async checkPermission(userId, permissionName) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return false;
-
-    // Look up role by FK
-    const role = await prisma.role.findUnique({ where: { id: user.role_id } });
-    if (!role) return false;
-    if (role.name === 'admin' || role.name === 'super_admin') return true;
-    if (!role.isActive) return false;
-
-    const hasPermission = await prisma.rolePermission.findFirst({
-      where: {
-        roleId: role.id,
-        permission: { name: permissionName },
-      },
-    });
-
-    return !!hasPermission;
+    const permissions = await this.getEffectivePermissions(userId);
+    return permissions.includes(permissionName);
   }
 
   /**
@@ -63,24 +95,7 @@ export class SecurityService {
    * Get all permissions for a user
    */
   async getUserPermissions(userId) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return [];
-
-    // Look up role by FK
-    const role = await prisma.role.findUnique({ where: { id: user.role_id } });
-    if (!role) return [];
-    if (role.name === 'admin' || role.name === 'super_admin') {
-      const allPerms = await prisma.permission.findMany({ where: { isActive: true } });
-      return allPerms.map(p => p.name);
-    }
-    if (!role.isActive) return [];
-
-    const rolePermissions = await prisma.rolePermission.findMany({
-      where: { roleId: role.id },
-      include: { permission: { select: { name: true } } },
-    });
-
-    return rolePermissions.map(rp => rp.permission.name);
+    return this.getEffectivePermissions(userId);
   }
 
   /**

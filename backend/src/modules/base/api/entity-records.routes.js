@@ -26,9 +26,14 @@ const createEntityRecordsRoutes = () => {
   const recordService = new RecordService(prisma);
   const relationshipService = new RelationshipService(prisma);
 
-  // Middleware to extract companyId from request
+  // Middleware to extract companyId and row-policy context from request
   router.use((req, res, next) => {
     req.companyId = req.user?.companyId || 1;
+    req.rowPolicy = {
+      roleId: req.user?.role_id,
+      userId: req.user?.id,
+      isPrivileged: req.user?.role === 'super_admin',
+    };
     next();
   });
 
@@ -43,7 +48,8 @@ const createEntityRecordsRoutes = () => {
         entityId,
         req.body,
         companyId,
-        userId
+        userId,
+        { ...req.rowPolicy }
       );
 
       res.status(201).json({
@@ -100,7 +106,8 @@ const createEntityRecordsRoutes = () => {
         page,
         limit,
         filters,
-        sort
+        sort,
+        ...req.rowPolicy
       });
 
       res.json({
@@ -122,7 +129,7 @@ const createEntityRecordsRoutes = () => {
       const recordId = parseInt(req.params.recordId);
       const companyId = req.companyId;
 
-      const record = await recordService.getRecord(recordId, companyId);
+      const record = await recordService.getRecord(recordId, companyId, { ...req.rowPolicy });
 
       if (!record) {
         return res.status(404).json({
@@ -149,7 +156,7 @@ const createEntityRecordsRoutes = () => {
       const recordId = parseInt(req.params.recordId);
       const companyId = req.companyId;
 
-      const record = await recordService.updateRecord(recordId, req.body, companyId);
+      const record = await recordService.updateRecord(recordId, req.body, companyId, { ...req.rowPolicy });
 
       if (!record) {
         return res.status(404).json({
@@ -186,7 +193,7 @@ const createEntityRecordsRoutes = () => {
       const companyId = req.companyId;
       const softDelete = req.query.hard !== 'true';
 
-      const deleted = await recordService.deleteRecord(recordId, softDelete, companyId);
+      const deleted = await recordService.deleteRecord(recordId, softDelete, companyId, { ...req.rowPolicy });
 
       if (!deleted) {
         return res.status(404).json({

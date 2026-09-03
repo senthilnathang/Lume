@@ -1,0 +1,11 @@
+{
+  "name": "create-lume-app",
+  "version": "0.1.0",
+  "description": "Scaffold a new Lume entity module (manifest, Drizzle schema, API, admin view)",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-lume-app": "./bin/create-lume-app.js"
+  },
+  "files": ["bin", "src", "README.md"]
+}

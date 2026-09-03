@@ -8,9 +8,10 @@ set -euo pipefail
 # ============== Configuration ==============
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$SCRIPT_DIR/backend"
-FRONTEND_DIR="$SCRIPT_DIR/frontend"
-WEB_LUME_DIR="$SCRIPT_DIR/frontend/apps/web-lume"
-WEBSITE_DIR="$SCRIPT_DIR/frontend/apps/riagri-website"
+# Frontend apps are at /opt/Lume/apps/ not /opt/Lume/frontend/apps/
+FRONTEND_DIR="$SCRIPT_DIR/apps"
+WEB_LUME_DIR="$SCRIPT_DIR/apps/web-lume"
+WEBSITE_DIR="$SCRIPT_DIR/apps/riagri-website"
 LOG_DIR="$SCRIPT_DIR/logs"
 
 # Default ports

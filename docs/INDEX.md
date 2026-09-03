@@ -33,6 +33,9 @@ Core system design and technical specifications.
 ### Code Quality (v2.1+)
 - **[CODE_QUALITY.md](CODE_QUALITY.md)** — Lint + typecheck debt baseline (May 2026, post-v2.0). Cleanup roadmap in 4 phases.
 
+### Enterprise Parity Roadmap (Sept 2026)
+- **[roadmap/ENTERPRISE_PARITY_ROADMAP.md](roadmap/ENTERPRISE_PARITY_ROADMAP.md)** — TwentyHQ/Huly/ServiceNow/Salesforce comparison with P0/P1/P2 checkboxes, files touched, and acceptance criteria. All P0 + most P1 complete; tracked alongside the session todo list.
+
 ### Deployment & Release
 Production deployment, launch planning, and public release strategy.
 

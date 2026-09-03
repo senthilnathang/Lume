@@ -38,6 +38,50 @@ export class AccessControlService {
     return query;
   }
 
+  static VALID_VISIBILITY = ['private', 'company', 'public'];
+
+  async getEntityDefaultVisibility(entityId) {
+    if (!this.prisma || !this.prisma.setting) {
+      return 'private';
+    }
+    try {
+      const row = await this.prisma.setting.findFirst({
+        where: { key: `owd.entity.${entityId}` },
+      });
+      const value = typeof row?.value === 'string' ? row.value.trim().toLowerCase() : '';
+      return AccessControlService.VALID_VISIBILITY.includes(value) ? value : 'private';
+    } catch {
+      return 'private';
+    }
+  }
+
+  async resolveRecordVisibility(entityId, requested) {
+    const clean = typeof requested === 'string' ? requested.trim().toLowerCase() : '';
+    if (AccessControlService.VALID_VISIBILITY.includes(clean)) {
+      return clean;
+    }
+    return this.getEntityDefaultVisibility(entityId);
+  }
+
+  buildRecordScope({ companyId, userId, isPrivileged = false, extra = {} } = {}) {
+    const where = { ...extra };
+    if (companyId !== undefined && companyId !== null) {
+      where.companyId = companyId;
+    }
+    if (!isPrivileged && userId !== undefined && userId !== null) {
+      where.AND = [
+        {
+          OR: [
+            { visibility: { not: 'private' } },
+            { visibility: null },
+            { createdBy: userId },
+          ],
+        },
+      ];
+    }
+    return where;
+  }
+
   /**
    * Filter a record to only include allowed fields
    *

@@ -56,6 +56,35 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 
 **Total: 591 tests across 9 suites** (as of P2-1, May 2026).
 
+### Entity Parity Suites (Sept 2026)
+
+| Suite | File | Tests | Description |
+|-------|------|-------|-------------|
+| Formula Service | `formula.service.test.js` | 10 | Safe evaluator: arithmetic, refs, strings, IF, helpers, injection rejection |
+| Record Policy | `entity-record-policy.test.js` | 3 | Field-policy strip/drop, formula overwrite, default-allow |
+| Field Types | `entity-field-types.test.js` | 3 | Composite/relational validators (currency/address/fullname/file/signature/lookup) |
+| Relations | `entity-relations.test.js` | 3 | Lookup field creation, target validation, formula persistence |
+| Cascade | `cascade.service.test.js` | 5 | Master-detail soft/hard cascade, cycles, base deleteRecord |
+| Row Policy | `row-policy.test.js` | 6 | Visibility scoping on get/list/update/delete, OWD mirror |
+| OWD Visibility | `owd-visibility.test.js` | 3 | Default merge, explicit-wins, invalid fail-closed |
+| Permission Merge | `permission-merge.test.js` | 3 | Role ∪ grants, inactive-role deny, cache invalidation |
+| Field Validation | `field-validation.test.js` | 7 | Rule engine + unique enforcement on create/update |
+
+Run the parity set:
+
+```bash
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/unit/formula.service.test.js tests/unit/entity-record-policy.test.js tests/unit/entity-field-types.test.js tests/unit/entity-relations.test.js tests/unit/cascade.service.test.js tests/unit/row-policy.test.js tests/unit/owd-visibility.test.js tests/unit/permission-merge.test.js tests/unit/field-validation.test.js --forceExit
+```
+
+Known pre-existing failures (not regressions): 2 in `view-store.test.js`
+(update-definition expectations), present on the clean tree.
+
+### Scaffolder Tests (node:test, no Jest)
+
+```bash
+node --test packages/create-lume-app/test/generate.test.js
+```
+
 ### Configuration
 
 Jest configuration is in `backend/jest.config.cjs`:

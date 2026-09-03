@@ -653,6 +653,45 @@ super_admin    ← Full system access, bypasses all checks
           └── guest ← Minimal read-only access
 ```
 
+### Entity Record Enforcement (2026-09)
+
+Beyond route-level `authorize()`, entity records enforce data-level policies:
+
+```
+RecordService.create/update/get/list
+    │
+    ├── Field policies  → EntityFieldPermission rows per role (default-allow
+    │   when unconfigured); unreadable stripped on read, unwritable dropped
+    │   on write; formula fields always server-recomputed
+    ├── Row visibility  → private (owner-only) / company / public merged with
+    │   org-wide defaults (owd.entity.<id> setting, default private);
+    │   super_admin bypasses; company boundary always enforced
+    ├── Validation      → regex / min / max / minLength / maxLength / unique
+    │   rules from field.validation JSON (+ unique flag), enforced both paths
+    ├── Formulas        → formula.service.js safe evaluator ({refs}, arithmetic,
+    │   comparisons, CONCAT/UPPER/IF/…); no eval; materialized on write
+    └── Cascade         → cascade.service.js deletes owned master-detail
+        children (recursive, cycle-safe) on record delete
+```
+
+Effective API permissions merge role grants with per-user permission sets
+(`SecurityService.getEffectivePermissions`, 60s TTL cache, inactive roles
+deny everything): `permsets.user.<id>` settings extend the role baseline.
+
+### Dynamic Views & Builders (2026-09)
+
+- `ViewRendererService` returns table/kanban/calendar/gallery metadata
+  (filters, sort, groupBy, kanban column config, visibility) consumed by
+  `EntityViewRenderer.vue` + `KanbanBoard.vue` (drag cards/columns, No-Value
+  column, persisted widths, PUT-move).
+- Visual builders (`base_customization/static/components/`): block manifest
+  with targets/formFactors, `FormLayoutDesigner` (palette/canvas/inspector,
+  visibility rules, validation rules, device + profile preview),
+  `ViewConfigDesigner` (display/filters/sort + per-type sections), and the
+  `schema-erd.vue` canvas (depth-layered graph + drag-to-relate).
+- `useDynamicInteractions` event bus keeps views in sync
+  (`record:created/updated/deleted`); first-load skeletons replace spinners.
+
 ---
 
 ## Real-Time Layer

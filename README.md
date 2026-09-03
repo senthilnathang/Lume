@@ -152,10 +152,13 @@ npm install
 ```bash
 # backend/.env
 DATABASE_URL="mysql://user:password@localhost:3306/lume"
-JWT_SECRET="your-secure-secret-here"
-JWT_REFRESH_SECRET="your-refresh-secret-here"
+JWT_SECRET="at-least-32-chars-please-change-me"
+JWT_REFRESH_SECRET="another-32-char-secret-change-me"
+JWT_EXPIRES_IN=1h                 # short-lived access + 30d rotating refresh
 PORT=3000
 NODE_ENV=development
+# STRICT_AUTH=true                # deny-by-default for /api/* without credentials
+# METRICS_TOKEN="..."             # required Bearer token for /metrics in prod
 
 # Performance defaults (config-only — flip back only when diagnosing)
 DB_LOGGING=false                     # Prisma SQL echo off
@@ -187,6 +190,15 @@ node src/scripts/seedData.js               # sample content
 
 ### 4. Start Development Servers
 
+Single command for backend + admin panel (recommended):
+
+```bash
+npm run dev:admin
+# → Backend http://localhost:3000, Admin http://localhost:5173 (or :3001 fallback)
+```
+
+Or all three servers (`npm run dev`), or individually:
+
 ```bash
 # Terminal 1: Backend (Express 4 + Prisma + Drizzle)
 cd backend
@@ -216,6 +228,17 @@ npm run dev
 - Open to test pages, menus, and CMS content rendering
 
 That's it. Admin UI, authentication, and 24 modules are ready to use.
+
+### Scaffold a New Module
+
+```bash
+node packages/create-lume-app/bin/create-lume-app.js grants \
+  --label Grants --fields title:text,amount:currency,deadline:date \
+  --dir backend/src/modules
+cd backend && node src/scripts/setupDrizzle.js   # create tables
+```
+
+The module loader discovers the new directory automatically (manifest, Drizzle schema, auth API routes, admin list view included). See `docs/roadmap/ENTERPRISE_PARITY_ROADMAP.md` for the TwentyHQ/Huly/ServiceNow/Salesforce parity roadmap driving current development.
 
 ### Pre-Commit Sanity Check
 

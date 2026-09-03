@@ -78,6 +78,45 @@ const createEntityRoutes = () => {
     }
   });
 
+  // GET /schema/graph - Entity relationship graph for ERD visualization
+  // (registered before /:id so "schema" is not treated as an entity id)
+  router.get('/schema/graph', async (req, res) => {
+    try {
+      const { rows: entities } = await entityAdapter.findAll({
+        limit: 1000, offset: 0,
+      });
+      const { rows: fields } = await fieldsAdapter.findAll({
+        limit: 5000, offset: 0,
+      });
+      const liveEntities = (entities || []).filter(e => !e.deletedAt);
+      const liveFields = (fields || []).filter(f => !f.deletedAt);
+      const byId = new Map(liveEntities.map(e => [e.id, e]));
+      const nodes = liveEntities.map(e => ({
+        id: e.id,
+        name: e.name,
+        label: e.label || e.name,
+        fields: liveFields
+          .filter(f => Number(f.entityId) === Number(e.id))
+          .map(f => ({
+            id: f.id, name: f.name, label: f.label || f.name,
+            type: f.type, required: !!f.required,
+          })),
+      }));
+      const links = liveFields
+        .filter(f => f.lookupEntityId && byId.has(Number(f.lookupEntityId)))
+        .map(f => ({
+          fromEntity: Number(f.entityId),
+          fromField: f.name,
+          toEntity: Number(f.lookupEntityId),
+          toField: f.lookupField || 'id',
+          type: 'lookup',
+        }));
+      res.json({ success: true, data: { entities: nodes, links } });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
   // GET /:id - Get entity by ID
   router.get('/:id', async (req, res) => {
     try {

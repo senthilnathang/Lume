@@ -1,8 +1,7 @@
 <template>
   <div class="module-view">
-    <div v-if="loading" class="module-loading">
-      <div class="loading-spinner"></div>
-      <span>Loading...</span>
+    <div v-if="loading && !data.length" class="module-loading">
+      <a-skeleton active :title="{ width: '30%' }" :paragraph="{ rows: 6 }" />
     </div>
     
     <div v-else-if="error" class="module-error">
@@ -57,10 +56,26 @@
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
+              <div class="view-toggle">
+                <button :class="['toggle-btn', { active: displayMode === 'table' }]" @click="displayMode = 'table'">Table</button>
+                <button :class="['toggle-btn', { active: displayMode === 'kanban' }]" @click="displayMode = 'kanban'">Kanban</button>
+              </div>
             </div>
           </div>
 
-          <div class="data-table-container">
+          <KanbanBoard
+            v-if="displayMode === 'kanban'"
+            :records="filteredData"
+            :columns="kanbanColumns"
+            :column-field="kanbanField"
+            :card-fields="kanbanCardFields"
+            :column-widths="kanbanWidths"
+            :show-no-value="true"
+            @move="handleKanbanMove"
+            @column-resize="handleKanbanResize"
+            @card-click="handleRowClick"
+          />
+          <div v-else class="data-table-container">
             <table class="data-table">
               <thead>
                 <tr>
@@ -251,6 +266,8 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { get, post, put, del } from '@/api/request';
 import ExportMenu from './ExportMenu.vue';
+import KanbanBoard from './KanbanBoard.vue';
+import { emitInteraction, onInteraction } from '@/composables/useDynamicInteractions';
 
 const props = defineProps<{
   moduleName?: string;
@@ -283,6 +300,25 @@ const pageSize = 10;
 const formData = ref<Record<string, any>>({});
 
 const data = ref<any[]>([]);
+const displayMode = ref<'table' | 'kanban'>('table');
+const kanbanWidths = ref<Record<string, number>>({});
+type KanbanCol = { key: string; type?: string; title?: string };
+const kanbanField = computed(() => {
+  const cols = (columns.value || []) as KanbanCol[];
+  const found = cols.find((c) => c.type === 'status' || c.key === 'status' || c.key === 'state' || c.key === 'stage');
+  return found?.key || 'status';
+});
+const kanbanColumns = computed(() => {
+  const vals = new Set<string>();
+  (filteredData.value as Record<string, unknown>[]).forEach((r) => { if (r[kanbanField.value] != null && r[kanbanField.value] !== '') vals.add(String(r[kanbanField.value])); });
+  return [...vals];
+});
+const kanbanCardFields = computed(() => ((columns.value || []) as KanbanCol[]).filter((c) => c.type !== 'action').slice(0, 3).map((c) => ({ name: c.key, label: c.title || c.key })));
+const kanbanStorageKey = computed(() => `lume-kanban-${String(effectiveModuleName.value)}-widths`);
+try {
+  const saved = localStorage.getItem(kanbanStorageKey.value);
+  if (saved) kanbanWidths.value = JSON.parse(saved);
+} catch { kanbanWidths.value = {}; }
 
 function getConfigKey(moduleName: string, routePath: string): string {
   const path = routePath || '';
@@ -853,6 +889,29 @@ const handleRowClick = (item: any) => {
   handleView(item);
 };
 
+let lastOwnEmit = 0;
+const announce = (type: 'record:created' | 'record:updated' | 'record:deleted', id: string | number) => {
+  lastOwnEmit = Date.now();
+  emitInteraction({ type, module: String(effectiveModuleName.value), id });
+};
+
+const handleKanbanMove = async (e: { recordId: string | number; to: string | null; record: Record<string, unknown> }) => {
+  const rec = (data.value as Record<string, unknown>[]).find((r) => (r as { id?: unknown }).id === e.recordId) as Record<string, unknown> | undefined;
+  if (rec) rec[kanbanField.value] = e.to;
+  try {
+    await put(`${apiEndpoint.value}/${e.recordId}`, { [kanbanField.value]: e.to });
+    announce('record:updated', e.recordId);
+  } catch (err: any) {
+    await loadData();
+    error.value = err.message || 'Failed to move card';
+  }
+};
+
+const handleKanbanResize = (widths: Record<string, number>) => {
+  kanbanWidths.value = widths;
+  try { localStorage.setItem(kanbanStorageKey.value, JSON.stringify(widths)); } catch { /* noop */ }
+};
+
 const handleView = (item: any) => {
   currentItem.value = item;
   itemId.value = item.id;
@@ -879,6 +938,7 @@ const handleDelete = async (item: any) => {
   submitting.value = true;
   try {
     await del(`${apiEndpoint.value}/${item.id}`);
+    announce('record:deleted', item.id);
     await loadData();
     viewType.value = 'list';
   } catch (e: any) {
@@ -905,11 +965,14 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   submitting.value = true;
+  const isUpdate = !!itemId.value;
   try {
-    if (itemId.value) {
+    if (isUpdate) {
       await put(`${apiEndpoint.value}/${itemId.value}`, formData.value);
+      announce('record:updated', itemId.value as string | number);
     } else {
-      await post(apiEndpoint.value, formData.value);
+      const created = await post<{ id: string | number }>(apiEndpoint.value, formData.value);
+      if (created && typeof created.id !== 'undefined') announce('record:created', created.id);
     }
     await loadData();
     viewType.value = 'list';
@@ -934,6 +997,13 @@ const handleExport = (format: string, data: any[]) => {
 watch(() => props.moduleName, () => {
   viewType.value = 'list';
   loadData();
+});
+
+onInteraction((event) => {
+  if (event.module !== String(effectiveModuleName.value)) return;
+  if (event.type !== 'record:created' && event.type !== 'record:updated' && event.type !== 'record:deleted') return;
+  if (Date.now() - lastOwnEmit < 2000) return;
+  if (viewType.value === 'list') loadData();
 });
 
 onMounted(() => {
@@ -1062,6 +1132,10 @@ onMounted(() => {
   background: white;
   font-size: 14px;
 }
+.list-filters { display: flex; align-items: center; gap: 8px; }
+.view-toggle { display: flex; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+.toggle-btn { padding: 8px 14px; background: white; border: none; font-size: 13px; cursor: pointer; color: #666; }
+.toggle-btn.active { background: #111827; color: white; }
 
 .data-table-container {
   background: white;

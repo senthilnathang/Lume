@@ -57,6 +57,13 @@ const VALID_FIELD_TYPES = [
   'rich-text',
   'url',
   'color',
+  'currency',
+  'address',
+  'fullname',
+  'file',
+  'signature',
+  'lookup',
+  'master-detail',
 ];
 
 export class EntityService {
@@ -274,6 +281,21 @@ export class EntityService {
     // Validate normalized field
     this.validateField(normalizedField);
 
+    if (['lookup', 'master-detail'].includes(normalizedField.type)) {
+      const targetId = Number(normalizedField.lookupEntityId);
+      if (!Number.isInteger(targetId)) {
+        const err = new Error('Field validation failed');
+        err.errors = { lookupEntityId: 'Lookup fields require a target lookupEntityId' };
+        throw err;
+      }
+      const target = await this.adapter.findById(targetId);
+      if (!target || target.deletedAt) {
+        const err = new Error('Field validation failed');
+        err.errors = { lookupEntityId: 'Target entity not found' };
+        throw err;
+      }
+    }
+
     // Prepare field data
     const fieldData = {
       entityId: Number(entityId),
@@ -287,6 +309,11 @@ export class EntityService {
       validation: normalizedField.validation ? JSON.stringify(normalizedField.validation) : null,
       position: normalizedField.position || 0,
       defaultValue: normalizedField.defaultValue || null,
+      lookupEntityId: normalizedField.lookupEntityId !== undefined && normalizedField.lookupEntityId !== null
+        ? Number(normalizedField.lookupEntityId)
+        : null,
+      lookupField: normalizedField.lookupField || null,
+      formulaExpression: normalizedField.formulaExpression || null,
     };
 
     return this.fieldsAdapter.create(fieldData);

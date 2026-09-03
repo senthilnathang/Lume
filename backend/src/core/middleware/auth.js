@@ -207,6 +207,23 @@ export const authorize = (resource = null, action = null) => {
   };
 };
 
+export const requireScopes = (...required) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json(responseUtil.unauthorized());
+    }
+    if (req.user.authMethod !== 'api_key' || !required.length) {
+      return next();
+    }
+    const granted = Array.isArray(req.user.apiKeyScopes) ? req.user.apiKeyScopes : [];
+    const missing = required.filter(s => !granted.includes(s) && !granted.includes('*'));
+    if (missing.length) {
+      return res.status(403).json(responseUtil.forbidden(`API key missing scopes: ${missing.join(', ')}`));
+    }
+    next();
+  };
+};
+
 export const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -241,5 +258,6 @@ export const optionalAuth = async (req, res, next) => {
 export default {
   authenticate,
   authorize,
+  requireScopes,
   optionalAuth
 };

@@ -60,19 +60,37 @@ export const passwordUtil = {
 };
 
 // JWT utilities
+const WEAK_SECRETS = new Set(['jwt-secret', 'refresh-secret', 'your-super-secret-key-change-this-in-production', 'your-refresh-secret-change-in-production', 'secret', 'test']);
+function getJwtSecret() {
+  const s = process.env.JWT_SECRET;
+  if (!s || WEAK_SECRETS.has(s) || s.length < 32) {
+    if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET missing/weak');
+    return s && !WEAK_SECRETS.has(s) ? s : 'dev-only-insecure-secret-do-not-use-in-prod-0123456789';
+  }
+  return s;
+}
+function getRefreshSecret() {
+  const s = process.env.JWT_REFRESH_SECRET;
+  if (!s || WEAK_SECRETS.has(s) || s.length < 32) {
+    if (process.env.NODE_ENV === 'production') throw new Error('JWT_REFRESH_SECRET missing/weak');
+    return s && !WEAK_SECRETS.has(s) ? s : 'dev-only-insecure-refresh-do-not-use-in-prod-0123456789';
+  }
+  return s;
+}
 export const jwtUtil = {
-  // Generate JWT token
-  generateToken(payload, expiresIn = '7d') {
-    return jwt.sign(payload, process.env.JWT_SECRET || 'jwt-secret', {
+  // Generate JWT token (short-lived access + rotating refresh is the model;
+  // JWT_EXPIRES_IN is the legacy alias kept for existing .env files)
+  generateToken(payload, expiresIn = process.env.ACCESS_TOKEN_EXPIRES || process.env.JWT_EXPIRES_IN || '1h') {
+    return jwt.sign(payload, getJwtSecret(), {
       expiresIn,
       jwtid: uuidv4()
     });
   },
-  
+
   // Verify JWT token
   verifyToken(token) {
     try {
-      return jwt.verify(token, process.env.JWT_SECRET || 'jwt-secret');
+      return jwt.verify(token, getJwtSecret());
     } catch (error) {
       return null;
     }
@@ -87,7 +105,7 @@ export const jwtUtil = {
   generateRefreshToken(userId) {
     return jwt.sign(
       { userId, type: 'refresh' },
-      process.env.JWT_REFRESH_SECRET || 'refresh-secret',
+      getRefreshSecret(),
       { expiresIn: '30d' }
     );
   }

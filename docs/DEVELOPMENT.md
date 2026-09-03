@@ -89,9 +89,15 @@ You need three servers running for full development:
 
 | Server | Directory | Command | Port | Purpose |
 |--------|-----------|---------|------|---------|
-| Backend | `backend/` | `npm run dev` | 3000 | NestJS API |
+| Backend | `backend/` | `npm run dev` | 3000 | Express API |
 | Admin Panel | `apps/web-lume/` | `npm run dev` | 5173 | Vue 3 SPA |
 | Public Site | `apps/riagri-website/` | `npm run dev` | 3001 | Nuxt 3 SSR |
+
+Single command for backend + admin panel (recommended for platform work):
+
+```bash
+npm run dev:admin   # turbo: lume-backend + @lume/web-lume in parallel
+```
 
 **Login credentials**: `admin@lume.dev` / `Admin@Lume!1` — **change immediately after first login.**
 
@@ -99,9 +105,22 @@ The admin panel's Vite dev server proxies `/api` requests to `http://localhost:3
 
 ---
 
-## Creating a New Module (Metadata-Driven Approach)
+## Creating a New Module
 
-### Using defineModule and defineEntity
+### Fastest: create-lume-app scaffolder
+
+```bash
+node packages/create-lume-app/bin/create-lume-app.js grants \
+  --label Grants --fields title:text,amount:currency,deadline:date \
+  --dir backend/src/modules
+cd backend && node src/scripts/setupDrizzle.js
+```
+
+Generates manifest, Drizzle schema, service, authenticated API routes, and an
+admin list view with create form (11 files). The module loader picks the new
+directory up automatically — no registry edits.
+
+### Metadata-Driven Approach (defineModule and defineEntity)
 
 The modern way to create modules in Lume v2.0+ is using declarative APIs. Here's a complete example:
 

@@ -32,6 +32,7 @@ export default {
       'views/form-builder.vue',
       'views/list-configs.vue',
       'views/dashboard-widgets.vue',
+      'views/schema-erd.vue',
     ],
     menus: [
       {
@@ -80,6 +81,14 @@ export default {
             sequence: 5,
             permission: 'base_customization.widgets.manage',
             viewName: 'dashboard-widgets'
+          },
+          {
+            name: 'Schema ERD',
+            path: '/settings/customization/schema',
+            icon: 'lucide:network',
+            sequence: 6,
+            permission: 'base_customization.views.manage',
+            viewName: 'schema-erd'
           }
         ]
       }

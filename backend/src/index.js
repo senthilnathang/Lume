@@ -65,7 +65,8 @@ const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 
 // ─── Security: JWT Secret Validation ─────────────────────────────────────────
-if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'jwt-secret') {
+const _weak = new Set(['jwt-secret', 'your-super-secret-key-change-this-in-production', 'secret', 'test']);
+if (!process.env.JWT_SECRET || _weak.has(process.env.JWT_SECRET) || process.env.JWT_SECRET.length < 32) {
   if (isProduction) {
     console.error('❌ FATAL: JWT_SECRET is not set or uses default value. This is a security vulnerability in production!');
     console.error('   Set JWT_SECRET to a random 32+ character string in your .env file');
@@ -105,9 +106,12 @@ const limiter = enableRateLimit ? rateLimit({
 }) : (req, res, next) => next();
 
 // Auth rate limiter is ALWAYS enabled to prevent brute force
+// skipSuccessfulRequests: only failed attempts count, so legitimate logins
+// never lock out while credential-stuffing is throttled (5 fails / 15 min prod)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isProduction ? 10 : 50,
+  max: isProduction ? 5 : 50,
+  skipSuccessfulRequests: true,
   message: {
     success: false,
     error: {
@@ -142,9 +146,17 @@ if (isProduction && !process.env.CORS_ORIGIN) {
 }
 
 // Support comma-separated origins (e.g. "http://localhost:5173,http://localhost:3100")
-const corsOrigin = corsEnv === '*' ? true : corsEnv.includes(',')
-  ? corsEnv.split(',').map(o => o.trim()).filter(o => o)
-  : corsEnv || false;
+// Fail closed: '*' with credentials:true would reflect any origin with cookies
+// attached, so it is rejected — set explicit origins in CORS_ORIGIN instead.
+let corsOrigin;
+if (corsEnv === '*') {
+  console.warn('⚠️  WARNING: CORS_ORIGIN=* is incompatible with credentials. Denying cross-origin requests — set explicit origins.');
+  corsOrigin = false;
+} else if (corsEnv.includes(',')) {
+  corsOrigin = corsEnv.split(',').map(o => o.trim()).filter(o => o);
+} else {
+  corsOrigin = corsEnv || false;
+}
 app.use(cors({
   origin: corsOrigin,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -264,8 +276,15 @@ app.use(async (req, res, next) => {
         // Non-blocking: if API key check fails at global level, continue
       }
     } else if (!isOptionalAuth) {
-      // Module routes handle their own auth - only block truly protected routes
-      // For now, pass through to let module-level middleware handle auth
+      // STRICT_AUTH=true: deny-by-default for /api/* without credentials.
+      // Public surface must be listed in publicApiPaths / optionalAuthPaths /
+      // website-public below. Default false to preserve module-level auth.
+      const strictAuth = String(process.env.STRICT_AUTH || '').toLowerCase() === 'true';
+      const isWebsitePublic = req.path.startsWith('/api/website/public/');
+      if (strictAuth && !isPublicPath && !isWebsitePublic) {
+        return res.status(401).json(responseUtil.unauthorized('Authentication required'));
+      }
+      // Otherwise module routes handle their own auth via route-level middleware
     }
   }
 
@@ -297,9 +316,18 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ─── Prometheus Metrics Endpoint (no auth) ────────────────────────────────────
-// Exposes metrics in Prometheus text format for scraping by monitoring systems
-app.get('/metrics', (req, res) => {
+// ─── Prometheus Metrics Endpoint ────────────────────────────────────
+// Production: gated behind METRICS_TOKEN bearer or localhost. Dev: open.
+app.get('/metrics', (req, res, next) => {
+  if (isProduction) {
+    const tok = process.env.METRICS_TOKEN;
+    const auth = req.headers.authorization || '';
+    const isLocal = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.ip);
+    if ((tok && auth === `Bearer ${tok}`) || (!tok && isLocal)) return next();
+    return res.status(403).json({ success: false, error: 'Forbidden' });
+  }
+  return next();
+}, (req, res) => {
   try {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.send(getMetrics());

@@ -77,59 +77,88 @@ export class ViewRendererService {
    * @param {number} entityId - Entity ID
    * @returns {Promise<Object>} View metadata: { type, columns, pageSize, defaultSort, filters }
    */
+  normalizeConfig(config = {}) {
+    const c = config || {};
+    return {
+      columns: Array.isArray(c.columns) ? c.columns : [],
+      filters: Array.isArray(c.filters) ? c.filters : [],
+      defaultSort: Array.isArray(c.defaultSort) ? c.defaultSort : (c.sortBy || []),
+      groupBy: c.groupBy || null,
+      visibleFields: Array.isArray(c.visibleFields) ? c.visibleFields : [],
+      pageSize: c.pageSize || 20,
+      columnWidths: c.columnWidths || {},
+      kanban: {
+        columnField: c.kanban?.columnField || c.columnField || null,
+        columnOrder: Array.isArray(c.kanban?.columnOrder) ? c.kanban.columnOrder : (c.columnOrder || []),
+        columnWidths: c.kanban?.columnWidths || {},
+        showNoValue: c.kanban?.showNoValue ?? true,
+      },
+      calendar: {
+        dateField: c.calendar?.dateField || c.dateField || null,
+        endField: c.calendar?.endField || c.endField || null,
+      },
+      visibility: {
+        profiles: c.visibility?.profiles || [],
+        recordTypes: c.visibility?.recordTypes || [],
+        devices: c.visibility?.devices || [],
+      },
+    };
+  }
+
   async getViewMetadata(view, entityId) {
-    // Get all fields for the entity
     const { rows: allFields } = await this.fieldsAdapter.findAll({
       where: [['entityId', '=', Number(entityId)]],
       order: [['sequence', 'ASC']],
       limit: 1000,
       offset: 0,
     });
-
+    const config = this.normalizeConfig(view.config);
     let columns = [];
-
-    if (view.type === 'list') {
-      // For list views, use configured columns or first 5 fields
-      if (view.config && view.config.columns && Array.isArray(view.config.columns) && view.config.columns.length > 0) {
-        columns = view.config.columns.map(col => ({
-          name: col.name || col,
-          label: col.label || this._getLabelForField(col.name || col, allFields),
-          type: this._getTypeForField(col.name || col, allFields),
-          width: col.width || 150,
-        }));
-      } else {
-        // Default to first 5 fields
-        columns = allFields.slice(0, 5).map(field => ({
-          name: field.name,
-          label: field.label,
-          type: field.type,
-          width: 150,
-        }));
-      }
-    } else if (view.type === 'grid') {
-      // For grid views, all fields as cards
-      columns = allFields.map(field => ({
-        name: field.name,
-        label: field.label,
-        type: field.type,
+    let kanban = null;
+    let calendar = null;
+    if (view.type === 'list' || view.type === 'table') {
+      const cols = config.columns.length > 0 ? config.columns : allFields.slice(0, 5).map(f => f.name);
+      columns = cols.map(col => ({
+        name: col.name || col,
+        label: col.label || this._getLabelForField(col.name || col, allFields),
+        type: this._getTypeForField(col.name || col, allFields),
+        width: col.width || config.columnWidths[col.name || col] || 150,
       }));
+    } else if (view.type === 'kanban' || view.type === 'board') {
+      const colField = allFields.find(f => f.name === config.kanban.columnField)
+        || allFields.find(f => ['select', 'multi-select'].includes(f.type));
+      const selectOptions = this._getSelectOptions(colField);
+      const ordered = config.kanban.columnOrder.length > 0
+        ? config.kanban.columnOrder
+        : selectOptions.map(o => (typeof o === 'string' ? o : o.value ?? o.label));
+      kanban = {
+        columnField: colField?.name || null,
+        columnFieldLabel: colField?.label || null,
+        columns: ordered,
+        columnWidths: config.kanban.columnWidths,
+        showNoValue: config.kanban.showNoValue,
+      };
+      columns = (config.visibleFields.length > 0 ? config.visibleFields : ['id']).map(name => ({
+        name, label: this._getLabelForField(name, allFields), type: this._getTypeForField(name, allFields),
+      }));
+    } else if (view.type === 'calendar') {
+      const dateField = allFields.find(f => f.name === config.calendar.dateField)
+        || allFields.find(f => ['date', 'datetime'].includes(f.type));
+      calendar = { dateField: dateField?.name || null, endField: config.calendar.endField };
+      columns = allFields.slice(0, 5).map(field => ({ name: field.name, label: field.label, type: field.type }));
+    } else if (view.type === 'grid' || view.type === 'gallery') {
+      columns = allFields.map(field => ({ name: field.name, label: field.label, type: field.type }));
     } else if (view.type === 'form') {
-      // For form views, all fields with metadata
       columns = allFields.map(field => ({
-        name: field.name,
-        label: field.label,
-        type: field.type,
-        required: field.required || false,
-        helpText: field.helpText || '',
+        name: field.name, label: field.label, type: field.type,
+        required: field.required || false, helpText: field.helpText || '',
       }));
     }
-
     return {
-      type: view.type,
-      columns,
-      pageSize: view.config?.pageSize || 20,
-      defaultSort: view.config?.defaultSort || [],
-      filters: view.config?.filters || [],
+      type: view.type, columns, pageSize: config.pageSize,
+      defaultSort: config.defaultSort, filters: config.filters,
+      groupBy: config.groupBy, visibleFields: config.visibleFields,
+      kanban, calendar, visibility: config.visibility,
     };
   }
 
@@ -175,6 +204,18 @@ export class ViewRendererService {
   _getTypeForField(fieldName, fields) {
     const field = fields.find(f => f.name === fieldName);
     return field ? field.type : 'text';
+  }
+
+  _getSelectOptions(field) {
+    if (!field) return [];
+    try {
+      const raw = field.selectOptions;
+      if (!raw) return [];
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
   }
 }
 

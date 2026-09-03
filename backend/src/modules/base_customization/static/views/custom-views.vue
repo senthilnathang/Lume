@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, h, onMounted, reactive, ref } from 'vue';
+import { computed, h, onMounted, reactive, ref, watch } from 'vue';
 import { message, Modal } from 'ant-design-vue';
 import {
   LayoutGrid,
@@ -24,6 +24,7 @@ import {
   deleteCustomView,
   getAvailableModels,
 } from '@modules/base_customization/static/api/index';
+import ViewConfigDesigner from '@modules/base_customization/static/components/ViewConfigDesigner.vue';
 
 defineOptions({ name: 'CustomViewsView' });
 
@@ -71,6 +72,32 @@ const viewTypes = [
   { value: 'gallery', label: 'Gallery' },
   { value: 'chart', label: 'Chart' },
 ];
+
+// Visual config designer state (kept in sync with config JSON string)
+const designerMode = ref<'visual' | 'json'>('visual');
+const designerValue = ref<Record<string, unknown>>({});
+let designerSyncing = false;
+watch(
+  () => formState.config,
+  (raw) => {
+    if (designerSyncing) return;
+    try {
+      const parsed = raw ? JSON.parse(raw) : {};
+      designerValue.value = typeof parsed === 'object' && parsed !== null ? parsed : {};
+    } catch {
+      designerValue.value = {};
+    }
+  },
+  { immediate: true },
+);
+function handleDesignerUpdate(val: Record<string, unknown>) {
+  designerSyncing = true;
+  try {
+    formState.config = JSON.stringify(val, null, 2);
+  } finally {
+    setTimeout(() => { designerSyncing = false; }, 0);
+  }
+}
 
 const viewTypeConfig: Record<string, { color: string; icon: any }> = {
   list: { color: 'blue', icon: List },
@@ -437,7 +464,7 @@ onMounted(() => {
     <a-drawer
       v-model:open="showDrawer"
       :title="drawerMode === 'create' ? 'Add Custom View' : 'Edit Custom View'"
-      width="520"
+      width="720"
       placement="right"
       :footer-style="{ textAlign: 'right' }"
     >
@@ -469,15 +496,25 @@ onMounted(() => {
           <a-input v-model:value="formState.description" placeholder="View description" />
         </a-form-item>
 
-        <a-form-item label="View Configuration (JSON)">
+        <a-form-item label="View Configuration">
+          <template #extra>
+            <a-segmented v-model:value="designerMode" :options="[{ label: 'Visual', value: 'visual' }, { label: 'JSON', value: 'json' }]" size="small" />
+          </template>
+          <ViewConfigDesigner
+            v-if="designerMode === 'visual'"
+            :model-value="designerValue"
+            :view-type="formState.view_type"
+            @update:model-value="handleDesignerUpdate"
+          />
           <a-textarea
+            v-else
             v-model:value="formState.config"
             :rows="8"
             placeholder="Enter view-specific configuration as JSON"
             class="font-mono text-sm"
           />
           <div class="text-xs text-gray-400 mt-1">
-            Configure filters, sorting, grouping, columns, and other view-specific settings
+            Visual builder writes the same JSON — switch to JSON for advanced edits
           </div>
         </a-form-item>
 

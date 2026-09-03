@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, h, onMounted, reactive, ref } from 'vue';
+import { computed, h, onMounted, reactive, ref, watch } from 'vue';
 import { message, Modal } from 'ant-design-vue';
 import {
   LayoutTemplate,
@@ -20,6 +20,7 @@ import {
   deleteFormLayout,
   getAvailableModels,
 } from '@modules/base_customization/static/api/index';
+import FormLayoutDesigner from '@modules/base_customization/static/components/FormLayoutDesigner.vue';
 
 defineOptions({ name: 'FormBuilderView' });
 
@@ -60,6 +61,34 @@ const formState = reactive({
 // Preview modal
 const showPreview = ref(false);
 const previewData = ref<any>(null);
+
+// Visual designer state (kept in sync with layout_config JSON string)
+const designerMode = ref<'visual' | 'json'>('visual');
+const designerDevice = ref<'desktop' | 'phone'>('desktop');
+const designerProfile = ref<string>('');
+const designerValue = ref<{ sections: any[] }>({ sections: [] });
+let designerSyncing = false;
+watch(
+  () => formState.layout_config,
+  (raw) => {
+    if (designerSyncing) return;
+    try {
+      const parsed = raw ? JSON.parse(raw) : { sections: [] };
+      designerValue.value = { sections: Array.isArray(parsed.sections) ? parsed.sections : [] };
+    } catch {
+      designerValue.value = { sections: [] };
+    }
+  },
+  { immediate: true },
+);
+function handleDesignerUpdate(val: { sections: any[] }) {
+  designerSyncing = true;
+  try {
+    formState.layout_config = JSON.stringify(val, null, 2);
+  } finally {
+    setTimeout(() => { designerSyncing = false; }, 0);
+  }
+}
 
 // Computed
 const filteredLayouts = computed(() => {
@@ -411,7 +440,7 @@ onMounted(() => {
     <a-drawer
       v-model:open="showDrawer"
       :title="drawerMode === 'create' ? 'Add Form Layout' : 'Edit Form Layout'"
-      width="560"
+      width="960"
       placement="right"
       :footer-style="{ textAlign: 'right' }"
     >
@@ -434,15 +463,31 @@ onMounted(() => {
           <a-input v-model:value="formState.description" placeholder="Layout description" />
         </a-form-item>
 
-        <a-form-item label="Layout Configuration (JSON)" required>
+        <a-form-item label="Layout Configuration" required>
+          <template #extra>
+            <a-segmented v-model:value="designerMode" :options="[{ label: 'Visual', value: 'visual' }, { label: 'JSON', value: 'json' }]" size="small" />
+          </template>
+          <div v-if="designerMode === 'visual'" class="flex flex-wrap items-center gap-2 mb-2">
+            <a-segmented v-model:value="designerDevice" :options="[{ label: 'Desktop', value: 'desktop' }, { label: 'Phone', value: 'phone' }]" size="small" />
+            <a-input v-model:value="designerProfile" size="small" placeholder="Preview profile (e.g. manager)" style="width: 200px" allow-clear />
+          </div>
+          <FormLayoutDesigner
+            v-if="designerMode === 'visual'"
+            :model-value="designerValue"
+            target="form"
+            :form-factor="designerDevice"
+            :preview-profile="designerProfile"
+            @update:model-value="handleDesignerUpdate"
+          />
           <a-textarea
+            v-else
             v-model:value="formState.layout_config"
             :rows="12"
             placeholder="Enter JSON layout configuration"
             class="font-mono text-sm"
           />
           <div class="text-xs text-gray-400 mt-1">
-            Define sections, columns, and field placements in JSON format
+            Visual builder writes the same JSON — switch to JSON for advanced edits
           </div>
         </a-form-item>
 
@@ -477,7 +522,7 @@ onMounted(() => {
       :footer="null"
       width="640px"
     >
-      <div v-if="previewData" class="layout-preview">
+      <div v-if="previewData" class="layout-preview" :style="designerDevice === 'phone' ? 'max-width: 375px; margin: 0 auto;' : ''">
         <template v-if="previewData?.sections">
           <div v-for="(section, idx) in previewData.sections" :key="idx" class="mb-4">
             <h3 class="text-sm font-semibold text-gray-600 mb-2 pb-1 border-b">

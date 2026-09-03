@@ -34,6 +34,18 @@ Lume ships with several built-in protections (see [`CLAUDE.md`](./CLAUDE.md) and
   X-Frame-Options).
 - JWT auth with refresh tokens; password hashing via Prisma middleware.
 - WebSocket tenant isolation (deny-by-default; `company_id`/`tenant_id` checks).
+- Short-lived access tokens (`JWT_EXPIRES_IN=1h` + 30d rotating refresh);
+  weak/`example` JWT secrets are rejected at boot (fail-closed in production).
+- `STRICT_AUTH=true` flips `/api/*` to deny-by-default for credential-less
+  requests (public paths stay allowlisted; default off for compatibility).
+- Auth rate limiter counts failed attempts only (5/15min in prod); CORS `*`
+  with credentials is rejected fail-closed; `/metrics` requires
+  `METRICS_TOKEN` (or localhost) in production.
+- Uploads enforce an explicit MIME allowlist with per-file size caps and
+  reduced batch counts; scoped API keys via `requireScopes(...)` middleware.
+- Entity records enforce field-level policies (`EntityFieldPermission`),
+  row visibility (private/company/public + OWD defaults), master-detail
+  cascade deletes, and server-computed formulas (client values untrusted).
 
 ### Operator responsibilities
 

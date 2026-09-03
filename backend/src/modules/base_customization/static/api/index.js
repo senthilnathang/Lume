@@ -31,6 +31,10 @@ export const createListConfig = (data) => post(`${BASE}/lists`, data);
 export const updateListConfig = (id, data) => put(`${BASE}/lists/${id}`, data);
 export const deleteListConfig = (id) => del(`${BASE}/lists/${id}`);
 
+// Schema ERD
+export const getSchemaGraph = () => get('/base/entities/schema/graph');
+export const createEntityField = (entityId, data) => post(`/base/entities/${entityId}/fields`, data);
+
 // Dashboard Widgets
 export const getDashboardWidgets = (params) => get(`${BASE}/widgets`, { params });
 export const getDashboardWidget = (id) => get(`${BASE}/widgets/${id}`);
