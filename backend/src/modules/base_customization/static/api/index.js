@@ -35,6 +35,10 @@ export const deleteListConfig = (id) => del(`${BASE}/lists/${id}`);
 export const getSchemaGraph = () => get('/base/entities/schema/graph');
 export const createEntityField = (entityId, data) => post(`/base/entities/${entityId}/fields`, data);
 
+// Record pages
+export const listEntityRecords = (entityId, params) => get(`/base/entities/${entityId}/records`, { params });
+export const getEntityRecord = (entityId, recordId) => get(`/base/entities/${entityId}/records/${recordId}`);
+
 // Dashboard Widgets
 export const getDashboardWidgets = (params) => get(`${BASE}/widgets`, { params });
 export const getDashboardWidget = (id) => get(`${BASE}/widgets/${id}`);

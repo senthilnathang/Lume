@@ -33,6 +33,7 @@ export default {
       'views/list-configs.vue',
       'views/dashboard-widgets.vue',
       'views/schema-erd.vue',
+      'views/record-page-builder.vue',
     ],
     menus: [
       {
@@ -89,6 +90,14 @@ export default {
             sequence: 6,
             permission: 'base_customization.views.manage',
             viewName: 'schema-erd'
+          },
+          {
+            name: 'Record Pages',
+            path: '/settings/customization/record-pages',
+            icon: 'lucide:layout-template',
+            sequence: 7,
+            permission: 'base_customization.views.manage',
+            viewName: 'record-page-builder'
           }
         ]
       }

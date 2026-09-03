@@ -84,6 +84,7 @@ const customViews: Record<string, () => Promise<any>> = {
   'settings/customization/lists': () => import('@modules/base_customization/static/views/list-configs.vue'),
   'settings/customization/widgets': () => import('@modules/base_customization/static/views/dashboard-widgets.vue'),
   'settings/customization/schema': () => import('@modules/base_customization/static/views/schema-erd.vue'),
+  'settings/customization/record-pages': () => import('@modules/base_customization/static/views/record-page-builder.vue'),
   // Advanced Features module
   'settings/advanced/webhooks': () => import('@modules/advanced_features/static/views/webhooks.vue'),
   'settings/advanced/notifications': () => import('@modules/advanced_features/static/views/notifications.vue'),
