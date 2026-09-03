@@ -129,6 +129,12 @@ export function updateWorkflowDefinitionApi(id: string | number, data: Partial<W
 export function validateWorkflowDefinitionApi(data: Partial<Workflow>): Promise<{ errors: string[] }> {
   return post<{ errors: string[] }>('/base_automation/workflows/validate', data);
 }
+export function getWorkflowDefinitionsApi(params?: Record<string, unknown>): Promise<Workflow[]> {
+  return get<Workflow[]>('/base_automation/workflows', { params });
+}
+export function deleteWorkflowDefinitionApi(id: string | number): Promise<void> {
+  return del(`/base_automation/workflows/${id}`);
+}
 export function getApprovalChainsApi(): Promise<ApprovalChain[]> {
   return get<ApprovalChain[]>('/base_automation/approvals');
 }

@@ -15,7 +15,7 @@ import {
   approveTaskApi,
   rejectTaskApi,
   delegateTaskApi,
-} from '#/api/base_automation'
+} from '@modules/base_automation/static/api/index'
 import { message, Modal } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'

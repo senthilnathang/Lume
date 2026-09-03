@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
-import { get } from '#/api/request'
+import { get } from '@/api/request'
 const loading = ref(false)
 const data = ref([])
 const columns = [

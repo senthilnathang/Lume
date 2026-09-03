@@ -103,7 +103,7 @@ import {
   Col,
   message,
 } from 'ant-design-vue'
-import { get, post } from '#/api/request'
+import { get, post } from '@/api/request'
 import dayjs from 'dayjs'
 
 interface Props {

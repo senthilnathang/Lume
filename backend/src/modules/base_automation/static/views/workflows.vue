@@ -47,7 +47,7 @@ import {
   createWorkflowDefinitionApi,
   updateWorkflowDefinitionApi,
   deleteWorkflowDefinitionApi,
-} from '#/api/base_automation'
+} from '@modules/base_automation/static/api/index'
 import WorkflowDesigner from './workflow-designer.vue'
 
 const loading = ref(false)

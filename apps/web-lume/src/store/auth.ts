@@ -13,7 +13,7 @@ interface UserInfo {
   email: string;
   first_name: string;
   last_name: string;
-  role: string;
+  role: string | { name: string };
   role_id?: number;
   avatar?: string;
 }
@@ -49,6 +49,31 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   const userAvatar = computed(() => userInfo.value?.avatar);
+
+  const roleName = computed(() => {
+    const role = userInfo.value?.role;
+    if (!role) return '';
+    return typeof role === 'string' ? role : role.name || '';
+  });
+
+  const tokenClaims = computed<Record<string, unknown>>(() => {
+    try {
+      const payload = (token.value || '').split('.')[1];
+      if (!payload) return {};
+      return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    } catch {
+      return {};
+    }
+  });
+
+  const tokenRole = computed(() => String(tokenClaims.value.role || tokenClaims.value.roleName || ''));
+  const tokenRoleId = computed(() => Number(tokenClaims.value.role_id ?? tokenClaims.value.roleId ?? 0));
+
+  const isAdmin = computed(() => {
+    if (roleName.value === 'admin' || roleName.value === 'super_admin') return true;
+    if (tokenRole.value === 'admin' || tokenRole.value === 'super_admin') return true;
+    return tokenRoleId.value === 1;
+  });
 
   // Actions
   async function login(params: LoginParams): Promise<boolean> {
@@ -157,6 +182,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     userName,
     userAvatar,
+    roleName,
+    isAdmin,
     // Actions
     login,
     logout,

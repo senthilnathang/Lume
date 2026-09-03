@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
-import { get, post } from '#/api/request'
+import { get, post } from '@/api/request'
 
 const modules = ref<any[]>([])
 const loading = ref(false)

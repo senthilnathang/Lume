@@ -22,7 +22,7 @@ import {
   createWorkflowDefinitionApi,
   updateWorkflowDefinitionApi,
   getApprovalChainsApi,
-} from '#/api/base_automation'
+} from '@modules/base_automation/static/api/index'
 
 const props = defineProps({
   workflowId: {

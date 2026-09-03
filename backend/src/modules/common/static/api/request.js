@@ -1,6 +1,6 @@
 /**
  * Common API request client for module views
- * Imported by module views as: import { get, post, put, del } from '#/api/request'
+ * Imported by module views as: import { get, post, put, del } from '@/api/request'
  */
 
 /* global axios */

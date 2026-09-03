@@ -76,7 +76,8 @@ export const usePermissionStore = defineStore('permission', () => {
   const hasPermission = computed(() => {
     return (permission: string): boolean => {
       if (!authStore.isAuthenticated) return false;
-      // Admin has all permissions
+      // Admins (admin + super_admin, either role shape) have all permissions
+      if (authStore.isAdmin) return true;
       if (permissions.value.includes('*')) return true;
       return permissions.value.includes(permission);
     };
@@ -85,7 +86,7 @@ export const usePermissionStore = defineStore('permission', () => {
   const hasAnyPermission = computed(() => {
     return (permList: string[]): boolean => {
       if (!authStore.isAuthenticated) return false;
-      if (authStore.userInfo?.role === 'admin') return true;
+      if (authStore.isAdmin) return true;
       return permList.some(p => permissions.value.includes(p));
     };
   });
@@ -93,7 +94,7 @@ export const usePermissionStore = defineStore('permission', () => {
   const hasAllPermissions = computed(() => {
     return (permList: string[]): boolean => {
       if (!authStore.isAuthenticated) return false;
-      if (authStore.userInfo?.role === 'admin') return true;
+      if (authStore.isAdmin) return true;
       return permList.every(p => permissions.value.includes(p));
     };
   });
@@ -110,7 +111,7 @@ export const usePermissionStore = defineStore('permission', () => {
   async function fetchPermissions(): Promise<boolean> {
     // Check both token and userInfo
     const hasToken = !!authStore.token;
-    const isAdmin = authStore.userInfo?.role === 'admin' || authStore.userInfo?.role_id === 1;
+    const isAdmin = authStore.isAdmin || authStore.userInfo?.role_id === 1;
     
     if (!hasToken) return false;
     

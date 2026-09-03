@@ -53,7 +53,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
-import { get, post, put, del } from '#/api/request'
+import { get, post, put, del } from '@/api/request'
 
 const grids = ref<any[]>([])
 const loading = ref(false)

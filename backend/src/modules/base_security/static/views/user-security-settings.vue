@@ -735,7 +735,7 @@ import {
 } from '@ant-design/icons-vue';
 import dayjs from 'dayjs';
 
-import { requestClient } from '#/api/request';
+import { requestClient } from '@/api/request';
 import {
   getUserSecuritySettingsApi,
   updateUserSecuritySettingsApi,

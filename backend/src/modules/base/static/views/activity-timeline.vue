@@ -49,7 +49,7 @@ import {
   WarningOutlined,
 } from '@ant-design/icons-vue';
 
-import { requestClient } from '#/api/request';
+import { requestClient } from '@/api/request';
 
 // State
 const loading = ref(false);

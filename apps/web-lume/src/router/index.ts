@@ -96,7 +96,6 @@ const customViews: Record<string, () => Promise<any>> = {
   'admin': () => import('@/views/admin/dashboard/index.vue'),
   'admin/modules': () => import('@modules/base/static/views/modules.vue'),
   'admin/workflows': () => import('@modules/base_automation/static/views/workflows.vue'),
-  'admin/policies': () => import('@modules/base_security/static/views/policies-list.vue'),
   // Website module
   'website/pages': () => import('@modules/website/static/views/pages.vue'),
   'website/pages/editor': () => import('@modules/website/static/views/page-editor.vue'),
@@ -226,12 +225,6 @@ const routes: RouteRecordRaw[] = [
         name: 'admin-workflows',
         component: () => import('@modules/base_automation/static/views/workflows.vue'),
         meta: { title: 'Workflow Management', requiresAuth: true, module: 'base', permission: 'admin.workflows' },
-      },
-      {
-        path: 'admin/policies',
-        name: 'admin-policies',
-        component: () => import('@modules/base_security/static/views/policies-list.vue'),
-        meta: { title: 'Policy Management', requiresAuth: true, module: 'base', permission: 'admin.policies' },
       },
     ],
   },

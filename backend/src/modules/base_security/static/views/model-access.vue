@@ -41,7 +41,7 @@ import {
   SearchOutlined,
   TeamOutlined } from '@ant-design/icons-vue';
 
-import { requestClient } from '#/api/request';
+import { requestClient } from '@/api/request';
 
 defineOptions({
   name: 'BaseModelAccess' });

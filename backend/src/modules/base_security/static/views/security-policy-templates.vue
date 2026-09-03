@@ -649,7 +649,7 @@ import {
   toggleSecurityPolicyTemplateApi,
   seedDefaultSecurityPolicyTemplatesApi,
 } from '#/api/base_security';
-import { requestClient } from '#/api/request';
+import { requestClient } from '@/api/request';
 
 // ==================== VIEW STATE ====================
 const currentView = ref('list');
