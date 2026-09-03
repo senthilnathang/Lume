@@ -97,5 +97,5 @@ Update checkboxes here + `todo` list in session. Each P gets its own branch `fea
 ## P2 progress (2026-09-03)
 - [x] `packages/create-lume-app` — zero-dependency scaffolder (manifest, Drizzle schema, service, auth API routes, admin list view + create form, README); `node --test` suite 4/4 green; CLI smoke-tested (11 files).
 - [x] Template gallery (`src/templates.js`: `crm-pipeline`, `ats`, `helpdesk` with staged select options; `--template`/`--list-templates` flags; inline `field:select:a|b` spec syntax; 7/7 tests green).
-- [ ] MCP server per workspace (read/write CRM via OAuth).
+- [x] MCP server (`packages/lume-mcp`: stdio, API-key auth, `list_entities`/`schema_graph`/`list_records`/`get_record`/`create_record` over the real API; 3/3 node:test green).
 - [ ] Build Agent prompt flow.

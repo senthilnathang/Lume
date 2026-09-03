@@ -1,0 +1,15 @@
+{
+  "name": "@lume/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server exposing Lume CRM (entities, records, views) to AI assistants",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "lume-mcp": "./bin/lume-mcp.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.23.8"
+  },
+  "files": ["bin", "src", "README.md"]
+}
