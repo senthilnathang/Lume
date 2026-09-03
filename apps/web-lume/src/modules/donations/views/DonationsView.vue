@@ -106,9 +106,6 @@
 <script setup>
 import { ref, onMounted, computed, h } from 'vue';
 import DataTable from '@/components/DataTable.vue';
-import CurrencyCell from '@/components/cells/CurrencyCell.vue';
-import DateCell from '@/components/cells/DateCell.vue';
-import StatusCell from '@/components/cells/StatusCell.vue';
 import DonationModal from './DonationModal.vue';
 
 const activeTab = ref('donations');

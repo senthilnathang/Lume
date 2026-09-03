@@ -60,19 +60,23 @@ request.interceptors.response.use(
     if (response) {
       switch (response.status) {
         case 401: {
-          // Token expired - try to refresh
+          const failedUrl = String(error.config?.url || '');
           const authStore = useAuthStore();
-          if (authStore.refreshToken) {
-            try {
-              await authStore.doRefreshToken();
-              // Retry original request
-              return request(error.config);
-            } catch {
-              authStore.logout();
+          if (failedUrl.includes('refresh-token') || failedUrl.includes('/login')) {
+            authStore.logout();
+            if (!window.location.pathname.startsWith('/login')) {
               window.location.href = '/login';
             }
-          } else {
-            authStore.logout();
+            break;
+          }
+          if (authStore.refreshToken) {
+            const refreshed = await authStore.doRefreshToken();
+            if (refreshed) {
+              return request(error.config);
+            }
+          }
+          authStore.logout();
+          if (!window.location.pathname.startsWith('/login')) {
             window.location.href = '/login';
           }
           break;

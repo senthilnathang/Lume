@@ -130,6 +130,8 @@ export const useAuthStore = defineStore('auth', () => {
       return false;
     } catch (error) {
       console.error('Token refresh failed:', error);
+      refreshToken.value = null;
+      localStorage.removeItem('refreshToken');
       return false;
     }
   }

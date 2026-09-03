@@ -83,6 +83,7 @@ const customViews: Record<string, () => Promise<any>> = {
   'settings/customization/forms': () => import('@modules/base_customization/static/views/form-builder.vue'),
   'settings/customization/lists': () => import('@modules/base_customization/static/views/list-configs.vue'),
   'settings/customization/widgets': () => import('@modules/base_customization/static/views/dashboard-widgets.vue'),
+  'settings/customization/schema': () => import('@modules/base_customization/static/views/schema-erd.vue'),
   // Advanced Features module
   'settings/advanced/webhooks': () => import('@modules/advanced_features/static/views/webhooks.vue'),
   'settings/advanced/notifications': () => import('@modules/advanced_features/static/views/notifications.vue'),
@@ -90,12 +91,11 @@ const customViews: Record<string, () => Promise<any>> = {
   'settings/advanced/tags': () => import('@modules/advanced_features/static/views/tags.vue'),
   // Editor module
   'settings/editor/templates': () => import('@modules/editor/static/views/templates.vue'),
-  // Admin / Framework routes
-  'admin': () => import('@modules/base/static/views/admin/AdminDashboard.vue'),
-  'admin/modules': () => import('@modules/base/static/views/admin/ModulesManagement.vue'),
-  'admin/workflows': () => import('@modules/base/static/views/admin/WorkflowsManagement.vue'),
-  'admin/policies': () => import('@modules/base/static/views/admin/PoliciesManagement.vue'),
-  'admin/plugins': () => import('@modules/base/static/views/admin/PluginsManagement.vue'),
+  // Admin / Framework routes (mapped to existing views)
+  'admin': () => import('@/views/admin/dashboard/index.vue'),
+  'admin/modules': () => import('@modules/base/static/views/modules.vue'),
+  'admin/workflows': () => import('@modules/base_automation/static/views/workflows.vue'),
+  'admin/policies': () => import('@modules/base_security/static/views/policies-list.vue'),
   // Website module
   'website/pages': () => import('@modules/website/static/views/pages.vue'),
   'website/pages/editor': () => import('@modules/website/static/views/page-editor.vue'),
@@ -211,32 +211,26 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'admin',
         name: 'admin',
-        component: () => import('@modules/base/static/views/admin/AdminDashboard.vue'),
+        component: () => import('@/views/admin/dashboard/index.vue'),
         meta: { title: 'Admin Dashboard', requiresAuth: true, module: 'base', permission: 'admin.view' },
       },
       {
         path: 'admin/modules',
         name: 'admin-modules',
-        component: () => import('@modules/base/static/views/admin/ModulesManagement.vue'),
+        component: () => import('@modules/base/static/views/modules.vue'),
         meta: { title: 'Module Management', requiresAuth: true, module: 'base', permission: 'admin.modules' },
       },
       {
         path: 'admin/workflows',
         name: 'admin-workflows',
-        component: () => import('@modules/base/static/views/admin/WorkflowsManagement.vue'),
+        component: () => import('@modules/base_automation/static/views/workflows.vue'),
         meta: { title: 'Workflow Management', requiresAuth: true, module: 'base', permission: 'admin.workflows' },
       },
       {
         path: 'admin/policies',
         name: 'admin-policies',
-        component: () => import('@modules/base/static/views/admin/PoliciesManagement.vue'),
+        component: () => import('@modules/base_security/static/views/policies-list.vue'),
         meta: { title: 'Policy Management', requiresAuth: true, module: 'base', permission: 'admin.policies' },
-      },
-      {
-        path: 'admin/plugins',
-        name: 'admin-plugins',
-        component: () => import('@modules/base/static/views/admin/PluginsManagement.vue'),
-        meta: { title: 'Plugin Management', requiresAuth: true, module: 'base', permission: 'admin.plugins' },
       },
     ],
   },
