@@ -5,8 +5,9 @@
 
 import prisma from '../db/prisma.js';
 import { RecordService } from './record.service.js';
+import { AccessControlService } from './access-control.service.js';
 
-const recordService = new RecordService(prisma);
+const recordService = new RecordService(prisma, new AccessControlService(prisma));
 
 /**
  * Entity Records Queue Processors
