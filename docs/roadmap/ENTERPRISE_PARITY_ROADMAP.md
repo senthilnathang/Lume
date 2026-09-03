@@ -95,6 +95,12 @@ Benchmarks: Twenty (open CRM, table/kanban/calendar + saved views + `defineObjec
 ## Tracking
 Update checkboxes here + `todo` list in session. Each P gets its own branch `feat/p0-1-entity-views` etc. Gate: `npm run lint` zero, `npm run typecheck` ≤ budget, `setup-smoke` green.
 
+## Browser hardening (2026-09-03)
+- [x] Router audit: all 75 mapped views resolve (`tmp/audit` script); `#/api/*` codemod with export verification; missing workflow-definition API aliases added.
+- [x] Dead routes dropped (`admin/plugins`, `admin/policies` — no UI/backend); admin routes remapped to working views, verified in browser.
+- [x] Role-shape + reload-safe admin guards (`roleName`/`isAdmin` incl. `super_admin`, JWT-claim fallback); spurious `/403` fixed.
+- Remaining @vben orphans are unrouted legacy (never bundled); `views/public/*` + `DonationsView` dead code still pending deletion.
+
 ## P2 progress (2026-09-03)
 - [x] `packages/create-lume-app` — zero-dependency scaffolder (manifest, Drizzle schema, service, auth API routes, admin list view + create form, README); `node --test` suite 4/4 green; CLI smoke-tested (11 files).
 - [x] Template gallery (`src/templates.js`: `crm-pipeline`, `ats`, `helpdesk` with staged select options; `--template`/`--list-templates` flags; inline `field:select:a|b` spec syntax; 7/7 tests green).
