@@ -61,11 +61,13 @@ const createRoutes = (models, services) => {
 
   router.post('/workflows', async (req, res) => {
     try {
-      const { name, model } = req.body || {};
-      if (!name || !model) {
+      const { name, model, model_name } = req.body || {};
+      const resolvedModel = model || model_name;
+      if (!name || !resolvedModel) {
         return res.status(400).json({ success: false, error: 'Name and model are required' });
       }
-      const workflow = await svc.createWorkflow(req.body);
+      const { model_name: _dropped, ...payload } = req.body;
+      const workflow = await svc.createWorkflow({ ...payload, model: resolvedModel });
       res.json({ success: true, data: workflow });
     } catch (error) {
       console.error('Create workflow error:', error);
@@ -75,7 +77,12 @@ const createRoutes = (models, services) => {
 
   router.put('/workflows/:id', async (req, res) => {
     try {
-      const workflow = await svc.updateWorkflow(req.params.id, req.body);
+      const { model, model_name, ...rest } = req.body || {};
+      const payload = { ...rest };
+      if (model || model_name) {
+        payload.model = model || model_name;
+      }
+      const workflow = await svc.updateWorkflow(req.params.id, payload);
       if (!workflow) return res.status(404).json({ success: false, error: 'Workflow not found' });
       res.json({ success: true, data: workflow });
     } catch (error) {
@@ -153,13 +160,24 @@ const createRoutes = (models, services) => {
     }
   });
 
+  const resolveModel = (body) => {
+    const { model, model_name, entity_type } = body || {};
+    return model || model_name || entity_type || null;
+  };
+
+  const stripAliases = (body) => {
+    const { model_name: _modelName, entity_type: _entityType, ...rest } = body || {};
+    return rest;
+  };
+
   router.post('/flows', async (req, res) => {
     try {
-      const { name, model } = req.body;
+      const { name } = req.body || {};
+      const model = resolveModel(req.body);
       if (!name || !model) {
         return res.status(400).json({ success: false, error: 'Name and model are required' });
       }
-      const flow = await svc.createFlow(req.body);
+      const flow = await svc.createFlow({ ...stripAliases(req.body), model });
       res.json({ success: true, data: flow });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -168,7 +186,12 @@ const createRoutes = (models, services) => {
 
   router.put('/flows/:id', async (req, res) => {
     try {
-      const flow = await svc.updateFlow(req.params.id, req.body);
+      const payload = { ...stripAliases(req.body) };
+      const model = resolveModel(req.body);
+      if (model) {
+        payload.model = model;
+      }
+      const flow = await svc.updateFlow(req.params.id, payload);
       if (!flow) return res.status(404).json({ success: false, error: 'Flow not found' });
       res.json({ success: true, data: flow });
     } catch (error) {
@@ -208,11 +231,12 @@ const createRoutes = (models, services) => {
 
   router.post('/rules', async (req, res) => {
     try {
-      const { name, model, field } = req.body;
+      const { name, field } = req.body || {};
+      const model = resolveModel(req.body);
       if (!name || !model || !field) {
         return res.status(400).json({ success: false, error: 'Name, model, and field are required' });
       }
-      const rule = await svc.createBusinessRule(req.body);
+      const rule = await svc.createBusinessRule({ ...stripAliases(req.body), model });
       res.json({ success: true, data: rule });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -261,11 +285,12 @@ const createRoutes = (models, services) => {
 
   router.post('/approvals', async (req, res) => {
     try {
-      const { name, model } = req.body;
+      const { name } = req.body || {};
+      const model = resolveModel(req.body);
       if (!name || !model) {
         return res.status(400).json({ success: false, error: 'Name and model are required' });
       }
-      const chain = await svc.createApprovalChain(req.body);
+      const chain = await svc.createApprovalChain({ ...stripAliases(req.body), model });
       res.json({ success: true, data: chain });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -274,7 +299,12 @@ const createRoutes = (models, services) => {
 
   router.put('/approvals/:id', async (req, res) => {
     try {
-      const chain = await svc.updateApprovalChain(req.params.id, req.body);
+      const payload = { ...stripAliases(req.body) };
+      const model = resolveModel(req.body);
+      if (model) {
+        payload.model = model;
+      }
+      const chain = await svc.updateApprovalChain(req.params.id, payload);
       if (!chain) return res.status(404).json({ success: false, error: 'Approval chain not found' });
       res.json({ success: true, data: chain });
     } catch (error) {
@@ -385,11 +415,12 @@ const createRoutes = (models, services) => {
 
   router.post('/validation-rules', async (req, res) => {
     try {
-      const { name, model } = req.body;
+      const { name } = req.body || {};
+      const model = resolveModel(req.body);
       if (!name || !model) {
         return res.status(400).json({ success: false, error: 'Name and model are required' });
       }
-      const rule = await svc.createValidationRule(req.body);
+      const rule = await svc.createValidationRule({ ...stripAliases(req.body), model });
       res.json({ success: true, data: rule });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -398,7 +429,12 @@ const createRoutes = (models, services) => {
 
   router.put('/validation-rules/:id', async (req, res) => {
     try {
-      const rule = await svc.updateValidationRule(req.params.id, req.body);
+      const payload = { ...stripAliases(req.body) };
+      const model = resolveModel(req.body);
+      if (model) {
+        payload.model = model;
+      }
+      const rule = await svc.updateValidationRule(req.params.id, payload);
       if (!rule) return res.status(404).json({ success: false, error: 'Validation rule not found' });
       res.json({ success: true, data: rule });
     } catch (error) {
@@ -438,11 +474,12 @@ const createRoutes = (models, services) => {
 
   router.post('/assignment-rules', async (req, res) => {
     try {
-      const { name, model } = req.body;
+      const { name } = req.body || {};
+      const model = resolveModel(req.body);
       if (!name || !model) {
         return res.status(400).json({ success: false, error: 'Name and model are required' });
       }
-      const rule = await svc.createAssignmentRule(req.body);
+      const rule = await svc.createAssignmentRule({ ...stripAliases(req.body), model });
       res.json({ success: true, data: rule });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
@@ -451,7 +488,12 @@ const createRoutes = (models, services) => {
 
   router.put('/assignment-rules/:id', async (req, res) => {
     try {
-      const rule = await svc.updateAssignmentRule(req.params.id, req.body);
+      const payload = { ...stripAliases(req.body) };
+      const model = resolveModel(req.body);
+      if (model) {
+        payload.model = model;
+      }
+      const rule = await svc.updateAssignmentRule(req.params.id, payload);
       if (!rule) return res.status(404).json({ success: false, error: 'Assignment rule not found' });
       res.json({ success: true, data: rule });
     } catch (error) {

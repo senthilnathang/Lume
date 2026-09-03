@@ -100,7 +100,7 @@ function openWorkflowModal(mode: 'create' | 'edit', wf?: Workflow) {
 }
 
 async function handleWorkflowSubmit() {
-  if (!workflowForm.name || !workflowForm.code) { message.warning('Name and Code are required'); return; }
+  if (!workflowForm.name || !workflowForm.code || !workflowForm.model_name) { message.warning('Name, Code, and Model are required'); return; }
   workflowFormLoading.value = true;
   try {
     if (workflowFormMode.value === 'edit' && editingWorkflow.value) {
@@ -137,7 +137,7 @@ const showFlowModal = ref(false);
 const flowFormMode = ref<'create' | 'edit'>('create');
 const flowFormLoading = ref(false);
 const editingFlow = ref<Flow | null>(null);
-const flowForm = reactive({ name: '', code: '', description: '', trigger_type: 'manual' as Flow['trigger_type'] });
+const flowForm = reactive({ name: '', code: '', description: '', model: '', trigger_type: 'manual' as Flow['trigger_type'] });
 
 const triggerColors: Record<string, string> = { record: 'blue', schedule: 'orange', manual: 'green', api: 'purple', subflow: 'cyan' };
 const statusColors: Record<string, string> = { draft: 'default', active: 'green', inactive: 'red' };
@@ -171,7 +171,7 @@ function openFlowModal(mode: 'create' | 'edit', f?: Flow) {
 }
 
 async function handleFlowSubmit() {
-  if (!flowForm.name) { message.warning('Name is required'); return; }
+  if (!flowForm.name || !flowForm.model) { message.warning('Name and Model are required'); return; }
   flowFormLoading.value = true;
   try {
     if (flowFormMode.value === 'edit' && editingFlow.value) {
@@ -314,7 +314,7 @@ const approvalFormMode = ref<'create' | 'edit'>('create');
 const approvalFormLoading = ref(false);
 const editingApprovalItem = ref<ApprovalChain | null>(null);
 const approvalForm = reactive({
-  name: '', description: '', is_active: true,
+  name: '', description: '', model: '', is_active: true,
   chain_type: 'SEQUENTIAL' as ApprovalChain['chain_type'], steps: [] as any[],
 });
 
@@ -352,7 +352,7 @@ function openApprovalModal(mode: 'create' | 'edit', a?: ApprovalChain) {
 }
 
 async function handleApprovalSubmit() {
-  if (!approvalForm.name) { message.warning('Name is required'); return; }
+  if (!approvalForm.name || !approvalForm.model) { message.warning('Name and Model are required'); return; }
   approvalFormLoading.value = true;
   try {
     if (approvalFormMode.value === 'edit' && editingApprovalItem.value) {
@@ -611,6 +611,11 @@ onMounted(() => { loadData(); });
       <a-form layout="vertical">
         <a-form-item label="Name"><a-input v-model:value="flowForm.name" placeholder="Flow name" /></a-form-item>
         <a-form-item label="Code"><a-input v-model:value="flowForm.code" placeholder="e.g. auto_assign" /></a-form-item>
+        <a-form-item label="Model" required>
+          <a-select v-model:value="flowForm.model" placeholder="Select model" style="width:100%">
+            <a-select-option v-for="m in modelOptions" :key="m.value" :value="m.value">{{ m.label }}</a-select-option>
+          </a-select>
+        </a-form-item>
         <a-form-item label="Description"><a-textarea v-model:value="flowForm.description" :rows="2" /></a-form-item>
         <a-form-item label="Trigger Type">
           <a-select v-model:value="flowForm.trigger_type" style="width:100%">
@@ -679,6 +684,11 @@ onMounted(() => { loadData(); });
     <a-modal v-model:open="showApprovalModal" :title="approvalFormMode === 'create' ? 'Create Approval Chain' : 'Edit Approval Chain'" width="680px" @ok="handleApprovalSubmit" :confirm-loading="approvalFormLoading">
       <a-form layout="vertical">
         <a-form-item label="Name"><a-input v-model:value="approvalForm.name" placeholder="Chain name" /></a-form-item>
+        <a-form-item label="Model" required>
+          <a-select v-model:value="approvalForm.model" placeholder="Select model" style="width:100%">
+            <a-select-option v-for="m in modelOptions" :key="m.value" :value="m.value">{{ m.label }}</a-select-option>
+          </a-select>
+        </a-form-item>
         <a-form-item label="Description"><a-textarea v-model:value="approvalForm.description" :rows="2" /></a-form-item>
         <a-form-item label="Chain Type">
           <a-radio-group v-model:value="approvalForm.chain_type">
