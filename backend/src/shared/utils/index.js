@@ -95,18 +95,27 @@ export const jwtUtil = {
       return null;
     }
   },
-  
+
+  // Verify refresh token (signed with the refresh secret, not the access one)
+  verifyRefreshToken(token) {
+    try {
+      return jwt.verify(token, getRefreshSecret());
+    } catch (error) {
+      return null;
+    }
+  },
+
   // Decode token without verification
   decodeToken(token) {
     return jwt.decode(token);
   },
   
-  // Generate refresh token
+  // Generate refresh token (jti guarantees uniqueness per rotation)
   generateRefreshToken(userId) {
     return jwt.sign(
       { userId, type: 'refresh' },
       getRefreshSecret(),
-      { expiresIn: '30d' }
+      { expiresIn: '30d', jwtid: uuidv4() }
     );
   }
 };

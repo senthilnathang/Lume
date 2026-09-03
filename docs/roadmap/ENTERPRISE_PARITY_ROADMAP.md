@@ -48,7 +48,8 @@ Benchmarks: Twenty (open CRM, table/kanban/calendar + saved views + `defineObjec
 4. Access lifetime `7d` → `1h` (`JWT_EXPIRES_IN` in `.env.example` + live `.env`; `jwtUtil` honors `ACCESS_TOKEN_EXPIRES || JWT_EXPIRES_IN || '1h'`); refresh stays `30d` rotating + DB-bound.
 5. Opt-in `requireScopes(...scopes)` middleware enforcing `apiKeyScopes` in `backend/src/core/middleware/auth.js`.
 6. Uploads: explicit MIME allowlist (images/video/audio/pdf/zip/fonts; no more `application/*`) + icons batch `50` → `20` (500MB RAM-DoS cap) in `website.routes.js`.
-**Still open:** Helmet CSP enablement (needs frontend audit), refresh-token reuse detection, `/api/docs` prod auth (currently `OPENAPI_ENABLED` flag only).
+**Done (2026-09-03, batch 3):** refresh rotation fixed (verified against refresh secret + unique `jti`) with replay-revokes-family detection; opt-in `DOCS_TOKEN` bearer gate on `/api/docs` + `/api/openapi.json`; strict API CSP (`default-src 'none'`, `frame-ancestors 'deny'`, Swagger excluded); `role_id` restored in refreshed access tokens. 3 unit tests green.
+**Still open:** Helmet CSP `upgrade-insecure-requests`/HSTS preload review.
 **Touch:** `backend/src/index.js`, `backend/src/core/middleware/auth.js`, `.env.example`
 **Accept:** `npm run check` + `setup-smoke.test.js` + `websocket-permission.test.js` green, zero weak-secret boot.
 

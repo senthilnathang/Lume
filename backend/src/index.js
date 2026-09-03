@@ -131,6 +131,21 @@ app.use(helmet({
   hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
 }));
 
+// ─── Security: API Content-Security-Policy ───────────────────────────────────
+// The API serves JSON, never HTML — lock it down so responses cannot be
+// framed or executed as documents. Swagger UI (/api/docs) ships inline
+// scripts/styles, so it is excluded from this policy.
+app.use((req, res, next) => {
+  if (req.path === '/api/docs' || req.path.startsWith('/api/docs/')) {
+    return next();
+  }
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'deny'"
+  );
+  next();
+});
+
 // ─── Security: CORS ──────────────────────────────────────────────────────────
 // In production, CORS_ORIGIN MUST be explicitly set (no default to '*' or '')
 // In development, default to common localhost ports for frontend apps
@@ -352,11 +367,21 @@ app.get('/metrics', (req, res, next) => {
 // with `@swagger` JSDoc comments scraped from module route files.
 {
   const openapiEnabledInProd = String(process.env.OPENAPI_ENABLED || '').toLowerCase() === 'true';
+  const docsToken = process.env.DOCS_TOKEN || '';
+  const docsGate = (req, res, next) => {
+    if (!docsToken) {
+      return next();
+    }
+    if (req.headers.authorization === `Bearer ${docsToken}`) {
+      return next();
+    }
+    return res.status(401).json({ success: false, error: 'Docs authentication required' });
+  };
   if (process.env.NODE_ENV !== 'production' || openapiEnabledInProd) {
     try {
       const spec = buildOpenApiSpec();
 
-      app.get('/api/openapi.json', (req, res) => {
+      app.get('/api/openapi.json', docsGate, (req, res) => {
         // OpenAPI spec is public + cacheable. 1-minute window — short enough
         // that hot-reloaded annotations show up quickly in dev, long enough
         // that SDK codegen tools don't hammer the endpoint.
@@ -364,7 +389,7 @@ app.get('/metrics', (req, res, next) => {
         res.json(spec);
       });
 
-      app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(spec, {
+      app.use('/api/docs', docsGate, swaggerUi.serve, swaggerUi.setup(spec, {
         explorer: true,
         customSiteTitle: 'Lume API — Reference',
         swaggerOptions: { persistAuthorization: true },

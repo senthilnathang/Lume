@@ -3,6 +3,10 @@ import { jwtUtil, responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES } from '../../shared/constants/index.js';
 
 export class AuthService {
+  constructor(db = prisma) {
+    this.db = db;
+  }
+
   async seedRoles() {
     const roles = [
       { name: 'super_admin', display_name: 'Super Admin', description: 'Full system access', is_system: true },
@@ -157,24 +161,32 @@ export class AuthService {
 
   async refreshToken(refreshToken) {
     try {
-      const decoded = jwtUtil.verifyToken(refreshToken);
+      const decoded = jwtUtil.verifyRefreshToken(refreshToken);
       if (!decoded || decoded.type !== 'refresh') {
         return responseUtil.error(MESSAGES.INVALID_TOKEN, null, 'UNAUTHORIZED');
       }
 
-      const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
-      if (!user || user.refresh_token !== refreshToken) {
+      const user = await this.db.user.findUnique({ where: { id: decoded.userId } });
+      if (!user) {
         return responseUtil.error(MESSAGES.INVALID_TOKEN, null, 'UNAUTHORIZED');
+      }
+      if (user.refresh_token !== refreshToken) {
+        await this.db.user.update({
+          where: { id: user.id },
+          data: { refresh_token: null },
+        });
+        return responseUtil.error('Refresh token reuse detected - session revoked', null, 'UNAUTHORIZED');
       }
 
       const token = jwtUtil.generateToken({
         id: user.id,
         email: user.email,
-        role: user.role_id
+        role: user.role_id,
+        role_id: user.role_id,
       });
 
       const newRefreshToken = jwtUtil.generateRefreshToken(user.id);
-      await prisma.user.update({
+      await this.db.user.update({
         where: { id: user.id },
         data: { refresh_token: newRefreshToken }
       });

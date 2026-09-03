@@ -69,6 +69,7 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 | OWD Visibility | `owd-visibility.test.js` | 3 | Default merge, explicit-wins, invalid fail-closed |
 | Permission Merge | `permission-merge.test.js` | 3 | Role ∪ grants, inactive-role deny, cache invalidation |
 | Field Validation | `field-validation.test.js` | 7 | Rule engine + unique enforcement on create/update |
+| Refresh Reuse | `refresh-reuse.test.js` | 3 | Rotation, replay revokes family, forged tokens ignored |
 
 Run the parity set:
 

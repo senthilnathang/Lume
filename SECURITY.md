@@ -43,6 +43,12 @@ Lume ships with several built-in protections (see [`CLAUDE.md`](./CLAUDE.md) and
   `METRICS_TOKEN` (or localhost) in production.
 - Uploads enforce an explicit MIME allowlist with per-file size caps and
   reduced batch counts; scoped API keys via `requireScopes(...)` middleware.
+- Refresh rotation with reuse detection (replayed tokens revoke the whole
+  session family); refresh JWTs verified against the refresh secret with
+  unique `jti` per rotation. `/api/docs` + `/api/openapi.json` support an
+  opt-in `DOCS_TOKEN` bearer gate. JSON API responses carry a strict
+  `Content-Security-Policy` (`default-src 'none'`, no framing); Swagger UI
+  is excluded since it needs inline assets.
 - Entity records enforce field-level policies (`EntityFieldPermission`),
   row visibility (private/company/public + OWD defaults), master-detail
   cascade deletes, and server-computed formulas (client values untrusted).
