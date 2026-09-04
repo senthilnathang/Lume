@@ -3,8 +3,9 @@ import { useApi } from '../useApi'
 
 describe('useApi Composable', () => {
   beforeEach(() => {
-    // Clear localStorage
+    // Clear localStorage and module-level auth state
     localStorage.clear()
+    useApi().clearAuth()
     vi.clearAllMocks()
   })
 

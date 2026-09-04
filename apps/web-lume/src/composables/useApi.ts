@@ -365,14 +365,16 @@ export const useApi = () => {
   return {
     // State
     token: currentToken,
+    refreshToken,
     isAuthenticated,
     user,
-    
+
     // Auth methods
     setAuth,
     clearAuth,
     refreshAuthToken,
-    
+    getAuthHeaders,
+
     // API
     ...api,
   };
