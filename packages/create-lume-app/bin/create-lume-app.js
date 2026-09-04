@@ -3,9 +3,10 @@ import { mkdirSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { planModule, buildModuleFiles, writeModule } from '../src/generate.js';
 import { listTemplates } from '../src/templates.js';
+import { parsePrompt } from '../src/from-prompt.js';
 
 function usage() {
-  console.log('Usage: create-lume-app <module-name> [--label "Display Name"] [--fields name:type,...] [--template name] [--dir path]');
+  console.log('Usage: create-lume-app <module-name> [--label "Display Name"] [--fields name:type,...] [--template name] [--from-prompt "..."] [--dir path]');
   console.log('');
   console.log('Templates:');
   for (const t of listTemplates()) {
@@ -30,6 +31,8 @@ function parseArgs(argv) {
       args.fields = String(argv[++i] || '').split(',').map((s) => s.trim()).filter(Boolean);
     } else if (a === '--template') {
       args.template = argv[++i];
+    } else if (a === '--from-prompt') {
+      args.fromPrompt = argv[++i];
     } else if (a === '--dir') {
       args.dir = resolve(process.cwd(), argv[++i]);
     } else if (a === '--list-templates') {
@@ -53,6 +56,15 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
+if (args.fromPrompt) {
+  const parsed = parsePrompt(args.fromPrompt);
+  console.log(`Understood: ${parsed.name}${parsed.template ? ` (template: ${parsed.template})` : ''} — ${parsed.fieldSpecs.join(', ')}`);
+  args.name = args.name || parsed.name;
+  args.template = args.template || parsed.template;
+  if (!args.fields.length) {
+    args.fields = parsed.fieldSpecs;
+  }
+}
 if (!args.name) {
   usage();
   process.exit(1);
