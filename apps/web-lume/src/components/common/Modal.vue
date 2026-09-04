@@ -54,7 +54,7 @@ const props = withDefaults(defineProps<{
   keyboard?: boolean;
   okText?: string;
   confirmLoading?: boolean;
-  footer?: any;
+  footer?: unknown;
 }>(), {
   title: '',
   width: 520,

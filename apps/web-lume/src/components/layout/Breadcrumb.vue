@@ -97,7 +97,7 @@ const getIconComponent = (iconName: string) => {
   if (iconName?.startsWith('lucide:')) {
     const name = iconName.replace('lucide:', '');
     // Map common lucide names to ant design icons
-    const iconMap: Record<string, any> = {
+    const iconMap: Record<string, string> = {
       'settings': 'SettingOutlined',
       'users': 'UserOutlined',
       'user': 'UserOutlined',
@@ -130,7 +130,7 @@ const getIconComponent = (iconName: string) => {
   }
   
   // Handle ant design icons
-  return (antIcons as Record<string, any>)[iconName] || antIcons.FolderOutlined;
+  return (antIcons as Record<string, unknown>)[iconName] || antIcons.FolderOutlined;
 };
 </script>
 

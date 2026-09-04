@@ -60,7 +60,7 @@ export const useExport = () => {
     const rows = data.map(row => {
       if (columns.length > 0) {
         return columns.map(col => {
-          let value = row[col.key];
+          const value = row[col.key];
           if (col.formatter) {
             return col.formatter(value, row);
           }

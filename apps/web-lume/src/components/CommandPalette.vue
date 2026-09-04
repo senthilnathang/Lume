@@ -37,7 +37,7 @@ const query = ref('')
 const loading = ref(false)
 const results = ref<SearchResult[]>([])
 const activeIndex = ref(-1)
-const inputRef = ref<InstanceType<any> | null>(null)
+const inputRef = ref<{ focus: () => void } | null>(null)
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 

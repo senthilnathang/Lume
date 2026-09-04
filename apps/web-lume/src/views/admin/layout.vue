@@ -36,7 +36,7 @@ const permissionStore = usePermissionStore();
 const collapsed = ref(false);
 
 // Icon mapping from string names to Ant Design Vue icon components
-const iconMapping: Record<string, any> = {
+const iconMapping: Record<string, unknown> = {
   'dashboard': DashboardOutlined,
   'home': DashboardOutlined,
   'users': TeamOutlined,
@@ -98,13 +98,13 @@ const menuItems = computed(() => {
   }));
 });
 
-const userMenuItems: any[] = [
+const userMenuItems: { key?: string; icon?: unknown; label?: string; type?: 'divider' }[] = [
   { key: 'profile', icon: UserOutlined, label: 'Profile' },
   { type: 'divider' as const },
   { key: 'logout', icon: LogoutOutlined, label: 'Logout' }
 ];
 
-const handleMenuClick = ({ key }: any) => {
+const handleMenuClick = ({ key }: { key?: string }) => {
   if (key === 'logout') {
     authStore.logout();
     router.push('/login');

@@ -105,13 +105,13 @@ import { ref, reactive, computed } from 'vue';
 import { useExport, type ExportColumn } from '@/utils/export';
 
 const props = defineProps<{
-  data: any[];
+  data: Record<string, unknown>[];
   columns: ExportColumn[];
   moduleName: string;
 }>();
 
 const emit = defineEmits<{
-  (e: 'export', format: string, data: any[]): void;
+  (e: 'export', format: string, data: Record<string, unknown>[]): void;
 }>();
 
 const { exporting, exportData } = useExport();

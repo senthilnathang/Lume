@@ -42,7 +42,7 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.userInfo);
-const menus = computed(() => permissionStore.menus as any[]);
+const menus = computed(() => permissionStore.menus);
 
 // Fetch permissions and menus on mount
 onMounted(async () => {

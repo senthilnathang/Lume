@@ -100,7 +100,7 @@ describe('Admin Dashboard Integration', () => {
 
       mockApi.post.mockResolvedValueOnce(mockModules);
 
-      const result = await adminStore.reloadModules();
+      await adminStore.reloadModules();
 
       expect(mockApi.post).toHaveBeenCalledWith('/api/admin/modules/reload', {});
       expect(adminStore.modules).toEqual(mockModules);

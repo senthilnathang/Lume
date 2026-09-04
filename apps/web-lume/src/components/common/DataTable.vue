@@ -117,6 +117,8 @@
 import { computed } from 'vue';
 import Pagination from './Pagination.vue';
 
+export type TableRecord = Record<string, unknown>;
+
 export interface TableColumn {
   key: string;
   title: string;
@@ -127,7 +129,7 @@ export interface TableColumn {
   fixed?: 'left' | 'right';
   sorter?: boolean;
   className?: string;
-  render?: (value: any, record: any, index: number) => any;
+  render?: (value: unknown, record: TableRecord, index: number) => unknown;
 }
 
 export interface TablePagination {
@@ -144,11 +146,11 @@ export interface TablePagination {
 export interface RowSelection {
   selectedRowKeys: (string | number)[];
   onChange: (keys: (string | number)[]) => void;
-  onSelect?: (record: any, selected: boolean) => void;
+  onSelect?: (record: TableRecord, selected: boolean) => void;
 }
 
 const props = withDefaults(defineProps<{
-  dataSource: any[];
+  dataSource: TableRecord[];
   columns: TableColumn[];
   title?: string;
   loading?: boolean;
@@ -161,10 +163,10 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-  'change': [paginationInfo: any, filters: any, sorter: any];
-  'row-click': [record: any, index: number];
-  'select': [record: any, selected: boolean];
-  'select-all': [selected: boolean, selectedRows: any[]];
+  'change': [paginationInfo: TablePagination | undefined, filters: Record<string, unknown>, sorter: Record<string, unknown>];
+  'row-click': [record: TableRecord, index: number];
+  'select': [record: TableRecord, selected: boolean];
+  'select-all': [selected: boolean, selectedRows: TableRecord[]];
   'page-change': [page: number, pageSize: number];
   'show-size-change': [current: number, size: number];
 }>();
@@ -194,7 +196,7 @@ const someRowsSelected = computed(() => {
   return selectedCount > 0 && selectedCount < props.dataSource.length;
 });
 
-const isRowSelected = (record: any): boolean => {
+const isRowSelected = (record: TableRecord): boolean => {
   if (!props.rowSelection) return false;
   const key = record.id || record.key;
   return props.rowSelection.selectedRowKeys.includes(key);
@@ -232,11 +234,11 @@ const handleSort = (column: TableColumn) => {
   emit('change', { ...props.pagination, sortField: column.key, sortOrder: order }, {}, { field: column.key, order });
 };
 
-const handleRowClick = (record: any, index: number) => {
+const handleRowClick = (record: TableRecord, index: number) => {
   emit('row-click', record, index);
 };
 
-const handleSelect = (record: any) => {
+const handleSelect = (record: TableRecord) => {
   const key = record.id || record.key;
   const selected = !isRowSelected(record);
   

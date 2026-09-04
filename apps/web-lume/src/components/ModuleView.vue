@@ -180,10 +180,10 @@
                   :placeholder="field.placeholder"
                   :disabled="field.disabled"
                 />
-                <textarea 
+                <textarea
                   v-else-if="field.type === 'textarea'"
                   :id="field.key"
-                  v-model="formData[field.key]"
+                  v-model="formData[field.key] as string"
                   :required="field.required"
                   :placeholder="field.placeholder"
                   :rows="field.rows || 4"
@@ -224,7 +224,7 @@
           </form>
         </div>
 
-        <div v-else-if="viewType === 'detail'" class="detail-view">
+        <div v-else-if="viewType === 'detail' && currentItem" class="detail-view">
           <div class="detail-header">
             <button @click="handleBack" class="back-btn">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -286,9 +286,13 @@ const loading = ref(false);
 const submitting = ref(false);
 const error = ref<string | null>(null);
 
+type ModuleRow = Record<string, unknown> & { id?: string | number };
+
 const viewType = ref<'list' | 'form' | 'detail'>('list');
-const currentItem = ref<any>(null);
+const currentItem = ref<ModuleRow | null>(null);
 const itemId = ref<string | number | null>(null);
+
+const errMessage = (e: unknown, fallback: string): string => (e instanceof Error ? e.message : fallback);
 
 const searchQuery = ref('');
 const statusFilter = ref('');
@@ -297,9 +301,9 @@ const sortDirection = ref<'asc' | 'desc'>('asc');
 const currentPage = ref(1);
 const pageSize = 10;
 
-const formData = ref<Record<string, any>>({});
+const formData = ref<ModuleRow>({});
 
-const data = ref<any[]>([]);
+const data = ref<ModuleRow[]>([]);
 const displayMode = ref<'table' | 'kanban'>('table');
 const kanbanWidths = ref<Record<string, number>>({});
 type KanbanCol = { key: string; type?: string; title?: string };
@@ -827,8 +831,8 @@ const filteredData = computed(() => {
   
   if (sortColumn.value) {
     result.sort((a, b) => {
-      const aVal = a[sortColumn.value];
-      const bVal = b[sortColumn.value];
+      const aVal = String(a[sortColumn.value] ?? '');
+      const bVal = String(b[sortColumn.value] ?? '');
       const modifier = sortDirection.value === 'asc' ? 1 : -1;
       return aVal > bVal ? modifier : -modifier;
     });
@@ -839,9 +843,11 @@ const filteredData = computed(() => {
 
 const totalPages = computed(() => Math.ceil(filteredData.value.length / pageSize));
 
-const formatDate = (date: string | Date | null | undefined) => {
+const formatDate = (date: unknown) => {
   if (!date) return '-';
-  return new Date(date).toLocaleDateString('en-US', {
+  const parsed = date instanceof Date ? date : new Date(String(date));
+  if (Number.isNaN(parsed.getTime())) return '-';
+  return parsed.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -852,10 +858,10 @@ const loadData = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await get<any[]>(apiEndpoint.value);
+    const response = await get<ModuleRow[]>(apiEndpoint.value);
     data.value = response || [];
-  } catch (e: any) {
-    error.value = e.message || 'Failed to load data';
+  } catch (e: unknown) {
+    error.value = errMessage(e, 'Failed to load data');
     data.value = [];
   } finally {
     loading.value = false;
@@ -885,7 +891,7 @@ const handlePageChange = (page: number) => {
   }
 };
 
-const handleRowClick = (item: any) => {
+const handleRowClick = (item: ModuleRow) => {
   handleView(item);
 };
 
@@ -901,9 +907,9 @@ const handleKanbanMove = async (e: { recordId: string | number; to: string | nul
   try {
     await put(`${apiEndpoint.value}/${e.recordId}`, { [kanbanField.value]: e.to });
     announce('record:updated', e.recordId);
-  } catch (err: any) {
+  } catch (err: unknown) {
     await loadData();
-    error.value = err.message || 'Failed to move card';
+    error.value = errMessage(err, 'Failed to move card');
   }
 };
 
@@ -912,9 +918,9 @@ const handleKanbanResize = (widths: Record<string, number>) => {
   try { localStorage.setItem(kanbanStorageKey.value, JSON.stringify(widths)); } catch { /* noop */ }
 };
 
-const handleView = (item: any) => {
+const handleView = (item: ModuleRow) => {
   currentItem.value = item;
-  itemId.value = item.id;
+  itemId.value = item.id ?? null;
   viewType.value = 'detail';
 };
 
@@ -925,24 +931,25 @@ const handleCreate = () => {
   viewType.value = 'form';
 };
 
-const handleEdit = (item: any) => {
+const handleEdit = (item: ModuleRow) => {
   currentItem.value = item;
-  itemId.value = item.id;
+  itemId.value = item.id ?? null;
   formData.value = { ...item };
   viewType.value = 'form';
 };
 
-const handleDelete = async (item: any) => {
+const handleDelete = async (item: ModuleRow) => {
   if (!confirm(`Are you sure you want to delete this ${moduleTitle.value.toLowerCase()}?`)) return;
-  
+  if (item.id === undefined) return;
+
   submitting.value = true;
   try {
     await del(`${apiEndpoint.value}/${item.id}`);
     announce('record:deleted', item.id);
     await loadData();
     viewType.value = 'list';
-  } catch (e: any) {
-    alert(e.message || 'Failed to delete');
+  } catch (e: unknown) {
+    alert(errMessage(e, 'Failed to delete'));
   } finally {
     submitting.value = false;
   }
@@ -979,8 +986,8 @@ const handleSubmit = async () => {
     formData.value = {};
     currentItem.value = null;
     itemId.value = null;
-  } catch (e: any) {
-    alert(e.message || 'Failed to save');
+  } catch (e: unknown) {
+    alert(errMessage(e, 'Failed to save'));
   } finally {
     submitting.value = false;
   }
@@ -990,7 +997,7 @@ const retry = () => {
   loadData();
 };
 
-const handleExport = (format: string, data: any[]) => {
+const handleExport = (format: string, data: ModuleRow[]) => {
   console.log(`Exported ${data.length} records as ${format}`);
 };
 

@@ -20,7 +20,7 @@ const formState = reactive({
   remember: true
 });
 
-const rules: Record<string, any[]> = {
+const rules: Record<string, { required?: boolean; message?: string; trigger?: string; type?: string }[]> = {
   email: [
     { required: true, message: 'Please enter your email', trigger: 'blur' },
     { type: 'email', message: 'Please enter a valid email', trigger: 'blur' }
@@ -42,9 +42,9 @@ const handleLogin = async () => {
     } else {
       errorMsg.value = 'Invalid email or password. Please try again.';
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Login error:', err);
-    errorMsg.value = err.message || 'Login failed. Please check your credentials and try again.';
+    errorMsg.value = (err instanceof Error ? err.message : '') || 'Login failed. Please check your credentials and try again.';
   } finally {
     loading.value = false;
   }

@@ -28,7 +28,7 @@ const route = useRoute();
 const loading = ref(true);
 const error = ref<string | null>(null);
 const errorTitle = ref('Failed to load view');
-const dynamicComponent = shallowRef<any>(null);
+const dynamicComponent = shallowRef<unknown>(null);
 const componentProps = ref({});
 
 const loadView = async () => {
@@ -80,9 +80,9 @@ const loadView = async () => {
 
     dynamicComponent.value = loadedComponent;
     loading.value = false;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Failed to load dynamic view:', e);
-    error.value = e.message || 'Failed to load view. Please check if the view exists.';
+    error.value = (e instanceof Error ? e.message : '') || 'Failed to load view. Please check if the view exists.';
     errorTitle.value = 'View Not Found';
     loading.value = false;
   }

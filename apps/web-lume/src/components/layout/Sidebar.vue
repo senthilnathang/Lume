@@ -171,11 +171,13 @@ const isCollapsed = computed(() => props.collapsed && !hovering.value);
  * Icon resolver — handles "lucide:xxx", plain names, and kebab-case.
  * Converts to PascalCase and looks up in lucide-vue-next icons object.
  */
-function resolveIcon(name?: string) {
-  if (!name) return (lucideIcons as Record<string, any>)['Circle'] || LayoutDashboard;
+type IconComponent = typeof LayoutDashboard;
+function resolveIcon(name?: string): IconComponent {
+  const icons = lucideIcons as unknown as Record<string, IconComponent>;
+  if (!name) return icons['Circle'] || LayoutDashboard;
   const key = name.replace('lucide:', '');
   const pascal = key.replace(/(^|[-_])(\w)/g, (_: string, __: string, c: string) => c.toUpperCase());
-  return (lucideIcons as Record<string, any>)[pascal] || (lucideIcons as Record<string, any>)['Circle'] || LayoutDashboard;
+  return icons[pascal] || icons['Circle'] || LayoutDashboard;
 }
 
 // --- Phase 3: Menu grouping by category ---
