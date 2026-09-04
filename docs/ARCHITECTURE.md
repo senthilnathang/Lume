@@ -1411,6 +1411,19 @@ See [GRAPHQL_ARCHITECTURE.md](GRAPHQL_ARCHITECTURE.md) for:
 
 ---
 
+## Developer Packages (`packages/`)
+
+- **`create-lume-app`** — zero-dependency module scaffolder (manifest, Drizzle
+  schema, service, auth API routes, admin list view). Template gallery
+  (`crm-pipeline`, `ats`, `helpdesk` with staged select options) plus a
+  `--from-prompt` Build Agent flow that parses plain-language requests into
+  scaffold plans. Tested with `node --test`.
+- **`@lume/mcp-server`** — stdio MCP server (API-key auth) exposing
+  `list_entities`, `schema_graph`, `list_records`, `get_record`,
+  `create_record` over the real API, so AI assistants operate under the same
+  validation, formula, visibility, and field-policy enforcement as HTTP
+  clients. Tested with `node --test`; see its README for Claude Desktop config.
+
 ## Planned Architecture
 
 ### Redis Caching Layer

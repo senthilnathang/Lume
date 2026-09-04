@@ -93,6 +93,18 @@ node --test packages/create-lume-app/test/generate.test.js
 node --test packages/lume-mcp/test/server.test.js
 ```
 
+### Frontend Suite (Vitest + jsdom, 32/32 green)
+
+```bash
+cd apps/web-lume
+npx vitest run
+```
+
+The suite was unrunnable until `jsdom` + `@vue/test-utils` were added as
+devDependencies. Fixed alongside it: Header test props (`user`/`menus`
+matching the component API), `useApi` exposing `refreshToken` +
+`getAuthHeaders`, and per-test auth isolation via `clearAuth`.
+
 ### Configuration
 
 Jest configuration is in `backend/jest.config.cjs`:

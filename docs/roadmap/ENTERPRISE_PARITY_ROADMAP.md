@@ -1,6 +1,7 @@
 # Lume Enterprise Parity Roadmap — TwentyHQ / Huly / ServiceNow / Salesforce
 
-**Created:** 2026-09-03 | **Source:** framework comparison (UX/UI, dynamic components, entity builder, DnD)
+**Created:** 2026-09-03 | **Completed:** 2026-09-04 — all P0/P1/P2 items done (only HSTS-preload review noted as future work)
+**Source:** framework comparison (UX/UI, dynamic components, entity builder, DnD)
 **Single command:** `npm run dev:admin` (backend `:3000` + admin panel, turbo filter `lume-backend` + `@lume/web-lume`)
 **Related:** `docs/deployment/public_release_roadmap.md`, `docs/deployment/SEO_AUDIT.md`, `SECURITY.md`
 

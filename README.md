@@ -256,6 +256,9 @@ See `docs/roadmap/ENTERPRISE_PARITY_ROADMAP.md` for the TwentyHQ/Huly/ServiceNow
 ```bash
 cd backend
 npm run check     # lint (warn) + typecheck (warn) + smoke + websocket-permission tests
+cd ../apps/web-lume
+npx vitest run    # frontend suite, 32/32 green (requires jsdom + @vue/test-utils)
+npx eslint src/   # 1 remaining error (legacy ModuleView config map) + 264 warnings
 ```
 
 `npm run check` is the pre-tag local-verify helper. Lint and typecheck are locally non-fatal (they print counts), but in CI both are **strict-zero hard-gates**: `.github/workflows/code-quality.yml` fails if any lint problems or TS errors are introduced (`LUME_LINT_BUDGET=0`, `LUME_TS_BUDGET=0`). Lint debt was fully paid off on 2026-05-21 (see `docs/CODE_QUALITY.md`). The smoke gate (`.github/workflows/setup-smoke.yml`) is the install-contract hard-gate.
