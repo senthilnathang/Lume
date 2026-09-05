@@ -7,6 +7,7 @@ import { Router } from 'express';
 const createRoutes = (models, services) => {
   const router = Router();
   const svc = services.advancedFeaturesService;
+  const reportsSvc = services.analyticsReportService;
 
   // ── Health ────────────────────────────────────────────────────
 
@@ -380,6 +381,76 @@ const createRoutes = (models, services) => {
       res.json({ success: true, message: 'Attachment deleted' });
     } catch (error) {
       res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  // ── Analytics reports (ported from FastVue advanced_features) ──
+
+  router.get('/reports', async (req, res) => {
+    try {
+      const reports = await reportsSvc.list({ limit: Number(req.query.limit) || 20 });
+      res.json({ success: true, data: reports.rows || reports });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/reports/:id', async (req, res) => {
+    try {
+      const report = await reportsSvc.get(req.params.id);
+      if (!report) {
+        return res.status(404).json({ success: false, error: 'Report not found' });
+      }
+      res.json({ success: true, data: report });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/reports', async (req, res) => {
+    try {
+      const report = await reportsSvc.create(req.body);
+      res.status(201).json({ success: true, data: report });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message, errors: error.errors });
+    }
+  });
+
+  router.put('/reports/:id', async (req, res) => {
+    try {
+      const report = await reportsSvc.update(req.params.id, req.body);
+      if (!report) {
+        return res.status(404).json({ success: false, error: 'Report not found' });
+      }
+      res.json({ success: true, data: report });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message, errors: error.errors });
+    }
+  });
+
+  router.delete('/reports/:id', async (req, res) => {
+    try {
+      await reportsSvc.remove(req.params.id);
+      res.json({ success: true, message: 'Report deleted' });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/reports/:id/run', async (req, res) => {
+    try {
+      const result = await reportsSvc.run(req.params.id, {
+        companyId: req.user?.companyId || req.query.companyId || 1,
+        userId: req.user?.id,
+        isPrivileged: ['super_admin', 'admin'].includes(req.user?.role),
+      });
+      if (!result) {
+        return res.status(404).json({ success: false, error: 'Report not found' });
+      }
+      res.json({ success: true, data: result });
+    } catch (error) {
+      const status = error.code === 'ENTITY_NOT_FOUND' ? 400 : 500;
+      res.status(status).json({ success: false, error: error.message });
     }
   });
 

@@ -13,9 +13,11 @@ import {
   attachments
 } from './models/schema.js';
 import { DrizzleAdapter } from '../../core/db/adapters/drizzle-adapter.js';
+import prisma from '../../core/db/prisma.js';
 import { AdvancedFeaturesService } from './services/index.js';
 import { WebhookService } from '../../core/services/webhook.service.js';
 import { NotificationService } from '../../core/services/notification.service.js';
+import { AnalyticsReportService } from './services/analytics-reports.js';
 import createRoutes from './api/index.js';
 import serviceRegistry from '../../core/services/service-registry.js';
 
@@ -39,10 +41,13 @@ const initializeAdvancedFeatures = async (context) => {
   const webhookService = new WebhookService(adapters.Webhook, adapters.WebhookLog);
   const notificationService = new NotificationService(adapters.Notification, adapters.NotificationChannel);
 
+  const analyticsReportService = new AnalyticsReportService(prisma);
+
   const services = {
     advancedFeaturesService: new AdvancedFeaturesService(adapters),
     webhookService,
-    notificationService
+    notificationService,
+    analyticsReportService
   };
   console.log('✅ Advanced Features services created (including webhook trigger + notification dispatch)');
 

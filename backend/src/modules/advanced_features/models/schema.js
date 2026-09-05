@@ -85,3 +85,16 @@ export const attachments = table('attachments', {
   attachableId: idCol('attachable_id').notNull(),
   uploadedBy: idCol('uploaded_by'),
 });
+
+export const analyticsReports = table('analytics_reports', {
+  ...baseColumns(),
+  name: varchar('name', { length: 200 }).notNull(),
+  code: varchar('code', { length: 100 }).notNull(),
+  description: text('description'),
+  reportType: varchar('report_type', { length: 20 }).default('tabular'),
+  baseEntity: varchar('base_entity', { length: 100 }).notNull(),
+  visibility: varchar('visibility', { length: 20 }).default('company'),
+  status: varchar('status', { length: 20 }).default('active'),
+  queryConfig: json('query_config').$type().default({}),
+  groupingConfig: json('grouping_config').$type().default({}),
+});

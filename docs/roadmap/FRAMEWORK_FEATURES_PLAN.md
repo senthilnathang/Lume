@@ -52,7 +52,9 @@ Done: kanban/dynamic views, visual form/view/record-page builders, ERD + drag-to
 ## Execution order
 F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item ships with unit tests + docs updates, one by one, committed separately.
 
-## Status (2026-09-05)
+## Status (2026-09-05, FastVue migration track)
+- [x] M1 Analytics Reports port (FastVue `advanced_features` → Lume `analytics_reports` table + service + CRUD/run routes; tabular + grouped aggregates; company/visibility scoping; verified live; 4 tests green).
+- [ ] Next modules one by one: dashboards, import_export, notification/mail/sms, document_management, erd_viewer extras.
 - [x] F1.1 Wildcard grants (`matchesPermission`: exact/`*`/`*.*`/`collection.*`/`*.action`; admin tiers carry `*`+`*.*`).
 - [x] F1.2 Role-hierarchy inheritance (parent inherits active descendants via `Role.metadata.parentRoleId`; `invalidateAll()` registry wired into role create/update/delete/permission-assign).
 - [x] F1.3 Group-based grants (`usergroups.<id>` + `groupgrants.<group>` settings unioned into effective permissions; interim until Group tables gain membership columns).
