@@ -7,6 +7,21 @@ import prisma from '../../../core/db/prisma.js';
 
 const EFFECTIVE_PERMISSIONS_TTL_MS = 60 * 1000;
 
+export function matchesPermission(granted, required) {
+  if (granted === required || granted === '*' || granted === '*.*') {
+    return true;
+  }
+  const [gCollection, gAction] = String(granted).split('.');
+  const [rCollection, rAction] = String(required).split('.');
+  if (gCollection === '*' && gAction === rAction) {
+    return true;
+  }
+  if (gAction === '*' && gCollection === rCollection) {
+    return true;
+  }
+  return false;
+}
+
 export class SecurityService {
   constructor(models, db = prisma) {
     this.models = models;
@@ -44,7 +59,7 @@ export class SecurityService {
     if (!role) return [];
     if (role.name === 'admin' || role.name === 'super_admin') {
       const allPerms = await this.db.permission.findMany({ where: { isActive: true } });
-      return allPerms.map((p) => p.name);
+      return ['*', '*.*', ...allPerms.map((p) => p.name)];
     }
     if (!role.isActive) return [];
 
@@ -60,11 +75,11 @@ export class SecurityService {
   }
 
   /**
-   * Check if user has a specific permission
+   * Check if user has a specific permission (wildcard-aware)
    */
   async checkPermission(userId, permissionName) {
     const permissions = await this.getEffectivePermissions(userId);
-    return permissions.includes(permissionName);
+    return permissions.some((granted) => matchesPermission(granted, permissionName));
   }
 
   /**
