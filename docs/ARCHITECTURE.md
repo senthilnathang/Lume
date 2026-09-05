@@ -674,9 +674,18 @@ RecordService.create/update/get/list
         children (recursive, cycle-safe) on record delete
 ```
 
-Effective API permissions merge role grants with per-user permission sets
-(`SecurityService.getEffectivePermissions`, 60s TTL cache, inactive roles
-deny everything): `permsets.user.<id>` settings extend the role baseline.
+Effective API permissions merge role grants, hierarchy inheritance, group
+grants, and per-user permission sets (`SecurityService.getEffectivePermissions`,
+60s TTL cache, inactive roles deny everything):
+- **Wildcards** — `matchesPermission` supports exact, `*`, `*.*`,
+  `collection.*`, `*.action`; admin tiers carry `*` + `*.*`.
+- **Role hierarchy** — parent roles inherit active descendants' permissions
+  via `Role.metadata.parentRoleId` (interim link); a static instance registry
+  (`invalidateAll`) clears every service cache on role create/update/delete
+  and permission assignment.
+- **Group grants** — `usergroups.<id>` + `groupgrants.<group>` settings union
+  into the baseline (interim until Group tables gain membership columns).
+- **Permission sets** — `permsets.user.<id>` settings extend the role baseline.
 
 ### Dynamic Views & Builders (2026-09)
 

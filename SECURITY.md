@@ -52,6 +52,10 @@ Lume ships with several built-in protections (see [`CLAUDE.md`](./CLAUDE.md) and
 - Entity records enforce field-level policies (`EntityFieldPermission`),
   row visibility (private/company/public + OWD defaults), master-detail
   cascade deletes, and server-computed formulas (client values untrusted).
+- Authorization merges role permissions, hierarchy inheritance (active
+  descendants), group grants, and per-user permission sets with wildcard
+  (`*`, `collection.*`, `*.action`) matching; role edits invalidate all
+  permission caches; inactive roles deny everything.
 
 ### Operator responsibilities
 

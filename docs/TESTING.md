@@ -71,6 +71,8 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 | Field Validation | `field-validation.test.js` | 7 | Rule engine + unique enforcement on create/update |
 | Refresh Reuse | `refresh-reuse.test.js` | 3 | Rotation, replay revokes family, forged tokens ignored |
 | Model Aliases | `model-alias.test.js` | 2 | Automation model/model_name/entity_type normalization |
+| Role Hierarchy | `role-hierarchy.test.js` | 4 | Metadata parent links, downward inheritance, inactive exclusion, cache registry |
+| Group Grants | in `permission-merge.test.js` | 5 total | Wildcard matcher, pattern grants, admin markers, group union, no-group default |
 
 Run the parity set:
 
