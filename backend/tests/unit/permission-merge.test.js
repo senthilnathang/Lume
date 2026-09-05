@@ -29,7 +29,10 @@ describe('wildcard permission matching', () => {
 function makeDb({ role = { id: 3, name: 'editor', isActive: true }, grants = [] } = {}) {
   return {
     user: { findUnique: async () => ({ id: 9, role_id: 3 }) },
-    role: { findUnique: async () => role },
+    role: {
+      findUnique: async () => role,
+      findMany: async () => [{ ...role, metadata: null }],
+    },
     rolePermission: {
       findMany: async () => [{ permission: { name: 'articles.read' } }],
       findFirst: async () => null,

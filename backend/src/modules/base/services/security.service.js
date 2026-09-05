@@ -7,6 +7,21 @@ import prisma from '../../../core/db/prisma.js';
 
 const EFFECTIVE_PERMISSIONS_TTL_MS = 60 * 1000;
 
+const serviceInstances = new Set();
+
+export function parseParentRoleId(role) {
+  if (!role?.metadata) {
+    return null;
+  }
+  try {
+    const meta = typeof role.metadata === 'string' ? JSON.parse(role.metadata) : role.metadata;
+    const id = Number(meta?.parentRoleId ?? meta?.parent_role_id);
+    return Number.isInteger(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
 export function matchesPermission(granted, required) {
   if (granted === required || granted === '*' || granted === '*.*') {
     return true;
@@ -28,6 +43,14 @@ export class SecurityService {
     this.db = db;
     this.permissionCache = new Map();
     this.recordRuleCache = new Map();
+    serviceInstances.add(this);
+  }
+
+  static invalidateAll() {
+    for (const instance of serviceInstances) {
+      instance.clearCache();
+    }
+    return serviceInstances.size;
   }
 
   async getDirectGrants(userId) {
@@ -51,6 +74,31 @@ export class SecurityService {
     return permissions;
   }
 
+  async getRoleSubtreeIds(roleId) {
+    const allRoles = await this.db.role.findMany();
+    const activeRoles = (allRoles || []).filter((r) => r.isActive !== false);
+    const childrenOf = new Map();
+    for (const r of activeRoles) {
+      const parent = parseParentRoleId(r);
+      if (parent !== null) {
+        const list = childrenOf.get(parent) || [];
+        list.push(r.id);
+        childrenOf.set(parent, list);
+      }
+    }
+    const ids = new Set([Number(roleId)]);
+    const queue = [Number(roleId)];
+    while (queue.length) {
+      for (const child of childrenOf.get(queue.shift()) || []) {
+        if (!ids.has(child)) {
+          ids.add(child);
+          queue.push(child);
+        }
+      }
+    }
+    return [...ids];
+  }
+
   async computeEffectivePermissions(userId) {
     const user = await this.db.user.findUnique({ where: { id: userId } });
     if (!user) return [];
@@ -63,8 +111,9 @@ export class SecurityService {
     }
     if (!role.isActive) return [];
 
+    const roleIds = await this.getRoleSubtreeIds(role.id);
     const rolePermissions = await this.db.rolePermission.findMany({
-      where: { roleId: role.id },
+      where: { roleId: { in: roleIds } },
       include: { permission: { select: { name: true } } },
     });
     const merged = new Set(rolePermissions.map((rp) => rp.permission.name));

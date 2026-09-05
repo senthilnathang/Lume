@@ -1,6 +1,7 @@
 import prisma from '../../core/db/prisma.js';
 import { jwtUtil, responseUtil } from '../../shared/utils/index.js';
 import { MESSAGES } from '../../shared/constants/index.js';
+import { SecurityService } from '../base/services/security.service.js';
 
 export class AuthService {
   constructor(db = prisma) {
@@ -80,6 +81,7 @@ export class AuthService {
         });
       }
     }
+    SecurityService.invalidateAll();
     return role;
   }
 
@@ -112,6 +114,7 @@ export class AuthService {
 
   async createRole(roleData) {
     const role = await prisma.role.create({ data: roleData });
+    SecurityService.invalidateAll();
     return responseUtil.success(role, MESSAGES.CREATED);
   }
 
@@ -141,6 +144,7 @@ export class AuthService {
       where: { id: Number(id) },
       data: roleData
     });
+    SecurityService.invalidateAll();
     return responseUtil.success(updated, MESSAGES.UPDATED);
   }
 
@@ -156,6 +160,7 @@ export class AuthService {
       where: { id: Number(id) },
       data: { isActive: false }
     });
+    SecurityService.invalidateAll();
     return responseUtil.success(null, MESSAGES.DELETED);
   }
 
