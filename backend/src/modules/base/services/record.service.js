@@ -6,6 +6,87 @@
 import ValidationRules from '../../../core/services/field-validation.service.js';
 import { maskValue } from '../../../core/services/field-mask.service.js';
 
+let webhookServiceInstance = null;
+async function getWebhookService() {
+  if (webhookServiceInstance) {
+    return webhookServiceInstance;
+  }
+  try {
+    const { DrizzleAdapter } = await import('../../../core/db/adapters/drizzle-adapter.js');
+    const { webhooks, webhookLogs } = await import('../../advanced_features/models/schema.js');
+    const { WebhookService } = await import('../../../core/services/webhook.service.js');
+    webhookServiceInstance = new WebhookService(
+      new DrizzleAdapter(webhooks),
+      new DrizzleAdapter(webhookLogs)
+    );
+    return webhookServiceInstance;
+  } catch {
+    return null;
+  }
+}
+
+function notifyRecordEvent(event, model, record, companyId) {
+  getWebhookService().then((svc) => {
+    if (svc) {
+      return svc.triggerWebhooks(event, model, { record, companyId });
+    }
+    return null;
+  }).catch(() => {});
+}
+
+let approvalRuntimeInstance = null;
+async function getApprovalRuntime(prisma) {
+  if (approvalRuntimeInstance) {
+    return approvalRuntimeInstance;
+  }
+  try {
+    const { DrizzleAdapter } = await import('../../../core/db/adapters/drizzle-adapter.js');
+    const schema = await import('../../base_automation/models/schema.js');
+    const { ApprovalRuntimeService } = await import('../../base_automation/services/approval-runtime.js');
+    approvalRuntimeInstance = new ApprovalRuntimeService({
+      ApprovalChain: new DrizzleAdapter(schema.automationApprovalChains),
+      ApprovalInstance: new DrizzleAdapter(schema.automationApprovalInstances),
+      ApprovalTask: new DrizzleAdapter(schema.automationApprovalTasks),
+    }, prisma);
+    return approvalRuntimeInstance;
+  } catch {
+    return null;
+  }
+}
+
+function parseChainCondition(chain) {
+  try {
+    const raw = chain?.condition;
+    if (!raw) {
+      return {};
+    }
+    return typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch {
+    return {};
+  }
+}
+
+function maybeStartApprovals(prisma, entityName, recordId, userId) {
+  getApprovalRuntime(prisma).then(async (runtime) => {
+    if (!runtime) {
+      return;
+    }
+    const chains = await runtime.models.ApprovalChain.findAll({ limit: 100, offset: 0 });
+    const auto = (chains.rows || chains || []).filter((c) => (
+      c.status === 'active'
+      && String(c.model || '') === String(entityName)
+      && parseChainCondition(c).auto_start === true
+    ));
+    for (const chain of auto) {
+      try {
+        await runtime.submitForApproval(chain.id, entityName, String(recordId), userId);
+      } catch {
+        /* one chain failing never blocks the record write */
+      }
+    }
+  }).catch(() => {});
+}
+
 export class RecordService {
   constructor(prisma) {
     this.prisma = prisma;
@@ -129,6 +210,9 @@ export class RecordService {
         visibility
       }
     });
+
+    notifyRecordEvent('record.created', entity.name || String(entityId), { id: record.id, ...finalData }, companyId);
+    maybeStartApprovals(this.prisma, entity.name || String(entityId), record.id, userId);
 
     return {
       ...record,
@@ -310,6 +394,8 @@ export class RecordService {
       }
     });
 
+    notifyRecordEvent('record.updated', String(existing.entityId), { id: recordId, ...mergedData }, companyId);
+
     return {
       ...updated,
       data: this.stripUnreadable(JSON.parse(updated.data), policy)
@@ -351,6 +437,8 @@ export class RecordService {
 
     const { cascadeDeleteRecords } = await import('../../../core/services/cascade.service.js');
     await cascadeDeleteRecords(this.prisma, existing.entityId, recordId, { soft: softDelete });
+
+    notifyRecordEvent('record.deleted', String(existing.entityId), { id: recordId }, companyId);
 
     return true;
   }
