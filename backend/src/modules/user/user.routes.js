@@ -169,7 +169,21 @@ router.get('/stats', authenticate, authorize('user_management', 'read'), async (
   }
 });
 
-router.get('/:id', authenticate, authorize('user_management', 'read'), updateUserValidation[0], validateRequest, async (req, res) => {
+const isSelfOrPrivileged = (req) => {
+  if (Number(req.params.id) === Number(req.user?.id)) {
+    return true;
+  }
+  return ['super_admin', 'admin'].includes(req.user?.role);
+};
+
+const denyCrossUser = (req, res, next) => {
+  if (!isSelfOrPrivileged(req)) {
+    return res.status(403).json(responseUtil.error('Forbidden: self or admin access required', null, 'FORBIDDEN'));
+  }
+  next();
+};
+
+router.get('/:id', authenticate, authorize('user_management', 'read'), denyCrossUser, updateUserValidation[0], validateRequest, async (req, res) => {
   try {
     const result = await getUserService().findById(parseInt(req.params.id));
     res.json(result);
@@ -179,7 +193,7 @@ router.get('/:id', authenticate, authorize('user_management', 'read'), updateUse
   }
 });
 
-router.put('/:id', authenticate, authorize('user_management', 'write'), updateUserValidation, validateRequest, async (req, res) => {
+router.put('/:id', authenticate, authorize('user_management', 'write'), denyCrossUser, updateUserValidation, validateRequest, async (req, res) => {
   try {
     const result = await getUserService().update(parseInt(req.params.id), req.body);
     res.json(result);
@@ -189,7 +203,7 @@ router.put('/:id', authenticate, authorize('user_management', 'write'), updateUs
   }
 });
 
-router.delete('/:id', authenticate, authorize('user_management', 'delete'), updateUserValidation[0], validateRequest, async (req, res) => {
+router.delete('/:id', authenticate, authorize('user_management', 'delete'), denyCrossUser, updateUserValidation[0], validateRequest, async (req, res) => {
   try {
     const result = await getUserService().delete(parseInt(req.params.id), req.user.id);
     res.json(result);

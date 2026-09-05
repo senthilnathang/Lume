@@ -236,12 +236,22 @@ const createEntityRecordsRoutes = () => {
   router.post('/:id/records/:recordId/relationships', async (req, res) => {
     try {
       const recordId = parseInt(req.params.recordId);
+      const companyId = req.companyId;
       const { relationshipId, targetRecordId } = req.body;
 
       if (!relationshipId || !targetRecordId) {
         return res.status(400).json({
           success: false,
           message: 'relationshipId and targetRecordId are required'
+        });
+      }
+
+      const source = await recordService.getRecord(recordId, companyId, { ...req.rowPolicy });
+      const target = await recordService.getRecord(parseInt(targetRecordId), companyId, { ...req.rowPolicy });
+      if (!source || !target) {
+        return res.status(404).json({
+          success: false,
+          message: 'Record not found'
         });
       }
 
@@ -275,12 +285,22 @@ const createEntityRecordsRoutes = () => {
   router.delete('/:id/records/:recordId/relationships', async (req, res) => {
     try {
       const recordId = parseInt(req.params.recordId);
+      const companyId = req.companyId;
       const { relationshipId, targetRecordId } = req.body;
 
       if (!relationshipId || !targetRecordId) {
         return res.status(400).json({
           success: false,
           message: 'relationshipId and targetRecordId are required'
+        });
+      }
+
+      const source = await recordService.getRecord(recordId, companyId, { ...req.rowPolicy });
+      const target = await recordService.getRecord(parseInt(targetRecordId), companyId, { ...req.rowPolicy });
+      if (!source || !target) {
+        return res.status(404).json({
+          success: false,
+          message: 'Record not found'
         });
       }
 

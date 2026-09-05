@@ -58,4 +58,5 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F1.3 Group-based grants (`usergroups.<id>` + `groupgrants.<group>` settings unioned into effective permissions; interim until Group tables gain membership columns).
 - [x] F1.4 Field masking (`field-mask.service.js`: MASKED mode with tail preservation; `fieldmask.<field>.<role>` rules override strip on read, writes stay blocked; 7 tests green).
 - [x] F1.5 CRUD gate (`checkEntityAccess`: `<entity>.<action>` codenames, gate activates when scoped permissions are seeded, legacy-allow otherwise, superuser-exempt via `*`; wired into all 5 record routes; 4 tests green).
-- [ ] F1.6, F2–F7 pending, in order above.
+- [x] F1.6 IDOR audit (relationship link/unlink now verify both records via company+visibility scoping; user `/:id` GET/PUT/DELETE restricted to self-or-admin via `denyCrossUser`; change-password already verifies old password).
+- [ ] F2–F7 pending, in order above.
