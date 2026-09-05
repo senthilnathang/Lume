@@ -64,6 +64,28 @@ export class SecurityService {
     }
   }
 
+  async readStringList(key) {
+    try {
+      const row = await this.db.setting.findFirst({ where: { key } });
+      const raw = row?.value;
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return Array.isArray(parsed) ? parsed.filter((p) => typeof p === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getGroupGrants(userId) {
+    const groups = await this.readStringList(`usergroups.${userId}`);
+    const grants = new Set();
+    for (const group of groups) {
+      for (const grant of await this.readStringList(`groupgrants.${group}`)) {
+        grants.add(grant);
+      }
+    }
+    return [...grants];
+  }
+
   async getEffectivePermissions(userId) {
     const cached = this.permissionCache.get(userId);
     if (cached && Date.now() - cached.at < EFFECTIVE_PERMISSIONS_TTL_MS) {
@@ -118,6 +140,9 @@ export class SecurityService {
     });
     const merged = new Set(rolePermissions.map((rp) => rp.permission.name));
     for (const grant of await this.getDirectGrants(userId)) {
+      merged.add(grant);
+    }
+    for (const grant of await this.getGroupGrants(userId)) {
       merged.add(grant);
     }
     return [...merged];

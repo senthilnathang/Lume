@@ -1,5 +1,38 @@
 import { SecurityService, matchesPermission } from '../../src/modules/base/services/security.service.js';
 
+describe('group-based grants (F1.3)', () => {
+  function groupDb() {
+    const store = {
+      'usergroups.9': JSON.stringify(['editors', 'support']),
+      'groupgrants.editors': JSON.stringify(['articles.*']),
+      'groupgrants.support': JSON.stringify(['tickets.read']),
+    };
+    const db = makeDb();
+    db.setting = {
+      findFirst: async ({ where }) => (
+        where.key in store ? { key: where.key, value: store[where.key] } : null
+      ),
+    };
+    return db;
+  }
+
+  test('unions group grants with role permissions', async () => {
+    const svc = new SecurityService(null, groupDb());
+    expect(await svc.checkPermission(9, 'articles.delete')).toBe(true);
+    expect(await svc.checkPermission(9, 'tickets.read')).toBe(true);
+    expect(await svc.checkPermission(9, 'articles.read')).toBe(true);
+    expect(await svc.checkPermission(9, 'billing.read')).toBe(false);
+  });
+
+  test('users without groups get role permissions only', async () => {
+    const db = groupDb();
+    db.setting.findFirst = async () => null;
+    const svc = new SecurityService(null, db);
+    expect(await svc.checkPermission(9, 'tickets.read')).toBe(false);
+    expect(await svc.checkPermission(9, 'articles.read')).toBe(true);
+  });
+});
+
 describe('wildcard permission matching', () => {
   test('matches exact, star, and partial wildcards', () => {
     expect(matchesPermission('articles.read', 'articles.read')).toBe(true);
