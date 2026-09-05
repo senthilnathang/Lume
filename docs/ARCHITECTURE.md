@@ -686,6 +686,13 @@ grants, and per-user permission sets (`SecurityService.getEffectivePermissions`,
 - **Group grants** — `usergroups.<id>` + `groupgrants.<group>` settings union
   into the baseline (interim until Group tables gain membership columns).
 - **Permission sets** — `permsets.user.<id>` settings extend the role baseline.
+- **Field masking** — denied fields with `fieldmask.<field>.<role>` rules render
+  tail-masked instead of stripped on reads; writes stay blocked.
+- **CRUD gate** — `<entity>.<action>` codenames enforced on record routes once
+  scoped permissions exist (legacy-allow otherwise); relationships and user
+  `/:id` routes additionally verify company/visibility/self-or-admin.
+- **Record webhooks** — create/update/delete emit fire-and-forget signed,
+  retried, logged deliveries via the shared `WebhookService`.
 
 ### Dynamic Views & Builders (2026-09)
 

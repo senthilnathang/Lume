@@ -19,7 +19,7 @@ Done: kanban/dynamic views, visual form/view/record-page builders, ERD + drag-to
 - [ ] F2.1 **Flow Designer parity**: visual node/edge canvas with record-change/schedule/manual/API triggers on top of existing workflow engine.
 - [ ] F2.2 **Approval chains wired to data changes** (record transitions drive approvals, not just standalone chains).
 - [ ] F2.3 **Scheduled actions runner** (cron inside backend, execution history already modeled).
-- [ ] F2.4 **Webhook triggers** (outbound `POST` on record events with secret signing).
+- [x] F2.4 **Webhook triggers** (record `created/updated/deleted` fire-and-forget through HMAC + retry service; done 2026-09-05).
 
 ## F3 — Analytics & reporting [medium]
 - [ ] F3.1 **Report builder**: filters/grouping/aggregations over entities, saved + scheduled, CSV/Excel export (FastVue Cat-3, SF reports).
@@ -59,4 +59,5 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F1.4 Field masking (`field-mask.service.js`: MASKED mode with tail preservation; `fieldmask.<field>.<role>` rules override strip on read, writes stay blocked; 7 tests green).
 - [x] F1.5 CRUD gate (`checkEntityAccess`: `<entity>.<action>` codenames, gate activates when scoped permissions are seeded, legacy-allow otherwise, superuser-exempt via `*`; wired into all 5 record routes; 4 tests green).
 - [x] F1.6 IDOR audit (relationship link/unlink now verify both records via company+visibility scoping; user `/:id` GET/PUT/DELETE restricted to self-or-admin via `denyCrossUser`; change-password already verifies old password).
+- [x] F2.4 Record-event webhooks (lazy singleton, HMAC-signed, retried, logged; CRUD never breaks; 4 tests green).
 - [ ] F2–F7 pending, in order above.
