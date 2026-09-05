@@ -156,6 +156,31 @@ export class SecurityService {
     return permissions.some((granted) => matchesPermission(granted, permissionName));
   }
 
+  async isEntityGateActive(entityName) {
+    if (!entityName || !this.db.permission) {
+      return false;
+    }
+    try {
+      const scoped = await this.db.permission.findMany({
+        where: { name: { startsWith: `${entityName}.` } },
+      });
+      return (scoped || []).length > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  async checkEntityAccess(userId, entityName, action) {
+    if (!entityName || !action) {
+      return false;
+    }
+    if (!(await this.isEntityGateActive(entityName))) {
+      return true;
+    }
+    const permissions = await this.getEffectivePermissions(userId);
+    return permissions.some((granted) => matchesPermission(granted, `${entityName}.${action}`));
+  }
+
   /**
    * Check if user has any of the permissions
    */

@@ -18,6 +18,7 @@ import { Router } from 'express';
 import prisma from '../../../core/db/prisma.js';
 import { RecordService } from '../services/record.service.js';
 import { RelationshipService } from '../../../core/services/relationship.service.js';
+import { SecurityService } from '../services/security.service.js';
 
 const createEntityRecordsRoutes = () => {
   const router = Router({ mergeParams: true });
@@ -25,6 +26,7 @@ const createEntityRecordsRoutes = () => {
   // Initialize services
   const recordService = new RecordService(prisma);
   const relationshipService = new RelationshipService(prisma);
+  const securityService = new SecurityService(null, prisma);
 
   // Middleware to extract companyId and row-policy context from request
   router.use((req, res, next) => {
@@ -37,8 +39,24 @@ const createEntityRecordsRoutes = () => {
     next();
   });
 
+  const requireEntityAccess = (action) => async (req, res, next) => {
+    try {
+      const entity = await prisma.entity.findUnique({ where: { id: parseInt(req.params.id) } });
+      if (!entity) {
+        return res.status(404).json({ success: false, message: 'Entity not found' });
+      }
+      const allowed = await securityService.checkEntityAccess(req.user?.id, entity.name, action);
+      if (!allowed) {
+        return res.status(403).json({ success: false, message: `Forbidden: ${entity.name}.${action} required` });
+      }
+      next();
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  };
+
   // POST /entities/:id/records - Create record
-  router.post('/:id/records', async (req, res) => {
+  router.post('/:id/records', requireEntityAccess('create'), async (req, res) => {
     try {
       const entityId = parseInt(req.params.id);
       const companyId = req.companyId;
@@ -74,7 +92,7 @@ const createEntityRecordsRoutes = () => {
   });
 
   // GET /entities/:id/records - List records with pagination
-  router.get('/:id/records', async (req, res) => {
+  router.get('/:id/records', requireEntityAccess('read'), async (req, res) => {
     try {
       const entityId = parseInt(req.params.id);
       const companyId = req.companyId;
@@ -124,7 +142,7 @@ const createEntityRecordsRoutes = () => {
   });
 
   // GET /entities/:id/records/:recordId - Get record by ID
-  router.get('/:id/records/:recordId', async (req, res) => {
+  router.get('/:id/records/:recordId', requireEntityAccess('read'), async (req, res) => {
     try {
       const recordId = parseInt(req.params.recordId);
       const companyId = req.companyId;
@@ -151,7 +169,7 @@ const createEntityRecordsRoutes = () => {
   });
 
   // PUT /entities/:id/records/:recordId - Update record
-  router.put('/:id/records/:recordId', async (req, res) => {
+  router.put('/:id/records/:recordId', requireEntityAccess('update'), async (req, res) => {
     try {
       const recordId = parseInt(req.params.recordId);
       const companyId = req.companyId;
@@ -187,7 +205,7 @@ const createEntityRecordsRoutes = () => {
   });
 
   // DELETE /entities/:id/records/:recordId - Delete record
-  router.delete('/:id/records/:recordId', async (req, res) => {
+  router.delete('/:id/records/:recordId', requireEntityAccess('delete'), async (req, res) => {
     try {
       const recordId = parseInt(req.params.recordId);
       const companyId = req.companyId;
