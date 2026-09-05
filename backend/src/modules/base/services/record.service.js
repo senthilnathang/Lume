@@ -4,6 +4,7 @@
  */
 
 import ValidationRules from '../../../core/services/field-validation.service.js';
+import { maskValue } from '../../../core/services/field-mask.service.js';
 
 export class RecordService {
   constructor(prisma) {
@@ -38,10 +39,20 @@ export class RecordService {
       return null;
     }
     const byId = new Map((fields || []).map(f => [f.id, f.name]));
-    return {
+    const policy = {
       read: new Set(rows.filter(r => r.canRead).map(r => byId.get(r.fieldId)).filter(Boolean)),
       write: new Set(rows.filter(r => r.canWrite).map(r => byId.get(r.fieldId)).filter(Boolean)),
+      masks: new Map(),
     };
+    const { getFieldMask } = await import('../../../core/services/field-mask.service.js');
+    const denied = rows.filter(r => !r.canRead && byId.get(r.fieldId));
+    await Promise.all(denied.map(async (r) => {
+      const rule = await getFieldMask(this.prisma, r.fieldId, roleId);
+      if (rule) {
+        policy.masks.set(byId.get(r.fieldId), rule);
+      }
+    }));
+    return policy;
   }
 
   stripUnreadable(data, policy) {
@@ -52,6 +63,8 @@ export class RecordService {
     for (const [k, v] of Object.entries(data || {})) {
       if (policy.read.has(k)) {
         out[k] = v;
+      } else if (policy.masks && policy.masks.has(k)) {
+        out[k] = maskValue(v, policy.masks.get(k).preserveLast);
       }
     }
     return out;

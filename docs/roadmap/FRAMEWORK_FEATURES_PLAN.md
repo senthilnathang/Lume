@@ -55,5 +55,6 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 ## Status (2026-09-05)
 - [x] F1.1 Wildcard grants (`matchesPermission`: exact/`*`/`*.*`/`collection.*`/`*.action`; admin tiers carry `*`+`*.*`).
 - [x] F1.2 Role-hierarchy inheritance (parent inherits active descendants via `Role.metadata.parentRoleId`; `invalidateAll()` registry wired into role create/update/delete/permission-assign).
-- [x] F1.3 Group-based grants (`usergroups.<id>` + `groupgrants.<group>` settings unioned into effective permissions; interim until Group tables gain membership columns; 35 tests green across merge + hierarchy + security suites).
-- [ ] F1.4–F1.6, F2–F7 pending, in order above.
+- [x] F1.3 Group-based grants (`usergroups.<id>` + `groupgrants.<group>` settings unioned into effective permissions; interim until Group tables gain membership columns).
+- [x] F1.4 Field masking (`field-mask.service.js`: MASKED mode with tail preservation; `fieldmask.<field>.<role>` rules override strip on read, writes stay blocked; 7 tests green).
+- [ ] F1.5–F1.6, F2–F7 pending, in order above.
