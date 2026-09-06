@@ -54,7 +54,8 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 
 ## Status (2026-09-05, FastVue migration track)
 - [x] M1 Analytics Reports port (FastVue `advanced_features` → Lume `analytics_reports` table + service + CRUD/run routes; tabular + grouped aggregates; company/visibility scoping; verified live; 4 tests green).
-- [ ] Next: mail/sms_gateway modules.
+- [ ] Next: mail module (incoming IMAP/POP3 + routing rules).
+- [x] M8 SMS gateway module (FastVue `sms_gateway` → dedicated `sms` module: providers/templates/logs tables, template variables, bulk, retry, delivery logging; auto-discovered by loader; verified live end to end; 5 tests green).
 - [x] M7 Import XLSX UI (accept `.xlsx`/`.xls` in upload dragger + hint copy; backend already routed by extension).
 - [x] M6 ERD table detail (FastVue `erd_viewer`: `buildSchemaGraph` helper with PK/FK flags + per-entity relationship trees; node badges in canvas; verified live; 3 tests green).
 - [x] M5 Document faceted search port (FastVue `document_management`: `GET /documents/search` with `q`/`fq`/`facets`/pagination + Prisma groupBy facet counts; 3 tests green).
