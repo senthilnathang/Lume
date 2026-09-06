@@ -8,6 +8,7 @@ const createRoutes = (models, services) => {
   const router = Router();
   const svc = services.advancedFeaturesService;
   const reportsSvc = services.analyticsReportService;
+  const dashboardsSvc = services.dashboardService;
 
   // ── Health ────────────────────────────────────────────────────
 
@@ -451,6 +452,104 @@ const createRoutes = (models, services) => {
     } catch (error) {
       const status = error.code === 'ENTITY_NOT_FOUND' ? 400 : 500;
       res.status(status).json({ success: false, error: error.message });
+    }
+  });
+
+  // ── Dashboards (ported from FastVue advanced_features) ──
+
+  router.get('/dashboard-categories', async (req, res) => {
+    try {
+      const categories = await dashboardsSvc.listCategories();
+      res.json({ success: true, data: categories.rows || categories });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/dashboard-categories', async (req, res) => {
+    try {
+      const category = await dashboardsSvc.createCategory(req.body);
+      res.status(201).json({ success: true, data: category });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message, errors: error.errors });
+    }
+  });
+
+  router.get('/dashboards', async (req, res) => {
+    try {
+      const dashboards = await dashboardsSvc.listDashboards();
+      res.json({ success: true, data: dashboards.rows || dashboards });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/dashboards/:id', async (req, res) => {
+    try {
+      const dashboard = await dashboardsSvc.getDashboardWithWidgets(req.params.id);
+      if (!dashboard) {
+        return res.status(404).json({ success: false, error: 'Dashboard not found' });
+      }
+      res.json({ success: true, data: dashboard });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.post('/dashboards', async (req, res) => {
+    try {
+      const dashboard = await dashboardsSvc.createDashboard(req.body);
+      res.status(201).json({ success: true, data: dashboard });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message, errors: error.errors });
+    }
+  });
+
+  router.put('/dashboards/:id', async (req, res) => {
+    try {
+      const dashboard = await dashboardsSvc.updateDashboard(req.params.id, req.body);
+      if (!dashboard) {
+        return res.status(404).json({ success: false, error: 'Dashboard not found' });
+      }
+      res.json({ success: true, data: dashboard });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.delete('/dashboards/:id', async (req, res) => {
+    try {
+      const removed = await dashboardsSvc.removeDashboard(req.params.id);
+      if (!removed) {
+        return res.status(404).json({ success: false, error: 'Dashboard not found' });
+      }
+      res.json({ success: true, message: 'Dashboard deleted' });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.put('/dashboards/:id/default', async (req, res) => {
+    try {
+      const dashboard = await dashboardsSvc.setDefault(req.params.id);
+      if (!dashboard) {
+        return res.status(404).json({ success: false, error: 'Dashboard not found' });
+      }
+      res.json({ success: true, data: dashboard });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  router.put('/dashboards/:id/widgets', async (req, res) => {
+    try {
+      const dashboard = await dashboardsSvc.assignWidgets(req.params.id, req.body?.widgets);
+      if (!dashboard) {
+        return res.status(404).json({ success: false, error: 'Dashboard not found' });
+      }
+      res.json({ success: true, data: dashboard });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error.message });
     }
   });
 

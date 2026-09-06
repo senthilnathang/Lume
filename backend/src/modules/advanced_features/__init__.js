@@ -18,6 +18,7 @@ import { AdvancedFeaturesService } from './services/index.js';
 import { WebhookService } from '../../core/services/webhook.service.js';
 import { NotificationService } from '../../core/services/notification.service.js';
 import { AnalyticsReportService } from './services/analytics-reports.js';
+import { DashboardService } from './services/dashboards.js';
 import createRoutes from './api/index.js';
 import serviceRegistry from '../../core/services/service-registry.js';
 
@@ -42,12 +43,14 @@ const initializeAdvancedFeatures = async (context) => {
   const notificationService = new NotificationService(adapters.Notification, adapters.NotificationChannel);
 
   const analyticsReportService = new AnalyticsReportService(prisma);
+  const dashboardService = new DashboardService();
 
   const services = {
     advancedFeaturesService: new AdvancedFeaturesService(adapters),
     webhookService,
     notificationService,
-    analyticsReportService
+    analyticsReportService,
+    dashboardService
   };
   console.log('✅ Advanced Features services created (including webhook trigger + notification dispatch)');
 

@@ -98,3 +98,24 @@ export const analyticsReports = table('analytics_reports', {
   queryConfig: json('query_config').$type().default({}),
   groupingConfig: json('grouping_config').$type().default({}),
 });
+
+export const dashboardCategories = table('dashboard_categories', {
+  ...baseColumns(),
+  name: varchar('name', { length: 100 }).notNull(),
+  icon: varchar('icon', { length: 100 }),
+  sequence: idCol('sequence').default(0),
+});
+
+export const dashboards = table('dashboards', {
+  ...baseColumns(),
+  name: varchar('name', { length: 200 }).notNull(),
+  code: varchar('code', { length: 100 }).notNull(),
+  description: text('description'),
+  icon: varchar('icon', { length: 100 }),
+  categoryId: idCol('category_id'),
+  visibility: varchar('visibility', { length: 20 }).default('company'),
+  refreshInterval: varchar('refresh_interval', { length: 20 }),
+  isDefault: boolean('is_default').default(false),
+  isActive: boolean('is_active').default(true),
+  layoutConfig: json('layout_config').$type().default({}),
+});
