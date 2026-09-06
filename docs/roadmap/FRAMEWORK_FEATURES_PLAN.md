@@ -54,7 +54,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 
 ## Status (2026-09-05, FastVue migration track)
 - [x] M1 Analytics Reports port (FastVue `advanced_features` → Lume `analytics_reports` table + service + CRUD/run routes; tabular + grouped aggregates; company/visibility scoping; verified live; 4 tests green).
-- [ ] Next: mail IMAP live-fetch hardening.
+- [x] M11 Mail IMAP hardening (per-server fetch locks, message-id dedup, 100-msg cap, lastError tracking, injectable client factory; 8 tests green across mail suite).
 - [x] M10 ERD duplicate analysis (FastVue `erd_viewer`: Jaccard overlap on field sets, `/schema/duplicates` endpoint, warning panel in canvas; verified live; 5 tests green across graph suite).
 - [x] M9 Mail module (FastVue `mail` → dedicated `mail` module: IMAP servers, priority regex routing, record creation + auto-reply queue, message store, retrying outbound queue, dry-run endpoint; verified live; 5 tests green).
 - [x] M8 SMS gateway module (FastVue `sms_gateway` → dedicated `sms` module: providers/templates/logs tables, template variables, bulk, retry, delivery logging; auto-discovered by loader; verified live end to end; 5 tests green).

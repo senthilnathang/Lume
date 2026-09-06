@@ -26,6 +26,8 @@ export function applyMappings(message, mappings = {}) {
 }
 
 export class MailService {
+  static fetchLocks = new Set();
+
   constructor(overrides = {}, prismaClient = null) {
     this.servers = overrides.servers || new DrizzleAdapter(mailServers);
     this.rules = overrides.rules || new DrizzleAdapter(mailRoutingRules);
@@ -162,26 +164,48 @@ export class MailService {
     return results;
   }
 
-  async fetchServer(serverId) {
+  async fetchServer(serverId, options = {}) {
+    if (MailService.fetchLocks.has(Number(serverId))) {
+      throw new Error('Fetch already in progress for this server');
+    }
+    MailService.fetchLocks.add(Number(serverId));
+    try {
+      return await this.runFetch(serverId, options);
+    } finally {
+      MailService.fetchLocks.delete(Number(serverId));
+    }
+  }
+
+  async runFetch(serverId, options = {}) {
     const server = await this.servers.findById(serverId);
     if (!server) {
       throw new Error('Mail server not found');
     }
-    const { ImapFlow } = await import('imapflow');
-    const client = new ImapFlow({
-      host: server.host,
-      port: server.port || 993,
-      secure: server.useTls !== false,
-      auth: { user: server.username, pass: server.password },
-      logger: false,
-    });
-    const stored = [];
+    const maxMessages = Math.min(Number(options.limit) || 100, 500);
+    let client = null;
     try {
-      await client.connect();
+      if (options.clientFactory) {
+        client = await options.clientFactory(server);
+      } else {
+        const { ImapFlow } = await import('imapflow');
+        client = new ImapFlow({
+          host: server.host,
+          port: server.port || 993,
+          secure: server.useTls !== false,
+          auth: { user: server.username, pass: server.password },
+          logger: false,
+        });
+        await client.connect();
+      }
       const lock = await client.getMailboxLock('INBOX');
+      const stored = [];
+      let skipped = 0;
       try {
         const since = server.lastFetchAt ? new Date(server.lastFetchAt) : new Date(Date.now() - 24 * 60 * 60 * 1000);
         for await (const msg of client.fetch({ since }, { envelope: true, bodyParts: ['text'] })) {
+          if (stored.length + skipped >= maxMessages) {
+            break;
+          }
           const envelope = msg.envelope || {};
           const part = msg.bodyParts?.get('text');
           const body = part ? Buffer.from(part).toString('utf8').slice(0, 20000) : '';
@@ -192,6 +216,10 @@ export class MailService {
             body,
             messageId: envelope.messageId || null,
           };
+          if (message.messageId && await this.findMessageById(message.messageId)) {
+            skipped += 1;
+            continue;
+          }
           const row = await this.messages.create({
             direction: 'inbound',
             serverId: server.id,
@@ -207,13 +235,41 @@ export class MailService {
           await this.routeMessage(message, null).catch(() => {});
         }
       } finally {
-        lock.release();
+        await lock.release();
       }
+      await this.servers.update(server.id, { lastFetchAt: new Date(), lastError: null });
+      return { fetched: stored.length, skipped, messageIds: stored };
+    } catch (error) {
+      try {
+        await this.servers.update(server.id, { lastError: String(error.message || error).slice(0, 500) });
+      } catch {
+        /* never fail status bookkeeping */
+      }
+      throw error;
     } finally {
-      await client.logout().catch(() => {});
+      if (client && !options.clientFactory) {
+        await client.logout().catch(() => {});
+      }
     }
-    await this.servers.update(server.id, { lastFetchAt: new Date(), lastError: null });
-    return { fetched: stored.length, messageIds: stored };
+  }
+
+  async findMessageById(messageId) {
+    if (!messageId || !this.messages.findByMessageId) {
+      if (!messageId) {
+        return null;
+      }
+      try {
+        const { rows } = await this.messages.findAll({ limit: 1000, offset: 0 });
+        return (rows || []).find((m) => m.messageId === messageId) || null;
+      } catch {
+        return null;
+      }
+    }
+    try {
+      return await this.messages.findByMessageId(messageId);
+    } catch {
+      return null;
+    }
   }
 }
 
