@@ -51,6 +51,15 @@ export const notificationChannels = table('notification_channels', {
   status: varchar('status', { length: 20 }).default('active'),
 });
 
+export const notificationDeliveries = table('notification_deliveries', {
+  ...baseColumns(),
+  notificationId: idCol('notification_id').notNull(),
+  channel: varchar('channel', { length: 20 }).notNull(),
+  status: varchar('status', { length: 20 }).default('pending'),
+  errorMessage: text('error_message'),
+  sentAt: timestamp('sent_at'),
+});
+
 export const tags = table('tags', {
   ...baseColumns(),
   name: varchar('name', { length: 100 }).notNull().unique(),

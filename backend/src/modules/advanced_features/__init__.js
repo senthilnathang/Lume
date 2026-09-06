@@ -7,6 +7,7 @@ import {
   webhookLogs,
   notifications,
   notificationChannels,
+  notificationDeliveries,
   tags,
   taggings,
   comments,
@@ -40,7 +41,11 @@ const initializeAdvancedFeatures = async (context) => {
   console.log(`✅ Advanced Features adapters created: ${Object.keys(adapters).join(', ')}`);
 
   const webhookService = new WebhookService(adapters.Webhook, adapters.WebhookLog);
-  const notificationService = new NotificationService(adapters.Notification, adapters.NotificationChannel);
+  const notificationService = new NotificationService(
+    adapters.Notification,
+    adapters.NotificationChannel,
+    new DrizzleAdapter(notificationDeliveries)
+  );
 
   const analyticsReportService = new AnalyticsReportService(prisma);
   const dashboardService = new DashboardService();

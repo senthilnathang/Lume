@@ -54,7 +54,8 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 
 ## Status (2026-09-05, FastVue migration track)
 - [x] M1 Analytics Reports port (FastVue `advanced_features` → Lume `analytics_reports` table + service + CRUD/run routes; tabular + grouped aggregates; company/visibility scoping; verified live; 4 tests green).
-- [ ] Next modules one by one: notification/mail/sms, document_management, erd_viewer extras.
+- [ ] Next modules one by one: document_management, erd_viewer extras.
+- [x] M4 Notification channels port (FastVue `notification`: in-app/email/sms fan-out, recipient email lookup, `notification_deliveries` log table, isolated failures, SMS provider webhook; 4 tests green).
 - [x] M2 Dashboards port (FastVue `advanced_features` → `dashboards` + `dashboard_categories` tables + service; widget placements in layout JSON resolved against existing widgets; default/singleton semantics; verified live; 4 tests green).
 - [x] M3 Import XLSX parity (FastVue `import_export` was otherwise already ported: preview/validate/execute/export/template + suggestMappings; added `xlsx` dep + first-sheet parsing routed by extension; 4 tests green).
 - [x] F1.1 Wildcard grants (`matchesPermission`: exact/`*`/`*.*`/`collection.*`/`*.action`; admin tiers carry `*`+`*.*`).
