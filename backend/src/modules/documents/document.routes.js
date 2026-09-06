@@ -52,6 +52,22 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/search', async (req, res) => {
+  try {
+    const fq = req.query.fq;
+    const result = await getDocumentService().search({
+      q: req.query.q || '',
+      fq: Array.isArray(fq) ? fq : (fq ? [fq] : []),
+      facets: String(req.query.facets || '').split(',').map((s) => s.trim()).filter(Boolean),
+      page: parseInt(req.query.page) || 1,
+      limit: Math.min(parseInt(req.query.limit) || 20, 100),
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(400).json(responseUtil.error(error.message));
+  }
+});
+
 router.get('/:id', [param('id').isInt().withMessage('Document ID must be an integer')], validateRequest, async (req, res) => {
   try {
     const result = await getDocumentService().findById(parseInt(req.params.id));

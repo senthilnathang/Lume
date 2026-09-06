@@ -96,6 +96,60 @@ export class DocumentService {
     return responseUtil.success(updated);
   }
 
+  parseFilterQuery(fq) {
+    const filters = {};
+    for (const item of fq || []) {
+      if (typeof item !== 'string' || !item.includes(':')) {
+        throw new Error(`Invalid fq format: ${item}. Expected 'field:value'`);
+      }
+      const idx = item.indexOf(':');
+      const field = item.slice(0, idx).trim();
+      const value = item.slice(idx + 1).trim();
+      if (!['type', 'category', 'mimeType', 'isPublic'].includes(field)) {
+        throw new Error(`Filter not allowed on field: ${field}`);
+      }
+      filters[field] = field === 'isPublic' ? value === 'true' : value;
+    }
+    return filters;
+  }
+
+  async search({ q = '', fq = [], facets = [], page = 1, limit = 20 } = {}) {
+    const filters = this.parseFilterQuery(fq);
+    const where = { ...filters };
+    if (q) {
+      where.OR = [
+        { title: { contains: q } },
+        { description: { contains: q } },
+      ];
+    }
+    const allowedFacets = [...new Set(facets)].filter((f) => ['type', 'category', 'mimeType'].includes(f));
+    const [rows, total] = await Promise.all([
+      prisma.documents.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { created_at: 'desc' },
+      }),
+      prisma.documents.count({ where }),
+    ]);
+    const facetCounts = {};
+    if (allowedFacets.length) {
+      const grouped = await prisma.documents.groupBy({
+        by: allowedFacets,
+        where,
+        _count: { _all: true },
+      });
+      for (const bucket of grouped) {
+        for (const field of allowedFacets) {
+          const key = String(bucket[field] ?? '—');
+          facetCounts[field] = facetCounts[field] || {};
+          facetCounts[field][key] = (facetCounts[field][key] || 0) + bucket._count._all;
+        }
+      }
+    }
+    return responseUtil.paginated({ rows, facets: facetCounts }, { page, limit, total });
+  }
+
   async getStats() {
     const [total, images, documents, videos] = await Promise.all([
       prisma.documents.count(),
