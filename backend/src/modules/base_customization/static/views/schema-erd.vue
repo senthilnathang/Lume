@@ -12,6 +12,8 @@ interface ErdField {
   label: string;
   type: string;
   required: boolean;
+  primaryKey?: boolean;
+  foreignKey?: { toEntity: number; toField: string } | null;
 }
 
 interface ErdEntity {
@@ -237,7 +239,7 @@ onMounted(loadData);
               <div class="erd-node-name">{{ entity.name }}</div>
               <div class="erd-node-fields">
                 <div v-for="f in entity.fields.slice(0, 8)" :key="f.id" class="erd-field">
-                  <span>{{ f.label }}</span>
+                  <span><span v-if="f.primaryKey" class="erd-badge erd-pk" title="Primary key">PK</span><span v-if="f.foreignKey" class="erd-badge erd-fk" :title="`References entity ${f.foreignKey.toEntity}.${f.foreignKey.toField}`">FK</span>{{ f.label }}</span>
                   <span class="erd-field-type">{{ f.type }}</span>
                 </div>
                 <div v-if="entity.fields.length > 8" class="erd-more">+{{ entity.fields.length - 8 }} more</div>
@@ -299,5 +301,8 @@ onMounted(loadData);
 .erd-node-fields { padding: 0 12px 10px; font-size: 12px; }
 .erd-field { display: flex; justify-content: space-between; padding: 2px 0; }
 .erd-field-type { color: #999; }
+.erd-badge { display: inline-block; font-size: 9px; font-weight: 700; border-radius: 3px; padding: 0 4px; margin-right: 4px; }
+.erd-pk { background: #fff7e6; color: #d48806; border: 1px solid #ffd591; }
+.erd-fk { background: #e6f4ff; color: #1677ff; border: 1px solid #91caff; }
 .erd-more { color: #bbb; font-size: 11px; }
 </style>
