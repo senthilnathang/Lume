@@ -237,10 +237,48 @@ export class FeaturesDataService {
   /**
    * Execute the import
    */
+  async createImportJob(meta = {}) {
+    if (!this.models.DataImport) {
+      return null;
+    }
+    return this.models.DataImport.create({
+      name: meta.name || 'import',
+      model: meta.model || '',
+      fileName: meta.fileName || null,
+      mapping: meta.mapping || {},
+      totalRows: meta.totalRows || 0,
+      processedRows: 0,
+      successRows: 0,
+      failedRows: 0,
+      errors: [],
+      status: 'running',
+      importedBy: meta.importedBy || null,
+    });
+  }
+
+  async listImportJobs(options = {}) {
+    if (!this.models.DataImport) {
+      return { rows: [], total: 0 };
+    }
+    return this.models.DataImport.findAll({
+      limit: options.limit || 20,
+      offset: options.offset || 0,
+      order: [['createdAt', 'DESC']],
+    });
+  }
+
+  getImportJob(id) {
+    if (!this.models.DataImport) {
+      return null;
+    }
+    return this.models.DataImport.findById(id);
+  }
+
   async executeImport(modelName, rows, columnMappings, options = {}) {
-    const { updateExisting = false, skipErrors = false } = options;
+    const { updateExisting = false, skipErrors = false, job: jobMeta = null } = options;
     const adapter = this.models[modelName];
     if (!adapter) throw new Error(`Model "${modelName}" not found`);
+    const job = jobMeta ? await this.createImportJob({ ...jobMeta, model: modelName, totalRows: rows.length, mapping: columnMappings }) : null;
 
     const fieldMeta = adapter.getFields();
     let importedRows = 0;
@@ -292,12 +330,22 @@ export class FeaturesDataService {
           error: err.message,
         });
         if (!skipErrors) {
+          if (job && this.models.DataImport) {
+            await this.models.DataImport.update(job.id, {
+              processedRows: i + 1,
+              successRows: importedRows + updatedRows,
+              failedRows: errorRows,
+              errors: importErrors.slice(0, 50),
+              status: 'failed',
+            }).catch(() => {});
+          }
           return {
             status: 'FAILED',
             imported_rows: importedRows,
             updated_rows: updatedRows,
             error_rows: errorRows,
             errors: importErrors,
+            job_id: job?.id || null,
           };
         }
       }
@@ -305,12 +353,23 @@ export class FeaturesDataService {
 
     const status = errorRows === 0 ? 'COMPLETED' : (importedRows > 0 || updatedRows > 0) ? 'PARTIAL' : 'FAILED';
 
+    if (job && this.models.DataImport) {
+      await this.models.DataImport.update(job.id, {
+        processedRows: rows.length,
+        successRows: importedRows + updatedRows,
+        failedRows: errorRows,
+        errors: importErrors.slice(0, 50),
+        status: status.toLowerCase(),
+      }).catch(() => {});
+    }
+
     return {
       status,
       imported_rows: importedRows,
       updated_rows: updatedRows,
       error_rows: errorRows,
       errors: importErrors.slice(0, 50),
+      job_id: job?.id || null,
     };
   }
 

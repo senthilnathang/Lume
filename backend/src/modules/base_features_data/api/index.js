@@ -99,9 +99,33 @@ const createRoutes = (models, services) => {
       const result = await svc.executeImport(model_name, rows, column_mappings, {
         updateExisting: update_existing,
         skipErrors: skip_errors,
+        job: { name: file_name || `${model_name} import`, fileName: file_name || null, importedBy: req.user?.id || null },
       });
 
       res.json({ success: true, data: result });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ── Import: Job history ─────────────────────────────────────────
+
+  router.get('/import/jobs', async (req, res) => {
+    try {
+      const result = await svc.listImportJobs({ limit: Math.min(Number(req.query.limit) || 20, 100) });
+      res.json({ success: true, data: result.rows || result });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  router.get('/import/jobs/:id', async (req, res) => {
+    try {
+      const job = await svc.getImportJob(req.params.id);
+      if (!job) {
+        return res.status(404).json({ success: false, error: 'Import job not found' });
+      }
+      res.json({ success: true, data: job });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
