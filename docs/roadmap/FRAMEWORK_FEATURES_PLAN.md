@@ -77,4 +77,5 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).
 - [x] F4.2 API key scope enforcement (`requireScopes` with `resource:action` wildcards, legacy empty-scope keys pass through; wired into all 5 record routes; 4 tests green).
 - [x] F4.3 Field encryption at rest (AES-256-GCM, `enc:v1` envelope, `validation: [{type:'encrypted'}]` marker, transparent encrypt/decrypt in record paths, unique skipped for encrypted fields, prod fail-closed key; 6 tests green).
-- [ ] F2.1, F3.2–F3.3, F4.4, F5–F7 pending, in order above.
+- [x] F4.4 GDPR erasure (`GdprService`: DSAR collect without secrets, hard-delete user records, identity scrub with unique invalid email, audit proof; `DELETE /users/:id/erasure` self-or-admin gated; 4 tests green).
+- [ ] F2.1, F3.2–F3.3, F5–F7 pending, in order above.

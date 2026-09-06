@@ -213,6 +213,25 @@ router.delete('/:id', authenticate, authorize('user_management', 'delete'), deny
   }
 });
 
+router.delete('/:id/erasure', authenticate, authorize('user_management', 'delete'), denyCrossUser, updateUserValidation[0], validateRequest, async (req, res) => {
+  try {
+    const { GdprService } = await import('../../core/services/gdpr.service.js');
+    const { AuditService } = await import('../audit/audit.service.js');
+    const gdpr = new GdprService(prisma, new AuditService());
+    const result = await gdpr.eraseUserData(parseInt(req.params.id), {
+      companyId: req.user?.companyId ?? null,
+      actorId: req.user?.id ?? null,
+    });
+    if (!result) {
+      return res.status(404).json(responseUtil.error('User not found', null, 'NOT_FOUND'));
+    }
+    res.json(responseUtil.success(result, 'User data erased'));
+  } catch (error) {
+    console.error('Erasure error:', error);
+    res.status(500).json(responseUtil.error('Failed to erase user data'));
+  }
+});
+
 router.post('/:id/change-password', authenticate, authorize(), [
   param('id').isInt().withMessage('User ID must be an integer'),
   body('old_password').notEmpty().withMessage('Old password is required'),
