@@ -53,4 +53,47 @@ export function buildSchemaGraph(entities, fields) {
   return { entities: nodes, links };
 }
 
-export default { buildSchemaGraph };
+const IGNORED_FIELDS = new Set(['id', 'created_at', 'updated_at', 'createdAt', 'updatedAt', 'deleted_at', 'deletedAt']);
+
+export function findDuplicateCandidates(entities, fields, threshold = 0.5) {
+  const liveEntities = (entities || []).filter((e) => !e.deletedAt);
+  const byEntity = new Map();
+  for (const f of fields || []) {
+    if (f.deletedAt || IGNORED_FIELDS.has(f.name)) {
+      continue;
+    }
+    const key = Number(f.entityId);
+    if (!byEntity.has(key)) {
+      byEntity.set(key, new Set());
+    }
+    byEntity.get(key).add(`${f.name}:${f.type || 'text'}`);
+  }
+  const pairs = [];
+  for (let i = 0; i < liveEntities.length; i++) {
+    for (let j = i + 1; j < liveEntities.length; j++) {
+      const a = liveEntities[i];
+      const b = liveEntities[j];
+      const setA = byEntity.get(Number(a.id)) || new Set();
+      const setB = byEntity.get(Number(b.id)) || new Set();
+      if (!setA.size || !setB.size) {
+        continue;
+      }
+      const shared = [...setA].filter((x) => setB.has(x));
+      const score = shared.length / Math.max(setA.size, setB.size);
+      if (score >= threshold) {
+        pairs.push({
+          entityA: { id: Number(a.id), name: a.name, label: a.label || a.name },
+          entityB: { id: Number(b.id), name: b.name, label: b.label || b.name },
+          score: Math.round(score * 100) / 100,
+          sharedFields: shared.map((s) => s.split(':')[0]),
+          recommendation: score >= 0.85
+            ? 'Near-duplicate schemas — consider merging into one entity'
+            : 'High field overlap — consider a shared base entity or lookup relation',
+        });
+      }
+    }
+  }
+  return pairs.sort((x, y) => y.score - x.score);
+}
+
+export default { buildSchemaGraph, findDuplicateCandidates };

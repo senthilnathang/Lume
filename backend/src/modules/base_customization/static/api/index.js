@@ -33,6 +33,7 @@ export const deleteListConfig = (id) => del(`${BASE}/lists/${id}`);
 
 // Schema ERD
 export const getSchemaGraph = () => get('/base/entities/schema/graph');
+export const getSchemaDuplicates = (threshold = 0.5) => get('/base/entities/schema/duplicates', { params: { threshold } });
 export const createEntityField = (entityId, data) => post(`/base/entities/${entityId}/fields`, data);
 
 // Record pages

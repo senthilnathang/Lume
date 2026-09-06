@@ -1,4 +1,4 @@
-import { buildSchemaGraph } from '../../src/modules/base/services/schema-graph.js';
+import { buildSchemaGraph, findDuplicateCandidates } from '../../src/modules/base/services/schema-graph.js';
 
 const entities = [
   { id: 1, name: 'order', label: 'Order', deletedAt: null },
@@ -37,5 +37,49 @@ describe('schema graph builder (ERD extras)', () => {
     expect(order.relationships.outbound).toHaveLength(0);
     expect(item.relationships.outbound).toHaveLength(1);
     expect(item.relationships.inbound).toHaveLength(0);
+  });
+});
+
+describe('duplicate analysis (FastVue erd_viewer port)', () => {
+  const dupEntities = [
+    { id: 1, name: 'customer', label: 'Customer', deletedAt: null },
+    { id: 2, name: 'client', label: 'Client', deletedAt: null },
+    { id: 3, name: 'invoice', label: 'Invoice', deletedAt: null },
+  ];
+  const dupFields = [
+    { entityId: 1, name: 'id', type: 'number' },
+    { entityId: 1, name: 'email', type: 'email' },
+    { entityId: 1, name: 'phone', type: 'phone' },
+    { entityId: 1, name: 'address', type: 'text' },
+    { entityId: 2, name: 'id', type: 'number' },
+    { entityId: 2, name: 'email', type: 'email' },
+    { entityId: 2, name: 'phone', type: 'phone' },
+    { entityId: 2, name: 'address', type: 'text' },
+    { entityId: 3, name: 'id', type: 'number' },
+    { entityId: 3, name: 'total', type: 'number' },
+  ];
+
+  test('flags near-duplicate schemas with recommendations', () => {
+    const pairs = findDuplicateCandidates(dupEntities, dupFields, 0.5);
+    expect(pairs).toHaveLength(1);
+    expect(pairs[0].entityA.name).toBe('customer');
+    expect(pairs[0].entityB.name).toBe('client');
+    expect(pairs[0].score).toBe(1);
+    expect(pairs[0].sharedFields).toEqual(expect.arrayContaining(['email', 'phone']));
+    expect(pairs[0].recommendation).toMatch(/merging/i);
+  });
+
+  test('respects thresholds and ignores id-only overlap', () => {
+    expect(findDuplicateCandidates(dupEntities, dupFields, 0.99)).toHaveLength(1);
+    expect(findDuplicateCandidates(dupEntities, dupFields, 1)).toHaveLength(1);
+    const idOnly = [
+      { id: 1, name: 'a', deletedAt: null },
+      { id: 2, name: 'b', deletedAt: null },
+    ];
+    const idFields = [
+      { entityId: 1, name: 'id', type: 'number' },
+      { entityId: 2, name: 'id', type: 'number' },
+    ];
+    expect(findDuplicateCandidates(idOnly, idFields, 0.5)).toHaveLength(0);
   });
 });

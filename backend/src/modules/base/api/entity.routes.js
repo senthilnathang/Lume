@@ -95,6 +95,22 @@ const createEntityRoutes = () => {
     }
   });
 
+  router.get('/schema/duplicates', async (req, res) => {
+    try {
+      const { findDuplicateCandidates } = await import('../services/schema-graph.js');
+      const threshold = Math.min(1, Math.max(0, Number(req.query.threshold) || 0.5));
+      const { rows: entities } = await entityAdapter.findAll({
+        limit: 1000, offset: 0,
+      });
+      const { rows: fields } = await fieldsAdapter.findAll({
+        limit: 5000, offset: 0,
+      });
+      res.json({ success: true, data: findDuplicateCandidates(entities, fields, threshold) });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // GET /:id - Get entity by ID
   router.get('/:id', async (req, res) => {
     try {

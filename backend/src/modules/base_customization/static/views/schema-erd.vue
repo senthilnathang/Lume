@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { message } from 'ant-design-vue';
 import { Network, Search, RefreshCw, ZoomIn, ZoomOut } from 'lucide-vue-next';
-import { getSchemaGraph, createEntityField } from '@modules/base_customization/static/api/index';
+import { getSchemaGraph, getSchemaDuplicates, createEntityField } from '@modules/base_customization/static/api/index';
 
 defineOptions({ name: 'SchemaErdView' });
 
@@ -115,6 +115,17 @@ function drawEdges() {
   edgePaths.value = paths;
 }
 
+interface DuplicatePair {
+  entityA: { id: number; name: string; label: string };
+  entityB: { id: number; name: string; label: string };
+  score: number;
+  sharedFields: string[];
+  recommendation: string;
+}
+
+const duplicates = ref<DuplicatePair[]>([]);
+const showDuplicates = ref(false);
+
 async function loadData() {
   loading.value = true;
   try {
@@ -122,6 +133,9 @@ async function loadData() {
     const data = res?.data || res;
     entities.value = data?.entities || [];
     links.value = data?.links || [];
+    const dupRes = await getSchemaDuplicates(0.5).catch(() => null);
+    const dupData = dupRes?.data || dupRes;
+    duplicates.value = Array.isArray(dupData) ? dupData : [];
     await nextTick();
     drawEdges();
   } catch (error) {
@@ -198,7 +212,7 @@ onMounted(loadData);
           <Network :size="24" />
           Schema ERD
         </h1>
-        <p class="text-gray-500 m-0">{{ entities.length }} entities · {{ links.length }} lookup links</p>
+        <p class="text-gray-500 m-0">{{ entities.length }} entities · {{ links.length }} lookup links · <a-button type="link" size="small" @click="showDuplicates = !showDuplicates">{{ duplicates.length }} possible duplicates</a-button></p>
       </div>
       <div class="flex items-center gap-2">
         <a-input v-model:value="searchQuery" placeholder="Search entities or fields..." allow-clear style="width: 240px">
@@ -213,6 +227,14 @@ onMounted(loadData);
       </div>
     </div>
 
+    <a-alert
+      v-if="showDuplicates && duplicates.length"
+      type="warning"
+      show-icon
+      class="mb-3"
+      :message="`${duplicates.length} overlapping schemas detected`"
+      :description="duplicates.map((d) => `${d.entityA.label} ↔ ${d.entityB.label} (${Math.round(d.score * 100)}% overlap: ${d.sharedFields.join(', ')}) — ${d.recommendation}`).join(' | ')"
+    />
     <a-spin :spinning="loading">
       <div v-if="!entities.length && !loading" class="text-center py-16">
         <a-empty description="No entities yet — create one in the entity builder" />
