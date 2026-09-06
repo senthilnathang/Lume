@@ -16,6 +16,7 @@
 
 import { Router } from 'express';
 import prisma from '../../../core/db/prisma.js';
+import { requireScopes } from '../../../core/middleware/auth.js';
 import { RecordService } from '../services/record.service.js';
 import { RelationshipService } from '../../../core/services/relationship.service.js';
 import { SecurityService } from '../services/security.service.js';
@@ -56,7 +57,7 @@ const createEntityRecordsRoutes = () => {
   };
 
   // POST /entities/:id/records - Create record
-  router.post('/:id/records', requireEntityAccess('create'), async (req, res) => {
+  router.post('/:id/records', requireScopes('records:write'), requireEntityAccess('create'), async (req, res) => {
     try {
       const entityId = parseInt(req.params.id);
       const companyId = req.companyId;
@@ -92,7 +93,7 @@ const createEntityRecordsRoutes = () => {
   });
 
   // GET /entities/:id/records - List records with pagination
-  router.get('/:id/records', requireEntityAccess('read'), async (req, res) => {
+  router.get('/:id/records', requireScopes('records:read'), requireEntityAccess('read'), async (req, res) => {
     try {
       const entityId = parseInt(req.params.id);
       const companyId = req.companyId;
@@ -142,7 +143,7 @@ const createEntityRecordsRoutes = () => {
   });
 
   // GET /entities/:id/records/:recordId - Get record by ID
-  router.get('/:id/records/:recordId', requireEntityAccess('read'), async (req, res) => {
+  router.get('/:id/records/:recordId', requireScopes('records:read'), requireEntityAccess('read'), async (req, res) => {
     try {
       const recordId = parseInt(req.params.recordId);
       const companyId = req.companyId;
@@ -169,7 +170,7 @@ const createEntityRecordsRoutes = () => {
   });
 
   // PUT /entities/:id/records/:recordId - Update record
-  router.put('/:id/records/:recordId', requireEntityAccess('update'), async (req, res) => {
+  router.put('/:id/records/:recordId', requireScopes('records:write'), requireEntityAccess('update'), async (req, res) => {
     try {
       const recordId = parseInt(req.params.recordId);
       const companyId = req.companyId;
@@ -205,7 +206,7 @@ const createEntityRecordsRoutes = () => {
   });
 
   // DELETE /entities/:id/records/:recordId - Delete record
-  router.delete('/:id/records/:recordId', requireEntityAccess('delete'), async (req, res) => {
+  router.delete('/:id/records/:recordId', requireScopes('records:write'), requireEntityAccess('delete'), async (req, res) => {
     try {
       const recordId = parseInt(req.params.recordId);
       const companyId = req.companyId;

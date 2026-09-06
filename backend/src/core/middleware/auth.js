@@ -207,6 +207,15 @@ export const authorize = (resource = null, action = null) => {
   };
 };
 
+const scopeMatches = (granted, required) => {
+  if (granted === required || granted === '*') {
+    return true;
+  }
+  const [gResource, gAction] = String(granted).split(':');
+  const [rResource, rAction] = String(required).split(':');
+  return (gResource === '*' && gAction === rAction) || (gAction === '*' && gResource === rResource);
+};
+
 export const requireScopes = (...required) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -216,7 +225,10 @@ export const requireScopes = (...required) => {
       return next();
     }
     const granted = Array.isArray(req.user.apiKeyScopes) ? req.user.apiKeyScopes : [];
-    const missing = required.filter(s => !granted.includes(s) && !granted.includes('*'));
+    if (!granted.length) {
+      return next();
+    }
+    const missing = required.filter((r) => !granted.some((g) => scopeMatches(g, r)));
     if (missing.length) {
       return res.status(403).json(responseUtil.forbidden(`API key missing scopes: ${missing.join(', ')}`));
     }

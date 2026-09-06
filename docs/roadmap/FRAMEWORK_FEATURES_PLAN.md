@@ -75,4 +75,5 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F3.1 Report builder UI (`reports.vue`: list/create/run-results, menu + permission + router wiring; verified in browser end to end).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).
-- [ ] F2.1, F3.2–F3.3, F4.2–F4.4, F5–F7 pending, in order above.
+- [x] F4.2 API key scope enforcement (`requireScopes` with `resource:action` wildcards, legacy empty-scope keys pass through; wired into all 5 record routes; 4 tests green).
+- [ ] F2.1, F3.2–F3.3, F4.3–F4.4, F5–F7 pending, in order above.
