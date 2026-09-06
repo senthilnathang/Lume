@@ -91,6 +91,7 @@ const customViews: Record<string, () => Promise<any>> = {
   'settings/advanced/notifications': () => import('@modules/advanced_features/static/views/notifications.vue'),
   'settings/advanced/notification-channels': () => import('@modules/advanced_features/static/views/notification-channels.vue'),
   'settings/advanced/tags': () => import('@modules/advanced_features/static/views/tags.vue'),
+  'settings/advanced/reports': () => import('@modules/advanced_features/static/views/reports.vue'),
   // Editor module
   'settings/editor/templates': () => import('@modules/editor/static/views/templates.vue'),
   // Admin / Framework routes (mapped to existing views)

@@ -31,6 +31,7 @@ export default {
       'views/notifications.vue',
       'views/notification-channels.vue',
       'views/tags.vue',
+      'views/reports.vue',
     ],
     menus: [
       {
@@ -63,6 +64,14 @@ export default {
             sequence: 3,
             permission: 'advanced_features.tags.manage',
             viewName: 'tags'
+          },
+          {
+            name: 'Reports',
+            path: '/settings/advanced/reports',
+            icon: 'lucide:bar-chart-3',
+            sequence: 4,
+            permission: 'advanced_features.reports.manage',
+            viewName: 'reports'
           }
         ]
       }
@@ -77,6 +86,8 @@ export default {
     { name: 'advanced_features.notifications.manage', description: 'Manage notification settings', group: 'Advanced' },
     { name: 'advanced_features.tags', description: 'View tags', group: 'Advanced' },
     { name: 'advanced_features.tags.manage', description: 'Manage tags', group: 'Advanced' },
+    { name: 'advanced_features.reports', description: 'View reports', group: 'Advanced' },
+    { name: 'advanced_features.reports.manage', description: 'Manage reports', group: 'Advanced' },
     { name: 'advanced_features.comments', description: 'View comments', group: 'Advanced' },
     { name: 'advanced_features.comments.manage', description: 'Manage comments', group: 'Advanced' },
     { name: 'advanced_features.attachments', description: 'View attachments', group: 'Advanced' },

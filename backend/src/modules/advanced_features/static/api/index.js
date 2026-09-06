@@ -24,6 +24,14 @@ export const createNotificationChannel = (data) => post(`${BASE}/notification-ch
 export const updateNotificationChannel = (id, data) => put(`${BASE}/notification-channels/${id}`, data);
 export const deleteNotificationChannel = (id) => del(`${BASE}/notification-channels/${id}`);
 
+// Analytics Reports
+export const getReports = (params) => get(`${BASE}/reports`, { params });
+export const getReport = (id) => get(`${BASE}/reports/${id}`);
+export const createReport = (data) => post(`${BASE}/reports`, data);
+export const updateReport = (id, data) => put(`${BASE}/reports/${id}`, data);
+export const deleteReport = (id) => del(`${BASE}/reports/${id}`);
+export const runReport = (id) => post(`${BASE}/reports/${id}/run`);
+
 // Tags
 export const getTags = (params) => get(`${BASE}/tags`, { params });
 export const getTag = (id) => get(`${BASE}/tags/${id}`);
