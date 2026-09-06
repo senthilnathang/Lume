@@ -3,6 +3,8 @@
  * Import/export workflow with model introspection via DrizzleAdapter
  */
 
+import * as XLSX from 'xlsx';
+
 export class FeaturesDataService {
   constructor(models) {
     this.models = models;
@@ -49,9 +51,12 @@ export class FeaturesDataService {
   // ── Import Workflow ────────────────────────────────────────────
 
   /**
-   * Parse a CSV file from base64 content
+   * Parse an import file from base64 content (CSV or XLSX by extension)
    */
   parseFile(fileContent, fileName, hasHeader = true, delimiter = ',') {
+    if (String(fileName || '').toLowerCase().endsWith('.xlsx')) {
+      return this.parseXlsx(fileContent, hasHeader);
+    }
     const buffer = Buffer.from(fileContent, 'base64');
     const text = buffer.toString('utf-8');
     const lines = text.split(/\r?\n/).filter(line => line.trim());
@@ -106,6 +111,39 @@ export class FeaturesDataService {
       rows.push(row);
     }
 
+    return { columns, rows, totalRows: rows.length };
+  }
+
+  /**
+   * Parse an XLSX workbook (first sheet) from base64 content
+   */
+  parseXlsx(fileContent, hasHeader = true) {
+    const workbook = XLSX.read(Buffer.from(fileContent, 'base64'), { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) {
+      throw new Error('Workbook has no sheets');
+    }
+    const matrix = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: '', raw: false });
+    const nonEmpty = matrix.filter((row) => row.some((cell) => String(cell).trim() !== ''));
+    if (!nonEmpty.length) {
+      throw new Error('File is empty');
+    }
+    let columns = [];
+    let dataStartIndex = 0;
+    if (hasHeader) {
+      columns = nonEmpty[0].map((cell) => String(cell).trim());
+      dataStartIndex = 1;
+    } else {
+      columns = nonEmpty[0].map((_, i) => `Column_${i + 1}`);
+    }
+    const rows = [];
+    for (let i = dataStartIndex; i < nonEmpty.length; i++) {
+      const row = {};
+      columns.forEach((col, idx) => {
+        row[col] = nonEmpty[i][idx] !== undefined ? String(nonEmpty[i][idx]) : '';
+      });
+      rows.push(row);
+    }
     return { columns, rows, totalRows: rows.length };
   }
 
