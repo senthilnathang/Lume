@@ -5,6 +5,7 @@
 
 import ValidationRules from '../../../core/services/field-validation.service.js';
 import { maskValue } from '../../../core/services/field-mask.service.js';
+import { encryptValue, decryptValue } from '../../../core/services/field-crypto.service.js';
 
 let webhookServiceInstance = null;
 async function getWebhookService() {
@@ -136,6 +137,46 @@ export class RecordService {
     return policy;
   }
 
+  encryptedFieldNames(fields) {
+    return new Set(
+      (fields || [])
+        .filter((f) => ValidationRules.parseRules(f).some((r) => r && r.type === 'encrypted'))
+        .map((f) => f.name)
+    );
+  }
+
+  encryptSensitive(data, fields) {
+    const names = this.encryptedFieldNames(fields);
+    if (!names.size) {
+      return data;
+    }
+    const out = { ...(data || {}) };
+    for (const name of names) {
+      if (out[name] !== undefined && out[name] !== null && out[name] !== '') {
+        out[name] = encryptValue(out[name]);
+      }
+    }
+    return out;
+  }
+
+  decryptSensitive(data, fields) {
+    const names = this.encryptedFieldNames(fields);
+    if (!names.size) {
+      return data;
+    }
+    const out = { ...(data || {}) };
+    for (const name of names) {
+      if (out[name] !== undefined) {
+        try {
+          out[name] = decryptValue(out[name]);
+        } catch {
+          out[name] = null;
+        }
+      }
+    }
+    return out;
+  }
+
   stripUnreadable(data, policy) {
     if (!policy) {
       return data;
@@ -200,11 +241,12 @@ export class RecordService {
       entityId, recordData.visibility
     );
 
+    const storedData = this.encryptSensitive(finalData, fields);
     // Create record
     const record = await this.prisma.entityRecord.create({
       data: {
         entityId,
-        data: JSON.stringify(finalData),
+        data: JSON.stringify(storedData),
         createdBy: userId,
         companyId,
         visibility
@@ -216,7 +258,7 @@ export class RecordService {
 
     return {
       ...record,
-      data: this.stripUnreadable(JSON.parse(record.data), policy)
+      data: this.stripUnreadable(this.decryptSensitive(JSON.parse(record.data), fields), policy)
     };
   }
 
@@ -261,7 +303,7 @@ export class RecordService {
 
     return {
       ...record,
-      data: this.stripUnreadable(JSON.parse(record.data), policy)
+      data: this.stripUnreadable(this.decryptSensitive(JSON.parse(record.data), fields), policy)
     };
   }
 
@@ -307,7 +349,7 @@ export class RecordService {
     const policy = await this.getFieldPolicy(fields, roleId);
     const parsedRecords = allRecords.map(record => ({
       ...record,
-      data: this.stripUnreadable(JSON.parse(record.data), policy)
+      data: this.stripUnreadable(this.decryptSensitive(JSON.parse(record.data), fields), policy)
     }));
 
     // Apply filters in-memory
@@ -369,13 +411,13 @@ export class RecordService {
       return null;
     }
 
-    // Parse existing data
-    const existingData = JSON.parse(existing.data);
-
     // Validate merged data
     const fields = await this.prisma.entityField.findMany({
       where: { entityId: existing.entityId, deletedAt: null }
     });
+
+    // Parse existing data (decrypting at-rest ciphertext first)
+    const existingData = this.decryptSensitive(JSON.parse(existing.data), fields);
 
     // Drop non-writable fields, recompute formulas, then validate
     const policy = await this.getFieldPolicy(fields, options.roleId);
@@ -390,7 +432,7 @@ export class RecordService {
     const updated = await this.prisma.entityRecord.update({
       where: { id: recordId },
       data: {
-        data: JSON.stringify(mergedData)
+        data: JSON.stringify(this.encryptSensitive(mergedData, fields))
       }
     });
 
@@ -398,7 +440,7 @@ export class RecordService {
 
     return {
       ...updated,
-      data: this.stripUnreadable(JSON.parse(updated.data), policy)
+      data: this.stripUnreadable(this.decryptSensitive(JSON.parse(updated.data), fields), policy)
     };
   }
 
@@ -450,7 +492,8 @@ export class RecordService {
    * @throws {Error} If validation fails
    */
   async assertUnique(fields, data, entityId, companyId, excludeId) {
-    const uniqueFields = (fields || []).filter((f) => ValidationRules.requiresUnique(f));
+    const encrypted = this.encryptedFieldNames(fields);
+    const uniqueFields = (fields || []).filter((f) => ValidationRules.requiresUnique(f) && !encrypted.has(f.name));
     if (!uniqueFields.length) {
       return;
     }
