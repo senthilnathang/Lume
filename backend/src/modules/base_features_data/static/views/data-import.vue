@@ -290,18 +290,18 @@ onMounted(() => {
                   </Select>
                 </FormItem>
 
-                <FormItem label="Upload CSV File" required>
+                <FormItem label="Upload File (CSV or Excel)" required>
                   <UploadDragger
                     :beforeUpload="() => false"
                     @change="handleImportFileUpload"
                     :maxCount="1"
-                    accept=".csv,.txt"
+                    accept=".csv,.txt,.xlsx,.xls"
                   >
                     <p class="ant-upload-drag-icon">
                       <InboxOutlined />
                     </p>
                     <p class="ant-upload-text">Click or drag file to upload</p>
-                    <p class="ant-upload-hint">Support for CSV files only</p>
+                    <p class="ant-upload-hint">Support for CSV and Excel (.xlsx) files — first sheet is imported</p>
                   </UploadDragger>
                 </FormItem>
 
