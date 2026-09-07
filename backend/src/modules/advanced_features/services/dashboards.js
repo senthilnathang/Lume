@@ -18,10 +18,61 @@ function safeParse(raw) {
 }
 
 export class DashboardService {
-  constructor() {
-    this.dashboards = new DrizzleAdapter(dashboards);
-    this.categories = new DrizzleAdapter(dashboardCategories);
-    this.widgets = new DrizzleAdapter(dashboardWidgets);
+  constructor(prismaClient = null, overrides = {}) {
+    this.dashboards = overrides.dashboards || new DrizzleAdapter(dashboards);
+    this.categories = overrides.categories || new DrizzleAdapter(dashboardCategories);
+    this.widgets = overrides.widgets || new DrizzleAdapter(dashboardWidgets);
+    this.prisma = prismaClient;
+    this.reportRunner = overrides.reportRunner || null;
+  }
+
+  async resolveWidget(widget, context = {}) {
+    const config = typeof widget.config === 'string' ? safeParse(widget.config) : widget.config || {};
+    const type = widget.widgetType || widget.widget_type || config.type || 'counter';
+    if (type === 'static' || config.staticValue !== undefined) {
+      return { type: 'static', value: config.staticValue ?? config.value ?? null };
+    }
+    if (type === 'report' && (config.reportId || config.report_id)) {
+      try {
+        const runner = this.reportRunner || (await import('./analytics-reports.js').then((m) => new m.AnalyticsReportService(this.prisma)));
+        const result = await runner.run(Number(config.reportId || config.report_id), context);
+        return { type: 'report', total: result.total, rows: (result.rows || []).slice(0, 5) };
+      } catch (error) {
+        return { type: 'report', error: error.message, total: 0, rows: [] };
+      }
+    }
+    const model = widget.model || config.model || config.entity;
+    if (!model || !this.prisma) {
+      return { type, value: null, error: model ? 'No database context' : 'No model configured' };
+    }
+    try {
+      const entity = await this.prisma.entity.findFirst({ where: { name: String(model) } });
+      if (!entity) {
+        return { type, value: null, error: `Entity not found: ${model}` };
+      }
+      const where = { entityId: entity.id, deletedAt: null };
+      if (context.companyId !== undefined && context.companyId !== null) {
+        where.companyId = context.companyId;
+      }
+      const value = await this.prisma.entityRecord.count({ where });
+      return { type, value };
+    } catch (error) {
+      return { type, value: null, error: error.message };
+    }
+  }
+
+  async getDashboardData(id, context = {}) {
+    const full = await this.getDashboardWithWidgets(id);
+    if (!full) {
+      return null;
+    }
+    const widgets = await Promise.all((full.widgets || []).map(async (w) => ({
+      id: w.id,
+      name: w.name,
+      layout: w.layout || null,
+      data: await this.resolveWidget(w, context),
+    })));
+    return { id: full.id, name: full.name, code: full.code, widgets };
   }
 
   listCategories() {

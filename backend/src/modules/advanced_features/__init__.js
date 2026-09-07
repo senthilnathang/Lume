@@ -48,7 +48,7 @@ const initializeAdvancedFeatures = async (context) => {
   );
 
   const analyticsReportService = new AnalyticsReportService(prisma);
-  const dashboardService = new DashboardService();
+  const dashboardService = new DashboardService(prisma, { reportRunner: analyticsReportService });
 
   const services = {
     advancedFeaturesService: new AdvancedFeaturesService(adapters),

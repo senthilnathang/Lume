@@ -73,6 +73,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F2.4 Record-event webhooks (lazy singleton, HMAC-signed, retried, logged; CRUD never breaks; 4 tests green).
 - [x] F2.2 Approvals on data change (active chains with `condition.auto_start` matching the entity auto-submit on record create via lazy runtime; per-chain failures isolated; 1 test green).
 - [x] F3.1 Report builder UI (`reports.vue`: list/create/run-results, menu + permission + router wiring; verified in browser end to end).
+- [x] F3.2 Live KPI data (`GET /dashboards/:id/data`: counter/report/static resolution with per-widget isolation; verified live).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).
 - [x] F4.2 API key scope enforcement (`requireScopes` with `resource:action` wildcards, legacy empty-scope keys pass through; wired into all 5 record routes; 4 tests green).

@@ -71,4 +71,23 @@ describe('dashboards (FastVue port)', () => {
     expect(await svc.removeDashboard(999)).toBe(false);
     expect(await svc.assignWidgets(999, [])).toBeNull();
   });
+
+  test('resolves static, counter, and report widgets with isolation', async () => {
+    const svc = makeService();
+    expect(await svc.resolveWidget({ widgetType: 'static', config: { staticValue: 42 } }, {})).toEqual({ type: 'static', value: 42 });
+    const prisma = {
+      entity: { findFirst: async ({ where }) => (where?.name === 'deal' ? { id: 1, name: 'deal' } : null) },
+      entityRecord: { count: async () => 7 },
+    };
+    const dbSvc = new DashboardService(prisma, { dashboards: svc.dashboards, categories: svc.categories, widgets: svc.widgets });
+    expect(await dbSvc.resolveWidget({ widgetType: 'counter', model: 'deal' }, { companyId: 5 })).toEqual({ type: 'counter', value: 7 });
+    expect(await dbSvc.resolveWidget({ widgetType: 'counter', model: 'ghost' }, {})).toMatchObject({ value: null });
+    const repSvc = new DashboardService(null, {
+      dashboards: svc.dashboards,
+      categories: svc.categories,
+      widgets: svc.widgets,
+      reportRunner: { run: async () => { throw new Error('boom'); } },
+    });
+    expect(await repSvc.resolveWidget({ widgetType: 'report', config: { reportId: 1 } }, {})).toMatchObject({ type: 'report', total: 0 });
+  });
 });

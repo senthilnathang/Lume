@@ -541,6 +541,22 @@ const createRoutes = (models, services) => {
     }
   });
 
+  router.get('/dashboards/:id/data', async (req, res) => {
+    try {
+      const data = await dashboardsSvc.getDashboardData(req.params.id, {
+        companyId: req.user?.companyId ?? null,
+        userId: req.user?.id,
+        isPrivileged: ['super_admin', 'admin'].includes(req.user?.role),
+      });
+      if (!data) {
+        return res.status(404).json({ success: false, error: 'Dashboard not found' });
+      }
+      res.json({ success: true, data });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   router.put('/dashboards/:id/widgets', async (req, res) => {
     try {
       const dashboard = await dashboardsSvc.assignWidgets(req.params.id, req.body?.widgets);
