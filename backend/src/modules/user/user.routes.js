@@ -213,6 +213,22 @@ router.delete('/:id', authenticate, authorize('user_management', 'delete'), deny
   }
 });
 
+router.get('/:id/export', authenticate, authorize('user_management', 'read'), denyCrossUser, updateUserValidation[0], validateRequest, async (req, res) => {
+  try {
+    const { GdprService } = await import('../../core/services/gdpr.service.js');
+    const gdpr = new GdprService(prisma);
+    const data = await gdpr.collectUserData(parseInt(req.params.id), req.user?.companyId ?? null);
+    if (!data) {
+      return res.status(404).json(responseUtil.error('User not found', null, 'NOT_FOUND'));
+    }
+    res.setHeader('Content-Disposition', `attachment; filename="user-${req.params.id}-export.json"`);
+    res.json(responseUtil.success({ ...data, exportedAt: new Date().toISOString() }, 'User data export'));
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json(responseUtil.error('Failed to export user data'));
+  }
+});
+
 router.delete('/:id/erasure', authenticate, authorize('user_management', 'delete'), denyCrossUser, updateUserValidation[0], validateRequest, async (req, res) => {
   try {
     const { GdprService } = await import('../../core/services/gdpr.service.js');

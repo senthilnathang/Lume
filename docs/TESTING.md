@@ -74,6 +74,7 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 | Field Mask | `field-mask.test.js` | 4 | Tail-preserving mask, rule parsing, mask-on-read, strip fallback |
 | CRUD Gate | `entity-crud-gate.test.js` | 4 | Legacy-allow, scoped deny, wildcard grants, empty input |
 | Record Webhooks | `record-webhooks.test.js` | 1 | CRUD succeeds with dispatch attached |
+| GDPR Workflow | `integration/gdpr-workflow.test.js` | 2 | Export download + erase → login blocked, live DB |
 | Role Hierarchy | `role-hierarchy.test.js` | 4 | Metadata parent links, downward inheritance, inactive exclusion, cache registry |
 | Group Grants | in `permission-merge.test.js` | 5 total | Wildcard matcher, pattern grants, admin markers, group union, no-group default |
 
