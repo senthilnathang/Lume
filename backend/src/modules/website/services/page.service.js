@@ -1,4 +1,5 @@
 import { getDb } from '../../../core/db/drizzle.js';
+import { menuCache } from '../../../core/services/read-through-cache.js';
 import { websitePages, websiteMenus, websiteMenuItems, websiteMedia, websiteSettings, websitePageRevisions, websiteForms, websiteFormSubmissions, websiteThemeTemplates, websitePopups, websiteCustomFonts, websiteCustomIcons, websiteRedirects, websiteCategories, websiteTags, websitePageCategories, websitePageTags } from '../models/schema.js';
 import { eq, like, desc, asc, and, isNull, sql, inArray, notInArray, gte, lte } from 'drizzle-orm';
 import { responseUtil } from '../../../shared/utils/index.js';
@@ -369,16 +370,32 @@ export class MenuService {
     return responseUtil.success({ ...menu, items: tree });
   }
 
-  async getByLocationNested(location) {
+  async getByLocationNested(location, { bypassCache = false } = {}) {
+    if (!bypassCache) {
+      const cached = menuCache.get(['menu', 'location', location]);
+      if (cached !== undefined) {
+        return cached;
+      }
+    }
     const db = getDb();
     const [menu] = await db.select().from(websiteMenus)
       .where(and(eq(websiteMenus.location, location), eq(websiteMenus.isActive, true)));
-    if (!menu) return responseUtil.success({ items: [] });
+    if (!menu) {
+      const empty = responseUtil.success({ items: [] });
+      if (!bypassCache) {
+        menuCache.set(['menu', 'location', location], empty);
+      }
+      return empty;
+    }
     const items = await db.select().from(websiteMenuItems)
       .where(and(eq(websiteMenuItems.menuId, menu.id), eq(websiteMenuItems.isActive, true)))
       .orderBy(asc(websiteMenuItems.sequence));
     const tree = buildMenuTree(items);
-    return responseUtil.success({ ...menu, items: tree });
+    const result = responseUtil.success({ ...menu, items: tree });
+    if (!bypassCache) {
+      menuCache.set(['menu', 'location', location], result);
+    }
+    return result;
   }
 
   async reorderItems(menuId, items) {
@@ -406,6 +423,7 @@ export class MenuService {
       }).where(eq(websiteMenuItems.id, item.id));
     }
 
+    menuCache.invalidatePrefix(['menu']);
     return responseUtil.success(null, 'Menu items reordered');
   }
 
@@ -413,6 +431,7 @@ export class MenuService {
     const db = getDb();
     const [result] = await db.insert(websiteMenus).values(data);
     const [created] = await db.select().from(websiteMenus).where(eq(websiteMenus.id, result.insertId));
+    menuCache.invalidatePrefix(['menu']);
     return responseUtil.success(created, 'Menu created');
   }
 
@@ -420,6 +439,7 @@ export class MenuService {
     const db = getDb();
     await db.update(websiteMenus).set(data).where(eq(websiteMenus.id, Number(id)));
     const [updated] = await db.select().from(websiteMenus).where(eq(websiteMenus.id, Number(id)));
+    menuCache.invalidatePrefix(['menu']);
     return responseUtil.success(updated, 'Menu updated');
   }
 
@@ -427,6 +447,7 @@ export class MenuService {
     const db = getDb();
     await db.delete(websiteMenuItems).where(eq(websiteMenuItems.menuId, Number(id)));
     await db.delete(websiteMenus).where(eq(websiteMenus.id, Number(id)));
+    menuCache.invalidatePrefix(['menu']);
     return responseUtil.success(null, 'Menu deleted');
   }
 
@@ -434,6 +455,7 @@ export class MenuService {
     const db = getDb();
     const [result] = await db.insert(websiteMenuItems).values({ ...data, menuId: Number(menuId) });
     const [created] = await db.select().from(websiteMenuItems).where(eq(websiteMenuItems.id, result.insertId));
+    menuCache.invalidatePrefix(['menu']);
     return responseUtil.success(created, 'Menu item added');
   }
 
@@ -441,12 +463,14 @@ export class MenuService {
     const db = getDb();
     await db.update(websiteMenuItems).set(data).where(eq(websiteMenuItems.id, Number(itemId)));
     const [updated] = await db.select().from(websiteMenuItems).where(eq(websiteMenuItems.id, Number(itemId)));
+    menuCache.invalidatePrefix(['menu']);
     return responseUtil.success(updated, 'Menu item updated');
   }
 
   async deleteItem(itemId) {
     const db = getDb();
     await db.delete(websiteMenuItems).where(eq(websiteMenuItems.id, Number(itemId)));
+    menuCache.invalidatePrefix(['menu']);
     return responseUtil.success(null, 'Menu item deleted');
   }
 }
