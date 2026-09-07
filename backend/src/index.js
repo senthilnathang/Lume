@@ -36,6 +36,7 @@ let tracingInitialized = false;
 })();
 
 import { responseUtil, jwtUtil } from './shared/utils/index.js';
+import { quotaForRequest, rateLimitKey } from './core/services/api-quota.js';
 import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
 import { loggingMiddleware } from './core/middleware/logging.middleware.js';
 import { ipAccessMiddleware } from './core/middleware/ipAccess.js';
@@ -93,7 +94,8 @@ const enableRateLimit = isProduction || process.env.ENABLE_RATE_LIMIT === 'true'
 
 const limiter = enableRateLimit ? rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: async (req) => quotaForRequest(req),
+  keyGenerator: (req) => rateLimitKey(req),
   message: {
     success: false,
     error: {
