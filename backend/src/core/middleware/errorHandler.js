@@ -51,7 +51,10 @@ export const errorHandler = (err, req, res, _next) => {
   const statusCode = err.statusCode || err.status || HTTP_STATUS.INTERNAL_SERVER_ERROR;
   const message = err.message || 'Internal server error';
 
-  res.status(statusCode).json(responseUtil.error(message, null, err.code || 'ERROR'));
+  res.status(statusCode).json(responseUtil.error(message, null, err.code || 'ERROR', {
+    requestId: req.id || null,
+    timestamp: new Date().toISOString(),
+  }));
 };
 
 export const notFoundHandler = (req, res) => {

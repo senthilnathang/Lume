@@ -76,6 +76,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F3.2 Live KPI data (`GET /dashboards/:id/data`: counter/report/static resolution with per-widget isolation; verified live).
 - [x] F6.1 Slow-query watcher (Prisma timing middleware + per-request ALS counters with warn thresholds; `SLOW_QUERY_MS`/`SLOW_QUERY_COUNT_WARN`; 4 tests green).
 - [x] F6.2 Read-through cache (generic TTL cache with prefix invalidation + stats; website menu location reads cached, all 7 menu mutations invalidate; 4 tests green).
+- [x] F6.4 Error envelope (requestId + timestamp on handler errors, `X-Request-Id` header, backward-compatible meta merge; verified live; 3 tests green).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).
 - [x] F4.2 API key scope enforcement (`requireScopes` with `resource:action` wildcards, legacy empty-scope keys pass through; wired into all 5 record routes; 4 tests green).

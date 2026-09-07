@@ -355,8 +355,8 @@ export const responseUtil = {
     };
   },
   
-  // Error response
-  error(message = 'Error', errors = null, code = 'ERROR') {
+  // Error response (meta carries requestId/timestamp when provided)
+  error(message = 'Error', errors = null, code = 'ERROR', meta = null) {
     const response = {
       success: false,
       error: {
@@ -364,11 +364,15 @@ export const responseUtil = {
         message
       }
     };
-    
+
     if (errors) {
       response.error.details = errors;
     }
-    
+
+    if (meta && typeof meta === 'object') {
+      Object.assign(response, meta);
+    }
+
     return response;
   },
   

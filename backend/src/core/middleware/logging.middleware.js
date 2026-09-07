@@ -42,6 +42,7 @@ export const loggingMiddleware = (req, res, next) => {
 
   // Store request ID on request object for downstream use
   req.id = requestId;
+  res.setHeader('X-Request-Id', requestId);
 
   // Log incoming request
   const requestLog = {
