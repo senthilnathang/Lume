@@ -513,7 +513,9 @@ const domain = [
 | base_features_data | Features | Drizzle | Feature flags, data import/export, backups |
 | base_rbac | RBAC | Drizzle | Advanced access rules |
 | rbac | RBAC | Prisma | Role-based access control |
-| advanced_features | Advanced | Drizzle | Webhooks, notifications, tags, comments, attachments |
+| advanced_features | Advanced | Drizzle | Webhooks, notifications (+deliveries), tags, comments, attachments, analytics reports, dashboards (+categories) |
+| sms | Integration | Drizzle | Providers, templates, bulk send, retry, delivery logs |
+| mail | Integration | Drizzle | IMAP servers, routing rules, message store, outbound queue |
 | activities | Data | Drizzle | Event and activity management |
 | donations | Data | Drizzle | Donations, donors, campaigns |
 | documents | Data | Drizzle | Document/file management |
@@ -693,6 +695,12 @@ grants, and per-user permission sets (`SecurityService.getEffectivePermissions`,
   `/:id` routes additionally verify company/visibility/self-or-admin.
 - **Record webhooks** — create/update/delete emit fire-and-forget signed,
   retried, logged deliveries via the shared `WebhookService`.
+- **Field encryption** — AES-256-GCM (`enc:v1` envelope) for fields marked
+  `validation: [{type:'encrypted'}]`; transparent in record paths; unique
+  checks skip encrypted fields; `FIELD_ENCRYPTION_KEY` required in prod.
+- **GDPR** — `GdprService` collect (no secrets) + erase (hard-delete records,
+  scrub identity, audit proof); `GET /users/:id/export`,
+  `DELETE /users/:id/erasure` behind self-or-admin gates.
 
 ### Dynamic Views & Builders (2026-09)
 

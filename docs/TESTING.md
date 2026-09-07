@@ -77,11 +77,25 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 | GDPR Workflow | `integration/gdpr-workflow.test.js` | 2 | Export download + erase → login blocked, live DB |
 | Role Hierarchy | `role-hierarchy.test.js` | 4 | Metadata parent links, downward inheritance, inactive exclusion, cache registry |
 | Group Grants | in `permission-merge.test.js` | 5 total | Wildcard matcher, pattern grants, admin markers, group union, no-group default |
+| Field Crypto | `field-crypto.test.js` | 6 | AES-GCM round-trip, tamper fail-closed, ciphertext storage, no double-encrypt |
+| GDPR Erasure | `gdpr.test.js` | 4 | Collect without secrets, unknown users, erase + audit proof |
+| Record Approvals | `record-approvals.test.js` | 1 | Auto-start wiring never breaks CRUD |
+| Analytics Reports | `analytics-reports.test.js` | 4 | Validation, tabular scoping, grouped aggregates, unknown entity |
+| Dashboards | `dashboards.test.js` | 4 | Validation, widget resolution, single default |
+| Import XLSX | `data-import-xlsx.test.js` | 4 | First-sheet parse, headerless, CSV routing, empty rejection |
+| Import Jobs | `import-jobs.test.js` | 4 | Job persistence, partial counters, history, no-store mode |
+| Notify Channels | `notification-channels.test.js` | 4 | In-app log, email isolation, SMS sender, missing number |
+| SMS Gateway | `sms-gateway.test.js` | 5 | Templates, default provider, validation, bulk isolation |
+| Mail Module | `mail-module.test.js` | 8 | Routing, mappings, queue, dedup, locks, error tracking |
+| Doc Search | `document-search.test.js` | 3 | fq parsing, filtered search + facets, facet whitelist |
+| Schema Graph | `schema-graph.test.js` | 5 | PK/FK flags, relationship trees, duplicate scoring |
+| API Scopes | `api-scopes.test.js` | 4 | Legacy pass-through, exact/wildcard scopes, 401s |
+| Scheduler | `scheduler.test.js` | 4 | Invalid cron skip, run tracking, graceful failures |
 
 Run the parity set:
 
 ```bash
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/unit/formula.service.test.js tests/unit/entity-record-policy.test.js tests/unit/entity-field-types.test.js tests/unit/entity-relations.test.js tests/unit/cascade.service.test.js tests/unit/row-policy.test.js tests/unit/owd-visibility.test.js tests/unit/permission-merge.test.js tests/unit/field-validation.test.js --forceExit
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/unit/formula.service.test.js tests/unit/entity-record-policy.test.js tests/unit/entity-field-types.test.js tests/unit/entity-relations.test.js tests/unit/cascade.service.test.js tests/unit/row-policy.test.js tests/unit/owd-visibility.test.js tests/unit/permission-merge.test.js tests/unit/field-validation.test.js tests/unit/refresh-reuse.test.js tests/unit/model-alias.test.js tests/unit/field-mask.test.js tests/unit/entity-crud-gate.test.js tests/unit/record-webhooks.test.js tests/unit/field-crypto.test.js tests/unit/gdpr.test.js tests/unit/record-approvals.test.js tests/unit/analytics-reports.test.js tests/unit/dashboards.test.js tests/unit/data-import-xlsx.test.js tests/unit/import-jobs.test.js tests/unit/notification-channels.test.js tests/unit/sms-gateway.test.js tests/unit/mail-module.test.js tests/unit/document-search.test.js tests/unit/schema-graph.test.js tests/unit/api-scopes.test.js tests/unit/scheduler.test.js --forceExit
 ```
 
 Known pre-existing failures (not regressions): 2 in `view-store.test.js`
