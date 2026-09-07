@@ -1,8 +1,27 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { slowQueryThresholdMs, queryLabel, noteQuery } from './query-monitor.js';
 
 const prisma = new PrismaClient({
   log: ['error', 'warn'],
+});
+
+// Slow-query watcher — logs model.action calls over SLOW_QUERY_MS (default 50, 0 disables)
+prisma.$use(async (params, next) => {
+  const threshold = slowQueryThresholdMs();
+  if (!threshold) {
+    return next(params);
+  }
+  const started = Date.now();
+  try {
+    return await next(params);
+  } finally {
+    const duration = Date.now() - started;
+    noteQuery(duration);
+    if (duration >= threshold) {
+      console.warn(`[SlowQuery] ${queryLabel(params)} took ${duration}ms (threshold ${threshold}ms)`);
+    }
+  }
 });
 
 // Password hashing middleware
