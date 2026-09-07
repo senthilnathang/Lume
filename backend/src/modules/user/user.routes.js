@@ -130,6 +130,45 @@ router.post('/login/verify-2fa', [
   }
 });
 
+router.get('/2fa/status', authenticate, async (req, res) => {
+  try {
+    res.json(await getUserService().get2faStatus(req.user.id));
+  } catch (error) {
+    res.status(500).json(responseUtil.error('Failed to fetch 2FA status'));
+  }
+});
+
+router.post('/2fa/setup', authenticate, async (req, res) => {
+  try {
+    res.json(await getUserService().setup2fa(req.user.id, req.user.email));
+  } catch (error) {
+    console.error('2FA setup error:', error);
+    res.status(500).json(responseUtil.error('Failed to start 2FA setup'));
+  }
+});
+
+router.post('/2fa/confirm', authenticate, [
+  body('token').notEmpty().withMessage('Authenticator code is required'),
+], validateRequest, async (req, res) => {
+  try {
+    const result = await getUserService().confirm2fa(req.user.id, req.body.token);
+    res.status(result.success ? 200 : 401).json(result);
+  } catch (error) {
+    res.status(500).json(responseUtil.error('Failed to confirm 2FA'));
+  }
+});
+
+router.post('/2fa/disable', authenticate, [
+  body('password').notEmpty().withMessage('Password confirmation is required'),
+], validateRequest, async (req, res) => {
+  try {
+    const result = await getUserService().disable2fa(req.user.id, req.body.password);
+    res.status(result.success ? 200 : 401).json(result);
+  } catch (error) {
+    res.status(500).json(responseUtil.error('Failed to disable 2FA'));
+  }
+});
+
 router.post('/register', createUserValidation, validateRequest, async (req, res) => {
   try {
     const result = await getUserService().create(req.body);

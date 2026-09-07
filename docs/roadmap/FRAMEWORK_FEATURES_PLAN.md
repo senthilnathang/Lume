@@ -78,6 +78,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F6.2 Read-through cache (generic TTL cache with prefix invalidation + stats; website menu location reads cached, all 7 menu mutations invalidate; 4 tests green).
 - [x] F6.3 API key quotas (per-prefix buckets via `lume_` header detection, `apiquota.<prefix>` settings overrides with 60s cache, JWT/IP traffic unchanged; 3 tests green).
 - [x] F6.4 Error envelope (requestId + timestamp on handler errors, `X-Request-Id` header, backward-compatible meta merge; verified live; 3 tests green).
+- [x] F7.1 2FA enrollment (self-contained RFC 6238 TOTP replacing broken otplib v13 usage; setup/confirm/disable/status endpoints; full cycle verified live; 4 tests green).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).
 - [x] F4.2 API key scope enforcement (`requireScopes` with `resource:action` wildcards, legacy empty-scope keys pass through; wired into all 5 record routes; 4 tests green).

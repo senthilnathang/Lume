@@ -389,6 +389,64 @@ export class UserService {
     }, MESSAGES.LOGIN_SUCCESS);
   }
 
+  async get2faStatus(userId) {
+    const record = await getTwoFactorAdapter().findOne([['userId', '=', userId]]);
+    return responseUtil.success({ enabled: !!record?.enabled, verifiedAt: record?.verifiedAt || null });
+  }
+
+  async setup2fa(userId, email) {
+    const { TotpService } = await import('../../core/services/totp.service.js');
+    const totpService = new TotpService();
+    const { secret, otpauthUrl, qrCode } = await totpService.generateSecret(email);
+    const backupCodes = totpService.generateBackupCodes(10);
+    const tfAdapter = getTwoFactorAdapter();
+    const existing = await tfAdapter.findOne([['userId', '=', userId]]);
+    const payload = {
+      secret,
+      backupCodes: JSON.stringify(backupCodes),
+      enabled: false,
+      verifiedAt: null,
+    };
+    if (existing) {
+      await tfAdapter.update(existing.id, payload);
+    } else {
+      await tfAdapter.create({ userId, ...payload });
+    }
+    return responseUtil.success({ secret, otpauthUrl, qrCode, backupCodes });
+  }
+
+  async confirm2fa(userId, token) {
+    const tfAdapter = getTwoFactorAdapter();
+    const record = await tfAdapter.findOne([['userId', '=', userId]]);
+    if (!record) {
+      return responseUtil.error('2FA setup not started', null, 'BAD_REQUEST');
+    }
+    const { TotpService } = await import('../../core/services/totp.service.js');
+    const valid = new TotpService().verifyToken(record.secret, token);
+    if (!valid) {
+      return responseUtil.error('Invalid authenticator code', null, 'UNAUTHORIZED');
+    }
+    await tfAdapter.update(record.id, { enabled: true, verifiedAt: new Date() });
+    return responseUtil.success({ enabled: true }, '2FA enabled');
+  }
+
+  async disable2fa(userId, password) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return responseUtil.notFound('User');
+    }
+    const ok = await bcrypt.compare(password, user.password);
+    if (!ok) {
+      return responseUtil.error('Password confirmation failed', null, 'UNAUTHORIZED');
+    }
+    const tfAdapter = getTwoFactorAdapter();
+    const record = await tfAdapter.findOne([['userId', '=', userId]]);
+    if (record) {
+      await tfAdapter.update(record.id, { enabled: false });
+    }
+    return responseUtil.success({ enabled: false }, '2FA disabled');
+  }
+
   // Load password policy from settings table
   async _getPasswordPolicy() {
     try {
