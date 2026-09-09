@@ -2,6 +2,7 @@
   <aside
     class="lume-sidebar"
     :class="{ collapsed: isCollapsed, 'expand-on-hover': collapsed }"
+    :style="{ width: isCollapsed ? undefined : `${width}px` }"
     @mouseenter="hovering = true"
     @mouseleave="hovering = false"
   >
@@ -152,10 +153,11 @@ interface MenuGroup {
   items: MenuItem[];
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   menus: MenuItem[];
   collapsed: boolean;
-}>();
+  width?: number;
+}>(), { width: 260 });
 
 defineEmits<{
   toggle: [];

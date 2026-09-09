@@ -1,6 +1,12 @@
 <template>
-  <div class="lume-layout">
-    <Sidebar v-if="isAuthenticated" :menus="menus" :collapsed="sidebarCollapsed" @toggle="toggleSidebar" />
+  <div class="lume-layout" :class="`layout-${currentLayout}`" :style="{ '--sidebar-width': `${sidebarWidth}px` }">
+    <Sidebar
+      v-if="isAuthenticated && currentLayout !== 'topnav'"
+      :menus="menus"
+      :collapsed="sidebarCollapsed"
+      :width="sidebarWidth"
+      @toggle="toggleSidebar"
+    />
     <div class="lume-layout-main" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
       <Header
         v-if="isAuthenticated"
@@ -9,6 +15,7 @@
         @toggle-sidebar="toggleSidebar"
         @logout="handleLogout"
       />
+      <TopNavBar v-if="isAuthenticated && currentLayout !== 'sidebar'" :menus="menus" />
       <div class="lume-layout-content">
         <RouterView />
       </div>
@@ -24,13 +31,15 @@ import { useAuthStore } from '@/store/auth';
 import { usePermissionStore } from '@/store/permission';
 import Sidebar from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
+import TopNavBar from '@/components/layout/TopNavBar.vue';
 import CommandPalette from '@modules/common/static/components/CommandPalette.vue';
+import { useLumeTheme } from '@/composables/useLumeTheme';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
+const { currentLayout, sidebarCollapsed, sidebarWidth, toggleSidebar } = useLumeTheme();
 
-const sidebarCollapsed = ref(false);
 const commandPaletteOpen = ref(false);
 
 const handleKeydown = (e: KeyboardEvent) => {
@@ -57,10 +66,6 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
 });
 
-const toggleSidebar = () => {
-  sidebarCollapsed.value = !sidebarCollapsed.value;
-};
-
 const handleLogout = async () => {
   await authStore.logout();
   router.push('/login');
@@ -76,7 +81,7 @@ const handleLogout = async () => {
 
 .lume-layout-main {
   flex: 1;
-  margin-left: 260px;
+  margin-left: var(--sidebar-width, 260px);
   transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -84,6 +89,11 @@ const handleLogout = async () => {
 
 .lume-layout-main.sidebar-collapsed {
   margin-left: 72px;
+}
+
+.layout-topnav .lume-layout-main,
+.layout-topnav .lume-layout-main.sidebar-collapsed {
+  margin-left: 0;
 }
 
 .lume-layout-content {

@@ -29,6 +29,12 @@
             @click.stop="applyPreset(preset.name)"
           />
         </div>
+        <a-menu-sub-menu key="layout" title="Layout">
+          <a-menu-item key="sidebar" @click="setLayout('sidebar')">Sidebar</a-menu-item>
+          <a-menu-item key="topnav" @click="setLayout('topnav')">Top navigation</a-menu-item>
+          <a-menu-item key="mixed" @click="setLayout('mixed')">Mixed</a-menu-item>
+        </a-menu-sub-menu>
+        <a-menu-item key="compact" @click="setCompact(!compact)">Compact mode: {{ compact ? 'on' : 'off' }}</a-menu-item>
         <a-menu-divider />
         <a-menu-item key="reset" @click="resetTheme">Reset to defaults</a-menu-item>
       </a-menu>
@@ -38,7 +44,7 @@
 <script setup lang="ts">
 import { useLumeTheme, LUME_THEME_PRESETS } from '@/composables/useLumeTheme';
 
-const { isDark, primaryColor, toggleTheme, setThemeMode, applyPreset, resetTheme } = useLumeTheme();
+const { isDark, primaryColor, compact, toggleTheme, setThemeMode, applyPreset, setLayout, setCompact, resetTheme } = useLumeTheme();
 </script>
 <style scoped>
 .theme-swatches {
