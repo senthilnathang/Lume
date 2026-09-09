@@ -49,6 +49,12 @@ Lume ships with several built-in protections (see [`CLAUDE.md`](./CLAUDE.md) and
   opt-in `DOCS_TOKEN` bearer gate. JSON API responses carry a strict
   `Content-Security-Policy` (`default-src 'none'`, no framing); Swagger UI
   is excluded since it needs inline assets.
+- 2FA enrollment (self-contained RFC 6238 TOTP, backup codes, password-gated
+  disable); OAuth social login (GitHub/Google/Microsoft, state CSRF guard,
+  auto-provisioning); SAML SSO (SP metadata, redirect, validated ACS).
+- Per-API-key rate quotas (`apiquota.<prefix>` overrides); record webhooks
+  HMAC-signed with retry; field-level AES-GCM encryption with prod
+  fail-closed key; GDPR collect/erase with audit proof.
 - Entity records enforce field-level policies (`EntityFieldPermission`),
   row visibility (private/company/public + OWD defaults), master-detail
   cascade deletes, and server-computed formulas (client values untrusted).

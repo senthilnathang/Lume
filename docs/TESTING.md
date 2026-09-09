@@ -101,6 +101,8 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 | Pack Module | `pack-module.test.js` | 3 | File collection, overwrite guard, dep check |
 | Flow Runner | `flow-runner.test.js` | 4 | Chains, branching, isolation, trigger filter |
 | Record Lifecycle | `record-lifecycle.test.js` | 2 | CRUD round-trip, tenant isolation (shared fakes) |
+| SSO | `sso.service.test.js` | 3 | SP metadata, config gating |
+| Theme | `useLumeTheme.test.ts` (vitest) | 5 | Presets, toggle/persist, clamps, reset |
 
 Run the parity set:
 
@@ -108,8 +110,12 @@ Run the parity set:
 NODE_OPTIONS='--experimental-vm-modules' npx jest tests/unit/formula.service.test.js tests/unit/entity-record-policy.test.js tests/unit/entity-field-types.test.js tests/unit/entity-relations.test.js tests/unit/cascade.service.test.js tests/unit/row-policy.test.js tests/unit/owd-visibility.test.js tests/unit/permission-merge.test.js tests/unit/field-validation.test.js tests/unit/refresh-reuse.test.js tests/unit/model-alias.test.js tests/unit/field-mask.test.js tests/unit/entity-crud-gate.test.js tests/unit/record-webhooks.test.js tests/unit/field-crypto.test.js tests/unit/gdpr.test.js tests/unit/record-approvals.test.js tests/unit/analytics-reports.test.js tests/unit/dashboards.test.js tests/unit/data-import-xlsx.test.js tests/unit/import-jobs.test.js tests/unit/notification-channels.test.js tests/unit/sms-gateway.test.js tests/unit/mail-module.test.js tests/unit/document-search.test.js tests/unit/schema-graph.test.js tests/unit/api-scopes.test.js tests/unit/scheduler.test.js tests/unit/query-monitor.test.js tests/unit/read-through-cache.test.js tests/unit/error-envelope.test.js tests/unit/api-quota.test.js tests/unit/totp.service.test.js tests/unit/oauth.service.test.js tests/unit/migrate.test.js tests/unit/pack-module.test.js tests/unit/flow-runner.test.js tests/unit/record-lifecycle.test.js --forceExit
 ```
 
-Known pre-existing failures (not regressions): 2 in `view-store.test.js`
-(update-definition expectations), present on the clean tree.
+Debt burn-down (fixed, with commits): `view-store` (deep-merge update, non-empty
+columns), `entity-builder` (`this`-context crash), `manifests` (grid summaries),
+`entity-store` + `registry` + `runtime` + `runtime-registry` + `bootstrap`
+(registry dialect unification). Remaining pre-existing failures are tracked
+in `docs/roadmap/FRAMEWORK_FEATURES_PLAN.md` burn-down; verify any suspect
+suite against the clean tree before attributing.
 
 ### Scaffolder Tests (node:test, no Jest)
 

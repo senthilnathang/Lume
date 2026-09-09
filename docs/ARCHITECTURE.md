@@ -516,6 +516,8 @@ const domain = [
 | advanced_features | Advanced | Drizzle | Webhooks, notifications (+deliveries), tags, comments, attachments, analytics reports, dashboards (+categories) |
 | sms | Integration | Drizzle | Providers, templates, bulk send, retry, delivery logs |
 | mail | Integration | Drizzle | IMAP servers, routing rules, message store, outbound queue |
+| Automation runtime | Automation | — | `flow-runner.js`: trigger/condition(formula)/webhook/update_record/log nodes, auto-fire on record writes |
+| Theming | Frontend | — | `useLumeTheme` presets + dark/auto + AntD-bound ConfigProvider, header switcher |
 | activities | Data | Drizzle | Event and activity management |
 | donations | Data | Drizzle | Donations, donors, campaigns |
 | documents | Data | Drizzle | Document/file management |
@@ -614,6 +616,11 @@ POST /api/users/login
     ├── Generate refresh token
     └── Return { token, refreshToken, user }
 ```
+
+Enrollment/SSO variants: `POST /users/2fa/setup|confirm|disable` (RFC 6238
+self-contained TOTP + backup codes, QR included); OAuth
+`GET /users/oauth/:provider` → callback with state guard and viewer-role
+provisioning; SAML via `/users/sso/metadata|login|acs` (validated ACS → JWT).
 
 ### Authorization Layers
 
