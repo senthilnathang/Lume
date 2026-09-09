@@ -2,6 +2,7 @@ export default {
   name: 'FlowGrid',
   technicalName: 'flowgrid',
   version: '1.0.0',
+  summary: 'Visual flow grids for automation pipelines',
   depends: ['base'],
   application: true,
   installable: true,

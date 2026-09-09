@@ -2,6 +2,7 @@ export default {
   name: 'AgentGrid',
   technicalName: 'agentgrid',
   version: '1.0.0',
+  summary: 'AI agent grids with execution tracking',
   depends: ['base', 'flowgrid'],
   application: true,
   installable: true,
