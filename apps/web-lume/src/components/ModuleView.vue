@@ -60,8 +60,15 @@
                 <button :class="['toggle-btn', { active: displayMode === 'table' }]" @click="displayMode = 'table'">Table</button>
                 <button :class="['toggle-btn', { active: displayMode === 'kanban' }]" @click="displayMode = 'kanban'">Kanban</button>
               </div>
+              <button class="toggle-btn" @click="columnSettingsRef?.open()">Columns</button>
             </div>
           </div>
+          <ColumnSettings
+            ref="columnSettingsRef"
+            :view-key="`module-${String(effectiveModuleName)}`"
+            :columns="columnDefs"
+            @update:columns="visibleCols = $event"
+          />
 
           <KanbanBoard
             v-if="displayMode === 'kanban'"
@@ -79,7 +86,7 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th v-for="col in columns" :key="col.key" :class="{ 'sortable': col.sortable }" @click="handleSort(col.key)">
+                  <th v-for="col in displayedColumns" :key="col.key" :class="{ 'sortable': col.sortable }" @click="handleSort(col.key)">
                     {{ col.title }}
                     <svg v-if="sortColumn === col.key" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path v-if="sortDirection === 'asc'" d="M12 5v14M19 12l-7 7-7-7"></path>
@@ -90,7 +97,7 @@
               </thead>
               <tbody>
                 <tr v-for="item in filteredData" :key="item.id" @click="handleRowClick(item)">
-                  <td v-for="col in columns" :key="col.key">
+                  <td v-for="col in displayedColumns" :key="col.key">
                     <span v-if="col.type === 'status'" :class="['status-badge', item[col.key]]">
                       {{ item[col.key] }}
                     </span>
@@ -121,7 +128,7 @@
                   </td>
                 </tr>
                 <tr v-if="filteredData.length === 0">
-                  <td :colspan="columns.length" class="empty-state">
+                  <td :colspan="displayedColumns.length" class="empty-state">
                     <div class="empty-content">
                       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -267,6 +274,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { get, post, put, del } from '@/api/request';
 import ExportMenu from './ExportMenu.vue';
 import KanbanBoard from './KanbanBoard.vue';
+import ColumnSettings from './ColumnSettings.vue';
 import { emitInteraction, onInteraction } from '@/composables/useDynamicInteractions';
 
 const props = defineProps<{
@@ -306,7 +314,7 @@ const formData = ref<ModuleRow>({});
 const data = ref<ModuleRow[]>([]);
 const displayMode = ref<'table' | 'kanban'>('table');
 const kanbanWidths = ref<Record<string, number>>({});
-type KanbanCol = { key: string; type?: string; title?: string };
+type KanbanCol = { key: string; type?: string; title?: string; sortable?: boolean };
 const kanbanField = computed(() => {
   const cols = (columns.value || []) as KanbanCol[];
   const found = cols.find((c) => c.type === 'status' || c.key === 'status' || c.key === 'state' || c.key === 'stage');
@@ -318,6 +326,18 @@ const kanbanColumns = computed(() => {
   return [...vals];
 });
 const kanbanCardFields = computed(() => ((columns.value || []) as KanbanCol[]).filter((c) => c.type !== 'action').slice(0, 3).map((c) => ({ name: c.key, label: c.title || c.key })));
+const columnSettingsRef = ref<{ open: () => void } | null>(null);
+const visibleCols = ref<{ key: string; title: string }[] | null>(null);
+const columnDefs = computed(() => ((columns.value || []) as KanbanCol[]).map((c) => ({ key: c.key, title: c.title || c.key })));
+const displayedColumns = computed(() => {
+  if (!visibleCols.value) {
+    return (columns.value || []) as KanbanCol[];
+  }
+  const order = new Map(visibleCols.value.map((c, i) => [c.key, i]));
+  return ((columns.value || []) as KanbanCol[])
+    .filter((c) => order.has(c.key))
+    .sort((a, b) => (order.get(a.key) ?? 0) - (order.get(b.key) ?? 0));
+});
 const kanbanStorageKey = computed(() => `lume-kanban-${String(effectiveModuleName.value)}-widths`);
 try {
   const saved = localStorage.getItem(kanbanStorageKey.value);
@@ -1003,6 +1023,7 @@ const handleExport = (format: string, data: ModuleRow[]) => {
 
 watch(() => props.moduleName, () => {
   viewType.value = 'list';
+  visibleCols.value = null;
   loadData();
 });
 
