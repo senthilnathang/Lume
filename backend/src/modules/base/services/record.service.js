@@ -67,6 +67,49 @@ function parseChainCondition(chain) {
   }
 }
 
+function flowActions(prisma) {
+  return {
+    httpPost: async (url, payload) => {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) {
+        throw new Error(`Flow webhook responded ${res.status}`);
+      }
+    },
+    updateRecord: async (recordId, data) => {
+      await prisma.entityRecord.update({ where: { id: Number(recordId) }, data: { data: JSON.stringify(data) } });
+    },
+    log: async (message) => {
+      console.log(`[Flow] ${message}`);
+    },
+  };
+}
+
+function maybeFireFlows(prisma, event, entityName, record) {
+  (async () => {
+    try {
+      const { DrizzleAdapter } = await import('../../../core/db/adapters/drizzle-adapter.js');
+      const schema = await import('../../base_automation/models/schema.js');
+      const { fireRecordFlows } = await import('../../base_automation/services/flow-runner.js');
+      const adapter = new DrizzleAdapter(schema.automationFlows);
+      const { rows } = await adapter.findAll({ limit: 200, offset: 0 });
+      await fireRecordFlows({
+        findFlows: async () => rows || [],
+        event,
+        entityName,
+        record,
+        actions: flowActions(prisma),
+      });
+    } catch {
+      /* flows never break record writes */
+    }
+  })().catch(() => {});
+}
+
 function maybeStartApprovals(prisma, entityName, recordId, userId) {
   getApprovalRuntime(prisma).then(async (runtime) => {
     if (!runtime) {
@@ -255,6 +298,7 @@ export class RecordService {
 
     notifyRecordEvent('record.created', entity.name || String(entityId), { id: record.id, ...finalData }, companyId);
     maybeStartApprovals(this.prisma, entity.name || String(entityId), record.id, userId);
+    maybeFireFlows(this.prisma, 'record.created', entity.name || String(entityId), { id: record.id, ...finalData });
 
     return {
       ...record,
@@ -437,6 +481,7 @@ export class RecordService {
     });
 
     notifyRecordEvent('record.updated', String(existing.entityId), { id: recordId, ...mergedData }, companyId);
+    maybeFireFlows(this.prisma, 'record.updated', String(existing.entityId), { id: recordId, ...mergedData });
 
     return {
       ...updated,
