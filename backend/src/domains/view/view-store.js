@@ -117,6 +117,14 @@ class ViewStore {
     }
 
     const updated = { ...view, ...updates };
+    const baseConfig = view.config && typeof view.config === 'object' ? view.config : {};
+    const configUpdates = updates.config && typeof updates.config === 'object' ? updates.config : {};
+    updated.config = { ...baseConfig, ...configUpdates };
+    for (const [key, value] of Object.entries(updates)) {
+      if (key !== 'config' && key in baseConfig) {
+        updated.config[key] = value;
+      }
+    }
     const errors = this.validate(updated);
     if (errors.length > 0) {
       throw new Error(`Update validation failed: ${errors.join(', ')}`);
@@ -210,8 +218,8 @@ class ViewStore {
 
     // Type-specific validation
     if (view.type === 'table' && view.config) {
-      if (!Array.isArray(view.config.columns)) {
-        errors.push('table view requires columns array in config');
+      if (!Array.isArray(view.config.columns) || view.config.columns.length === 0) {
+        errors.push('table view requires a non-empty columns array in config');
       }
     }
 
