@@ -84,6 +84,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F5.3 Fixture library (`tests/helpers/fakes.js`: shared Prisma double with where-matchers, seed store, factories) + lifecycle contract test proving the pattern (2 tests green).
 - [x] F7.1 2FA enrollment (self-contained RFC 6238 TOTP replacing broken otplib v13 usage; setup/confirm/disable/status endpoints; full cycle verified live; 4 tests green).
 - [x] F7.2 OAuth social login (dependency-free code flow for GitHub/Google/Microsoft with state CSRF guard, profile normalization, find-or-create provisioning; 3 tests green).
+- [x] F7.3 Enterprise SSO/SAML (SP metadata, redirect login, ACS validation → JWT provisioning; 3 tests green; live IdP exchange untested by design).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F2.1 Flow runtime (`flow-runner.js`: trigger/condition(formula)/webhook/update_record/log nodes, branching, step cap, failure isolation; record.created/updated auto-fire; 4 tests green).
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).

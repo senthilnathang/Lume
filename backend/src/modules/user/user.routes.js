@@ -216,6 +216,40 @@ router.get('/oauth/:provider/callback', async (req, res) => {
   }
 });
 
+router.get('/sso/metadata', async (req, res) => {
+  try {
+    const { buildServiceProvider } = await import('../../core/services/sso.service.js');
+    res.type('application/xml').send(buildServiceProvider().getMetadata());
+  } catch (error) {
+    res.status(400).json(responseUtil.error(error.message));
+  }
+});
+
+router.get('/sso/login', async (req, res) => {
+  try {
+    const { buildLoginRequest } = await import('../../core/services/sso.service.js');
+    const { url } = await buildLoginRequest();
+    res.redirect(url);
+  } catch (error) {
+    res.status(400).json(responseUtil.error(error.message));
+  }
+});
+
+router.post('/sso/acs', async (req, res) => {
+  try {
+    const { handleAcs } = await import('../../core/services/sso.service.js');
+    const profile = await handleAcs(req.body);
+    const result = await getUserService().loginOrCreateOAuthUser(profile, 'saml', {
+      ipAddress: req.ip || req.connection?.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
+    res.status(result.success ? 200 : 401).json(result);
+  } catch (error) {
+    console.error('SSO callback error:', error);
+    res.status(400).json(responseUtil.error(error.message));
+  }
+});
+
 router.post('/register', createUserValidation, validateRequest, async (req, res) => {
   try {
     const result = await getUserService().create(req.body);
