@@ -85,6 +85,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F7.1 2FA enrollment (self-contained RFC 6238 TOTP replacing broken otplib v13 usage; setup/confirm/disable/status endpoints; full cycle verified live; 4 tests green).
 - [x] F7.2 OAuth social login (dependency-free code flow for GitHub/Google/Microsoft with state CSRF guard, profile normalization, find-or-create provisioning; 3 tests green).
 - [x] F7.3 Enterprise SSO/SAML (SP metadata, redirect login, ACS validation → JWT provisioning; 3 tests green; live IdP exchange untested by design).
+- [x] Theming (FastVue UX port: `useLumeTheme` presets/dark-auto/radius/font/compact/persistence, AntD-bound ConfigProvider, header ThemeSwitcher; 5 tests green; verified live including dark toggle).
 
 ## Pre-existing debt burn-down (2026-09-07)
 - [x] view-store: `update()` deep-merges config; table views require non-empty columns (31/31).
