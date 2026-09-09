@@ -381,21 +381,51 @@ app.get('/metrics', (req, res, next) => {
   };
   if (process.env.NODE_ENV !== 'production' || openapiEnabledInProd) {
     try {
-      const spec = buildOpenApiSpec();
+      const baseSpec = buildOpenApiSpec();
+      let cachedSpec = null;
+      let cachedAt = 0;
 
-      app.get('/api/openapi.json', docsGate, (req, res) => {
+      const getSpec = async () => {
+        if (cachedSpec && Date.now() - cachedAt < 60000) {
+          return cachedSpec;
+        }
+        const spec = JSON.parse(JSON.stringify(baseSpec));
+        try {
+          const { inventoryRoutes, inventoryToPaths } = await import('./core/openapi/route-inventory.js');
+          const auto = inventoryToPaths(inventoryRoutes(app), spec.paths || {});
+          spec.paths = spec.paths || {};
+          for (const [path, methods] of Object.entries(auto)) {
+            spec.paths[path] = { ...(spec.paths[path] || {}), ...methods };
+          }
+        } catch {
+          /* auto-inventory is best-effort; curated spec still serves */
+        }
+        cachedSpec = spec;
+        cachedAt = Date.now();
+        return spec;
+      };
+
+      app.get('/api/openapi.json', docsGate, async (req, res) => {
         // OpenAPI spec is public + cacheable. 1-minute window — short enough
         // that hot-reloaded annotations show up quickly in dev, long enough
         // that SDK codegen tools don't hammer the endpoint.
         res.set('Cache-Control', 'public, max-age=60');
-        res.json(spec);
+        res.json(await getSpec());
       });
 
-      app.use('/api/docs', docsGate, swaggerUi.serve, swaggerUi.setup(spec, {
-        explorer: true,
-        customSiteTitle: 'Lume API — Reference',
-        swaggerOptions: { persistAuthorization: true },
-      }));
+      const docsHandler = async (req, res, next) => {
+        try {
+          const spec = await getSpec();
+          swaggerUi.setup(spec, {
+            explorer: true,
+            customSiteTitle: 'Lume API — Reference',
+            swaggerOptions: { persistAuthorization: true },
+          })(req, res, next);
+        } catch (err) {
+          next(err);
+        }
+      };
+      app.use('/api/docs', docsGate, swaggerUi.serve, docsHandler);
 
       console.log('✅ OpenAPI mounted at /api/docs (spec at /api/openapi.json)');
     } catch (err) {
