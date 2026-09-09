@@ -1,5 +1,6 @@
 import prisma from '../../core/db/prisma.js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { passwordUtil, jwtUtil, responseUtil } from '../../shared/utils/index.js';
 // USER_ROLES exported but only referenced via role_id FKs in the
 // current code; kept imported (underscored) so the role enum is one
@@ -293,6 +294,55 @@ export class UserService {
       refreshToken,
       passwordExpired,
     }, MESSAGES.LOGIN_SUCCESS);
+  }
+
+  async loginOrCreateOAuthUser(profile, provider, options = {}) {
+    let user = await prisma.user.findFirst({ where: { email: profile.email } });
+    if (user && !user.isActive) {
+      return responseUtil.error(MESSAGES.ACCOUNT_DEACTIVATED, null, 'FORBIDDEN');
+    }
+    if (!user) {
+      const viewerRole = await prisma.role.findFirst({ where: { name: 'viewer' } })
+        || await prisma.role.findFirst();
+      if (!viewerRole) {
+        return responseUtil.error('No roles available for provisioning', null, 'ERROR');
+      }
+      user = await prisma.user.create({
+        data: {
+          email: profile.email,
+          password: `oauth:${crypto.randomBytes(32).toString('hex')}`,
+          firstName: profile.firstName || 'OAuth',
+          lastName: profile.lastName || 'User',
+          avatar: profile.avatar || null,
+          role_id: viewerRole.id,
+          isActive: true,
+        },
+      });
+    }
+    const userRole = await prisma.role.findUnique({ where: { id: user.role_id } });
+    const roleName = userRole?.name || 'viewer';
+    const token = jwtUtil.generateToken({ id: user.id, email: user.email, role: roleName, role_id: user.role_id });
+    const refreshToken = jwtUtil.generateRefreshToken(user.id);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refresh_token: refreshToken, lastLogin: new Date() },
+    });
+    try {
+      await getSessionAdapter().create({
+        userId: user.id,
+        token,
+        ipAddress: options.ipAddress || null,
+        userAgent: options.userAgent || null,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        lastActivityAt: new Date(),
+        status: 'active',
+      });
+    } catch (err) {
+      console.warn('[Session] Failed to create session record:', err.message);
+    }
+    const safeUser = { ...this._toSnakeCase(user, roleName) };
+    delete safeUser.password;
+    return responseUtil.success({ user: safeUser, token, refreshToken, authProvider: provider }, MESSAGES.LOGIN_SUCCESS);
   }
 
   // Logout user — terminate session

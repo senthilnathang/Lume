@@ -169,6 +169,53 @@ router.post('/2fa/disable', authenticate, [
   }
 });
 
+const oauthStates = new Map();
+
+router.get('/oauth/providers', async (req, res) => {
+  try {
+    const { configuredProviders } = await import('../../core/services/oauth.service.js');
+    res.json(responseUtil.success(configuredProviders()));
+  } catch (error) {
+    res.status(500).json(responseUtil.error('Failed to list OAuth providers'));
+  }
+});
+
+router.get('/oauth/:provider', async (req, res) => {
+  try {
+    const { buildAuthorizeUrl, newState, isProviderConfigured } = await import('../../core/services/oauth.service.js');
+    if (!isProviderConfigured(req.params.provider)) {
+      return res.status(400).json(responseUtil.error(`OAuth provider not configured: ${req.params.provider}`, null, 'BAD_REQUEST'));
+    }
+    const state = newState();
+    oauthStates.set(state, Date.now() + 10 * 60 * 1000);
+    res.redirect(buildAuthorizeUrl(req.params.provider, state));
+  } catch (error) {
+    res.status(400).json(responseUtil.error(error.message));
+  }
+});
+
+router.get('/oauth/:provider/callback', async (req, res) => {
+  try {
+    const { exchangeCode, fetchProfile } = await import('../../core/services/oauth.service.js');
+    const { code, state } = req.query;
+    const expiresAt = oauthStates.get(String(state || ''));
+    oauthStates.delete(String(state || ''));
+    if (!code || !expiresAt || expiresAt < Date.now()) {
+      return res.status(400).json(responseUtil.error('Invalid or expired OAuth state', null, 'BAD_REQUEST'));
+    }
+    const accessToken = await exchangeCode(req.params.provider, String(code));
+    const profile = await fetchProfile(req.params.provider, accessToken);
+    const result = await getUserService().loginOrCreateOAuthUser(profile, req.params.provider, {
+      ipAddress: req.ip || req.connection?.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
+    res.status(result.success ? 200 : 401).json(result);
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    res.status(400).json(responseUtil.error(error.message));
+  }
+});
+
 router.post('/register', createUserValidation, validateRequest, async (req, res) => {
   try {
     const result = await getUserService().create(req.body);
