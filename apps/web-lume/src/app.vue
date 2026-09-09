@@ -5,16 +5,20 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { theme } from 'ant-design-vue';
 import { RouterView } from 'vue-router';
+import { useLumeTheme } from '@/composables/useLumeTheme';
 
-const tokenTheme = {
+const { isDark, primaryColor, borderRadius, fontSize, compact } = useLumeTheme();
+
+const tokenTheme = computed(() => ({
   token: {
-    colorPrimary: '#4f46e5',
+    colorPrimary: primaryColor.value,
     colorSuccess: '#22c55e',
     colorWarning: '#f59e0b',
     colorError: '#ef4444',
-    borderRadius: 6,
+    borderRadius: borderRadius.value,
     controlHeight: 36,
     controlHeightLG: 40,
     controlHeightSM: 28,
@@ -39,9 +43,12 @@ const tokenTheme = {
       contentFontSizeSM: 13,
     },
   },
-  algorithm: theme.defaultAlgorithm,
-};
-</script>
+  algorithm: [
+    ...(isDark.value ? [theme.darkAlgorithm] : [theme.defaultAlgorithm]),
+    ...(compact.value ? [theme.compactAlgorithm] : []),
+  ],
+  fontSize: fontSize.value,
+}));</script>
 
 <style>
 html, body, #app {

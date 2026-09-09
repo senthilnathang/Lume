@@ -16,5 +16,7 @@ export { useToast } from './useToast';
 export { useColumnSettings } from './useColumnSettings';
 export type { Column } from './useColumnSettings';
 export { useWebSocket } from './useWebSocket';
+export { useLumeTheme, LUME_THEME_PRESETS } from './useLumeTheme';
+export type { LumeThemeMode, LumeLayoutType, LumeThemeState } from './useLumeTheme';
 export { useDynamicInteractions, emitInteraction, onInteraction } from './useDynamicInteractions';
 export type { InteractionEvent } from './useDynamicInteractions';
