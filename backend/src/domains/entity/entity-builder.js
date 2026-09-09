@@ -194,7 +194,7 @@ export function defineEntity(options = {}) {
   }
 
   if (!options.orm || !['prisma', 'drizzle'].includes(options.orm)) {
-    throw new Error('Entity must specify orm: "prisma" or "drizzle"');
+    throw new Error('Entity orm must be "prisma" or "drizzle"');
   }
 
   if (!options.tableName) {
@@ -218,7 +218,7 @@ export function defineEntity(options = {}) {
     tableName: options.tableName,
     fields: options.fields || [],
     relations: options.relations || [],
-    hooks: this.normalizeHooks(options.hooks),
+    hooks: _normalizeHooks(options.hooks),
     workflows: options.workflows ?? { onCreate: [], onUpdate: [], onDelete: [] },
     agents: options.agents || [],
     permissions: options.permissions || [],
