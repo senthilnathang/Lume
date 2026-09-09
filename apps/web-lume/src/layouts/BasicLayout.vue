@@ -16,8 +16,9 @@
         @logout="handleLogout"
       />
       <TopNavBar v-if="isAuthenticated && currentLayout !== 'sidebar'" :menus="menus" />
+      <TabBar v-if="isAuthenticated" />
       <div class="lume-layout-content">
-        <RouterView />
+        <RouterView :key="tabRefreshKey" />
       </div>
     </div>
     <CommandPalette v-if="isAuthenticated" :visible="commandPaletteOpen" @close="commandPaletteOpen = false" />
@@ -32,13 +33,17 @@ import { usePermissionStore } from '@/store/permission';
 import Sidebar from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
 import TopNavBar from '@/components/layout/TopNavBar.vue';
+import TabBar from '@/components/layout/TabBar.vue';
 import CommandPalette from '@modules/common/static/components/CommandPalette.vue';
 import { useLumeTheme } from '@/composables/useLumeTheme';
+import { useTabBarStore } from '@/store/tabbar';
+import { storeToRefs } from 'pinia';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const permissionStore = usePermissionStore();
 const { currentLayout, sidebarCollapsed, sidebarWidth, toggleSidebar } = useLumeTheme();
+const { refreshKey: tabRefreshKey } = storeToRefs(useTabBarStore());
 
 const commandPaletteOpen = ref(false);
 

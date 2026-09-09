@@ -121,15 +121,18 @@ interface UserInfo {
   email: string;
   first_name: string;
   last_name: string;
-  role: string;
+  role: string | { name: string };
+  role_id?: number;
   avatar?: string;
 }
 
 interface MenuItem {
-  id: number;
-  title: string;
+  id?: number;
+  name?: string;
+  title?: string;
   path: string;
   icon?: string;
+  children?: MenuItem[];
 }
 
 const props = defineProps<{
@@ -151,7 +154,11 @@ const userName = computed(() => {
 });
 
 const userEmail = computed(() => props.user?.email || '');
-const userRole = computed(() => props.user?.role || 'User');
+const userRole = computed(() => {
+  const role = props.user?.role;
+  if (!role) return 'User';
+  return typeof role === 'string' ? role : role.name || 'User';
+});
 const userAvatar = computed(() => props.user?.avatar);
 
 const userInitials = computed(() => {
