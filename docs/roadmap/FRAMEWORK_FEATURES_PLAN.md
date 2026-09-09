@@ -89,6 +89,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 ## Pre-existing debt burn-down (2026-09-07)
 - [x] view-store: `update()` deep-merges config; table views require non-empty columns (31/31).
 - [x] entity-builder: `this.normalizeHooks` crash fixed; orm message aligned (24/24).
+- [x] manifests: missing summary/description added to agentgrid + flowgrid (213/213).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F2.1 Flow runtime (`flow-runner.js`: trigger/condition(formula)/webhook/update_record/log nodes, branching, step cap, failure isolation; record.created/updated auto-fire; 4 tests green).
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).
