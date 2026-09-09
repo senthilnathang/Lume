@@ -79,6 +79,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F6.3 API key quotas (per-prefix buckets via `lume_` header detection, `apiquota.<prefix>` settings overrides with 60s cache, JWT/IP traffic unchanged; 3 tests green).
 - [x] F6.4 Error envelope (requestId + timestamp on handler errors, `X-Request-Id` header, backward-compatible meta merge; verified live; 3 tests green).
 - [x] F5.2 Migration tracking (`migrate.js --status/--apply`: manifest vs `schema_migrations` drift with checksums; 26 modules baselined live; 3 tests green).
+- [x] F5.1 Module packaging (`pack-module.js`: `.lume-pack` tarballs with sha256 descriptor sidecars, dependency checks, refuse-overwrite installs; smoke-tested on sms; 3 tests green).
 - [x] F5.4 OpenAPI completeness (route-stack inventory merged per-request with 60s cache: 4 → 385 paths, auth flags, curated paths win; 3 tests green).
 - [x] F5.3 Fixture library (`tests/helpers/fakes.js`: shared Prisma double with where-matchers, seed store, factories) + lifecycle contract test proving the pattern (2 tests green).
 - [x] F7.1 2FA enrollment (self-contained RFC 6238 TOTP replacing broken otplib v13 usage; setup/confirm/disable/status endpoints; full cycle verified live; 4 tests green).
