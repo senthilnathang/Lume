@@ -188,9 +188,9 @@ describe('MetadataRegistry', () => {
     expect(registry.workflows.size).toBe(0);
   });
 
-  it('should return null for non-existent entity', async () => {
+  it('should return undefined for non-existent entity', async () => {
     const entity = await registry.getEntity('nonexistent');
-    expect(entity).toBeNull();
+    expect(entity).toBeUndefined();
   });
 
   it('should return empty array for non-existent permissions', async () => {

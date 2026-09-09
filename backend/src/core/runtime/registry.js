@@ -79,36 +79,50 @@ export class RuntimeRegistry {
    *   permissions: []
    * });
    */
+  static entityKey(def) {
+    return def?.slug || def?.name || null;
+  }
+
   registerEntity(def) {
     this.validateEntity(def);
+    const key = RuntimeRegistry.entityKey(def);
 
-    if (this.entities.has(def.name)) {
-      throw new Error(`Entity ${def.name} already registered`);
+    if (this.entities.has(key)) {
+      throw new Error(`Entity ${key} already registered`);
     }
 
-    this.entities.set(def.name, def);
+    this.entities.set(key, def);
   }
 
   /**
-   * Get an entity definition by name
+   * Get an entity definition by slug or name
    *
-   * @param {string} name - Entity name
-   * @returns {Object | undefined} Entity definition or undefined if not found
+   * @param {string} name - Entity slug or name
+   * @returns {Object|null} Entity definition or null if not found
    * @example
    * const entity = registry.getEntity('ticket');
    */
   getEntity(name) {
-    return this.entities.get(name);
+    if (this.entities.has(name)) {
+      return this.entities.get(name);
+    }
+    for (const def of this.entities.values()) {
+      if (def.name === name || def.slug === name) {
+        return def;
+      }
+    }
+    return undefined;
   }
 
   /**
    * Check if an entity is registered
    *
-   * @param {string} name - Entity name
+   * @param {string} name - Entity slug or name
    * @returns {boolean} True if entity is registered
    */
   hasEntity(name) {
-    return this.entities.has(name);
+    const found = this.getEntity(name);
+    return found !== null && found !== undefined;
   }
 
   /**
@@ -156,12 +170,13 @@ export class RuntimeRegistry {
    */
   registerWorkflow(def) {
     this.validateWorkflow(def);
+    const key = def.id || def.name;
 
-    if (this.workflows.has(def.name)) {
-      throw new Error(`Workflow ${def.name} already registered`);
+    if (this.workflows.has(key)) {
+      throw new Error(`Workflow ${key} already registered`);
     }
 
-    this.workflows.set(def.name, def);
+    this.workflows.set(key, def);
   }
 
   /**
@@ -218,14 +233,135 @@ export class RuntimeRegistry {
    * @param {Object} def.config - View-specific configuration
    * @throws {Error} If view is invalid or already registered
    */
-  registerView(def) {
-    this.validateView(def);
+  registerView(def, view = null) {
+    const definition = view === null ? def : view;
+    const entitySlug = view === null ? null : (typeof def === 'string' ? def : def?.slug || null);
+    this.validateView(entitySlug ? { ...definition, slug: definition.slug || entitySlug } : definition);
 
-    if (this.views.has(def.name)) {
-      throw new Error(`View ${def.name} already registered`);
+    const key = entitySlug && definition.id && !definition.name
+      ? `${entitySlug}:${definition.id}`
+      : (definition.name || (definition.slug && definition.id ? `${definition.slug}:${definition.id}` : definition.id));
+    if (!key) {
+      throw new Error('View must have a name or slug:id identity');
+    }
+    if (this.views.has(key)) {
+      throw new Error(`View ${key} already registered`);
     }
 
-    this.views.set(def.name, def);
+    this.views.set(key, definition);
+    if (entitySlug) {
+      if (!this.viewEntities) {
+        this.viewEntities = new Map();
+      }
+      this.viewEntities.set(key, entitySlug);
+    }
+  }
+
+  getViews(entitySlug) {
+    return Array.from(this.views.entries())
+      .filter(([key, view]) => (
+        view.slug === entitySlug || view.entityName === entitySlug
+        || (this.viewEntities && this.viewEntities.get(key) === entitySlug)
+      ))
+      .map(([, view]) => view);
+  }
+
+  registerAgent(entitySlug, agent) {
+    if (!this.agents) {
+      this.agents = new Map();
+    }
+    const key = `${entitySlug}:${agent?.id || agent?.name || 'default'}`;
+    this.agents.set(key, agent);
+    return agent;
+  }
+
+  getAgents(entitySlug) {
+    if (!this.agents) {
+      return [];
+    }
+    const out = [];
+    for (const [key, agent] of this.agents) {
+      const owner = key.includes(':') ? key.slice(0, key.lastIndexOf(':')) : null;
+      if (owner === entitySlug || agent?.entitySlug === entitySlug) {
+        out.push(agent);
+      }
+    }
+    return out;
+  }
+
+  getAgent(entitySlug, agentId) {
+    if (!this.agents) {
+      return undefined;
+    }
+    return this.agents.get(`${entitySlug}:${agentId}`);
+  }
+
+  getAgent(entitySlug, agentId) {
+    if (!this.agents) {
+      return undefined;
+    }
+    return this.agents.get(`${entitySlug}:${agentId}`);
+  }
+
+  getPermissions(resource, action = null) {
+    return Array.from(this.policies.values()).filter((policy) => {
+      if (!policy || typeof policy !== 'object') {
+        return false;
+      }
+      if (policy.resource && policy.resource !== resource) {
+        return false;
+      }
+      if (action !== null && action !== undefined && policy.action && policy.action !== action) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  clear() {
+    this.entities.clear();
+    this.workflows.clear();
+    this.views.clear();
+    this.policies.clear();
+    this.modules.clear();
+    if (this.agents) {
+      this.agents.clear();
+    }
+    if (this.viewEntities) {
+      this.viewEntities.clear();
+    }
+  }
+
+  registerPermission(permission) {
+    const key = permission?.id || `${permission?.resource || 'global'}:${permission?.action || 'access'}`;
+    this.policies.set(key, permission);
+    return permission;
+  }
+
+  invalidateEntity(slug) {
+    for (const key of [...this.entities.keys()]) {
+      const def = this.entities.get(key);
+      if (key === slug || def?.slug === slug || def?.name === slug) {
+        this.entities.delete(key);
+      }
+    }
+    for (const key of [...this.views.keys()]) {
+      const view = this.views.get(key);
+      if (view && (view.slug === slug || view.entityName === slug)) {
+        this.views.delete(key);
+      }
+      if (this.viewEntities?.get(key) === slug) {
+        this.views.delete(key);
+        this.viewEntities.delete(key);
+      }
+    }
+    if (this.agents) {
+      for (const key of [...this.agents.keys()]) {
+        if (key.startsWith(`${slug}:`) || this.agents.get(key)?.entitySlug === slug) {
+          this.agents.delete(key);
+        }
+      }
+    }
   }
 
   /**
@@ -234,7 +370,10 @@ export class RuntimeRegistry {
    * @param {string} name - View name
    * @returns {Object | undefined} View definition or undefined if not found
    */
-  getView(name) {
+  getView(name, viewName = null) {
+    if (viewName !== null && viewName !== undefined) {
+      return this.views.get(`${name}:${viewName}`);
+    }
     return this.views.get(name);
   }
 
@@ -457,10 +596,14 @@ export class RuntimeRegistry {
    * @throws {Error} If validation fails
    */
   validateEntity(def) {
-    if (!def.name) {
+    if (!def.name && !def.slug) {
       throw new Error('Entity must have a name');
     }
-    if (!def.displayName) {
+    if (def.slug) {
+      if (!def.label && !def.name) {
+        throw new Error('Entity must have a displayName');
+      }
+    } else if (!def.displayName) {
       throw new Error('Entity must have a displayName');
     }
     if (!Array.isArray(def.fields)) {
@@ -475,13 +618,14 @@ export class RuntimeRegistry {
    * @throws {Error} If validation fails
    */
   validateWorkflow(def) {
-    if (!def.name) {
+    if (!def.name && !def.id) {
       throw new Error('Workflow must have a name');
     }
-    if (!Array.isArray(def.triggers)) {
+    const stepsBased = Array.isArray(def.steps);
+    if (!Array.isArray(def.triggers) && typeof def.trigger !== 'string' && !stepsBased) {
       throw new Error('Workflow must have a triggers array');
     }
-    if (typeof def.handler !== 'function') {
+    if (typeof def.handler !== 'function' && !stepsBased) {
       throw new Error('Workflow must have a handler function');
     }
   }
@@ -493,10 +637,10 @@ export class RuntimeRegistry {
    * @throws {Error} If validation fails
    */
   validateView(def) {
-    if (!def.name) {
+    if (!def.name && !def.id) {
       throw new Error('View must have a name');
     }
-    if (!def.entityName) {
+    if (!def.entityName && !def.slug) {
       throw new Error('View must have an entityName');
     }
     if (!def.type) {
@@ -564,3 +708,6 @@ export class RuntimeRegistry {
     });
   }
 }
+
+export { RuntimeRegistry as MetadataRegistry };
+export default RuntimeRegistry;
