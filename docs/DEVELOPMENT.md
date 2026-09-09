@@ -52,6 +52,10 @@ node src/scripts/seedData.js
 # Shorthand for all of the above (including a destructive refreshDb):
 # npm run db:setup
 
+# Track which module versions shaped the database, then verify:
+node src/scripts/migrate.js --apply
+node src/scripts/migrate.js --status
+
 # Frontend (admin panel)
 cd ../apps/web-lume
 npm install
@@ -126,6 +130,14 @@ Record pages (highlights/path/details/related lists) are composed per entity
 in the admin panel at `/settings/customization/record-pages` with live
 preview; entity relationships are visualized at `/settings/customization/schema`
 (drag a node grip onto another entity to create lookup/master-detail fields).
+
+Share a module as a versioned bundle with integrity + dependency checks:
+
+```bash
+cd backend
+node src/scripts/pack-module.js sms --out ./packs
+node src/scripts/pack-module.js --install ./packs/sms-1.0.0.lume-pack --dir ./src/modules
+```
 
 ### Metadata-Driven Approach (defineModule and defineEntity)
 

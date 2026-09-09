@@ -91,11 +91,21 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 | Schema Graph | `schema-graph.test.js` | 5 | PK/FK flags, relationship trees, duplicate scoring |
 | API Scopes | `api-scopes.test.js` | 4 | Legacy pass-through, exact/wildcard scopes, 401s |
 | Scheduler | `scheduler.test.js` | 4 | Invalid cron skip, run tracking, graceful failures |
+| Query Monitor | `query-monitor.test.js` | 4 | Threshold parsing, ALS counting, warn-once |
+| Read Cache | `read-through-cache.test.js` | 4 | TTL, prefix invalidation, eviction, stats |
+| Error Envelope | `error-envelope.test.js` | 3 | requestId/timestamp meta, legacy shape |
+| API Quota | `api-quota.test.js` | 3 | Prefix parsing, bucketing, defaults |
+| TOTP | `totp.service.test.js` | 4 | RFC vectors, secrets, window, backup codes |
+| OAuth | `oauth.service.test.js` | 3 | Provider config, authorize URLs, stubbed flow |
+| Migrate | `migrate.test.js` | 3 | Applied/pending/drift classification |
+| Pack Module | `pack-module.test.js` | 3 | File collection, overwrite guard, dep check |
+| Flow Runner | `flow-runner.test.js` | 4 | Chains, branching, isolation, trigger filter |
+| Record Lifecycle | `record-lifecycle.test.js` | 2 | CRUD round-trip, tenant isolation (shared fakes) |
 
 Run the parity set:
 
 ```bash
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/unit/formula.service.test.js tests/unit/entity-record-policy.test.js tests/unit/entity-field-types.test.js tests/unit/entity-relations.test.js tests/unit/cascade.service.test.js tests/unit/row-policy.test.js tests/unit/owd-visibility.test.js tests/unit/permission-merge.test.js tests/unit/field-validation.test.js tests/unit/refresh-reuse.test.js tests/unit/model-alias.test.js tests/unit/field-mask.test.js tests/unit/entity-crud-gate.test.js tests/unit/record-webhooks.test.js tests/unit/field-crypto.test.js tests/unit/gdpr.test.js tests/unit/record-approvals.test.js tests/unit/analytics-reports.test.js tests/unit/dashboards.test.js tests/unit/data-import-xlsx.test.js tests/unit/import-jobs.test.js tests/unit/notification-channels.test.js tests/unit/sms-gateway.test.js tests/unit/mail-module.test.js tests/unit/document-search.test.js tests/unit/schema-graph.test.js tests/unit/api-scopes.test.js tests/unit/scheduler.test.js --forceExit
+NODE_OPTIONS='--experimental-vm-modules' npx jest tests/unit/formula.service.test.js tests/unit/entity-record-policy.test.js tests/unit/entity-field-types.test.js tests/unit/entity-relations.test.js tests/unit/cascade.service.test.js tests/unit/row-policy.test.js tests/unit/owd-visibility.test.js tests/unit/permission-merge.test.js tests/unit/field-validation.test.js tests/unit/refresh-reuse.test.js tests/unit/model-alias.test.js tests/unit/field-mask.test.js tests/unit/entity-crud-gate.test.js tests/unit/record-webhooks.test.js tests/unit/field-crypto.test.js tests/unit/gdpr.test.js tests/unit/record-approvals.test.js tests/unit/analytics-reports.test.js tests/unit/dashboards.test.js tests/unit/data-import-xlsx.test.js tests/unit/import-jobs.test.js tests/unit/notification-channels.test.js tests/unit/sms-gateway.test.js tests/unit/mail-module.test.js tests/unit/document-search.test.js tests/unit/schema-graph.test.js tests/unit/api-scopes.test.js tests/unit/scheduler.test.js tests/unit/query-monitor.test.js tests/unit/read-through-cache.test.js tests/unit/error-envelope.test.js tests/unit/api-quota.test.js tests/unit/totp.service.test.js tests/unit/oauth.service.test.js tests/unit/migrate.test.js tests/unit/pack-module.test.js tests/unit/flow-runner.test.js tests/unit/record-lifecycle.test.js --forceExit
 ```
 
 Known pre-existing failures (not regressions): 2 in `view-store.test.js`
