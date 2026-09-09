@@ -103,6 +103,7 @@ NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
 | Record Lifecycle | `record-lifecycle.test.js` | 2 | CRUD round-trip, tenant isolation (shared fakes) |
 | SSO | `sso.service.test.js` | 3 | SP metadata, config gating |
 | Theme | `useLumeTheme.test.ts` (vitest) | 5 | Presets, toggle/persist, clamps, reset |
+| Filter Builder | `FilterBuilder.test.ts` (vitest) | 3 | Empty state, add-emit, number operators |
 
 Run the parity set:
 

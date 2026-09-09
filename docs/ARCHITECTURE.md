@@ -518,6 +518,7 @@ const domain = [
 | mail | Integration | Drizzle | IMAP servers, routing rules, message store, outbound queue |
 | Automation runtime | Automation | — | `flow-runner.js`: trigger/condition(formula)/webhook/update_record/log nodes, auto-fire on record writes |
 | Theming | Frontend | — | `useLumeTheme` presets + dark/auto + AntD-bound ConfigProvider, header switcher |
+| Dynamic views | Frontend | — | `EntityViewRenderer` (view switcher, kanban/calendar/table) + `FilterBuilder` (AND/OR groups, per-type operators) |
 | activities | Data | Drizzle | Event and activity management |
 | donations | Data | Drizzle | Donations, donors, campaigns |
 | documents | Data | Drizzle | Document/file management |
