@@ -97,7 +97,9 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] view-generator: valid computed fixture; `readonly` persisted by defineField so forms exclude read-only fields (23/23 + entity-builder 24/24).
 - [x] schema-generator: corrected omission assertion for computed fields (10/10).
 - [x] workflow-executor: null guard before access; step-level `continueOnError` honored (10/10).
-- [x] interceptor-pipeline: multiple-of-10 order enforcement + corrected test value (11/11).
+- [x] interceptor-pipeline: order rule reverted (55 slots between stages by design); test asserts integer >= 10 (11/11).
+- [x] alerts: same-millisecond cleanup flake fixed with `>=` age comparison.
+- [x] runtime suites green alongside (interceptor + runtime + alerts stable across runs).
 - [x] agent-executor: null guard before access (11/11).
 - [x] phase-10: paginator OOM guard, deterministic history ordering, offset-aware mocks, stable duration assertion (62/62).
 - [x] phase-7: redis mock converted to jest.fn spies (41/41).
