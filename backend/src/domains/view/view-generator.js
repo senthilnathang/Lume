@@ -41,14 +41,11 @@ class ViewGenerator {
       }
 
       // Generate timeline if there are start/end date fields
-      const startField = entity.fields?.find(f =>
-        (f.name === 'startDate' || f.name === 'start_date') &&
-        (f.type === 'date' || f.type === 'datetime')
-      );
-      const endField = entity.fields?.find(f =>
-        (f.name === 'endDate' || f.name === 'end_date') &&
-        (f.type === 'date' || f.type === 'datetime')
-      );
+      const isDateField = (f) => f.type === 'date' || f.type === 'datetime';
+      const startNames = ['startDate', 'start_date', 'createdDate', 'created_date'];
+      const endNames = ['endDate', 'end_date', 'deliveryDate', 'delivery_date', 'shippedDate', 'shipped_date', 'dueDate', 'due_date'];
+      const startField = entity.fields?.find(f => startNames.includes(f.name) && isDateField(f));
+      const endField = entity.fields?.find(f => endNames.includes(f.name) && isDateField(f) && f !== startField);
       if (startField && endField) {
         views.push(this.generateTimelineView(entity, startField, endField));
       }

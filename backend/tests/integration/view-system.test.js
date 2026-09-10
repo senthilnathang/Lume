@@ -219,7 +219,7 @@ describe('View System Integration', () => {
         tableName: 'tickets',
         fields: [
           defineField('title', 'text'),
-          defineField('daysOpen', 'number', { computed: true }),
+          defineField('daysOpen', 'number', { computed: true, computed_expression: 'daysSince(createdAt)' }),
           defineField('status', 'select'),
         ],
       });
