@@ -3,7 +3,7 @@
  * Tests for 5-layer caching, query optimization, connection pooling, and rate limiting
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import QueryCache from '../../src/core/cache/query-cache.js';
 import CacheOptimizer from '../../src/core/cache/cache-optimizer.js';
 import QueryOptimizationInterceptor from '../../src/core/runtime/interceptors/query-optimization.interceptor.js';
@@ -17,11 +17,11 @@ describe('Phase 7: Performance & Scalability', () => {
 
     beforeEach(() => {
       mockRedis = {
-        get: async (key) => null,
-        setex: async (key, ttl, value) => {},
-        keys: async (pattern) => [],
-        del: async (...keys) => 0,
-        info: async () => 'used_memory_human:1.5M',
+        get: jest.fn(async (key) => null),
+        setex: jest.fn(async (key, ttl, value) => {}),
+        keys: jest.fn(async (pattern) => []),
+        del: jest.fn(async (...keys) => 0),
+        info: jest.fn(async () => 'used_memory_human:1.5M'),
       };
 
       cache = new QueryCache(mockRedis, 30);
