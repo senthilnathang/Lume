@@ -99,6 +99,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] workflow-executor: null guard before access; step-level `continueOnError` honored (10/10).
 - [x] interceptor-pipeline: multiple-of-10 order enforcement + corrected test value (11/11).
 - [x] agent-executor: null guard before access (11/11).
+- [x] phase-10: paginator OOM guard, deterministic history ordering, offset-aware mocks, stable duration assertion (62/62).
 - [x] phase-7: redis mock converted to jest.fn spies (41/41).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F2.1 Flow runtime (`flow-runner.js`: trigger/condition(formula)/webhook/update_record/log nodes, branching, step cap, failure isolation; record.created/updated auto-fire; 4 tests green).
