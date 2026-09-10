@@ -33,8 +33,11 @@ describe('InterceptorPipeline', () => {
     }).toThrow();
 
     expect(() => {
-      pipeline.register('test', 90, processFn);
+      pipeline.register('test', 95, processFn);
     }).toThrow();
+    expect(() => {
+      pipeline.register('test', 90, processFn);
+    }).not.toThrow();
   });
 
   it('should execute interceptors in order', async () => {
