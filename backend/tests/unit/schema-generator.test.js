@@ -77,7 +77,7 @@ describe('SchemaGenerator', () => {
     const schema = SchemaGenerator.generateSchema(ent);
 
     expect(schema.columns.title).toBeDefined();
-    expect(schema.columns.daysOpen).toBeNull();
+    expect('daysOpen' in schema.columns).toBe(false);
   });
 
   it('should map field types correctly', () => {
