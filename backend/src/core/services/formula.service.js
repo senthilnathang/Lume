@@ -123,6 +123,10 @@ function parse(tokens) {
       return e;
     }
     if (t.type === 'ident') {
+      const next = peek();
+      if (!next || next.type !== '(') {
+        return { kind: 'ref', name: t.value };
+      }
       const fn = FUNCTIONS[t.value];
       if (!fn) throw new Error(`Unknown function: ${t.value}`);
       const open = consume();
@@ -152,8 +156,18 @@ function evaluate(node, record, depth = 0) {
   switch (node.kind) {
     case 'lit': return node.value;
     case 'ref': {
-      const v = record?.[node.name];
-      return v === undefined ? null : v;
+      if (record && Object.prototype.hasOwnProperty.call(record, node.name)) {
+        const v = record[node.name];
+        return v === undefined ? null : v;
+      }
+      if (record && typeof record === 'object') {
+        const key = Object.keys(record).find((k) => k.toLowerCase() === String(node.name).toLowerCase());
+        if (key !== undefined) {
+          const v = record[key];
+          return v === undefined ? null : v;
+        }
+      }
+      return null;
     }
     case 'neg': {
       const v = evaluate(node.expr, record, depth + 1);

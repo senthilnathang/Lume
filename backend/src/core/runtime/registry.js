@@ -257,10 +257,14 @@ export class RuntimeRegistry {
     }
   }
 
+  listViewsForEntity(entitySlug) {
+    return this.getViews(entitySlug);
+  }
+
   getViews(entitySlug) {
     return Array.from(this.views.entries())
       .filter(([key, view]) => (
-        view.slug === entitySlug || view.entityName === entitySlug
+        view.slug === entitySlug || view.entityName === entitySlug || view.entity === entitySlug
         || (this.viewEntities && this.viewEntities.get(key) === entitySlug)
       ))
       .map(([, view]) => view);
@@ -273,6 +277,54 @@ export class RuntimeRegistry {
     const key = `${entitySlug}:${agent?.id || agent?.name || 'default'}`;
     this.agents.set(key, agent);
     return agent;
+  }
+
+  extend(slugOrName, extension = {}) {
+    const key = [...this.entities.keys()].find((k) => {
+      const def = this.entities.get(k);
+      return k === slugOrName || def?.name === slugOrName || def?.slug === slugOrName;
+    });
+    if (!key) {
+      throw new Error(`Entity not found: ${slugOrName}`);
+    }
+    const def = this.entities.get(key);
+    const merged = { ...def };
+    if (extension.fields) {
+      if (Array.isArray(def.fields) && Array.isArray(extension.fields)) {
+        const byName = new Map(def.fields.map((f) => [f?.name || f, f]));
+        for (const field of extension.fields) {
+          byName.set(field?.name || field, field);
+        }
+        merged.fields = [...byName.values()];
+      } else {
+        const base = Array.isArray(def.fields)
+          ? Object.fromEntries(def.fields.map((f) => [typeof f === 'string' ? f : f.name, f]))
+          : { ...(def.fields || {}) };
+        merged.fields = { ...base, ...extension.fields };
+      }
+    }
+    for (const [k, v] of Object.entries(extension)) {
+      if (k !== 'fields') {
+        merged[k] = v;
+      }
+    }
+    this.entities.set(key, merged);
+    return merged;
+  }
+
+  resolveEntity(slugOrName) {
+    const def = this.getEntity(slugOrName);
+    if (!def) {
+      return null;
+    }
+    const resolved = { ...def };
+    if (Array.isArray(def.fields)) {
+      resolved.fields = Object.fromEntries(def.fields.map((f) => [
+        typeof f === 'string' ? f : f.name,
+        typeof f === 'string' ? { type: 'text' } : f,
+      ]));
+    }
+    return resolved;
   }
 
   getAgents(entitySlug) {
@@ -409,12 +461,16 @@ export class RuntimeRegistry {
    */
   registerPolicy(def) {
     this.validatePolicy(def);
-
-    if (this.policies.has(def.id)) {
-      throw new Error(`Policy ${def.id} already registered`);
+    const key = def.id || def.name;
+    if (!key) {
+      throw new Error('Policy must have an id or name');
     }
 
-    this.policies.set(def.id, def);
+    if (this.policies.has(key)) {
+      throw new Error(`Policy ${key} already registered`);
+    }
+
+    this.policies.set(key, def);
   }
 
   /**
@@ -469,29 +525,29 @@ export class RuntimeRegistry {
     this.modules.set(def.name, def);
 
     // Register all entities from the module
-    for (const entity of def.entities) {
-      if (!this.entities.has(entity.name)) {
+    for (const entity of def.entities || []) {
+      if (!this.entities.has(entity.name) && !this.entities.has(entity.slug)) {
         this.registerEntity(entity);
       }
     }
 
     // Register all workflows from the module
-    for (const workflow of def.workflows) {
-      if (!this.workflows.has(workflow.name)) {
+    for (const workflow of def.workflows || []) {
+      if (!this.workflows.has(workflow.id || workflow.name)) {
         this.registerWorkflow(workflow);
       }
     }
 
     // Register all views from the module
-    for (const view of def.views) {
+    for (const view of def.views || []) {
       if (!this.views.has(view.name)) {
         this.registerView(view);
       }
     }
 
     // Register all policies from the module
-    for (const policy of def.policies) {
-      if (!this.policies.has(policy.id)) {
+    for (const policy of def.policies || []) {
+      if (!this.policies.has(policy.id || policy.name)) {
         this.registerPolicy(policy);
       }
     }
@@ -603,10 +659,10 @@ export class RuntimeRegistry {
       if (!def.label && !def.name) {
         throw new Error('Entity must have a displayName');
       }
-    } else if (!def.displayName) {
+    } else if (!def.displayName && !def.label) {
       throw new Error('Entity must have a displayName');
     }
-    if (!Array.isArray(def.fields)) {
+    if (!Array.isArray(def.fields) && (def.fields === undefined || typeof def.fields !== 'object')) {
       throw new Error('Entity must have a fields array');
     }
   }
@@ -640,14 +696,14 @@ export class RuntimeRegistry {
     if (!def.name && !def.id) {
       throw new Error('View must have a name');
     }
-    if (!def.entityName && !def.slug) {
+    if (!def.entityName && !def.slug && !def.entity) {
       throw new Error('View must have an entityName');
     }
     if (!def.type) {
       throw new Error('View must have a type');
     }
 
-    const validTypes = ['form', 'table', 'detail', 'custom'];
+    const validTypes = ['form', 'table', 'detail', 'custom', 'kanban', 'calendar', 'timeline'];
     if (!validTypes.includes(def.type)) {
       throw new Error(`View type must be one of: ${validTypes.join(', ')}`);
     }
@@ -660,13 +716,13 @@ export class RuntimeRegistry {
    * @throws {Error} If validation fails
    */
   validatePolicy(def) {
-    if (!def.id) {
-      throw new Error('Policy must have an id');
-    }
     if (!def.name) {
       throw new Error('Policy must have a name');
     }
-    if (!Array.isArray(def.rules)) {
+    if (!def.id && !Array.isArray(def.conditions)) {
+      throw new Error('Policy must have an id');
+    }
+    if (!Array.isArray(def.rules) && !Array.isArray(def.conditions)) {
       throw new Error('Policy must have a rules array');
     }
   }

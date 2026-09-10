@@ -4,6 +4,8 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import MetadataRegistry from '../../src/core/runtime/registry.js';
+import { EntityEngine, WorkflowExecutor, EventBusService } from '../../src/core/runtime/kernel.js';
 
 describe('Metadata-Driven Framework', () => {
   let metadataRegistry;
@@ -159,6 +161,7 @@ describe('Metadata-Driven Framework', () => {
 
   describe('EntityEngine', () => {
     beforeEach(() => {
+      metadataRegistry.clear();
       // Register a test entity
       const testEntity = {
         name: 'TestLead',
@@ -271,6 +274,7 @@ describe('Metadata-Driven Framework', () => {
 
   describe('WorkflowExecutor', () => {
     beforeEach(() => {
+      metadataRegistry.clear();
       // Register workflows
       const scoringWorkflow = {
         name: 'auto_score',
