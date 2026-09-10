@@ -105,6 +105,7 @@ Full unit suite green: **109 suites, 2171 tests, 0 failures**.
 - [x] phase-10: paginator OOM guard, deterministic history ordering, offset-aware mocks, stable duration assertion (62/62).
 - [x] integration setup: dotenv in tests/setup.js (was 0/15 without DATABASE_URL); register role fallback; 404-not-500 expectation; test-env auth limiter (auth-workflow 7/7).
 - [x] phase-7: redis mock converted to jest.fn spies (41/41).
+- [x] view-system: timeline start/end inference extended (created/delivery/shipped/due); integration green (16/16).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F2.1 Flow runtime (`flow-runner.js`: trigger/condition(formula)/webhook/update_record/log nodes, branching, step cap, failure isolation; record.created/updated auto-fire; 4 tests green).
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).
