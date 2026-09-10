@@ -26,6 +26,7 @@ export function defineField(name, type, options = {}) {
     required: options.required ?? false,
     unique: options.unique ?? false,
     indexed: options.indexed ?? false,
+    readonly: options.readonly ?? options.readOnly ?? false,
     defaultValue: options.defaultValue ?? null,
     computed: options.computed ?? false,
     computed_expression: options.computed_expression ?? null,

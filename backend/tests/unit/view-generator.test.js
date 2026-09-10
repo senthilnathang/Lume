@@ -148,7 +148,7 @@ describe('ViewGenerator', () => {
           defineField('status', 'select'),
           defineField('priority', 'select'),
           defineField('assignedTo', 'number'),
-          defineField('daysOpen', 'number', { computed: true }),
+          defineField('daysOpen', 'number', { computed: true, computed_expression: 'daysSince(createdAt)' }),
           defineField('description', 'text'),
           defineField('createdAt', 'date'),
           defineField('updatedAt', 'date'),
