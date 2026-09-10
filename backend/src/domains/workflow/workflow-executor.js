@@ -53,11 +53,11 @@ class WorkflowExecutor {
    * @returns {Promise<Object>} Execution result { success, steps, errors }
    */
   async executeSync(workflowDef, triggerData, executionContext) {
-    logger.debug(`[WorkflowExecutor] Executing sync workflow: ${workflowDef.id}`);
-
     if (!workflowDef || !workflowDef.steps || workflowDef.steps.length === 0) {
       return { success: true, steps: [], errors: [] };
     }
+
+    logger.debug(`[WorkflowExecutor] Executing sync workflow: ${workflowDef.id}`);
 
     const executionResult = {
       success: true,
@@ -91,7 +91,7 @@ class WorkflowExecutor {
           executionResult.success = false;
           executionResult.errors.push(stepResult.error);
 
-          if (step.config?.continueOnError !== true) {
+          if (step.continueOnError !== true && step.config?.continueOnError !== true) {
             logger.warn(`[WorkflowExecutor] Step ${step.id} failed, halting workflow`);
             break;
           }
