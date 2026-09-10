@@ -95,6 +95,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] manifests: missing summary/description added to agentgrid + flowgrid (213/213).
 - [x] registry unification: slug/name keys, dual-dialect validation, agent/permission APIs, invalidate/clear, scoped view lookup (entity-store + registry + runtime + runtime-registry + bootstrap green, 100/100).
 - [x] view-generator: valid computed fixture; `readonly` persisted by defineField so forms exclude read-only fields (23/23 + entity-builder 24/24).
+- [x] schema-generator: corrected omission assertion for computed fields (10/10).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F2.1 Flow runtime (`flow-runner.js`: trigger/condition(formula)/webhook/update_record/log nodes, branching, step cap, failure isolation; record.created/updated auto-fire; 4 tests green).
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).
