@@ -44,14 +44,14 @@ class AgentExecutor {
    * @returns {Promise<Object>} Execution result { success, data, error }
    */
   async executeSync(agent, triggerData, executionContext) {
-    logger.debug(`[AgentExecutor] Executing agent: ${agent.id}`);
-
     if (!agent || !agent.action) {
       return {
         success: false,
         error: 'Agent or action not defined',
       };
     }
+
+    logger.debug(`[AgentExecutor] Executing agent: ${agent.id}`);
 
     const action = agent.action;
 
