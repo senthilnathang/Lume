@@ -25,16 +25,18 @@ describe('InterceptorPipeline', () => {
     expect(pipeline.getInterceptor('test')).toBeDefined();
   });
 
-  it('should validate order is multiple of 10', () => {
+  it('should validate order is an integer >= 10 (55 slots between stages)', () => {
     const processFn = async () => ({});
 
     expect(() => {
       pipeline.register('test', 5, processFn);
     }).toThrow();
-
     expect(() => {
-      pipeline.register('test', 95, processFn);
+      pipeline.register('test', 9.5, processFn);
     }).toThrow();
+    expect(() => {
+      pipeline.register('test', 55, processFn);
+    }).not.toThrow();
     expect(() => {
       pipeline.register('test', 90, processFn);
     }).not.toThrow();

@@ -15,13 +15,13 @@ class InterceptorPipeline {
   /**
    * Register an interceptor with an execution order
    * @param {string} name - Interceptor name
-   * @param {number} order - Execution order, multiple of 10 (10, 20, 30, ...)
+   * @param {number} order - Execution order (10, 20, 30, 40, 50, 55, 60, 70, 80, etc.)
    * @param {Function} processFn - async processFn(request, context) -> { abort?, abortReason?, result?, stateUpdate?, permissionChecks? }
    * @param {boolean} [enabled=true] - Whether interceptor is enabled
    */
   register(name, order, processFn, enabled = true) {
-    if (order < 10 || !Number.isInteger(order) || order % 10 !== 0) {
-      throw new Error(`Order must be a multiple of 10 and >= 10, got ${order}`);
+    if (order < 10 || !Number.isInteger(order)) {
+      throw new Error(`Order must be integer >= 10, got ${order}`);
     }
 
     const interceptor = {

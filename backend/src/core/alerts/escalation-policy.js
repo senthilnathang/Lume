@@ -533,7 +533,7 @@ export function clearOldAlerts(ageMinutes = 60) {
   let cleared = 0;
 
   for (const [key, alert] of alertStore.entries()) {
-    if (alert.resolved && (now - alert.resolvedAt) > ageMs) {
+    if (alert.resolved && (now - alert.resolvedAt) >= ageMs) {
       alertStore.delete(key);
       cleared++;
     }
