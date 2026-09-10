@@ -109,10 +109,11 @@ const limiter = enableRateLimit ? rateLimit({
 
 // Auth rate limiter is ALWAYS enabled to prevent brute force
 // skipSuccessfulRequests: only failed attempts count, so legitimate logins
-// never lock out while credential-stuffing is throttled (5 fails / 15 min prod)
+// never lock out while credential-stuffing is throttled (5 fails / 15 min prod,
+// 10 in test env so brute-force behavior stays covered by integration tests)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isProduction ? 5 : 50,
+  max: isProduction ? 5 : (process.env.NODE_ENV === 'test' ? 10 : 50),
   skipSuccessfulRequests: true,
   message: {
     success: false,

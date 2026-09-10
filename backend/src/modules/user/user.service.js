@@ -39,8 +39,12 @@ export class UserService {
       if (!roleId) {
         // Default to 'viewer' role
         const defaultRole = await prisma.role.findFirst({ where: { name: 'user' } })
-          || await prisma.role.findFirst({ where: { name: 'viewer' } });
-        roleId = defaultRole?.id || 2;
+          || await prisma.role.findFirst({ where: { name: 'viewer' } })
+          || await prisma.role.findFirst({ orderBy: { id: 'asc' } });
+        if (!defaultRole) {
+          throw new Error('No roles available: cannot assign a default role');
+        }
+        roleId = defaultRole.id;
       }
       const data = {
         email: userData.email,

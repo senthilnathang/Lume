@@ -123,14 +123,14 @@ describe('Entity Records REST API Routes', () => {
       expect(response.body.errors.title).toBeDefined();
     });
 
-    it('returns 500 for non-existent entity', async () => {
+    it('returns 404 for non-existent entity', async () => {
       const response = await request(app)
         .post(`/api/entities/99999/records`)
         .send({
           title: 'Test'
         });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
   });
