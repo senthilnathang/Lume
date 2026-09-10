@@ -97,6 +97,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] view-generator: valid computed fixture; `readonly` persisted by defineField so forms exclude read-only fields (23/23 + entity-builder 24/24).
 - [x] schema-generator: corrected omission assertion for computed fields (10/10).
 - [x] workflow-executor: null guard before access; step-level `continueOnError` honored (10/10).
+- [x] interceptor-pipeline: multiple-of-10 order enforcement + corrected test value (11/11).
 - [x] F2.3 Scheduler verification (cron init, run-count/next-run tracking, graceful failures; 4 tests green).
 - [x] F2.1 Flow runtime (`flow-runner.js`: trigger/condition(formula)/webhook/update_record/log nodes, branching, step cap, failure isolation; record.created/updated auto-fire; 4 tests green).
 - [x] F4.1 Import job history (persisted jobs with counters/status on every execute, list/get endpoints; 4 tests green).
