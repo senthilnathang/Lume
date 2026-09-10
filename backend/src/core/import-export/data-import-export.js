@@ -214,6 +214,25 @@ class DataImportExport {
    * @param {ExportOptions} [options] - Export options
    * @returns {Promise<string>}
    */
+  async collectBatches(listFn, { batchSize = 100, maxPages = 1000 } = {}) {
+    const records = [];
+    let offset = 0;
+    let pages = 0;
+    for (;;) {
+      const batch = await listFn(offset, batchSize);
+      if (!batch || batch.length === 0) {
+        break;
+      }
+      records.push(...batch);
+      offset += batchSize;
+      pages += 1;
+      if (pages >= maxPages) {
+        throw new Error('Export aborted: adapter returned 1000 non-empty pages (offset ignored?)');
+      }
+    }
+    return records;
+  }
+
   async exportToJSON(entity, options = {}) {
     const { fields, filters, batchSize = 100 } = options;
 
@@ -243,6 +262,9 @@ class DataImportExport {
       }
 
       offset += batchSize;
+      if (offset / batchSize >= 1000) {
+        throw new Error('Export aborted: adapter returned 1000 non-empty pages (offset ignored?)');
+      }
     }
 
     return JSON.stringify(records, null, 2);
@@ -259,8 +281,10 @@ class DataImportExport {
 
     const records = [];
     let offset = 0;
+    let pages = 0;
 
     // Phase 3.5: same paginator pattern as exportToJSON above.
+    // Hard page cap guards against adapters that ignore offset.
     for (;;) {
       const batch = await this.adapter.list(entity, {
         ...filters,
@@ -271,6 +295,10 @@ class DataImportExport {
       if (batch.length === 0) break;
       records.push(...batch);
       offset += batchSize;
+      pages += 1;
+      if (pages >= 1000) {
+        throw new Error('Export aborted: adapter returned 1000 non-empty pages (offset ignored?)');
+      }
     }
 
     if (records.length === 0) {

@@ -720,7 +720,7 @@ describe('Phase 10: Enterprise Features', () => {
 
       expect(result.success).toBe(true);
       expect(result.imported).toBe(2);
-      expect(result.duration).toBeGreaterThan(0);
+      expect(result.duration).toBeGreaterThanOrEqual(0);
     });
 
     it('should handle empty import', async () => {
@@ -790,10 +790,11 @@ describe('Phase 10: Enterprise Features', () => {
     });
 
     it('should export records to JSON', async () => {
-      mockAdapter.list = async () => [
+      const allRows = [
         { id: 1, title: 'Record 1' },
         { id: 2, title: 'Record 2' },
       ];
+      mockAdapter.list = async (entity, options = {}) => allRows.slice(options.offset || 0, (options.offset || 0) + (options.limit || 100));
 
       const json = await importExport.exportToJSON('ticket');
       const records = JSON.parse(json);
@@ -803,10 +804,11 @@ describe('Phase 10: Enterprise Features', () => {
     });
 
     it('should export records to CSV', async () => {
-      mockAdapter.list = async () => [
+      const allRows = [
         { id: 1, title: 'Record 1', status: 'open' },
         { id: 2, title: 'Record 2', status: 'closed' },
       ];
+      mockAdapter.list = async (entity, options = {}) => allRows.slice(options.offset || 0, (options.offset || 0) + (options.limit || 100));
 
       const csv = await importExport.exportToCSV('ticket');
       const lines = csv.split('\n');

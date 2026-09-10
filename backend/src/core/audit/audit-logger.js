@@ -115,7 +115,7 @@ class AuditLogger {
       results = results.filter(log => log.timestamp <= filters.endDate);
     }
 
-    return results.sort((a, b) => b.timestamp - a.timestamp);
+    return results.sort((a, b) => (b.timestamp - a.timestamp) || ((b.id || 0) - (a.id || 0)));
   }
 
   /**
