@@ -16,11 +16,15 @@ class QueryOptimizationInterceptor {
   /**
    * Enforce query optimization rules
    * @param {OperationRequest} request - Operation request
-   * @param {EntityDefinition} entity - Entity definition
-   * @param {ExecutionContext} executionContext - Execution context
+   * @param {InterceptorContext} context - Execution context (carries entity)
    * @returns {Promise<void>}
    */
-  async handle(request, entity, _executionContext) {
+  async handle(request, context) {
+    const rawEntity = context?.entity || {};
+    const fieldList = Array.isArray(rawEntity.fields)
+      ? rawEntity.fields
+      : Object.entries(rawEntity.fields || {}).map(([name, def]) => ({ name, ...(typeof def === 'object' ? def : {}) }));
+    const entity = { ...rawEntity, fields: fieldList };
     // Only optimize SELECT operations
     if (!['read', 'list', 'search'].includes(request.action)) {
       return;

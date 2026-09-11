@@ -92,6 +92,16 @@ export class RuntimeRegistry {
     }
 
     this.entities.set(key, def);
+
+    // Cascade agent registration (idempotent: re-registering overwrites)
+    const slug = def.slug || def.name;
+    for (const agent of def.agents || []) {
+      try {
+        this.registerAgent(slug, agent);
+      } catch {
+        /* agent registration never blocks entity registration */
+      }
+    }
   }
 
   /**

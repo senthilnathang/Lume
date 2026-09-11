@@ -41,26 +41,22 @@ describe('Phase 8: End-to-End Ticket Management', () => {
     });
     rateLimiter = new RateLimiter();
 
-    // Mock adapters
+    // Mock adapters (entity-scoped CRUD contract used by QueryExecutorInterceptor)
+    const ticketRows = [
+      { id: 1, title: 'Test 1', status: 'open', priority: 'high', assignedTo: 1 },
+      { id: 2, title: 'Test 2', status: 'closed', priority: 'low', assignedTo: 2 },
+    ];
+    const entityAdapter = {
+      create: async (entity, data) => ({ id: Date.now(), ...data }),
+      read: async (entity, id) => ticketRows.find((r) => r.id === Number(id)) || { id, title: 'Test', status: 'open' },
+      list: async () => [...ticketRows],
+      update: async (entity, id, data) => ({ id, ...data }),
+      delete: async (entity, id) => ({ id, deleted: true }),
+      search: async (entity, query) => [...ticketRows],
+    };
     const mockAdapters = {
-      prisma: {
-        ticket: {
-          create: async (data) => ({ id: 1, ...data }),
-          findUnique: async (where) => ({ id: where.id, title: 'Test', status: 'open' }),
-          findMany: async (query) => [
-            { id: 1, title: 'Test 1', status: 'open', priority: 'high', assignedTo: 1 },
-            { id: 2, title: 'Test 2', status: 'closed', priority: 'low', assignedTo: 2 },
-          ],
-          update: async (data) => ({ ...data.data, id: data.where.id }),
-          delete: async (where) => ({ id: where.id, deleted: true }),
-        },
-      },
-      drizzle: {
-        select: async () => ({ from: async () => [] }),
-        insert: async (table) => ({
-          values: async (data) => [{ ...data, id: 1 }],
-        }),
-      },
+      prisma: entityAdapter,
+      drizzle: entityAdapter,
     };
 
     // Mock services
@@ -74,7 +70,7 @@ describe('Phase 8: End-to-End Ticket Management', () => {
         },
       },
       policyEngine: {
-        evaluate: async (policy, context, entity) => true,
+        evaluate: async (policy, context, entity) => ({ allowed: true }),
         buildFieldFilters: () => ({ readable: [], writable: [] }),
       },
       queueManager: {

@@ -71,6 +71,7 @@ class QueryExecutorInterceptor {
         filters: context.state.permissionResult?.filters || [],
         fieldFilters,
       };
+      const recordId = request.data?.id ?? request.id ?? null;
 
       // Execute based on action
       switch (request.action) {
@@ -80,19 +81,20 @@ class QueryExecutorInterceptor {
 
         case 'read':
         case 'get':
-          result = await adapterMethod.call(adapter, entity, request.data?.id, options);
+          result = await adapterMethod.call(adapter, entity, recordId, options);
           break;
 
         case 'list':
+        case 'view':
           result = await adapterMethod.call(adapter, entity, options);
           break;
 
         case 'update':
-          result = await adapterMethod.call(adapter, entity, request.data?.id, dataToUse, options);
+          result = await adapterMethod.call(adapter, entity, recordId, dataToUse, options);
           break;
 
         case 'delete':
-          result = await adapterMethod.call(adapter, entity, request.data?.id, options);
+          result = await adapterMethod.call(adapter, entity, recordId, options);
           break;
 
         case 'bulk_create':
@@ -111,7 +113,7 @@ class QueryExecutorInterceptor {
       }
 
       // Apply field-level filtering to results (remove forbidden fields)
-      if (result && ['read', 'get', 'list', 'search'].includes(request.action)) {
+      if (result && ['read', 'get', 'list', 'view', 'search'].includes(request.action)) {
         result = FieldFilter.filter(result, fieldFilters, entity);
       }
 
@@ -141,6 +143,7 @@ class QueryExecutorInterceptor {
       read: 'read',
       get: 'read',
       list: 'list',
+      view: 'list',
       update: 'update',
       delete: 'delete',
       bulk_create: 'bulkCreate',

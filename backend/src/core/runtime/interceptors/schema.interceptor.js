@@ -26,6 +26,14 @@ class SchemaInterceptor {
 
       // Validate each field
       for (const field of context.entity.fields || []) {
+        if ((request.data[field.name] === undefined || request.data[field.name] === null)
+          && field.defaultValue !== undefined && field.defaultValue !== null) {
+          request.data[field.name] = field.defaultValue;
+        }
+        // Updates are partial: only validate required fields that are present
+        if (request.action === 'update' && !(field.name in request.data)) {
+          continue;
+        }
         const value = request.data[field.name];
 
         // Required validation
@@ -44,7 +52,7 @@ class SchemaInterceptor {
         }
 
         // Type validation
-        const typeError = this.validateType(field, value);
+        const typeError = SchemaInterceptor.validateType(field, value);
         if (typeError) {
           errors.push({
             field: field.name,
@@ -57,7 +65,7 @@ class SchemaInterceptor {
         // Custom validation rules
         if (field.validation && Array.isArray(field.validation)) {
           for (const rule of field.validation) {
-            const ruleError = this.validateRule(field, value, rule);
+            const ruleError = SchemaInterceptor.validateRule(field, value, rule);
             if (ruleError) {
               errors.push({
                 field: field.name,

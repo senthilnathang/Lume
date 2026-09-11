@@ -105,6 +105,10 @@ export function defineHook(trigger, fn) {
  * @returns {ViewDefinition}
  */
 export function defineView(type, options = {}) {
+  if (type && typeof type === 'object') {
+    options = type;
+    type = options.type;
+  }
   if (!['table', 'form', 'kanban', 'calendar', 'timeline'].includes(type)) {
     throw new Error(`Invalid view type: ${type}`);
   }
@@ -129,6 +133,10 @@ export function defineView(type, options = {}) {
  * @returns {AgentDefinition}
  */
 export function defineAgent(id, options = {}) {
+  if (id && typeof id === 'object') {
+    options = id;
+    id = options.id;
+  }
   if (!id) {
     throw new Error('Agent ID is required');
   }
@@ -144,6 +152,7 @@ export function defineAgent(id, options = {}) {
   return {
     id,
     trigger: options.trigger ?? null,
+    triggerEvent: options.triggerEvent ?? null,
     schedule: options.schedule ?? null,
     action: {
       type: options.action.type,
