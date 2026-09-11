@@ -3,6 +3,40 @@ import redis from 'ioredis';
 
 const client = process.env.REDIS_URL ? new redis(process.env.REDIS_URL) : null;
 
+// In-memory fallback so caching (and its headers) work without Redis.
+const memoryCache = new Map();
+
+async function cacheGet(key) {
+  if (client) {
+    return client.get(key);
+  }
+  const entry = memoryCache.get(key);
+  if (!entry) {
+    return null;
+  }
+  if (entry.expiresAt <= Date.now()) {
+    memoryCache.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+async function cacheSet(key, ttlSeconds, value) {
+  if (client) {
+    try {
+      await client.setex(key, ttlSeconds, value);
+    } catch (err) {
+      console.error('Cache set error:', err.message);
+    }
+    return;
+  }
+  memoryCache.set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 });
+  if (memoryCache.size > 1000) {
+    const oldest = memoryCache.keys().next().value;
+    memoryCache.delete(oldest);
+  }
+}
+
 export const getCacheKey = (req) => {
   return `cache:${req.method}:${req.path}:${JSON.stringify(req.query)}`;
 };
@@ -38,7 +72,7 @@ const getCacheTTL = (path) => {
 };
 
 export const responseCache = async (req, res, next) => {
-  if (!client || req.method !== 'GET') {
+  if (req.method !== 'GET') {
     return next();
   }
 
@@ -50,7 +84,7 @@ export const responseCache = async (req, res, next) => {
   const cacheKey = getCacheKey(req);
 
   try {
-    const cached = await client.get(cacheKey);
+    const cached = await cacheGet(cacheKey);
     if (cached) {
       res.set('X-Cache', 'HIT');
       return res.json(JSON.parse(cached));
@@ -62,9 +96,7 @@ export const responseCache = async (req, res, next) => {
     // Override json method to cache response
     res.json = function (data) {
       if (res.statusCode === 200) {
-        client.setex(cacheKey, ttl, JSON.stringify(data)).catch(err => {
-          console.error('Cache set error:', err.message);
-        });
+        cacheSet(cacheKey, ttl, JSON.stringify(data));
       }
       res.set('X-Cache', 'MISS');
       return originalJson(data);

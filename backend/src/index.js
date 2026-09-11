@@ -1176,3 +1176,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 export default app;
 export { startServer };
+
+let modulesInitialized = false;
+export const initializeModules = async () => {
+  if (modulesInitialized) {
+    return;
+  }
+  modulesInitialized = true;
+  const modulesDir = join(__dirname, 'modules');
+  await initializeModuleSystem(modulesDir, { app });
+};
