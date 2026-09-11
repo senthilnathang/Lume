@@ -106,6 +106,7 @@ Full unit suite green: **109 suites, 2171 tests, 0 failures**.
 - [x] website integration: nested menu items persist on create; unique slugs/locations; correct list shape; initializeModules export (10/10).
 - [x] workflow-automation-e2e: explicit transition trigger instead of interval timing (9/9).
 - [x] phase-8 E2E: agent/view/policy dialect alignment, static-call fixes, defaults application, view action, agent cascade, triggerEvent preservation (28/28).
+- [x] query-optimization: accept (request, context) and legacy (request, entity) conventions (phase-7 green).
 - [x] performance-benchmark: valid creds for load test, existing list endpoint, tolerant concurrency window (13/13).
 - [x] metadata kernel: EntityEngine (hooks/computed/required/policies/auto-fire), step WorkflowExecutor (history + events), shared EventBusService, bare-identifier formula refs; metadata-framework integration green (23/23).
 - [x] integration setup: dotenv in tests/setup.js (was 0/15 without DATABASE_URL); register role fallback; 404-not-500 expectation; test-env auth limiter (auth-workflow 7/7).
