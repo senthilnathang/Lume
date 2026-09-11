@@ -386,6 +386,36 @@ const getAllRoutes = () => {
   return routes;
 };
 
+const ALWAYS_LOADED = new Set(['base', 'auth', 'user']);
+
+async function filterInstallableModules(modules) {
+  let states = null;
+  try {
+    const { default: prisma } = await import('../db/prisma.js');
+    const rows = await prisma.installedModule.findMany();
+    states = new Map(rows.map((r) => [r.name, r.state]));
+  } catch (err) {
+    console.warn(`⚠️  Could not read module install states (${err.message}) — loading all modules`);
+    return modules;
+  }
+  return modules.filter((module) => {
+    const manifest = module.manifest || {};
+    const name = manifest.technicalName || module.name;
+    if (ALWAYS_LOADED.has(name)) {
+      return true;
+    }
+    if (manifest.installable === false || manifest.autoInstall) {
+      return true;
+    }
+    const state = states.get(name);
+    if (state !== 'installed') {
+      console.log(`⏭️  Skipping uninstalled optional module: ${name} (install via Admin → Modules)`);
+      return false;
+    }
+    return true;
+  });
+}
+
 /**
  * Initialize the module system
  */
@@ -418,11 +448,15 @@ const initializeModuleSystem = async (modulesDir, context = {}) => {
     // Resolve dependencies
     const sortedModules = resolveDependencies(modules);
     moduleLoaderState.modules = sortedModules;
-    
+
     console.log(`📋 Module load order: ${sortedModules.map(m => m.name).join(' -> ')}`);
-    
+
+    // Skip optional modules that were never installed (plugin model).
+    // Fail open when install state is unreadable so boot never bricks.
+    const loadable = await filterInstallableModules(sortedModules);
+
     // Initialize modules in order
-    for (const module of sortedModules) {
+    for (const module of loadable) {
       await initializeModule(module, context);
       
       // Register API routes if app context is provided

@@ -972,15 +972,30 @@ app.get('/api/dashboard/stats', async (req, res) => {
 app.use('/api/users', authLimiter, (await import('./modules/user/index.js')).userRoutes);
 app.use('/api/auth', authLimiter, (await import('./modules/auth/index.js')).authRoutes);
 
+// Optional modules mount only when installed (plugin model). Fail open on
+// DB errors so boot never bricks; the module loader applies the same rule.
+const mountIfInstalled = async (path, moduleName, importer) => {
+  try {
+    const row = await prisma.installedModule.findUnique({ where: { name: moduleName } });
+    if (row && row.state !== 'installed') {
+      console.log(`⏭️  Skipping uninstalled optional routes: ${path} (install via Admin → Modules)`);
+      return;
+    }
+  } catch (err) {
+    console.warn(`⚠️  Install-state check failed for ${moduleName} (${err.message}) — mounting anyway`);
+  }
+  app.use(path, await importer());
+};
+
 // Mount other module routes
-app.use('/api/activities', (await import('./modules/activities/index.js')).activityRoutes);
-app.use('/api/donations', (await import('./modules/donations/index.js')).donationRoutes);
-app.use('/api/documents', (await import('./modules/documents/index.js')).documentRoutes);
-app.use('/api/team', (await import('./modules/team/index.js')).teamRoutes);
-app.use('/api/messages', (await import('./modules/messages/index.js')).messageRoutes);
+await mountIfInstalled('/api/activities', 'activities', async () => (await import('./modules/activities/index.js')).activityRoutes);
+await mountIfInstalled('/api/donations', 'donations', async () => (await import('./modules/donations/index.js')).donationRoutes);
+await mountIfInstalled('/api/documents', 'documents', async () => (await import('./modules/documents/index.js')).documentRoutes);
+await mountIfInstalled('/api/team', 'team', async () => (await import('./modules/team/index.js')).teamRoutes);
+await mountIfInstalled('/api/messages', 'messages', async () => (await import('./modules/messages/index.js')).messageRoutes);
 app.use('/api/settings', (await import('./modules/settings/index.js')).settingRoutes);
 app.use('/api/audit', (await import('./modules/audit/index.js')).auditRoutes);
-app.use('/api/media', (await import('./modules/media/index.js')).mediaRoutes);
+await mountIfInstalled('/api/media', 'media', async () => (await import('./modules/media/index.js')).mediaRoutes);
 
 // Module routes (base_automation, base_security, base_features_data, base_customization, advanced_features)
 // are registered by the module system via their __init__.js during initialization
