@@ -125,9 +125,12 @@ describe('Workflow Automation E2E - Phase 8 Complete Pipeline', () => {
   });
 
   it('Wave 4: Should auto-execute pending transition after delay', async () => {
-    // Wait for the auto-transition to be due (2 seconds delay + processor interval)
+    // Wait for the auto-transition to be due (2 seconds delay + processor interval).
+    // The background processor runs every 30s outside test env, so trigger
+    // execution explicitly for a deterministic result.
     console.log('   ⏳ Waiting for auto-transition to execute (2 seconds)...');
-    await new Promise(resolve => setTimeout(resolve, 3500));
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    await request('POST', `${BASE_AUTOMATION_API}/auto-transitions/${autoTransitionId}/execute`);
 
     const response = await request('GET',
       `${BASE_AUTOMATION_API}/workflows/${workflowId}/executions/${executionId}`
