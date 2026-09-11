@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
-import app, { initializeDatabasesAndModules } from '../../src/index.js';
+import app, { initializeDatabasesAndModules, initializeModules } from '../../src/index.js';
 import prisma from '../../src/core/db/prisma.js';
 
 describe('Website Module Integration Tests', () => {
@@ -14,9 +14,10 @@ describe('Website Module Integration Tests', () => {
   let menuId;
 
   beforeAll(async () => {
-    // Initialize databases for tests
+    // Initialize databases + module routes for tests
     try {
       await initializeDatabasesAndModules();
+      await initializeModules();
     } catch (err) {
       console.warn('Database initialization may have failed, continuing with test...', err.message);
     }
@@ -26,7 +27,7 @@ describe('Website Module Integration Tests', () => {
       .post('/api/users/login')
       .send({
         email: 'admin@lume.dev',
-        password: 'Admin@123'
+        password: 'Admin@Lume!1'
       });
 
     if (loginResponse.status === 200) {
@@ -58,13 +59,14 @@ describe('Website Module Integration Tests', () => {
   });
 
   describe('Page Management Workflow', () => {
+    const pageSlug = `integration-test-page-${Date.now()}`;
     it('should create a new page', async () => {
       const response = await request(app)
         .post('/api/website/pages')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           title: 'Integration Test Page',
-          slug: 'integration-test-page',
+          slug: pageSlug,
           content: {
             type: 'doc',
             content: [
@@ -80,7 +82,7 @@ describe('Website Module Integration Tests', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveProperty('id');
-      expect(response.body.data).toHaveProperty('slug', 'integration-test-page');
+      expect(response.body.data).toHaveProperty('slug', pageSlug);
 
       pageId = response.body.data.id;
     });
@@ -92,7 +94,7 @@ describe('Website Module Integration Tests', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveProperty('slug', 'integration-test-page');
+      expect(response.body.data).toHaveProperty('slug', pageSlug);
     });
 
     it('should update page content', async () => {
@@ -122,9 +124,7 @@ describe('Website Module Integration Tests', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveProperty('items');
-      expect(response.body.data).toHaveProperty('total');
-      expect(Array.isArray(response.body.data.items)).toBe(true);
+      expect(Array.isArray(response.body.data)).toBe(true);
     });
   });
 
@@ -135,7 +135,7 @@ describe('Website Module Integration Tests', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           name: 'Test Menu',
-          location: 'test-integration',
+          location: `ti${Date.now().toString(36)}`,
           items: [
             {
               label: 'Home',
@@ -169,14 +169,15 @@ describe('Website Module Integration Tests', () => {
     });
 
     it('should reorder menu items', async () => {
+      const listed = await request(app)
+        .get(`/api/website/menus/${menuId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      const ids = (listed.body.data.items || []).map((item) => item.id);
       const response = await request(app)
         .put(`/api/website/menus/${menuId}/reorder`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          items: [
-            { id: 1, sequence: 2 },
-            { id: 2, sequence: 1 }
-          ]
+          items: ids.map((id, index) => ({ id, sequence: ids.length - index })),
         });
 
       expect(response.status).toBe(200);

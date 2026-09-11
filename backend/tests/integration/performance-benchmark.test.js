@@ -5,15 +5,16 @@
 
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import request from 'supertest';
-import app, { initializeDatabasesAndModules } from '../../src/index.js';
+import app, { initializeDatabasesAndModules, initializeModules } from '../../src/index.js';
 
 describe('Performance Benchmarks', () => {
   let adminToken;
 
   beforeAll(async () => {
-    // Initialize databases for tests
+    // Initialize databases + module routes for tests
     try {
       await initializeDatabasesAndModules();
+      await initializeModules();
     } catch (err) {
       console.warn('Database initialization may have failed, continuing with test...', err.message);
     }
@@ -22,7 +23,7 @@ describe('Performance Benchmarks', () => {
       .post('/api/users/login')
       .send({
         email: 'admin@lume.dev',
-        password: 'Admin@123'
+        password: 'Admin@Lume!1'
       });
 
     if (loginResponse.status === 200) {

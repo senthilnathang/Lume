@@ -429,10 +429,25 @@ export class MenuService {
 
   async create(data) {
     const db = getDb();
-    const [result] = await db.insert(websiteMenus).values(data);
+    const { items, ...menuData } = data || {};
+    const [result] = await db.insert(websiteMenus).values(menuData);
     const [created] = await db.select().from(websiteMenus).where(eq(websiteMenus.id, result.insertId));
+    const createdItems = [];
+    for (const [index, item] of (Array.isArray(items) ? items : []).entries()) {
+      const [itemResult] = await db.insert(websiteMenuItems).values({
+        menuId: created.id,
+        label: item.label || 'Item',
+        url: item.url || null,
+        parentId: item.parentId || null,
+        sequence: item.sequence ?? index + 1,
+      });
+      const [itemRow] = await db.select().from(websiteMenuItems).where(eq(websiteMenuItems.id, itemResult.insertId));
+      if (itemRow) {
+        createdItems.push(itemRow);
+      }
+    }
     menuCache.invalidatePrefix(['menu']);
-    return responseUtil.success(created, 'Menu created');
+    return responseUtil.success({ ...created, items: createdItems }, 'Menu created');
   }
 
   async update(id, data) {
