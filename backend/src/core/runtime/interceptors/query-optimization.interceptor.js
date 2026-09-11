@@ -19,8 +19,8 @@ class QueryOptimizationInterceptor {
    * @param {InterceptorContext} context - Execution context (carries entity)
    * @returns {Promise<void>}
    */
-  async handle(request, context) {
-    const rawEntity = context?.entity || {};
+  async handle(request, contextOrEntity, _executionContext) {
+    const rawEntity = contextOrEntity?.entity || contextOrEntity || {};
     const fieldList = Array.isArray(rawEntity.fields)
       ? rawEntity.fields
       : Object.entries(rawEntity.fields || {}).map(([name, def]) => ({ name, ...(typeof def === 'object' ? def : {}) }));
