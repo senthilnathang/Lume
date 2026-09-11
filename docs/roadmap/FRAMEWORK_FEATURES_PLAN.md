@@ -103,6 +103,7 @@ Full unit suite green: **109 suites, 2171 tests, 0 failures**.
 - [x] runtime suites green alongside (interceptor + runtime + alerts stable across runs).
 - [x] agent-executor: null guard before access (11/11).
 - [x] phase-10: paginator OOM guard, deterministic history ordering, offset-aware mocks, stable duration assertion (62/62).
+- [x] website integration: nested menu items persist on create; unique slugs/locations; correct list shape; initializeModules export (10/10).
 - [x] workflow-automation-e2e: explicit transition trigger instead of interval timing (9/9).
 - [x] metadata kernel: EntityEngine (hooks/computed/required/policies/auto-fire), step WorkflowExecutor (history + events), shared EventBusService, bare-identifier formula refs; metadata-framework integration green (23/23).
 - [x] integration setup: dotenv in tests/setup.js (was 0/15 without DATABASE_URL); register role fallback; 404-not-500 expectation; test-env auth limiter (auth-workflow 7/7).
