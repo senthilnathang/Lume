@@ -334,6 +334,28 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ─── Global Search (Command Palette) ────────────────────────────────────
+// Federated, permission-aware search over records + documents. Auth is
+// enforced by the global /api/* middleware above (req.user required).
+app.get('/api/search', async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json(responseUtil.unauthorized());
+    }
+    const { globalSearch } = await import('./core/services/search.service.js');
+    const data = await globalSearch(prisma, {
+      query: req.query.q || '',
+      limit: req.query.limit,
+      companyId: req.user.companyId ?? 1,
+      userId: req.user.id,
+      isPrivileged: ['super_admin', 'admin'].includes(req.user.role),
+    });
+    res.json({ success: true, ...data });
+  } catch (error) {
+    res.status(500).json(responseUtil.error('Search failed'));
+  }
+});
+
 // ─── Prometheus Metrics Endpoint ────────────────────────────────────
 // Production: gated behind METRICS_TOKEN bearer or localhost. Dev: open.
 app.get('/metrics', (req, res, next) => {

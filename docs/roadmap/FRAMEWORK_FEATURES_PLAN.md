@@ -87,6 +87,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] F7.3 Enterprise SSO/SAML (SP metadata, redirect login, ACS validation → JWT provisioning; 3 tests green; live IdP exchange untested by design).
 - [x] Theming (FastVue UX port: `useLumeTheme` presets/dark-auto/radius/font/compact/persistence, AntD-bound ConfigProvider, header ThemeSwitcher; 5 tests green; verified live including dark toggle).
 - [x] FilterBuilder (FastVue port: AND/OR groups, per-type operators, select options; wired into EntityViewRenderer with override state + extended gt/lt/OR evaluation; 3 tests green).
+- [x] Global search backend (`GET /api/search` the palette already called: federated records + documents, ranked, visibility-scoped; verified live; 4 tests green).
 - [x] TabBar (vben port: pinia store with pin/persistence/guard, scroll/middle-click/context menus, RouterView refresh; BasicLayout Header/MenuItem prop fixes; 6 tests green; verified live).
 
 ## Pre-existing debt burn-down (2026-09-07 → 2026-09-10: COMPLETE)
