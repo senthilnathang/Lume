@@ -90,6 +90,7 @@ F1 → F2 → F4.2/F4.1 → F3 → F5 → F6 → F4.3/F4.4 → F7. Each item shi
 - [x] FilterBuilder (FastVue port: AND/OR groups, per-type operators, select options; wired into EntityViewRenderer with override state + extended gt/lt/OR evaluation; 3 tests green).
 - [x] Global search backend (`GET /api/search` the palette already called: federated records + documents, ranked, visibility-scoped; verified live; 4 tests green).
 - [x] TabBar (vben port: pinia store with pin/persistence/guard, scroll/middle-click/context menus, RouterView refresh; BasicLayout Header/MenuItem prop fixes; 6 tests green; verified live).
+- [x] Lock screen (vben port: manual + inactivity auto-lock, clock/avatar overlay, password re-verify, sign-out switch; 2 tests green; verified live).
 
 ## Pre-existing debt burn-down (2026-09-07 → 2026-09-10: COMPLETE)
 Full unit suite green: **109 suites, 2171 tests, 0 failures**.
