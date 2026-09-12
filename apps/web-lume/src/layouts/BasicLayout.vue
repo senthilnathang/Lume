@@ -22,6 +22,7 @@
       </div>
     </div>
     <CommandPalette v-if="isAuthenticated" :visible="commandPaletteOpen" @close="commandPaletteOpen = false" />
+    <LockScreen v-if="isAuthenticated" />
   </div>
 </template>
 
@@ -34,6 +35,7 @@ import Sidebar from '@/components/layout/Sidebar.vue';
 import Header from '@/components/layout/Header.vue';
 import TopNavBar from '@/components/layout/TopNavBar.vue';
 import TabBar from '@/components/layout/TabBar.vue';
+import LockScreen from '@/components/LockScreen.vue';
 import CommandPalette from '@modules/common/static/components/CommandPalette.vue';
 import { useLumeTheme } from '@/composables/useLumeTheme';
 import { useTabBarStore } from '@/store/tabbar';

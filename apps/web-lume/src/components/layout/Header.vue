@@ -29,6 +29,7 @@
       <div class="lume-header-actions">
         <NotificationCenter ref="notificationCenterRef" />
         <ThemeSwitcher />
+        <a-button type="text" title="Lock screen" @click="lockScreen()">🔒</a-button>
 
         <button class="lume-action-btn" @click="toggleFullscreen">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -115,6 +116,7 @@ import Breadcrumb from '@/components/layout/Breadcrumb.vue';
 import CommandPalette from '@/components/CommandPalette.vue';
 import NotificationCenter from '@/components/NotificationCenter.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
+import { lock as lockScreen } from '@/composables/useLockScreen';
 
 interface UserInfo {
   id: number;
