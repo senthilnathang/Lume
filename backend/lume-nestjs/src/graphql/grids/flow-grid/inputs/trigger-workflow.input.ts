@@ -1,4 +1,5 @@
-import { InputType, Field, Int, JSON as GraphQLJSON } from '@nestjs/graphql';
+import { GraphQLJSON } from 'graphql-scalars';
+import { InputType, Field, Int } from '@nestjs/graphql';
 
 @InputType('TriggerWorkflowInput')
 export class TriggerWorkflowInput {

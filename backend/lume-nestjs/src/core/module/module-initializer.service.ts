@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ModuleLoaderService } from './module-loader.service.js';
 import { MetadataRegistryService } from '../runtime/metadata-registry.service.js';
 import type { ModuleDefinition } from './define-module.js';
+import { getModuleConfig, loadExampleModules } from './module-wiring.js';
 
 /**
  * Initializes framework modules at application startup
@@ -19,7 +20,7 @@ export class ModuleInitializerService implements OnModuleInit {
 
     try {
       // Load core example modules
-      const modulesToLoad = this.getModulesToLoad();
+      const modulesToLoad = await this.getModulesToLoad();
 
       for (const moduleDef of modulesToLoad) {
         await this.loadModule(moduleDef);
@@ -33,30 +34,10 @@ export class ModuleInitializerService implements OnModuleInit {
     }
   }
 
-  private getModulesToLoad(): ModuleDefinition[] {
-    // Dynamically import example modules
-    // In production, modules would be loaded from installed packages
-    const modules: ModuleDefinition[] = [];
-
-    // Load example modules if enabled
-    const enableExamples = process.env.LOAD_EXAMPLE_MODULES !== 'false';
-
-    if (enableExamples) {
-      try {
-        // Lazy import to avoid circular dependencies
-        const { CRMModule } = require('@examples/crm-module.example.js');
-        const { ECommerceModule } = require('@examples/ecommerce-module.example.js');
-        const { ProjectManagementModule } = require('@examples/project-management-module.example.js');
-
-        modules.push(CRMModule);
-        modules.push(ECommerceModule);
-        modules.push(ProjectManagementModule);
-      } catch (error) {
-        console.warn('[Framework] Could not load example modules:', error.message);
-      }
-    }
-
-    return modules;
+  private async getModulesToLoad(): Promise<ModuleDefinition[]> {
+    const config = getModuleConfig();
+    if (!config.enabled || !config.loadExamples) return [];
+    return loadExampleModules();
   }
 
   private async loadModule(moduleDef: ModuleDefinition): Promise<void> {

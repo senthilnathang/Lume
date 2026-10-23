@@ -1,40 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
-import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
+import { marketplacePlugins, marketplaceCategories } from '../models/schema';
 
 @Injectable()
 export class CatalogSeederService {
-  private marketplacePlugins: any;
-  private marketplaceCategories: any;
+  private marketplacePlugins = marketplacePlugins;
+  private marketplaceCategories = marketplaceCategories;
 
-  constructor(private drizzle: DrizzleService) {
-    this.initializeSchema();
-  }
-
-  private async initializeSchema() {
-    try {
-      const schema = await import('../models/schema');
-      this.marketplacePlugins = schema.marketplacePlugins;
-      this.marketplaceCategories = schema.marketplaceCategories;
-    } catch (error) {
-      console.error('Failed to load schema:', error);
-    }
-  }
+  constructor(private drizzle: DrizzleService) {}
 
   async seed() {
     try {
-      const db = this.drizzle.getDrizzle();
-
-      // Check if already seeded
-      const existing = await db
-        .select()
-        .from(this.marketplaceCategories)
-        .limit(1);
-
-      if (existing && existing.length > 0) {
-        console.log('Catalog already seeded, skipping');
-        return { success: true, message: 'Catalog already exists' };
-      }
+      return await this.drizzle.getDrizzle().transaction(async db => {
 
       // Seed categories
       const categories = [
@@ -97,7 +75,10 @@ export class CatalogSeederService {
           pluginCount: 0,
           createdAt: new Date(),
           updatedAt: new Date(),
-        });
+        }).onDuplicateKeyUpdate({set:{
+          id: sql`${this.marketplaceCategories.id}`,
+          updatedAt: sql`${this.marketplaceCategories.updatedAt}`,
+        }});
       }
 
       // Seed plugins
@@ -272,11 +253,15 @@ export class CatalogSeederService {
           publishedAt: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000),
           createdAt: new Date(),
           updatedAt: new Date(),
-        });
+        }).onDuplicateKeyUpdate({set:{
+          id: sql`${this.marketplacePlugins.id}`,
+          updatedAt: sql`${this.marketplacePlugins.updatedAt}`,
+        }});
       }
 
       console.log('Catalog seeded successfully with 8 categories and 10 plugins');
       return { success: true, message: 'Catalog seeded' };
+      });
     } catch (error) {
       console.error('Catalog seed error:', error);
       return { success: false, error: error.message };

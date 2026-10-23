@@ -41,21 +41,21 @@ export async function loadExampleModules(): Promise<ModuleDefinition[]> {
   const modules: ModuleDefinition[] = [];
 
   try {
-    const { CRMModule } = await import('@examples/crm-module.example.js');
+    const { CRMModule } = await import('../../examples/crm-module.example.js');
     modules.push(CRMModule);
   } catch (error) {
     console.warn('[Module Wiring] Failed to load CRM module:', error.message);
   }
 
   try {
-    const { ECommerceModule } = await import('@examples/ecommerce-module.example.js');
+    const { ECommerceModule } = await import('../../examples/ecommerce-module.example.js');
     modules.push(ECommerceModule);
   } catch (error) {
     console.warn('[Module Wiring] Failed to load E-Commerce module:', error.message);
   }
 
   try {
-    const { ProjectManagementModule } = await import('@examples/project-management-module.example.js');
+    const { ProjectManagementModule } = await import('../../examples/project-management-module.example.js');
     modules.push(ProjectManagementModule);
   } catch (error) {
     console.warn('[Module Wiring] Failed to load Project Management module:', error.message);

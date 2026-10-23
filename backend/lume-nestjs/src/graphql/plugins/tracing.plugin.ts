@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ApolloServerPlugin } from '@apollo/server';
-import { GraphQLRequestContext } from '@apollo/server/plugin/base';
+import type { ApolloServerPlugin, GraphQLRequestContext, GraphQLRequestListener } from '@apollo/server';
 
 /**
  * TracingPlugin
@@ -10,9 +9,17 @@ import { GraphQLRequestContext } from '@apollo/server/plugin/base';
  */
 @Injectable()
 export class TracingPlugin implements ApolloServerPlugin {
+  async requestDidStart(): Promise<GraphQLRequestListener<any>> {
+    return {
+      didResolveOperation: (context) => this.didResolveOperation(context),
+      didEncounterErrors: (context) => this.didEncounterErrors(context),
+      willSendResponse: (context) => this.willSendResponse(context),
+    };
+  }
+
   // TODO: Inject @opentelemetry/api tracer via LoggerService or dedicated TraceProvider
 
-  async requestDidResolveOperation?(
+  async didResolveOperation?(
     requestContext: GraphQLRequestContext<any>,
   ): Promise<void> {
     // TODO: Create root span for operation:
@@ -20,8 +27,8 @@ export class TracingPlugin implements ApolloServerPlugin {
     //   attributes: {
     //     'graphql.operation.name': requestContext.operationName,
     //     'graphql.operation.type': requestContext.operation.operation,
-    //     'tenant.company_id': requestContext.context.companyId,
-    //     'user.id': requestContext.context.user?.sub,
+    //     'tenant.company_id': requestContext.contextValue.companyId,
+    //     'user.id': requestContext.contextValue.user?.sub,
     //     'http.client_ip': requestContext.request.http?.headers.get('x-forwarded-for'),
     //   }
     // });
@@ -32,7 +39,7 @@ export class TracingPlugin implements ApolloServerPlugin {
     requestContext: GraphQLRequestContext<any>,
   ): Promise<void> {
     // TODO: Create child span for each resolver field:
-    // const parentSpan = requestContext.context.currentSpan;
+    // const parentSpan = requestContext.contextValue.currentSpan;
     // const fieldSpan = tracer.startSpan(`graphql.field.${info.parentType.name}.${info.fieldName}`, {
     //   parent: parentSpan,
     //   attributes: {
@@ -56,7 +63,7 @@ export class TracingPlugin implements ApolloServerPlugin {
     requestContext: GraphQLRequestContext<any>,
   ): Promise<void> {
     // TODO: Record errors in root operation span:
-    // requestContext.context.currentSpan.addEvent('graphql.error', {
+    // requestContext.contextValue.currentSpan.addEvent('graphql.error', {
     //   'error.count': requestContext.errors?.length || 0,
     //   'error.message': requestContext.errors?.[0]?.message,
     // });

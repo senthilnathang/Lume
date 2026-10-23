@@ -1,5 +1,7 @@
+import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import {
   Controller,
+  OnModuleInit,
   Get,
   Post,
   Body,
@@ -11,24 +13,18 @@ import {
 } from '@nestjs/common';
 import { MarketplaceService } from '../services/marketplace.service';
 import { CatalogSeederService } from '../services/catalog-seeder.service';
-import { PolicyGuard, Policy } from '@core/permission/policy.guard';
+import { PolicyGuard, RequireRoles, Authenticated } from '@core/permission/policy.guard';
 
 @Controller('api/marketplace')
-export class MarketplaceController {
+export class MarketplaceController implements OnModuleInit {
   constructor(
     private readonly marketplaceService: MarketplaceService,
     private readonly catalogSeeder: CatalogSeederService,
-  ) {
-    // Seed catalog on module init
-    this.initializeCatalog();
-  }
+  ) {}
 
-  private async initializeCatalog() {
-    try {
-      await this.catalogSeeder.seed();
-    } catch (error) {
-      console.error('Failed to initialize catalog:', error);
-    }
+  async onModuleInit() {
+    const result = await this.catalogSeeder.seed();
+    if (!result.success) throw new Error('Failed to initialize marketplace catalog');
   }
 
   @Get('plugins')
@@ -103,8 +99,8 @@ export class MarketplaceController {
 
   @Post('plugins/:name/install')
   @HttpCode(201)
-  @UseGuards(PolicyGuard)
-  @Policy(['admin', 'super_admin'])
+  @UseGuards(JwtAuthGuard, PolicyGuard)
+  @RequireRoles('admin', 'super_admin')
   async installPlugin(
     @Param('name') name: string,
     @Query('version') version?: string,
@@ -155,16 +151,17 @@ export class MarketplaceController {
     }
   }
 
+  @Authenticated()
   @Post('plugins/:name/reviews')
   @HttpCode(201)
-  @UseGuards(PolicyGuard)
+  @UseGuards(JwtAuthGuard, PolicyGuard)
   async submitReview(
     @Param('name') name: string,
     @Body() body: { rating: number; title?: string; body?: string },
     @Req() req: any,
   ) {
     try {
-      const userId = req.user?.sub;
+      const userId = req.user?.id;
       if (!userId) {
         return { success: false, message: 'User not authenticated' };
       }

@@ -1,8 +1,8 @@
-import { Scalar, CustomScalarSymbol } from '@nestjs/graphql';
-import { GraphQLScalarType, Kind } from 'graphql';
+import { Scalar, CustomScalar } from '@nestjs/graphql';
+import { Kind } from 'graphql';
 
 @Scalar('DateTime', () => Date)
-export class DateTimeScalar implements CustomScalarSymbol {
+export class DateTimeScalar implements CustomScalar<string, Date> {
   description = 'Date custom scalar type';
 
   parseValue(value: any): Date {

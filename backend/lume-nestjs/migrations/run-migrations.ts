@@ -1,141 +1,78 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { createConnection } from 'mysql2/promise';
+import { createHash } from 'crypto';
+import { createConnection, Connection, RowDataPacket } from 'mysql2/promise';
 import * as dotenv from 'dotenv';
+import { sqlStatements } from './sql-statements';
 
-dotenv.config();
-
-interface MigrationFile {
-  filename: string;
-  number: number;
-  executed: boolean;
+export function migrationFiles(directory: string): string[] {
+  return fs.readdirSync(directory).filter(name => /^\d{3}_[a-z0-9_]+\.sql$/.test(name)).sort();
 }
 
-const DB_HOST = process.env.DB_HOST || 'localhost';
-const DB_PORT = parseInt(process.env.DB_PORT || '3306');
-const DB_USER = process.env.DB_USER || 'root';
-const DB_PASSWORD = process.env.DB_PASSWORD || '';
-const DB_NAME = process.env.DB_NAME || 'lume';
-
-async function ensureMigrationsTable(connection: any) {
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS migrations (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      filename VARCHAR(255) NOT NULL UNIQUE,
-      executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      execution_time_ms INT
-    );
-  `;
-  await connection.execute(createTableQuery);
+export async function migrationStatus(connection: Connection, directory: string) {
+  const [tables] = await connection.query<RowDataPacket[]>(
+    "SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='migrations'",
+  );
+  const executed = tables.length
+    ? (await connection.query<RowDataPacket[]>('SELECT filename FROM migrations'))[0].map(row => row.filename)
+    : [];
+  return migrationFiles(directory).map(filename => ({ filename, executed: executed.includes(filename) }));
 }
 
-async function getMigrationsFromDatabase(connection: any): Promise<string[]> {
-  const [rows] = await connection.execute('SELECT filename FROM migrations ORDER BY id');
-  return (rows as any[]).map((row) => row.filename);
-}
-
-async function getMigrationFiles(): Promise<MigrationFile[]> {
-  const migrationsDir = __dirname;
-  const files = fs.readdirSync(migrationsDir).filter((f) => f.endsWith('.sql'));
-
-  const executed = await getMigrationsFromDatabase(connection);
-
-  return files
-    .map((filename) => {
-      const match = filename.match(/^(\d+)_/);
-      return {
-        filename,
-        number: match ? parseInt(match[1]) : 0,
-        executed: executed.includes(filename),
-      };
-    })
-    .sort((a, b) => a.number - b.number);
-}
-
-async function readMigrationFile(filename: string): Promise<string> {
-  const filePath = path.join(__dirname, filename);
-  return fs.promises.readFile(filePath, 'utf-8');
-}
-
-async function executeMigration(connection: any, filename: string): Promise<void> {
-  console.log(`Executing migration: ${filename}...`);
-
-  const sql = await readMigrationFile(filename);
-  const startTime = Date.now();
-
-  try {
-    // Split SQL by semicolon and execute each statement
-    const statements = sql
-      .split(';')
-      .map((stmt) => stmt.trim())
-      .filter((stmt) => stmt.length > 0);
-
-    for (const statement of statements) {
-      await connection.execute(statement);
-    }
-
-    const executionTime = Date.now() - startTime;
-
-    // Record migration in database
-    await connection.execute('INSERT INTO migrations (filename, execution_time_ms) VALUES (?, ?)', [
-      filename,
-      executionTime,
-    ]);
-
-    console.log(`✓ Migration executed: ${filename} (${executionTime}ms)`);
-  } catch (error) {
-    console.error(`✗ Migration failed: ${filename}`);
-    console.error(error);
-    throw error;
+export async function applyMigrations(connection: Connection, filenames: string[], directory: string) {
+  const available = migrationFiles(directory);
+  if (!filenames.length || new Set(filenames).size !== filenames.length || filenames.some(name => !available.includes(name))) {
+    throw new Error('Select unique, existing migration filenames explicitly');
   }
-}
-
-async function run() {
-  let connection;
-
+  const scripts = [...filenames].sort().map(filename => ({ filename,
+    statements: sqlStatements(fs.readFileSync(path.join(directory, filename), 'utf8')) }));
+  if (scripts.some(script => !script.statements.length)) throw new Error('Empty migration');
+  const [[database]] = await connection.query<RowDataPacket[]>('SELECT DATABASE() AS name');
+  if (!database.name) throw new Error('A database must be selected');
+  const lockName = 'lume-migrations-' + createHash('sha256').update(database.name).digest('hex').slice(0, 40);
+  const [[lock]] = await connection.query<RowDataPacket[]>('SELECT GET_LOCK(?, 10) AS acquired', [lockName]);
+  if (lock.acquired !== 1) throw new Error('Migration lock unavailable');
   try {
-    // Create connection
-    connection = await createConnection({
-      host: DB_HOST,
-      port: DB_PORT,
-      user: DB_USER,
-      password: DB_PASSWORD,
-      database: DB_NAME,
-    });
-
-    console.log(`Connected to database: ${DB_NAME}`);
-
-    // Ensure migrations table exists
-    await ensureMigrationsTable(connection);
-
-    // Get list of migration files
-    const migrations = await getMigrationFiles();
-
-    // Filter pending migrations
-    const pending = migrations.filter((m) => !m.executed);
-
-    if (pending.length === 0) {
-      console.log('No pending migrations.');
-      return;
+    await connection.query(`CREATE TABLE IF NOT EXISTS migrations (
+      id INT AUTO_INCREMENT PRIMARY KEY, filename VARCHAR(255) NOT NULL UNIQUE,
+      executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, execution_time_ms INT
+    )`);
+    const status = await migrationStatus(connection, directory);
+    for (const script of scripts) {
+      if (status.find(row => row.filename === script.filename)?.executed) {
+        console.log(`Already applied: ${script.filename}`); continue;
+      }
+      const started = Date.now();
+      try {
+        for (const statement of script.statements) await connection.query(statement);
+        await connection.execute('INSERT INTO migrations (filename, execution_time_ms) VALUES (?, ?)',
+          [script.filename, Date.now() - started]);
+        console.log(`Applied: ${script.filename}`);
+      } catch (error: any) {
+        throw new Error(`${script.filename} failed (${error.code || 'database error'}). Earlier statements may have committed; inspect the schema before retrying.`);
+      }
     }
-
-    console.log(`Found ${pending.length} pending migration(s).`);
-
-    // Execute each pending migration
-    for (const migration of pending) {
-      await executeMigration(connection, migration.filename);
-    }
-
-    console.log('\nAll migrations completed successfully!');
-  } catch (error) {
-    console.error('Migration process failed:', error);
-    process.exit(1);
-  } finally {
-    if (connection) {
-      await connection.end();
-    }
-  }
+  } finally { await connection.query('SELECT RELEASE_LOCK(?)', [lockName]); }
 }
 
-// Execute
-run();
+async function main() {
+  dotenv.config({ quiet: true });
+  const args = process.argv.slice(2);
+  if (args.length && !(args.length === 1 && args[0] === '--status') && !(args[0] === '--apply' && args.length > 1)) {
+    throw new Error('Usage: npm run db:migrate:sql -- --status | --apply <filename.sql> ...');
+  }
+  const connection = process.env.DATABASE_URL ? await createConnection(process.env.DATABASE_URL) : await createConnection({
+    host: process.env.DB_HOST || 'localhost', port: Number(process.env.DB_PORT || 3306),
+    user: process.env.DB_USER || 'root', password: process.env.DB_PASS ?? process.env.DB_PASSWORD ?? '',
+    database: process.env.DB_NAME || 'lume',
+  });
+  try {
+    if (args[0] === '--apply') await applyMigrations(connection, args.slice(1), __dirname);
+    else for (const row of await migrationStatus(connection, __dirname)) console.log(`${row.executed ? 'applied' : 'unrecorded'} ${row.filename}`);
+  } finally { await connection.end(); }
+}
+
+if (typeof require !== 'undefined' && require.main === module) main().catch((error: any) => {
+  console.error(error.code || error.message);
+  process.exitCode = 1;
+});

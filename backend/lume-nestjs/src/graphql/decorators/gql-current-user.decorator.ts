@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { JwtPayload } from '../graphql.context';
+import type { JwtPayload } from '../graphql.context';
 
 /**
  * Extracts the current user from GraphQL context

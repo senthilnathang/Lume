@@ -1,3 +1,4 @@
+import { donations, donors, campaigns } from '../models/schema';
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import {
@@ -12,24 +13,11 @@ import { eq, like, and, ilike, gte, lte } from 'drizzle-orm';
 
 @Injectable()
 export class DonationsService {
-  private donations: any;
-  private donors: any;
-  private campaigns: any;
+  private readonly donations = donations;
+  private readonly donors = donors;
+  private readonly campaigns = campaigns;
 
-  constructor(private drizzle: DrizzleService) {
-    this.initializeSchema();
-  }
-
-  private async initializeSchema() {
-    try {
-      const schema = await import('./models/schema');
-      this.donations = schema.donations;
-      this.donors = schema.donors;
-      this.campaigns = schema.campaigns;
-    } catch (error) {
-      console.error('Failed to load donations schema:', error);
-    }
-  }
+  constructor(private drizzle: DrizzleService) {}
 
   // Donation Management
   async create(data: CreateDonationDto) {
@@ -111,12 +99,12 @@ export class DonationsService {
       }
       if (startDate) {
         conditions.push(
-          gte(this.donations.createdAt, startDate.includes('T') ? startDate : new Date(startDate).toISOString())
+          gte(this.donations.createdAt, new Date(startDate))
         );
       }
       if (endDate) {
         conditions.push(
-          lte(this.donations.createdAt, endDate.includes('T') ? endDate : new Date(endDate).toISOString())
+          lte(this.donations.createdAt, new Date(endDate))
         );
       }
 

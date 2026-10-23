@@ -1,16 +1,16 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
-import { Permissions, GqlTenant, GqlUser } from '../../decorators/index.js';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
+import { Permissions, GqlTenant, GqlUser } from '../../../decorators/index.js';
 import { MarketplacePluginType } from '../types/marketplace-plugin.type.js';
 import { MarketplaceCategoryType } from '../types/marketplace-category.type.js';
 import { MarketplaceReviewType } from '../types/marketplace-review.type.js';
 import { MarketplaceFilterInput } from '../inputs/marketplace-filter.input.js';
 import { SubmitReviewInput } from '../inputs/submit-review.input.js';
 import { InstallPluginInput } from '../inputs/install-plugin.input.js';
-import { PaginatedType } from '../../shared/types/paginated.type.js';
+import { PaginatedType } from '../../../shared/types/paginated.type.js';
 import { MarketplaceService } from '@modules/plugins/services/marketplace.service';
-import { PaginationInput } from '../../shared/inputs/pagination.input.js';
+import { PaginationInput } from '../../../shared/inputs/pagination.input.js';
 
 @Resolver()
 @UseGuards(GqlJwtGuard, GqlRbacGuard)

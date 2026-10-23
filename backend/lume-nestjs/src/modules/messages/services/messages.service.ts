@@ -1,3 +1,4 @@
+import { messages } from '../models/schema';
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import {
@@ -10,20 +11,10 @@ import { eq, like, and, ilike } from 'drizzle-orm';
 
 @Injectable()
 export class MessagesService {
-  private messages: any;
+  private readonly messages = messages;
 
-  constructor(private drizzle: DrizzleService) {
-    this.initializeSchema();
-  }
+  constructor(private drizzle: DrizzleService) {}
 
-  private async initializeSchema() {
-    try {
-      const schema = await import('./models/schema');
-      this.messages = schema.messages;
-    } catch (error) {
-      console.error('Failed to load messages schema:', error);
-    }
-  }
 
   async create(data: CreateMessageDto) {
     try {

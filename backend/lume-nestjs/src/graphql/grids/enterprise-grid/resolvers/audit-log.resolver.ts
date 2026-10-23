@@ -1,20 +1,22 @@
 import { Resolver, Query, Subscription, Args, Int } from '@nestjs/graphql';
 import { UseGuards, Inject } from '@nestjs/common';
 import { PubSub } from 'graphql-subscriptions';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
-import { GqlCurrentUser, GqlTenant } from '../../decorators/index.js';
-import { JwtPayload } from '../../../auth/jwt.payload.js';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
+import { GqlCurrentUser, GqlTenant } from '../../../decorators/index.js';
+import type { JwtPayload } from '../../../graphql.context';
 import { AuditLogType } from '../types/audit-log.type.js';
-import { PaginationInput } from '../../shared/inputs/pagination.input.js';
-import { Paginated } from '../../shared/types/paginated.type.js';
+import { PaginationInput } from '../../../shared/inputs/pagination.input.js';
+import { Paginated } from '../../../shared/types/paginated.type.js';
 import { AuditFilterInput } from '../inputs/audit-filter.input.js';
+
+const AuditLogPage = Paginated(AuditLogType);
 
 @Resolver(() => AuditLogType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class AuditLogResolver {
   constructor(@Inject('PubSub') private pubSub: PubSub) {}
 
-  @Query(() => Paginated(AuditLogType))
+  @Query(() => AuditLogPage)
   async auditLogs(
     @Args('filter', { nullable: true }) filter?: AuditFilterInput,
     @Args('pagination', { nullable: true }) pagination?: PaginationInput,
@@ -55,8 +57,8 @@ export class AuditLogResolver {
 
   @Subscription(() => AuditLogType, {
     filter: (payload, variables, context) => {
-      if (!context.user?.company_id) return false;
-      // TODO: Check tenant isolation
+      const companyId = context.user?.company_id;
+      if (companyId == null || payload.auditLogCreated?.companyId !== companyId) return false;
       return !variables.entity || payload.auditLogCreated.entity === variables.entity;
     },
   })

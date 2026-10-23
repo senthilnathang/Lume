@@ -1,10 +1,11 @@
+import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import { Controller, Get, Post, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
 import { ModuleLoaderService } from '../../../core/module/module-loader.service.js';
 import { MetadataRegistryService } from '../../../core/runtime/metadata-registry.service.js';
-import { PolicyGuard, Policy } from '../../../core/permission/policy.guard.js';
+import { PolicyGuard, RequireRoles } from '../../../core/permission/policy.guard.js';
 
 @Controller('admin/modules')
-@UseGuards(PolicyGuard)
+@UseGuards(JwtAuthGuard, PolicyGuard)
 export class AdminModulesController {
   constructor(
     private readonly moduleLoader: ModuleLoaderService,
@@ -12,7 +13,7 @@ export class AdminModulesController {
   ) {}
 
   @Get()
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async listModules() {
     const installed = this.metadataRegistry.listModules();
     return {
@@ -30,7 +31,7 @@ export class AdminModulesController {
   }
 
   @Get(':moduleName')
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async getModule(@Param('moduleName') moduleName: string) {
     const module = this.metadataRegistry.getModule(moduleName);
     if (!module) {
@@ -53,10 +54,12 @@ export class AdminModulesController {
 
   @Post(':moduleName/install')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async installModule(@Param('moduleName') moduleName: string) {
     try {
-      await this.moduleLoader.installModule(moduleName);
+      const definition = this.metadataRegistry.getModule(moduleName);
+      if (!definition) return { success: false, message: `Module ${moduleName} not found` };
+      await this.moduleLoader.installModule(definition);
       return { success: true, message: `Module ${moduleName} installed successfully` };
     } catch (error) {
       return { success: false, message: error.message };
@@ -64,7 +67,7 @@ export class AdminModulesController {
   }
 
   @Delete(':moduleName')
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async uninstallModule(@Param('moduleName') moduleName: string) {
     try {
       await this.moduleLoader.uninstallModule(moduleName);
@@ -76,7 +79,7 @@ export class AdminModulesController {
 
   @Post(':moduleName/reload')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async reloadModule(@Param('moduleName') moduleName: string) {
     try {
       const module = this.metadataRegistry.getModule(moduleName);

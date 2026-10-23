@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { Expression } from 'expr-eval';
+import { Parser } from 'expr-eval';
 
 @Injectable()
 export class FormulaService {
@@ -23,7 +23,7 @@ export class FormulaService {
         return fieldName;
       });
 
-      const expr = new Expression(processedExpression);
+      const expr = Parser.parse(processedExpression);
       return expr.evaluate(variables);
     } catch (error) {
       throw new BadRequestException(`Formula evaluation failed: ${(error as Error).message}`);
@@ -50,7 +50,7 @@ export class FormulaService {
         return fieldName;
       });
 
-      new Expression(processedExpression);
+      Parser.parse(processedExpression);
       return { valid: true };
     } catch (error) {
       return {

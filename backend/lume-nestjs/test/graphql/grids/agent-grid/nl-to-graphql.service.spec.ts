@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NlToGraphqlService } from '../../../../src/graphql/grids/agent-grid/services/nl-to-graphql.service';
 import { SchemaContextService } from '../../../../src/graphql/grids/agent-grid/services/schema-context.service';

@@ -1,4 +1,6 @@
 export class RecordCreatedEvent {
+  durable?: boolean;
+  eventKey?: string;
   constructor(
     public readonly entityId: number,
     public readonly record: any,
@@ -7,6 +9,8 @@ export class RecordCreatedEvent {
 }
 
 export class RecordUpdatedEvent {
+  durable?: boolean;
+  eventKey?: string;
   constructor(
     public readonly entityId: number,
     public readonly record: any,
@@ -16,9 +20,12 @@ export class RecordUpdatedEvent {
 }
 
 export class RecordDeletedEvent {
+  durable?: boolean;
+  eventKey?: string;
   constructor(
     public readonly entityId: number,
     public readonly recordId: number,
     public readonly userId: number,
+    public readonly companyId?: number,
   ) {}
 }

@@ -4,6 +4,7 @@ module.exports = {
   rootDir: '.',
   testMatch: ['**/test/**/*.spec.ts'],
   moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
     '^@core/(.*)$': '<rootDir>/src/core/$1',
     '^@modules/(.*)$': '<rootDir>/src/modules/$1',
   },
@@ -15,7 +16,7 @@ module.exports = {
     }],
   },
   extensionsToTreatAsEsm: ['.ts'],
-  moduleFileExtensions: ['js', 'json', 'ts'],
+  moduleFileExtensions: ['ts', 'js', 'json'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.spec.ts',

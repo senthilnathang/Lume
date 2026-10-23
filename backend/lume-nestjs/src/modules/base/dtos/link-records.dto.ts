@@ -1,9 +1,11 @@
-import { IsNumber } from 'class-validator';
+import { IsInt, Min } from 'class-validator';
 
 export class LinkRecordsDto {
-  @IsNumber()
+  @IsInt()
+  @Min(1)
   relationshipId!: number;
 
-  @IsNumber()
+  @IsInt()
+  @Min(1)
   targetRecordId!: number;
 }

@@ -1,3 +1,4 @@
+import { editorTemplates, editorSnippets, editorPresets, editorGlobalWidgets, editorNotes } from '../models/schema';
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import {
@@ -31,10 +32,9 @@ export class EditorService {
   } = {}) {
     const { page = 1, limit = 50, search, category } = options;
     const offset = (page - 1) * limit;
-    const db = this.getDrizzle();
+    const db = this.getDb();
 
     // Import tables dynamically
-    const { editorTemplates } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
 
     const conditions: any[] = [isNull(editorTemplates.deletedAt)];
     if (search) conditions.push(like(editorTemplates.name, `%${search}%`));
@@ -65,8 +65,7 @@ export class EditorService {
   }
 
   async findTemplateById(id: number) {
-    const db = this.getDrizzle();
-    const { editorTemplates } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const [row] = await db.select().from(editorTemplates).where(eq(editorTemplates.id, id));
 
@@ -81,8 +80,7 @@ export class EditorService {
   }
 
   async getDefaultTemplate() {
-    const db = this.getDrizzle();
-    const { editorTemplates } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const [row] = await db
       .select()
@@ -101,8 +99,7 @@ export class EditorService {
   }
 
   async createTemplate(dto: CreateTemplateDto) {
-    const db = this.getDrizzle();
-    const { editorTemplates } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const now = new Date();
     const result = await db.insert(editorTemplates).values({
@@ -120,7 +117,7 @@ export class EditorService {
     const [created] = await db
       .select()
       .from(editorTemplates)
-      .where(eq(editorTemplates.id, result.insertId));
+      .where(eq(editorTemplates.id, result[0].insertId));
 
     return {
       success: true,
@@ -130,8 +127,7 @@ export class EditorService {
   }
 
   async updateTemplate(id: number, dto: UpdateTemplateDto) {
-    const db = this.getDrizzle();
-    const { editorTemplates } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const existing = await db.select().from(editorTemplates).where(eq(editorTemplates.id, id));
     if (!existing || existing.length === 0) {
@@ -161,8 +157,7 @@ export class EditorService {
   }
 
   async deleteTemplate(id: number) {
-    const db = this.getDrizzle();
-    const { editorTemplates } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const existing = await db.select().from(editorTemplates).where(eq(editorTemplates.id, id));
     if (!existing || existing.length === 0) {
@@ -190,9 +185,8 @@ export class EditorService {
   } = {}) {
     const { page = 1, limit = 50, search, category } = options;
     const offset = (page - 1) * limit;
-    const db = this.getDrizzle();
+    const db = this.getDb();
 
-    const { editorSnippets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
 
     const conditions: any[] = [isNull(editorSnippets.deletedAt)];
     if (search) conditions.push(like(editorSnippets.name, `%${search}%`));
@@ -223,8 +217,7 @@ export class EditorService {
   }
 
   async findSnippetById(id: number) {
-    const db = this.getDrizzle();
-    const { editorSnippets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const [row] = await db.select().from(editorSnippets).where(eq(editorSnippets.id, id));
 
@@ -239,8 +232,7 @@ export class EditorService {
   }
 
   async createSnippet(dto: CreateSnippetDto) {
-    const db = this.getDrizzle();
-    const { editorSnippets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const now = new Date();
     const result = await db.insert(editorSnippets).values({
@@ -257,7 +249,7 @@ export class EditorService {
       updatedAt: now,
     });
 
-    const [created] = await db.select().from(editorSnippets).where(eq(editorSnippets.id, result.insertId));
+    const [created] = await db.select().from(editorSnippets).where(eq(editorSnippets.id, result[0].insertId));
 
     return {
       success: true,
@@ -267,8 +259,7 @@ export class EditorService {
   }
 
   async updateSnippet(id: number, dto: UpdateSnippetDto) {
-    const db = this.getDrizzle();
-    const { editorSnippets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const existing = await db.select().from(editorSnippets).where(eq(editorSnippets.id, id));
     if (!existing || existing.length === 0) {
@@ -300,8 +291,7 @@ export class EditorService {
   }
 
   async deleteSnippet(id: number) {
-    const db = this.getDrizzle();
-    const { editorSnippets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const existing = await db.select().from(editorSnippets).where(eq(editorSnippets.id, id));
     if (!existing || existing.length === 0) {
@@ -329,9 +319,8 @@ export class EditorService {
   } = {}) {
     const { page = 1, limit = 50, search, blockType } = options;
     const offset = (page - 1) * limit;
-    const db = this.getDrizzle();
+    const db = this.getDb();
 
-    const { editorPresets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
 
     const conditions: any[] = [isNull(editorPresets.deletedAt)];
     if (search) conditions.push(like(editorPresets.name, `%${search}%`));
@@ -362,8 +351,7 @@ export class EditorService {
   }
 
   async findPresetsByBlockType(blockType: string) {
-    const db = this.getDrizzle();
-    const { editorPresets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const rows = await db
       .select()
@@ -378,8 +366,7 @@ export class EditorService {
   }
 
   async findPresetById(id: number) {
-    const db = this.getDrizzle();
-    const { editorPresets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const [row] = await db.select().from(editorPresets).where(eq(editorPresets.id, id));
 
@@ -394,8 +381,7 @@ export class EditorService {
   }
 
   async createPreset(dto: CreatePresetDto) {
-    const db = this.getDrizzle();
-    const { editorPresets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const now = new Date();
     const result = await db.insert(editorPresets).values({
@@ -408,7 +394,7 @@ export class EditorService {
       updatedAt: now,
     });
 
-    const [created] = await db.select().from(editorPresets).where(eq(editorPresets.id, result.insertId));
+    const [created] = await db.select().from(editorPresets).where(eq(editorPresets.id, result[0].insertId));
 
     return {
       success: true,
@@ -418,8 +404,7 @@ export class EditorService {
   }
 
   async updatePreset(id: number, dto: UpdatePresetDto) {
-    const db = this.getDrizzle();
-    const { editorPresets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const existing = await db.select().from(editorPresets).where(eq(editorPresets.id, id));
     if (!existing || existing.length === 0) {
@@ -447,8 +432,7 @@ export class EditorService {
   }
 
   async deletePreset(id: number) {
-    const db = this.getDrizzle();
-    const { editorPresets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const existing = await db.select().from(editorPresets).where(eq(editorPresets.id, id));
     if (!existing || existing.length === 0) {
@@ -475,9 +459,8 @@ export class EditorService {
   } = {}) {
     const { page = 1, limit = 50, search } = options;
     const offset = (page - 1) * limit;
-    const db = this.getDrizzle();
+    const db = this.getDb();
 
-    const { editorGlobalWidgets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
 
     const conditions: any[] = [isNull(editorGlobalWidgets.deletedAt)];
     if (search) conditions.push(like(editorGlobalWidgets.name, `%${search}%`));
@@ -507,8 +490,7 @@ export class EditorService {
   }
 
   async findGlobalWidgetById(id: number) {
-    const db = this.getDrizzle();
-    const { editorGlobalWidgets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const [row] = await db
       .select()
@@ -526,8 +508,7 @@ export class EditorService {
   }
 
   async createGlobalWidget(dto: CreateGlobalWidgetDto) {
-    const db = this.getDrizzle();
-    const { editorGlobalWidgets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const now = new Date();
     const result = await db.insert(editorGlobalWidgets).values({
@@ -542,7 +523,7 @@ export class EditorService {
     const [created] = await db
       .select()
       .from(editorGlobalWidgets)
-      .where(eq(editorGlobalWidgets.id, result.insertId));
+      .where(eq(editorGlobalWidgets.id, result[0].insertId));
 
     return {
       success: true,
@@ -552,8 +533,7 @@ export class EditorService {
   }
 
   async updateGlobalWidget(id: number, dto: UpdateGlobalWidgetDto) {
-    const db = this.getDrizzle();
-    const { editorGlobalWidgets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const existing = await db
       .select()
@@ -586,8 +566,7 @@ export class EditorService {
   }
 
   async deleteGlobalWidget(id: number) {
-    const db = this.getDrizzle();
-    const { editorGlobalWidgets } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const existing = await db
       .select()
@@ -612,8 +591,7 @@ export class EditorService {
   // ─── Notes / Collaboration ───
 
   async findNotesByPage(pageId: number) {
-    const db = this.getDrizzle();
-    const { editorNotes } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const rows = await db
       .select()
@@ -628,8 +606,7 @@ export class EditorService {
   }
 
   async createNote(dto: CreateNoteDto) {
-    const db = this.getDrizzle();
-    const { editorNotes } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const now = new Date();
     const result = await db.insert(editorNotes).values({
@@ -643,7 +620,7 @@ export class EditorService {
       updatedAt: now,
     });
 
-    const [created] = await db.select().from(editorNotes).where(eq(editorNotes.id, result.insertId));
+    const [created] = await db.select().from(editorNotes).where(eq(editorNotes.id, result[0].insertId));
 
     return {
       success: true,
@@ -653,8 +630,7 @@ export class EditorService {
   }
 
   async replyToNote(parentId: number, dto: CreateNoteDto) {
-    const db = this.getDrizzle();
-    const { editorNotes } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const [parent] = await db.select().from(editorNotes).where(eq(editorNotes.id, parentId));
 
@@ -674,7 +650,7 @@ export class EditorService {
       updatedAt: now,
     });
 
-    const [created] = await db.select().from(editorNotes).where(eq(editorNotes.id, result.insertId));
+    const [created] = await db.select().from(editorNotes).where(eq(editorNotes.id, result[0].insertId));
 
     return {
       success: true,
@@ -684,8 +660,7 @@ export class EditorService {
   }
 
   async resolveNote(noteId: number) {
-    const db = this.getDrizzle();
-    const { editorNotes } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const [existing] = await db.select().from(editorNotes).where(eq(editorNotes.id, noteId));
 
@@ -705,8 +680,7 @@ export class EditorService {
   }
 
   async deleteNote(noteId: number) {
-    const db = this.getDrizzle();
-    const { editorNotes } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const [existing] = await db.select().from(editorNotes).where(eq(editorNotes.id, noteId));
 
@@ -725,8 +699,7 @@ export class EditorService {
   // ─── Seed ───
 
   async seedDefaultTemplates() {
-    const db = this.getDrizzle();
-    const { editorTemplates } = await import('/opt/Lume/backend/src/modules/editor/models/schema.js');
+    const db = this.getDb();
 
     const defaultTemplates = [
       {

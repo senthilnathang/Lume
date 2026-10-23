@@ -1,12 +1,13 @@
+import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import { Controller, Get, Post, Delete, Body, Param, HttpCode, UseGuards, Req } from '@nestjs/common';
 import { PluginRegistryService } from '../../../core/plugin/plugin-registry.service.js';
 import { MetadataRegistryService } from '../../../core/runtime/metadata-registry.service.js';
 import { DrizzleService } from '../../../core/services/drizzle.service.js';
-import { PolicyGuard, Policy } from '../../../core/permission/policy.guard.js';
+import { PolicyGuard, RequireRoles } from '../../../core/permission/policy.guard.js';
 import { readFile } from 'fs/promises';
 
 @Controller('admin/plugins')
-@UseGuards(PolicyGuard)
+@UseGuards(JwtAuthGuard, PolicyGuard)
 export class AdminPluginsController {
   constructor(
     private readonly pluginRegistry: PluginRegistryService,
@@ -15,7 +16,7 @@ export class AdminPluginsController {
   ) {}
 
   @Get()
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async listPlugins() {
     try {
       const plugins = await this.pluginRegistry.list();
@@ -23,12 +24,12 @@ export class AdminPluginsController {
         success: true,
         data: plugins.map((p) => ({
           name: p.name,
-          displayName: p.displayName,
+          displayName: p.manifest.displayName,
           version: p.version,
-          author: p.author,
-          description: p.description,
-          compatibility: p.compatibility,
-          dependencies: p.dependencies || {},
+          author: p.manifest.author,
+          description: p.manifest.description,
+          compatibility: p.manifest.compatibility,
+          dependencies: p.manifest.dependencies || {},
           enabled: p.enabled ?? true,
         })),
       };
@@ -38,7 +39,7 @@ export class AdminPluginsController {
   }
 
   @Get(':pluginName')
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async getPlugin(@Param('pluginName') pluginName: string) {
     try {
       const plugins = await this.pluginRegistry.list();
@@ -54,7 +55,7 @@ export class AdminPluginsController {
 
   @Post('install')
   @HttpCode(201)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async installPlugin(@Body() body: { manifestPath: string }, @Req() req: any) {
     try {
       const manifestContent = await readFile(body.manifestPath, 'utf-8');
@@ -65,7 +66,7 @@ export class AdminPluginsController {
         return { success: false, message: `Module definition not found for ${manifest.name}` };
       }
 
-      const userId = req.user?.sub;
+      const userId = req.user?.id;
       await this.pluginRegistry.install(manifest, moduleDefinition, this.drizzle, userId);
 
       return { success: true, message: 'Plugin installed successfully', data: { name: manifest.name, version: manifest.version } };
@@ -76,10 +77,10 @@ export class AdminPluginsController {
 
   @Post(':pluginName/enable')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async enablePlugin(@Param('pluginName') pluginName: string, @Req() req: any) {
     try {
-      const userId = req.user?.sub;
+      const userId = req.user?.id;
       await this.pluginRegistry.enable(pluginName, userId);
       return { success: true, message: `Plugin ${pluginName} enabled` };
     } catch (error) {
@@ -89,10 +90,10 @@ export class AdminPluginsController {
 
   @Post(':pluginName/disable')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async disablePlugin(@Param('pluginName') pluginName: string, @Req() req: any) {
     try {
-      const userId = req.user?.sub;
+      const userId = req.user?.id;
       await this.pluginRegistry.disable(pluginName, userId);
       return { success: true, message: `Plugin ${pluginName} disabled` };
     } catch (error) {
@@ -101,10 +102,10 @@ export class AdminPluginsController {
   }
 
   @Delete(':pluginName')
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async uninstallPlugin(@Param('pluginName') pluginName: string, @Req() req: any) {
     try {
-      const userId = req.user?.sub;
+      const userId = req.user?.id;
       await this.pluginRegistry.uninstall(pluginName, this.drizzle, userId);
       return { success: true, message: `Plugin ${pluginName} uninstalled` };
     } catch (error) {
@@ -114,7 +115,7 @@ export class AdminPluginsController {
 
   @Post('check-compatibility')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async checkCompatibility(@Body() body: { pluginName: string }) {
     try {
       const plugins = await this.pluginRegistry.list();
@@ -123,7 +124,7 @@ export class AdminPluginsController {
         return { success: false, message: `Plugin ${body.pluginName} not found` };
       }
 
-      const result = await this.pluginRegistry.checkCompatibility(plugin);
+      const result = await this.pluginRegistry.checkCompatibility(plugin.manifest);
       return { success: true, data: result };
     } catch (error) {
       return { success: false, message: error.message };
@@ -131,7 +132,7 @@ export class AdminPluginsController {
   }
 
   @Get('marketplace/available')
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async getAvailablePlugins() {
     // TODO: Integrate with plugin marketplace (if implemented)
     return {

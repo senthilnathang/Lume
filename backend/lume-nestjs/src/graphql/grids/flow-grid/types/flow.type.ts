@@ -1,10 +1,11 @@
-import { ObjectType, Field, Int, JSON as GraphQLJSON } from '@nestjs/graphql';
-import { Node } from '../../shared/interfaces/node.interface';
-import { Auditable } from '../../shared/interfaces/auditable.interface';
+import { GraphQLJSON } from 'graphql-scalars';
+import { ObjectType, Field, Int, ID } from '@nestjs/graphql';
+import { Node } from '../../../shared/interfaces/node.interface';
+import { Auditable } from '../../../shared/interfaces/auditable.interface';
 
 @ObjectType('Flow', { implements: [Node, Auditable] })
 export class FlowType implements Node, Auditable {
-  @Field(() => Int)
+  @Field(() => ID)
   id: number;
 
   @Field()

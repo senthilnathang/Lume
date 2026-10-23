@@ -1,3 +1,6 @@
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AgentQueryResolver } from '../../../../src/graphql/grids/agent-grid/resolvers/agent-query.resolver';
 import { SchemaContextService } from '../../../../src/graphql/grids/agent-grid/services/schema-context.service';
@@ -50,9 +53,9 @@ describe('AgentQueryResolver', () => {
         },
       ],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

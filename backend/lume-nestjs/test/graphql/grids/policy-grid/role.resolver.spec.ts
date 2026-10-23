@@ -1,9 +1,21 @@
+import { PrismaService } from '../../../../src/core/services/prisma.service';
+import { RoleManagementService } from '../../../../src/modules/base/services/role-management.service';
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoleResolver } from '../../../../src/graphql/grids/policy-grid/resolvers/role.resolver';
 import { PaginationInput } from '../../../../src/graphql/shared/inputs/pagination.input';
 
 describe('RoleResolver', () => {
   let resolver: RoleResolver;
+  const row = { id: 4, name: 'test-role', display_name: 'Test Role', is_system: false };
+  const management = {
+    get: jest.fn().mockResolvedValue(null),
+    create: jest.fn().mockResolvedValue(row),
+    update: jest.fn().mockResolvedValue({ ...row, display_name: 'Updated Role' }),
+    delete: jest.fn().mockResolvedValue(true),
+  };
 
   const mockUser = {
     sub: 1,
@@ -22,11 +34,11 @@ describe('RoleResolver', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RoleResolver],
+      providers: [RoleResolver, { provide: RoleManagementService, useValue: management }, { provide: PrismaService, useValue: { role: { findMany: async () => [] } } }],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -61,22 +73,21 @@ describe('RoleResolver', () => {
       description: 'Test role description',
     };
 
-    expect(() => resolver.createRole(input, mockUser)).rejects.toThrow(
-      'Not implemented',
-    );
+    expect(await resolver.createRole(input, mockUser)).toMatchObject({ id: 4, displayName: 'Test Role', isSystem: false });
+    expect(management.create).toHaveBeenCalledWith(input, 1);
   });
 
   it('should update role', async () => {
     const input = { displayName: 'Updated Role' };
 
-    expect(() =>
-      resolver.updateRole(1, input, mockUser),
-    ).rejects.toThrow('Not implemented');
+    expect(await resolver.updateRole(4, input, mockUser)).toMatchObject({ displayName: 'Updated Role' });
+    expect(management.update).toHaveBeenCalledWith(4, input, 1);
   });
 
   it('should delete role', async () => {
     const result = await resolver.deleteRole(1, mockUser);
 
-    expect(result).toBe(false);
+    expect(result).toBe(true);
+    expect(management.delete).toHaveBeenCalledWith(1, 1);
   });
 });

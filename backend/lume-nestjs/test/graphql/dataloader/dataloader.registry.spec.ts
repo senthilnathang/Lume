@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { DataLoaderRegistry } from '../../../src/graphql/dataloader/dataloader.registry';
 import { PrismaService } from '../../../src/core/services/prisma.service';
 import { DrizzleService } from '../../../src/core/services/drizzle.service';

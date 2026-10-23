@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SchemaController } from '../../../src/graphql/schema/schema.controller';
 import { SchemaExportService } from '../../../src/graphql/schema/schema-export.service';

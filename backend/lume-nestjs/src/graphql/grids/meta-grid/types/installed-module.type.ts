@@ -1,10 +1,10 @@
-import { ObjectType, Field } from '@nestjs/graphql';
-import { Node } from '../../shared/interfaces/index.js';
-import { GraphQLJSON } from 'graphql-type-json';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { Node } from '../../../shared/interfaces/index.js';
+import { GraphQLJSON } from 'graphql-scalars';
 
 @ObjectType('InstalledModule', { implements: [Node] })
 export class InstalledModuleType implements Node {
-  @Field(() => String)
+  @Field(() => ID)
   id: string;
 
   @Field(() => String)

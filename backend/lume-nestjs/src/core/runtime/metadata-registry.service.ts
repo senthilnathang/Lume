@@ -29,6 +29,7 @@ export interface FieldDefinition {
 
 export interface ComputedFieldDefinition {
   name: string;
+  label?: string;
   formula: string;
   type: string;
   recomputeOn?: string[];
@@ -127,7 +128,7 @@ export type WorkflowTrigger =
 export type WorkflowStep =
   | { type: 'condition'; if: ConditionExpr; then: WorkflowStep[]; else?: WorkflowStep[] }
   | { type: 'set_field'; field: string; value: any }
-  | { type: 'send_notification'; to: string; template: string }
+  | { type: 'send_notification'; to: string; template?: string; title?: string; message?: string; channel?: 'in_app' | 'email' | 'push' }
   | { type: 'call_webhook'; url: string; method: string; body?: any }
   | { type: 'create_record'; entity: string; data: Record<string, any> }
   | { type: 'ai'; prompt: string; outputField: string }
@@ -168,6 +169,7 @@ export interface FormField {
 
 export interface TableViewConfig {
   columns: string[];
+  filters?: PolicyCondition[];
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   pageSize?: number;
@@ -205,7 +207,7 @@ export interface PolicyDefinition {
 export interface PolicyCondition {
   field: string;
   operator: '==' | '!=' | 'in' | 'contains' | '>' | '<';
-  value: string | number | '$userId' | '$roleId' | '$companyId';
+  value: string | number | boolean | '$userId' | '$roleId' | '$companyId';
 }
 
 export interface RequestContext {
@@ -303,11 +305,17 @@ export class MetadataRegistryService {
       ...base,
       fields: {
         ...base.fields,
-        ...extensions.flatMap(e => e.fields || {}).reduce((acc, val) => ({ ...acc, ...val }), {}),
+        ...extensions.reduce<Record<string, FieldDefinition>>(
+          (fields, extension) => ({ ...fields, ...extension.fields }),
+          {},
+        ),
       },
       hooks: {
         ...base.hooks,
-        ...extensions.flatMap(e => e.hooks || {}).reduce((acc, val) => ({ ...acc, ...val }), {}),
+        ...extensions.reduce<EntityHooks>(
+          (hooks, extension) => ({ ...hooks, ...extension.hooks }),
+          {},
+        ),
       },
     };
   }

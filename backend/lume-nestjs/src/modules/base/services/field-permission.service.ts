@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@core/services/prisma.service';
 
 @Injectable()
@@ -116,38 +116,54 @@ export class FieldPermissionService {
     isMasked?: boolean,
     maskChar?: string,
   ): Promise<any> {
-    let permission = await this.prisma.entityFieldPermission.findFirst({
-      where: { fieldId, roleId },
-    });
-
-    if (!permission) {
-      permission = await this.prisma.entityFieldPermission.create({
-        data: {
-          fieldId,
-          roleId,
-          canRead,
-          canWrite,
-          isMasked: isMasked || false,
-          maskChar: maskChar || '*',
-        },
-      });
-    } else {
-      permission = await this.prisma.entityFieldPermission.update({
-        where: { id: permission.id },
-        data: {
-          canRead,
-          canWrite,
-          isMasked: isMasked || false,
-          maskChar: maskChar || '*',
-        },
-      });
+    this.validateIds(fieldId, roleId);
+    if (typeof canRead !== 'boolean' || typeof canWrite !== 'boolean' ||
+        (isMasked !== undefined && typeof isMasked !== 'boolean')) {
+      throw new BadRequestException('Permission flags must be booleans');
     }
+    if (maskChar !== undefined && (typeof maskChar !== 'string' ||
+        Array.from(maskChar).length < 1 || Array.from(maskChar).length > 5)) {
+      throw new BadRequestException('Mask character must contain between 1 and 5 characters');
+    }
+    const permission = await this.prisma.$transaction(async tx => {
+      const field = await tx.entityField.findFirst({
+        where: { id: fieldId, deletedAt: null, entity: { deletedAt: null } },
+        select: { id: true },
+      });
+      if (!field) throw new NotFoundException('Active field not found');
+      const role = await tx.role.findUnique({ where: { id: roleId }, select: { id: true } });
+      if (!role) throw new NotFoundException('Role not found');
+      return tx.entityFieldPermission.upsert({
+        where: { fieldId_roleId: { fieldId, roleId } },
+        create: { fieldId, roleId, canRead, canWrite, isMasked: isMasked ?? false, maskChar: maskChar ?? '*' },
+        update: { canRead, canWrite, isMasked, maskChar },
+      });
+    });
 
     return {
       success: true,
       data: permission,
       message: 'Field permission updated successfully',
     };
+  }
+
+  private validateIds(fieldId: number, roleId: number) {
+    if (![fieldId, roleId].every(id => Number.isSafeInteger(id) && id > 0)) {
+      throw new BadRequestException('Field and role IDs must be positive integers');
+    }
+  }
+
+  async getFieldPermission(fieldId: number, roleId: number) {
+    this.validateIds(fieldId, roleId);
+    return this.prisma.entityFieldPermission.findFirst({
+      where: { fieldId, roleId, field: { deletedAt: null, entity: { deletedAt: null } } },
+    });
+  }
+
+  async removeFieldPermission(fieldId: number, roleId: number): Promise<boolean> {
+    this.validateIds(fieldId, roleId);
+    const result = await this.prisma.entityFieldPermission.deleteMany({ where: { fieldId, roleId } });
+    return result.count > 0;
   }
 
   /**

@@ -1,3 +1,7 @@
+import { PrismaService } from '@core/services/prisma.service';
+import type { EntityFieldPermission } from '@prisma/client';
+import { FieldPermissionService } from '../../../../modules/base/services/field-permission.service';
+import { normalizePagination } from '../../../shared/inputs/pagination.input';
 import {
   Resolver,
   Query,
@@ -12,12 +16,12 @@ import { UseGuards, ForbiddenException } from '@nestjs/common';
 import { GqlJwtGuard } from '../../../guards/gql-jwt.guard';
 import { GqlRbacGuard } from '../../../guards/gql-rbac.guard';
 import { GqlCurrentUser } from '../../../decorators/gql-current-user.decorator';
-import { Permissions } from '../../../core/decorators/permissions.decorator';
+import { Permissions } from '../../../../core/decorators/permissions.decorator';
 import { PaginationInput } from '../../../shared/inputs/pagination.input';
 import { FieldPermissionType } from '../types/field-permission.type';
 import { RoleType } from '../types/role.type';
 import { SetFieldPermissionInput } from '../inputs/set-field-permission.input';
-import { GqlContext, JwtPayload } from '../../../graphql.context';
+import type { GqlContext, JwtPayload } from '../../../graphql.context';
 
 /**
  * PolicyGrid FieldPermission Resolver
@@ -27,7 +31,15 @@ import { GqlContext, JwtPayload } from '../../../graphql.context';
 @Resolver(() => FieldPermissionType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class FieldPermissionResolver {
-  constructor() {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly permissions: FieldPermissionService,
+  ) {}
+
+  private toGraphQL(row: EntityFieldPermission): FieldPermissionType {
+    return { ...row, canRead: row.canRead ?? true, canWrite: row.canWrite ?? false,
+      isMasked: row.isMasked ?? false, maskChar: row.maskChar ?? '*', updatedAt: row.createdAt };
+  }
 
   @Query(() => [FieldPermissionType], { name: 'fieldPermissions' })
   @Permissions('base.field_permissions.read')
@@ -37,10 +49,13 @@ export class FieldPermissionResolver {
     @Args('pagination', { nullable: true }) pagination?: PaginationInput,
     @GqlCurrentUser() user?: JwtPayload,
   ): Promise<FieldPermissionType[]> {
-    // TODO: Delegate to FieldPermissionService.listFieldPermissions(fieldId, roleId, pagination)
-    // Filter by fieldId and/or roleId
-    // Return paginated list of field permissions
-    return [];
+    const { page, limit } = normalizePagination(pagination);
+    const rows = await this.prisma.entityFieldPermission.findMany({
+      where: { ...(fieldId == null ? {} : { fieldId }), ...(roleId == null ? {} : { roleId }),
+        field: { deletedAt: null, entity: { deletedAt: null } } },
+      skip: (page - 1) * limit, take: limit, orderBy: { id: 'asc' },
+    });
+    return rows.map(row => this.toGraphQL(row));
   }
 
   @Query(() => FieldPermissionType, {
@@ -53,8 +68,8 @@ export class FieldPermissionResolver {
     @Args('roleId', { type: () => Int }) roleId: number,
     @GqlCurrentUser() user?: JwtPayload,
   ): Promise<FieldPermissionType | null> {
-    // TODO: Delegate to FieldPermissionService.getFieldPermission(fieldId, roleId)
-    return null;
+    const row = await this.permissions.getFieldPermission(fieldId, roleId);
+    return row ? this.toGraphQL(row) : null;
   }
 
   @Mutation(() => FieldPermissionType)
@@ -62,17 +77,18 @@ export class FieldPermissionResolver {
   async setFieldPermission(
     @Args('input') input: SetFieldPermissionInput,
     @GqlCurrentUser() user: JwtPayload,
+    @Context() ctx?: GqlContext,
   ): Promise<FieldPermissionType> {
     if (!user) {
       throw new ForbiddenException('Not authenticated');
     }
 
-    // TODO: Delegate to FieldPermissionService.setFieldPermission(input, userId)
-    // - Validate fieldId exists
-    // - Validate roleId exists
-    // - Create or update EntityFieldPermission row
-    // - Audit log the change
-    throw new Error('Not implemented');
+    const result = await this.permissions.setFieldPermission(
+      input.fieldId, input.roleId, input.canRead === undefined ? true : input.canRead,
+      input.canWrite === undefined ? false : input.canWrite, input.isMasked, input.maskChar,
+    );
+    ctx?.loaders.fieldPermissionsByRoleId.clear(input.roleId);
+    return this.toGraphQL(result.data);
   }
 
   @Mutation(() => Boolean)
@@ -81,15 +97,15 @@ export class FieldPermissionResolver {
     @Args('fieldId', { type: () => Int }) fieldId: number,
     @Args('roleId', { type: () => Int }) roleId: number,
     @GqlCurrentUser() user: JwtPayload,
+    @Context() ctx?: GqlContext,
   ): Promise<boolean> {
     if (!user) {
       throw new ForbiddenException('Not authenticated');
     }
 
-    // TODO: Delegate to FieldPermissionService.removeFieldPermission(fieldId, roleId, userId)
-    // - Delete EntityFieldPermission row
-    // - Audit log the deletion
-    return false;
+    const removed = await this.permissions.removeFieldPermission(fieldId, roleId);
+    ctx?.loaders.fieldPermissionsByRoleId.clear(roleId);
+    return removed;
   }
 
   @ResolveField('role', () => RoleType, { nullable: true })
@@ -97,8 +113,6 @@ export class FieldPermissionResolver {
     @Parent() fieldPerm: FieldPermissionType,
     @Context() ctx: GqlContext,
   ): Promise<RoleType | null> {
-    // TODO: Use DataLoader to batch-load roles
-    // Load role by roleId from ctx.loaders.roleById
-    return null;
+    return ctx.loaders.roleById.load(fieldPerm.roleId);
   }
 }

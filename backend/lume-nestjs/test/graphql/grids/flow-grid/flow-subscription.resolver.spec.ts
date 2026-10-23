@@ -1,3 +1,6 @@
+import { SUBSCRIPTION_OPTIONS_METADATA } from '@nestjs/graphql/dist/graphql.constants';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { FlowSubscriptionResolver } from '../../../../src/graphql/grids/flow-grid/resolvers/flow-subscription.resolver';
 
@@ -34,7 +37,7 @@ describe('FlowSubscriptionResolver', () => {
         },
       ],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -72,46 +75,14 @@ describe('FlowSubscriptionResolver', () => {
     ]);
   });
 
-  it('should filter flowExecuted by company on subscription', () => {
-    const filter = resolver.flowExecuted['subscriptionOptions'].filter;
-
-    const payload = {
-      flowExecuted: {
-        id: 1,
-        status: 'completed',
-        companyId: 1,
-      },
-    };
-
-    const ctx = { user: mockUser };
-
-    // Note: The actual filter is defined via @Subscription decorator,
-    // this test verifies the resolver accepts the payload structure
-    expect(payload.flowExecuted.companyId).toBe(1);
-  });
-
-  it('should filter flowFailed by company on subscription', () => {
-    const payload = {
-      flowFailed: {
-        id: 1,
-        status: 'failed',
-        companyId: 1,
-        errorMessage: 'Test error',
-      },
-    };
-
-    expect(payload.flowFailed.companyId).toBe(1);
-  });
-
-  it('should filter flowProgress by company on subscription', () => {
-    const payload = {
-      flowProgress: {
-        id: 1,
-        status: 'in_progress',
-        companyId: 1,
-      },
-    };
-
-    expect(payload.flowProgress.companyId).toBe(1);
-  });
+  it.each(['flowExecuted', 'flowFailed', 'flowProgress'] as const)(
+    '%s only delivers events to an authenticated matching tenant', (event) => {
+      const { filter } = Reflect.getMetadata(SUBSCRIPTION_OPTIONS_METADATA, resolver[event]);
+      expect(filter({ [event]: { companyId: 1 } }, {}, { user: mockUser })).toBe(true);
+      expect(filter({ [event]: { companyId: 2 } }, {}, { user: mockUser })).toBe(false);
+      expect(filter({ [event]: {} }, {}, {})).toBe(false);
+      expect(filter({ [event]: { companyId: 1 } }, {}, { user: null })).toBe(false);
+      expect(filter({ [event]: { companyId: null } }, {}, { user: { company_id: null } })).toBe(false);
+    },
+  );
 });

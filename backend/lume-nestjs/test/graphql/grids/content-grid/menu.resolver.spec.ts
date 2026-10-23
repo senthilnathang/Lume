@@ -1,3 +1,5 @@
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MenuResolver } from '../../../../src/graphql/grids/content-grid/resolvers/menu.resolver';
 
@@ -8,9 +10,9 @@ describe('MenuResolver', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [MenuResolver],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

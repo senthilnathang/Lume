@@ -1,10 +1,10 @@
-import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
-import { Node, Auditable } from '../../shared/interfaces/index.js';
-import { GraphQLJSON } from 'graphql-type-json';
+import { ObjectType, Field, Int, Float , ID } from '@nestjs/graphql';
+import { Node, Auditable } from '../../../shared/interfaces/index.js';
+import { GraphQLJSON } from 'graphql-scalars';
 
 @ObjectType('MarketplacePlugin', { implements: [Node, Auditable] })
 export class MarketplacePluginType implements Node, Auditable {
-  @Field(() => String)
+  @Field(() => ID)
   id: string;
 
   @Field(() => String)

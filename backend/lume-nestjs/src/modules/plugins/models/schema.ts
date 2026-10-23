@@ -1,4 +1,4 @@
-import { table, int, integer, varchar, text, boolean, json, timestamp, bigint, enum as dbEnum } from '@core/db/dialect';
+import { table, int, integer, varchar, text, boolean, json, timestamp, bigint, dbEnum } from '@core/db/dialect';
 import { baseColumns } from '@core/db/drizzle-helpers';
 
 const idCol = int || integer;

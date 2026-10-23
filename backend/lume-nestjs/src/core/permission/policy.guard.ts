@@ -15,6 +15,17 @@ export function Policy(...policies: string[]) {
   return SetMetadata(POLICY_KEY, policies);
 }
 
+export const POLICY_ROLES_KEY = 'policy_roles';
+export const AUTHENTICATED_KEY = 'policy_authenticated';
+
+export function RequireRoles(...roles: string[]) {
+  return SetMetadata(POLICY_ROLES_KEY, roles);
+}
+
+export function Authenticated() {
+  return SetMetadata(AUTHENTICATED_KEY, true);
+}
+
 @Injectable()
 export class PolicyGuard implements CanActivate {
   constructor(
@@ -23,57 +34,24 @@ export class PolicyGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Check if route is marked as public
-    const isPublic = this.reflector.get<boolean>(
-      IS_PUBLIC_KEY,
-      context.getHandler(),
-    );
-    if (isPublic) {
-      return true;
+    const targets = [context.getHandler(), context.getClass()];
+    if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, targets)) return true;
+
+    const user = context.switchToHttp().getRequest().user;
+    if (!user?.id) throw new ForbiddenException('Access denied: authentication required');
+
+    const roles = this.reflector.getAllAndOverride<string[]>(POLICY_ROLES_KEY, targets);
+    const permissions = this.reflector.getAllAndOverride<string[]>(POLICY_KEY, targets);
+    const authenticated = this.reflector.getAllAndOverride<boolean>(AUTHENTICATED_KEY, targets);
+    if (!roles?.length && !permissions?.length && !authenticated) {
+      throw new ForbiddenException('Access denied: no policy defined for this endpoint');
     }
-
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
-
-    // No user and not public = deny by default
-    if (!user) {
-      throw new ForbiddenException(
-        'Access denied: authentication required',
-      );
+    if (roles?.length && !roles.includes(user.role_name)) {
+      throw new ForbiddenException('Access denied: required role not granted');
     }
-
-    // Check if specific policies are required
-    const requiredPolicies = this.reflector.get<string[]>(
-      POLICY_KEY,
-      context.getHandler(),
-    );
-
-    if (!requiredPolicies || requiredPolicies.length === 0) {
-      // If no specific policy is required, deny by default (deny-all)
-      throw new ForbiddenException(
-        'Access denied: no policy defined for this endpoint',
-      );
+    if (permissions?.length && !permissions.some(permission => user.permissions?.includes(permission))) {
+      throw new ForbiddenException('Access denied: required permissions not granted');
     }
-
-    // Evaluate policies
-    const requestContext = {
-      userId: user.id,
-      roleId: user.roleId,
-      userRoles: user.roles || [],
-      metadata: { endpoint: request.path, method: request.method },
-    };
-
-    // At least one policy must allow the action
-    for (const policyName of requiredPolicies) {
-      // For now, we check if user has the policy name as a permission
-      // In full implementation, we'd look up the policy from registry
-      if (user.permissions && user.permissions.includes(policyName)) {
-        return true;
-      }
-    }
-
-    throw new ForbiddenException(
-      `Access denied: required permissions not granted`,
-    );
+    return true;
   }
 }

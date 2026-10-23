@@ -1,4 +1,5 @@
-import { ObjectType, Field, Int, JSON as GraphQLJSON } from '@nestjs/graphql';
+import { GraphQLJSON } from 'graphql-scalars';
+import { ObjectType, Field, Int } from '@nestjs/graphql';
 
 @ObjectType('AgentQueryResult')
 export class AgentQueryResultType {

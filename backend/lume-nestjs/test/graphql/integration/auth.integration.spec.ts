@@ -1,160 +1,91 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import { jest } from '@jest/globals';
+import { createClient } from 'graphql-ws';
+import WebSocket from 'ws';
+import { createHarness, type Harness } from './harness';
 
-/**
- * Authentication & Authorization Integration Tests
- * Tests JWT authentication, RBAC permission enforcement, multi-tenant isolation
- */
-describe('GraphQL Authentication & Authorization (E2E)', () => {
-  let app: INestApplication;
+jest.setTimeout(120000);
+const read = '{ entities(pagination:{limit:1}) { id name } }';
+const createRecord = 'mutation { createEntityRecord(entityId:1,input:{data:{name:"Created"}}) { id companyId createdBy } }';
 
-  // TODO: Set up real test database + seed users/roles/permissions
-  // TODO: Generate valid JWT tokens for different roles
-  const adminToken = 'Bearer eyJhbGc...'; // Valid admin JWT
-  const userToken = 'Bearer eyJhbGc...'; // Valid user JWT (no permissions)
-  const expiredToken = 'Bearer eyJhbGc...'; // Expired JWT
-
-  beforeAll(async () => {
-    // TODO: Create test module with real services (Prisma, Drizzle, services)
-    // Do NOT use mocked guards/services
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      // imports: [AppModule], // Real module
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+describe('GraphQL authentication and tenant integration (real MySQL)', () => {
+  let h: Harness;
+  beforeAll(async () => { h = await createHarness(); });
+  afterAll(async () => { await h?.close(); });
+  it.each([null, 'invalid.token', 'expired'])('rejects missing, invalid, or expired credentials: %s', async credential => {
+    const response = await h.query(read, credential === 'expired' ? h.token('admin', 1, -1) : credential);
+    expect(response.body.errors[0].extensions.code).toBe('UNAUTHENTICATED');
+    expect(response.body.data).toBeNull();
   });
-
-  afterAll(async () => {
-    await app.close();
+  it('allows an administrator to query stored entities', async () => {
+    const response = await h.query(read);
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entities).toHaveLength(1);
   });
-
-  describe('Unauthenticated requests', () => {
-    it('should reject query without Authorization header', async () => {
-      const query = `query { entities { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .send({ query });
-
-      // TODO: Verify response contains GraphQL error with code UNAUTHENTICATED
-      // expect(response.body.errors[0].extensions.code).toBe('UNAUTHENTICATED');
-      // expect(response.status).toBe(200); // GraphQL returns 200 with errors
-    });
-
-    it('should reject query with invalid JWT', async () => {
-      const query = `query { entities { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', 'Bearer invalid.token.here')
-        .send({ query });
-
-      // TODO: Verify UNAUTHENTICATED error
-    });
-
-    it('should reject query with expired token', async () => {
-      const query = `query { entities { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', expiredToken)
-        .send({ query });
-
-      // TODO: Verify UNAUTHENTICATED error
-    });
+  it('allows a non-admin with persisted read permission', async () => {
+    const response = await h.query(read, h.token('member'));
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entities).toHaveLength(1);
   });
-
-  describe('RBAC Permission enforcement', () => {
-    it('should allow admin to query entities', async () => {
-      const query = `query { entities { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .send({ query });
-
-      // TODO: Verify response.body.data.entities exists and no errors
-      // expect(response.status).toBe(200);
-      // expect(response.body.errors).toBeUndefined();
-    });
-
-    it('should reject user without base.entities.read permission', async () => {
-      const query = `query { entities { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', userToken)
-        .send({ query });
-
-      // TODO: Verify FORBIDDEN error
-      // expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
-    });
-
-    it('should enforce permission per mutation', async () => {
-      const mutation = `mutation { createEntity(input: { name: "Test" }) { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', userToken)
-        .send({ query: mutation });
-
-      // TODO: Verify FORBIDDEN for createEntity without permission
-    });
+  it('rejects users without the requested read permission', async () => {
+    const response = await h.query(read, h.token('none'));
+    expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
   });
-
-  describe('Multi-tenant isolation', () => {
-    it('should enforce x-org-id header for mutations', async () => {
-      const mutation = `mutation { createEntity(input: { name: "Test" }) { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        // Missing x-org-id header
-        .send({ query: mutation });
-
-      // TODO: Verify FORBIDDEN error: "Company ID required"
-      // expect(response.body.errors[0].message).toContain('Company ID required');
-    });
-
-    it('should use x-org-id header when provided', async () => {
-      const mutation = `mutation { createEntity(input: { name: "Test" }) { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query: mutation });
-
-      // TODO: Verify mutation executes with correct companyId scoping
-    });
-
-    it('should fall back to JWT company_id claim', async () => {
-      // JWT with company_id claim
-      const jwtWithCompany = 'Bearer eyJhbGc...'; // Contains company_id
-
-      const mutation = `mutation { createEntity(input: { name: "Test" }) { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', jwtWithCompany)
-        // No x-org-id header, should use JWT claim
-        .send({ query: mutation });
-
-      // TODO: Verify companyId from JWT claim is used
-    });
+  it('enforces permissions separately for mutations', async () => {
+    const response = await h.query('mutation { createEntity(input:{name:"forbidden",label:"Forbidden"}) { id } }', h.token('member'));
+    expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
+    expect(await h.prisma.entity.findFirst({ where: { name: 'forbidden' } })).toBeNull();
   });
-
-  describe('Subscription authentication', () => {
-    it('should reject WebSocket connection without token', async () => {
-      // TODO: Test graphql-ws WebSocket connection without token
-      // Verify connection rejected or subscription denied
-    });
-
-    it('should accept WebSocket connection with valid JWT', async () => {
-      // TODO: Test graphql-ws WebSocket connection with valid token
-      // Verify subscription allowed and events filtered by tenant
-    });
+  it('requires a tenant for record mutations', async () => {
+    const response = await h.query(createRecord, h.token('admin', null));
+    expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
+    expect(response.body.errors[0].message).toContain('Company ID required');
+  });
+  it('allows an admin to select a tenant with the header', async () => {
+    const response = await h.query(createRecord, h.token('admin', null), undefined, '2');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.createEntityRecord.companyId).toBe(2);
+  });
+  it('uses the signed company claim without a header', async () => {
+    const response = await h.query(createRecord, h.token('admin', 1));
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.createEntityRecord).toMatchObject({ companyId: 1, createdBy: 1 });
+  });
+  it.each(['2', '0', '-1', 'abc', '1.5'])('rejects unauthorized or invalid tenant header %s', async tenant => {
+    const response = await h.query(createRecord, h.token('member', 1), undefined, tenant);
+    expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
+  });
+  it('rejects WebSocket connections without a token', async () => {
+    const client = createClient({ url: h.wsUrl, webSocketImpl: WebSocket, retryAttempts: 0 });
+    try {
+      await expect(new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Authentication was not rejected')), 3000);
+        client.subscribe({ query: 'subscription { flowExecuted { id } }' }, {
+          next: () => { clearTimeout(timer); reject(new Error('Unauthenticated event')); },
+          error: error => { clearTimeout(timer); resolve(error); }, complete: () => {},
+        });
+      })).resolves.toBeDefined();
+    } finally { await client.dispose(); }
+  });
+  it('authenticates subscriptions and filters events by signed tenant', async () => {
+    const client = createClient({ url: h.wsUrl, webSocketImpl: WebSocket, connectionParams: { authorization: `Bearer ${h.token('member', 1)}` }, retryAttempts: 0 });
+    const received: any[] = [];
+    let dispose = () => {};
+    try {
+      const event = new Promise<any>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Subscription timed out')), 4000);
+        dispose = client.subscribe({ query: 'subscription { flowExecuted { id companyId } }' }, {
+          next: value => { received.push(value); clearTimeout(timer); resolve(value); }, error: error => { clearTimeout(timer); reject(error); }, complete: () => {},
+        });
+      });
+      const start = Date.now();
+      while (!(h.pubsub as any).ee.listenerCount('flowExecuted')) {
+        if (Date.now() - start > 3000) throw new Error('Subscription was not registered');
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      await h.pubsub.publish('flowExecuted', { flowExecuted: { id: 21, companyId: 2 } });
+      await h.pubsub.publish('flowExecuted', { flowExecuted: { id: 22, companyId: 1 } });
+      expect((await event).data.flowExecuted).toEqual({ id: 22, companyId: 1 });
+      expect(received).toHaveLength(1);
+    } finally { dispose(); await client.dispose(); }
   });
 });

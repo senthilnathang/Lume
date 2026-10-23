@@ -5,6 +5,7 @@ import { LoggerService } from '@core/services/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
 
   const logger = app.get(LoggerService);
 
@@ -29,7 +30,7 @@ async function bootstrap() {
 
   // Listen
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(port, process.env.HOST || '0.0.0.0');
 
   logger.log(`🚀 Server running on http://localhost:${port}/api/v2`);
 }

@@ -57,7 +57,7 @@ export class BaseRbacController {
     const role = await this.prisma.role.findUnique({
       where: { id },
       include: {
-        rolePermissions: {
+        role_permissions: {
           include: { permission: true },
         },
       },
@@ -81,8 +81,9 @@ export class BaseRbacController {
       const role = await this.prisma.role.create({
         data: {
           name: dto.name,
+          display_name: dto.name,
           description: dto.description,
-          is_active: dto.is_active !== false,
+          isActive: dto.is_active !== false,
         },
       });
 
@@ -121,10 +122,10 @@ export class BaseRbacController {
         data: {
           ...(dto.name && { name: dto.name }),
           ...(dto.description !== undefined && { description: dto.description }),
-          ...(dto.is_active !== undefined && { is_active: dto.is_active }),
+          ...(dto.is_active !== undefined && { isActive: dto.is_active }),
         },
         include: {
-          rolePermissions: {
+          role_permissions: {
             include: { permission: true },
           },
         },
@@ -176,7 +177,7 @@ export class BaseRbacController {
 
       // Delete role permissions first
       await this.prisma.rolePermission.deleteMany({
-        where: { role_id: id },
+        where: { roleId: id },
       });
 
       // Delete role
@@ -225,11 +226,11 @@ export class BaseRbacController {
     try {
       const permission = await this.prisma.permission.create({
         data: {
-          name: dto.name,
-          code: dto.code,
+          display_name: dto.name,
+          name: dto.code,
           description: dto.description,
-          group: dto.group || 'General',
-          is_active: dto.is_active !== false,
+          category: dto.group || 'General',
+          isActive: dto.is_active !== false,
         },
       });
 
@@ -268,11 +269,11 @@ export class BaseRbacController {
       const updated = await this.prisma.permission.update({
         where: { id },
         data: {
-          ...(dto.name && { name: dto.name }),
-          ...(dto.code && { code: dto.code }),
+          ...(dto.name && { display_name: dto.name }),
+          ...(dto.code && { name: dto.code }),
           ...(dto.description !== undefined && { description: dto.description }),
-          ...(dto.group && { group: dto.group }),
-          ...(dto.is_active !== undefined && { is_active: dto.is_active }),
+          ...(dto.group && { category: dto.group }),
+          ...(dto.is_active !== undefined && { isActive: dto.is_active }),
         },
       });
 
@@ -307,7 +308,7 @@ export class BaseRbacController {
 
       // Check if permission is assigned to any roles
       const roleCount = await this.prisma.rolePermission.count({
-        where: { permission_id: id },
+        where: { permissionId: id },
       });
 
       if (roleCount > 0) {
@@ -349,26 +350,21 @@ export class BaseRbacController {
         return { success: false, error: 'Role not found' };
       }
 
-      // Remove existing permissions
-      await this.prisma.rolePermission.deleteMany({
-        where: { role_id: roleId },
+      // Replace the grants atomically so a failed insert preserves existing access.
+      await this.prisma.$transaction(async (tx) => {
+        await tx.rolePermission.deleteMany({ where: { roleId } });
+        if (dto.permissionIds?.length) {
+          await tx.rolePermission.createMany({
+            data: dto.permissionIds.map((permissionId) => ({ roleId, permissionId })),
+            skipDuplicates: true,
+          });
+        }
       });
-
-      // Add new permissions
-      if (dto.permissionIds && dto.permissionIds.length > 0) {
-        await this.prisma.rolePermission.createMany({
-          data: dto.permissionIds.map((permissionId) => ({
-            role_id: roleId,
-            permission_id: permissionId,
-          })),
-          skipDuplicates: true,
-        });
-      }
 
       const updated = await this.prisma.role.findUnique({
         where: { id: roleId },
         include: {
-          rolePermissions: {
+          role_permissions: {
             include: { permission: true },
           },
         },

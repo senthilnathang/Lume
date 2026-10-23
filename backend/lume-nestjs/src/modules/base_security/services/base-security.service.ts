@@ -95,7 +95,7 @@ export class BaseSecurityService {
     userId: number,
     scopes: string[] = [],
   ): Promise<ApiKey & { plainKey: string }> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     const key = crypto.randomBytes(32).toString('hex');
     const prefix = 'lume_' + key.substring(0, 8);
     const fullKey = prefix + key.substring(8);
@@ -126,7 +126,7 @@ export class BaseSecurityService {
   }
 
   async validateApiKey(keyString: string): Promise<ApiKey | null> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     const hash = crypto
       .createHash('sha256')
       .update(keyString)
@@ -162,7 +162,7 @@ export class BaseSecurityService {
   }
 
   async getApiKeys(userId: number): Promise<ApiKey[]> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     return db
       .select()
       .from(apiKeys)
@@ -172,7 +172,7 @@ export class BaseSecurityService {
   }
 
   async revokeApiKey(id: number): Promise<ApiKey> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     const result = await db
       .update(apiKeys)
       .set({ status: 'inactive', updatedAt: new Date() })
@@ -191,7 +191,7 @@ export class BaseSecurityService {
   async checkIpAccess(
     ipAddress: string,
   ): Promise<{ allowed: boolean; reason: string }> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const blacklistRules = await db
       .select()
@@ -246,7 +246,7 @@ export class BaseSecurityService {
   }
 
   async getIpAccessRules(): Promise<IpAccessRule[]> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     return db.select().from(ipAccess).limit(1000);
   }
 
@@ -255,7 +255,7 @@ export class BaseSecurityService {
     type: 'whitelist' | 'blacklist',
     description?: string,
   ): Promise<IpAccessRule> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     const result = await db
       .insert(ipAccess)
       .values({
@@ -275,7 +275,7 @@ export class BaseSecurityService {
     id: number,
     data: Partial<IpAccessRule>,
   ): Promise<IpAccessRule> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     const result = await db
       .update(ipAccess)
       .set({ ...data, updatedAt: new Date() })
@@ -290,7 +290,7 @@ export class BaseSecurityService {
   }
 
   async deleteIpAccessRule(id: number): Promise<void> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     const result = await db
       .delete(ipAccess)
       .where(eq(ipAccess.id, id))
@@ -311,7 +311,7 @@ export class BaseSecurityService {
     ipAddress?: string,
     userAgent?: string,
   ): Promise<SecurityLog> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     const result = await db
       .insert(securityLogs)
       .values({
@@ -335,7 +335,7 @@ export class BaseSecurityService {
     status?: 'success' | 'failure';
     limit?: number;
   } = {}): Promise<SecurityLog[]> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
     const conditions: any[] = [];
 
     if (filters.userId) {
@@ -369,7 +369,7 @@ export class BaseSecurityService {
     otpauthUrl: string;
     backupCodes: string[];
   }> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const existing = await db
       .select()
@@ -413,7 +413,7 @@ export class BaseSecurityService {
   }
 
   async verify2FA(userId: number, token: string): Promise<void> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const record = await db
       .select()
@@ -445,7 +445,7 @@ export class BaseSecurityService {
   }
 
   async disable2FA(userId: number, token: string): Promise<void> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const record = await db
       .select()
@@ -480,7 +480,7 @@ export class BaseSecurityService {
     userId: number,
     token: string,
   ): Promise<{ valid: boolean; usedBackupCode?: boolean }> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const record = await db
       .select()
@@ -522,7 +522,7 @@ export class BaseSecurityService {
   }
 
   async is2FAEnabled(userId: number): Promise<boolean> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const record = await db
       .select()
@@ -534,7 +534,7 @@ export class BaseSecurityService {
   }
 
   async getBackupCodes(userId: number): Promise<string[]> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const record = await db
       .select()
@@ -558,7 +558,7 @@ export class BaseSecurityService {
     userId: number,
     token: string,
   ): Promise<string[]> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const record = await db
       .select()
@@ -605,7 +605,7 @@ export class BaseSecurityService {
     ipAddress?: string,
     userAgent?: string,
   ): Promise<Session> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const result = await db
       .insert(sessions)
@@ -626,7 +626,7 @@ export class BaseSecurityService {
   }
 
   async getActiveSessions(userId: number): Promise<Session[]> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     return db
       .select()
@@ -642,7 +642,7 @@ export class BaseSecurityService {
   }
 
   async terminateSession(sessionId: number): Promise<Session> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const result = await db
       .update(sessions)
@@ -661,7 +661,7 @@ export class BaseSecurityService {
     userId: number,
     currentToken: string,
   ): Promise<{ terminated: number }> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const userSessions = await db
       .select()
@@ -684,7 +684,7 @@ export class BaseSecurityService {
   }
 
   async updateSessionActivity(token: string): Promise<Session | null> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const session = await db
       .select()
@@ -709,7 +709,7 @@ export class BaseSecurityService {
   }
 
   async cleanupExpiredSessions(): Promise<{ cleaned: number }> {
-    const db = await this.getDrizzle();
+    const db = await this.getDb();
 
     const allSessions = await db
       .select()

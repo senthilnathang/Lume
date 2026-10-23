@@ -170,7 +170,7 @@ export class PublicController {
     const fontHeading = s['font_heading'] || "'Inter', sans-serif";
     const fontBody = s['font_body'] || "'Inter', sans-serif";
 
-    let tokens = { colors: {}, typography: {} };
+    let tokens: { colors: Record<string, string>; typography: Record<string, string | number> } = { colors: {}, typography: {} };
     try {
       tokens = {
         colors: {},

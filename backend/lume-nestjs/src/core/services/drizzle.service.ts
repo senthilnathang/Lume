@@ -5,31 +5,35 @@ import mysql from 'mysql2/promise';
 @Injectable()
 export class DrizzleService implements OnModuleInit, OnModuleDestroy {
   private db: any;
+  private pool: mysql.Pool;
 
-  async onModuleInit() {
+  constructor() {
     const dbUser = process.env.DB_USER;
-    const dbPass = process.env.DB_PASS;
+    const dbPass = process.env.DB_PASS ?? process.env.DB_PASSWORD;
 
-    if (!dbUser || !dbPass) {
+    if (!process.env.DATABASE_URL && (!dbUser || dbPass === undefined)) {
       throw new Error(
         'Database credentials must be set via environment variables: DB_USER and DB_PASS are required'
       );
     }
 
-    const connection = await mysql.createConnection({
+    this.pool = process.env.DATABASE_URL ? mysql.createPool(process.env.DATABASE_URL) : mysql.createPool({
       host: process.env.DB_HOST || 'localhost',
       user: dbUser,
       password: dbPass,
       database: process.env.DB_NAME || 'lume',
+      port: Number(process.env.DB_PORT || 3306),
+      connectionLimit: 5,
     });
 
-    this.db = drizzle(connection);
+    // Consumers request Drizzle in their constructors, before onModuleInit.
+    this.db = drizzle(this.pool);
   }
 
+  async onModuleInit() { await this.pool.query('SELECT 1'); }
+
   async onModuleDestroy() {
-    if (this.db) {
-      // Drizzle doesn't require explicit cleanup, but the pool will close when app exits
-    }
+    await this.pool.end();
   }
 
   getDrizzle() {

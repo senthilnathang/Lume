@@ -1,6 +1,8 @@
 # Lume Framework - Example Applications
 
-This directory contains complete, production-ready example modules demonstrating the Lume metadata-driven framework capabilities.
+This directory re-exports the runnable examples in `src/examples`, which are compiled with the backend. Enable loading with `LOAD_EXAMPLE_MODULES=true`; examples are disabled by default.
+
+These are metadata examples, not deployed applications. The hooks use the supported request context; host-specific assignment services, audit sinks, and custom event emitters must be integrated by the application. Existing order-number and task-completion hooks are included.
 
 ## Overview
 
@@ -483,3 +485,24 @@ See `test/integration/framework-integration.test.ts` for comprehensive examples.
 - [Architecture Guide](../docs/ARCHITECTURE.md)
 - [Development Guide](../docs/DEVELOPMENT.md)
 - [Migration Guide](../migrations/README.md)
+# Workflow action integrations
+
+`WorkflowExecutorService` requires an explicitly registered adapter for
+`send_notification`, `call_webhook`, `create_record`, and `ai` steps. Unconfigured
+actions fail the workflow instead of reporting synthetic delivery, record IDs,
+or AI output. Register adapters during application initialization:
+
+```ts
+executor.registerActionHandler('send_notification', async (context, step) => {
+  return notificationAdapter.execute(context, step);
+});
+```
+
+The adapter receives the workflow context and original step, must perform and
+await the operation, and returns the result stored in the step log. It must
+throw on failure and enforce its own validation, tenant scope, authorization,
+and delivery requirements. AI adapters must also assign any intended output
+variable in the context. Registration does not provide an external delivery
+service, durable retries, or approval-completion wiring. The existing custom
+handler API is unchanged; `set_field` still updates only the workflow's in-memory
+record and variables.

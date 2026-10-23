@@ -1,9 +1,9 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards, ForbiddenException } from '@nestjs/common';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
-import { GqlCurrentUser, GqlTenant } from '../../decorators/index.js';
-import { Permissions } from '../../decorators/index.js';
-import { JwtPayload } from '../../../auth/jwt.payload.js';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
+import { GqlCurrentUser, GqlTenant } from '../../../decorators/index.js';
+import { Permissions } from '../../../decorators/index.js';
+import type { JwtPayload } from '../../../graphql.context';
 import { TenantType } from '../types/tenant.type.js';
 import { CreateTenantInput } from '../inputs/create-tenant.input.js';
 import { UpdateTenantInput } from '../inputs/update-tenant.input.js';

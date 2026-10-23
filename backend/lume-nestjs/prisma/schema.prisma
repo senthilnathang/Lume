@@ -90,9 +90,58 @@ model automation_approval_chains {
   description String?                            @db.Text
   steps       String?                            @db.LongText
   condition   String?                            @db.LongText
+  trigger_event String @default("manual") @db.VarChar(30)
+  on_completed String? @db.VarChar(100)
+  on_rejected String? @db.VarChar(100)
   status      automation_approval_chains_status? @default(active)
   created_at  DateTime                           @default(now()) @db.DateTime(0)
   updated_at  DateTime                           @default(now()) @updatedAt @db.DateTime(0)
+}
+
+model automation_approval_requests {
+  id             Int      @id @default(autoincrement())
+  chainId        Int      @map("chain_id")
+  recordEntityId Int      @map("record_entity_id")
+  recordId       Int      @map("record_id")
+  companyId      Int      @map("company_id")
+  currentStep    Int      @default(0) @map("current_step")
+  status         String   @default("pending") @db.VarChar(20)
+  stepsData      String   @map("steps_data") @db.LongText
+  workflowData   String   @default("{}") @map("workflow_data") @db.VarChar(500)
+  initiatedBy    Int      @map("initiated_by")
+  completedAt    DateTime? @map("completed_at") @db.DateTime(3)
+  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@index([companyId, chainId, recordEntityId, recordId, status], map: "approval_request_lookup")
+}
+
+model AutomationJob {
+  id Int @id @default(autoincrement())
+  eventKey String @unique @map("event_key") @db.VarChar(191)
+  kind String @db.VarChar(40)
+  companyId Int @map("company_id")
+  userId Int @map("user_id")
+  payload String @db.LongText
+  status String @default("pending") @db.VarChar(20)
+  attempts Int @default(0)
+  availableAt DateTime @default(now()) @map("available_at") @db.DateTime(3)
+  leaseUntil DateTime? @map("lease_until") @db.DateTime(3)
+  leaseToken String? @map("lease_token") @db.VarChar(36)
+  lastError String? @map("last_error") @db.Text
+  result String? @db.LongText
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.DateTime(3)
+  @@index([status,availableAt],map:"automation_job_ready")
+  @@index([companyId,kind],map:"automation_job_tenant")
+  @@map("automation_jobs")
+}
+
+model AutomationReceipt {
+  key String @id @db.VarChar(191)
+  result String @db.LongText
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  @@map("automation_receipts")
 }
 
 model automation_assignment_rules {
@@ -102,6 +151,7 @@ model automation_assignment_rules {
   description String?                                @db.Text
   assign_to   automation_assignment_rules_assign_to? @default(user)
   assignee_id Int?
+  last_assigned_index Int @default(-1)
   condition   String?                                @db.LongText
   priority    Int?                                   @default(10)
   status      automation_assignment_rules_status?    @default(active)
@@ -583,6 +633,8 @@ model notification_channels {
 model notifications {
   id            Int                    @id @default(autoincrement())
   user_id       Int
+  company_id    Int?
+  event_key     String? @db.VarChar(150)
   title         String                 @db.VarChar(255)
   message       String?                @db.Text
   type          notifications_type?    @default(info)
@@ -594,6 +646,9 @@ model notifications {
   status        notifications_status?  @default(unread)
   created_at    DateTime               @default(now()) @db.DateTime(0)
   updated_at    DateTime               @default(now()) @updatedAt @db.DateTime(0)
+
+  @@unique([user_id, event_key], map: "notification_event_recipient")
+  @@index([user_id, company_id, status], map: "notification_inbox_scope")
 }
 
 model Permission {
@@ -815,6 +870,7 @@ model Entity {
   name            String    @unique
   label           String
   description     String?   @db.Text
+  aiMetadata      String?   @map("ai_metadata") @db.LongText
   moduleId        Int?      @map("module_id")
   createdBy       Int       @map("created_by")
   createdAt       DateTime  @default(now()) @map("created_at") @db.DateTime(0)
@@ -848,6 +904,7 @@ model EntityField {
   label        String   @db.VarChar(255)
   description  String?  @db.Text
   required     Boolean? @default(false)
+  isIndexed    Boolean? @default(false) @map("is_indexed")
   unique       Boolean? @default(false)
   validation   String?  @db.Text
   position     Int?     @default(0)
@@ -914,6 +971,7 @@ model EntityRelationship {
   label                String                     @db.VarChar(255)
   reverseLabel         String?                    @map("reverse_label") @db.VarChar(255)
   cascadeDelete        Boolean?                   @default(false) @map("cascade_delete")
+  cascadeUpdate        Boolean                    @default(false) @map("cascade_update")
   createdAt            DateTime                   @default(now()) @map("created_at") @db.DateTime(0)
 
   sourceEntity         Entity                     @relation("SourceEntity", fields: [sourceEntityId], references: [id], onDelete: Cascade, map: "entity_relationships_source_entity_id")

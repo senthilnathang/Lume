@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { SharedModule } from '@core/modules/shared.module';
 import { AgentQueryResolver } from './resolvers/agent-query.resolver';
 import { SchemaContextService } from './services/schema-context.service';
 import { NlToGraphqlService } from './services/nl-to-graphql.service';
@@ -9,6 +10,7 @@ import { NlToGraphqlService } from './services/nl-to-graphql.service';
  * Exposes schema context for LLM prompts and askQuery mutation
  */
 @Module({
+  imports: [SharedModule],
   providers: [AgentQueryResolver, SchemaContextService, NlToGraphqlService],
   exports: [AgentQueryResolver, SchemaContextService, NlToGraphqlService],
 })

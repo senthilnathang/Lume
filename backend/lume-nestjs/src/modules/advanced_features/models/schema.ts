@@ -31,6 +31,8 @@ export const webhookLogs = table('webhook_logs', {
 export const notifications = table('notifications', {
   ...baseColumns(),
   userId: idCol('user_id').notNull(),
+  companyId: idCol('company_id'),
+  eventKey: varchar('event_key', { length: 150 }),
   title: varchar('title', { length: 255 }).notNull(),
   message: text('message'),
   type: varchar('type', { length: 20 }).default('info'),

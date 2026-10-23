@@ -1,3 +1,4 @@
+import { documents } from '../models/schema';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import { CreateDocumentDto, UpdateDocumentDto, QueryDocumentsDto } from '../dtos';
@@ -25,8 +26,7 @@ export class DocumentsService {
   }
 
   async create(createDto: CreateDocumentDto, userId: number) {
-    const db = this.getDrizzle();
-    const { documents } = db;
+    const db = this.getDb();
 
     const normalized = this.normalizeDocumentData(createDto);
 
@@ -41,7 +41,7 @@ export class DocumentsService {
     const newDocument = await db
       .select()
       .from(documents)
-      .where(eq(documents.id, result.insertId))
+      .where(eq(documents.id, result[0].insertId))
       .limit(1);
 
     return {
@@ -52,8 +52,7 @@ export class DocumentsService {
   }
 
   async findById(id: number) {
-    const db = this.getDrizzle();
-    const { documents } = db;
+    const db = this.getDb();
 
     const document = await db.select().from(documents).where(eq(documents.id, id)).limit(1);
 
@@ -71,8 +70,7 @@ export class DocumentsService {
     const { page = 1, limit = 20, type, category, search, isPublic } = query;
     const offset = (page - 1) * limit;
 
-    const db = this.getDrizzle();
-    const { documents } = db;
+    const db = this.getDb();
 
     // Build where clause
     const whereConditions: any[] = [];
@@ -129,8 +127,7 @@ export class DocumentsService {
   }
 
   async update(id: number, updateDto: UpdateDocumentDto) {
-    const db = this.getDrizzle();
-    const { documents } = db;
+    const db = this.getDb();
 
     // Check if document exists
     const document = await db.select().from(documents).where(eq(documents.id, id)).limit(1);
@@ -152,8 +149,7 @@ export class DocumentsService {
   }
 
   async delete(id: number) {
-    const db = this.getDrizzle();
-    const { documents } = db;
+    const db = this.getDb();
 
     // Check if document exists
     const document = await db.select().from(documents).where(eq(documents.id, id)).limit(1);
@@ -170,8 +166,7 @@ export class DocumentsService {
   }
 
   async incrementDownloads(id: number) {
-    const db = this.getDrizzle();
-    const { documents } = db;
+    const db = this.getDb();
 
     // Check if document exists
     const document = await db.select().from(documents).where(eq(documents.id, id)).limit(1);
@@ -195,8 +190,7 @@ export class DocumentsService {
   }
 
   async getStats() {
-    const db = this.getDrizzle();
-    const { documents } = db;
+    const db = this.getDb();
 
     const [totalResult, imagesResult, docsResult, videosResult] = await Promise.all([
       db.select({ count: sql<number>`count(*)` }).from(documents),

@@ -1,3 +1,4 @@
+import { GraphQLJSON } from 'graphql-scalars';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Node } from '../../../shared/interfaces/node.interface';
 import { Auditable } from '../../../shared/interfaces/auditable.interface';
@@ -14,7 +15,7 @@ export class EntityRecordType implements Node, Auditable {
   @Field(() => EntityType, { nullable: true })
   entity?: EntityType;
 
-  @Field(() => Object) // JSON scalar
+  @Field(() => GraphQLJSON) // JSON scalar
   data: any;
 
   @Field(() => Int)

@@ -1,8 +1,8 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
-import { GqlTenant } from '../../decorators/index.js';
-import { GraphQLJSON } from 'graphql-type-json';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
+import { GqlTenant } from '../../../decorators/index.js';
+import { GraphQLJSON } from 'graphql-scalars';
 import { AnalyticsMetricType } from '../types/analytics-metric.type.js';
 import { AnalyticsDashboardType } from '../types/analytics-dashboard.type.js';
 

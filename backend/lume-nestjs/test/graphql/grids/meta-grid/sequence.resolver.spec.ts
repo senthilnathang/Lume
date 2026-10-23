@@ -1,3 +1,5 @@
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SequenceResolver } from '../../../../src/graphql/grids/meta-grid/resolvers/sequence.resolver';
 
@@ -8,9 +10,9 @@ describe('SequenceResolver', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [SequenceResolver],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

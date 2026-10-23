@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { SharedModule } from '@core/modules/shared.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ConfigService } from '@nestjs/config';
 import { ApolloDriver } from '@nestjs/apollo';
@@ -23,6 +24,7 @@ import { createGraphQLConfig } from './graphql.config';
 
 @Module({
   imports: [
+    SharedModule,
     ScalarsModule,
     GraphQLGuardsModule,
     DataGridModule,
@@ -36,7 +38,7 @@ import { createGraphQLConfig } from './graphql.config';
     PluginsModule,
     GraphQLModule.forRootAsync<any>({
       driver: ApolloDriver,
-      imports: [ScalarsModule, PluginsModule],
+      imports: [ScalarsModule, PluginsModule, SharedModule],
       inject: [
         ConfigService,
         PrismaService,

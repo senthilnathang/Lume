@@ -1,186 +1,113 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import { jest } from '@jest/globals';
+import { Logger } from '@nestjs/common';
+import { createClient } from 'graphql-ws';
+import WebSocket from 'ws';
+import { createHarness, type Harness } from './harness';
+jest.setTimeout(120000);
 
-/**
- * Performance Integration Tests
- * Tests DataLoader N+1 prevention, query complexity limits, execution time
- */
-describe('GraphQL Performance & Complexity (E2E)', () => {
-  let app: INestApplication;
-
-  const adminToken = 'Bearer eyJhbGc...';
-
-  beforeAll(async () => {
-    // TODO: Create test module with real services and logging
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      // imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+describe('GraphQL batching, complexity, and subscriptions (real MySQL)', () => {
+  let h: Harness;
+  const env = process.env.NODE_ENV;
+  beforeAll(async () => { h = await createHarness(); });
+  afterAll(async () => { await h?.close(); });
+  afterEach(() => { process.env.NODE_ENV = env; h.settings.slowQueries = false; jest.restoreAllMocks(); });
+  it('batches fields for ten entities into one SQL query', async () => {
+    h.queries.length = 0;
+    const response = await h.query('{ entities(pagination:{limit:10}) { id fields { id name type } } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entities).toHaveLength(10);
+    expect(response.body.data.entities.every((entity: any) => entity.fields.length > 0)).toBe(true);
+    expect(h.queries.filter(sql => sql.includes('FROM') && sql.includes('`entity_fields`'))).toHaveLength(1);
   });
-
-  afterAll(async () => {
-    await app.close();
+  it('batches role resolution for multiple field permissions', async () => {
+    h.queries.length = 0;
+    const response = await h.query('{ fieldPermissions(roleId:2,pagination:{limit:10}) { id role { id name } } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.fieldPermissions).toHaveLength(3);
+    expect(response.body.data.fieldPermissions.every((permission: any) => permission.role.name === 'member')).toBe(true);
+    expect(h.queries.filter(sql => sql.includes('FROM') && sql.includes('`roles`'))).toHaveLength(1);
   });
-
-  describe('DataLoader N+1 prevention', () => {
-    it('should batch load entity fields (1 query for 10 entities)', async () => {
-      const query = `query {
-        entities(pagination: { page: 1, limit: 10 }) {
-          id
-          name
-          fields { id name type }
-        }
-      }`;
-
-      // TODO: Enable query logging/tracing to count DB queries
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify response.body.data.entities[].fields loaded
-      // TODO: Check that total DB queries = 2 (entities + batch-loaded fields)
-      // NOT 11 (entity + field for each entity)
-    });
-
-    it('should use DataLoader for role resolution in FieldPermission', async () => {
-      const query = `query {
-        fieldPermissions(roleId: 1, pagination: { page: 1, limit: 10 }) {
-          id
-          canRead
-          canWrite
-          role { id name }
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify batch-loaded roles (1 query, not 10)
-    });
-
-    it('should not batch load unrelated queries', async () => {
-      const query = `query {
-        entities { id }
-        roles { id }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .send({ query });
-
-      // TODO: Verify separate queries for entities and roles (no inappropriate batching)
-    });
+  it('executes unrelated entity and role queries separately', async () => {
+    h.queries.length = 0;
+    const response = await h.query('{ entities(pagination:{limit:1}) { id } roles { id } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entities).toHaveLength(1);
+    expect(response.body.data.roles).toHaveLength(3);
+    expect(h.queries.some(sql => sql.includes('`entities`'))).toBe(true);
+    expect(h.queries.some(sql => sql.includes('`roles`'))).toBe(true);
   });
-
-  describe('Query complexity limits', () => {
-    it('should allow simple query under complexity limit', async () => {
-      const query = `query {
-        entities(pagination: { page: 1, limit: 5 }) {
-          id name
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify query executes without complexity error
-      // expect(response.body.errors).toBeUndefined();
-    });
-
-    it('should reject deeply nested query over complexity limit', async () => {
-      // Query selecting JSON data field (5 complexity points) for 50 records = 250 points
-      // Exceeds production limit of 100
-      const query = `query {
-        entityRecords(entityId: 1, pagination: { page: 1, limit: 50 }) {
-          items {
-            id
-            data
-          }
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify QUERY_COMPLEXITY_EXCEEDED error
-      // expect(response.body.errors[0].extensions.code).toBe('QUERY_COMPLEXITY_EXCEEDED');
-      // expect(response.status).toBe(200); // GraphQL returns 200 with errors
-    });
-
-    it('should include complexity info in error message', async () => {
-      const complexQuery = `query {
-        entities {
-          id
-          fields { id name }
-          fieldPermissions { id role { id } }
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query: complexQuery });
-
-      // TODO: If over limit, verify error message includes:
-      // "Query too complex: X/100" format
-    });
-
-    it('should use development limits in dev environment', async () => {
-      // TODO: Set NODE_ENV=development and verify higher limit (1000)
-      // Query that would fail in prod (complexity=250) should succeed in dev
-    });
+  it('allows a simple production query and reports its cost', async () => {
+    process.env.NODE_ENV = 'production';
+    const response = await h.query('{ entities(pagination:{limit:5}) { id name } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.extensions.queryComplexity).toBeGreaterThan(0);
+    expect(response.body.extensions.queryComplexity).toBeLessThanOrEqual(100);
   });
-
-  describe('Execution performance', () => {
-    it('should execute simple query within reasonable time (<100ms)', async () => {
-      const query = `query { entities(pagination: { page: 1, limit: 5 }) { id name } }`;
-
-      const startTime = Date.now();
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      const duration = Date.now() - startTime;
-
-      // TODO: Verify execution time logged in plugin
-      // expect(duration).toBeLessThan(100);
-    });
-
-    it('should log slow query warning (>500ms)', async () => {
-      // TODO: Create a slow query and verify warning logged
-      // (e.g., query with complex joins or missing index)
-    });
+  const expensive = '{ entityRecords(entityId:1,pagination:{limit:50}) { items { id data } } }';
+  it('rejects expensive JSON selections before database access', async () => {
+    process.env.NODE_ENV = 'production';
+    h.queries.length = 0;
+    const response = await h.query(expensive);
+    expect(response.body.errors[0].extensions.code).toBe('QUERY_COMPLEXITY_EXCEEDED');
+    expect(response.body.errors[0].message).toMatch(/Query too complex: \d+\/100/);
+    expect(h.queries).toHaveLength(0);
   });
-
-  describe('Subscription performance', () => {
-    it('should handle multiple concurrent subscriptions', async () => {
-      // TODO: Open 5 WebSocket connections simultaneously
-      // Trigger workflow and verify all clients receive flowExecuted event
-      // Verify no memory leaks or connection drops
-    });
-
-    it('should batch publish events efficiently', async () => {
-      // TODO: Trigger 100 workflows in rapid succession
-      // Verify all events published within reasonable time window
-    });
+  it('counts pagination variables, fragments, and aliases', async () => {
+    process.env.NODE_ENV = 'production';
+    const response = await h.query('query Cost($limit:Int!){ a:entities(pagination:{limit:$limit}) {...E} b:entities(pagination:{limit:$limit}) {...E} } fragment E on Entity { id name label }', undefined, { limit: 30 });
+    expect(response.body.errors[0].extensions.code).toBe('QUERY_COMPLEXITY_EXCEEDED');
+  });
+  it('allows the same query within the higher development budget', async () => {
+    process.env.NODE_ENV = 'development';
+    const response = await h.query(expensive);
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entityRecords.items).toHaveLength(3);
+    expect(response.body.extensions.queryComplexity).toBeGreaterThan(100);
+  });
+  it('serves a warmed simple query within a one-second integration budget', async () => {
+    const query = '{ entities(pagination:{limit:5}) { id name } }';
+    await h.query(query);
+    const start = performance.now();
+    const response = await h.query(query);
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entities).toHaveLength(5);
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+  it('logs a slow-query warning for a real delayed SQL operation', async () => {
+    const warn = jest.spyOn(Logger.prototype, 'warn');
+    h.settings.slowQueries = true;
+    const response = await h.query('{ entities(pagination:{limit:1}) { id } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(warn.mock.calls.some(args => String(args[0]).includes('Slow GraphQL query:'))).toBe(true);
+  });
+  it('delivers a burst to five concurrent subscribers and releases their listeners', async () => {
+    const clients = Array.from({ length: 5 }, () => createClient({ url: h.wsUrl, webSocketImpl: WebSocket, connectionParams: { authorization: `Bearer ${h.token()}` }, retryAttempts: 0 }));
+    const disposers: Array<() => void> = [];
+    const timers: Array<ReturnType<typeof setTimeout>> = [];
+    try {
+      const deliveries = clients.map(client => new Promise<number[]>((resolve, reject) => {
+        const ids: number[] = [];
+        const timer = setTimeout(() => reject(new Error(`Received ${ids.length}/100 subscription events`)), 5000);
+        timers.push(timer);
+        disposers.push(client.subscribe({ query: 'subscription { flowExecuted { id } }' }, {
+          next: value => { if (value.errors) return reject(value.errors); ids.push((value.data as any).flowExecuted.id); if (ids.length === 100) { clearTimeout(timer); resolve(ids); } },
+          error: reject, complete: () => {},
+        }));
+      }));
+      const start = Date.now();
+      while ((h.pubsub as any).ee.listenerCount('flowExecuted') !== 5) {
+        if (Date.now() - start > 3000) throw new Error('Subscribers did not register');
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      for (let id = 0; id < 100; id++) await h.pubsub.publish('flowExecuted', { flowExecuted: { id, companyId: 1 } });
+      for (const ids of await Promise.all(deliveries)) expect(ids).toEqual(Array.from({ length: 100 }, (_, i) => i));
+    } finally {
+      timers.forEach(clearTimeout);
+      disposers.forEach(dispose => dispose());
+      await Promise.all(clients.map(client => client.dispose()));
+    }
+    const start = Date.now();
+    while ((h.pubsub as any).ee.listenerCount('flowExecuted') !== 0 && Date.now() - start < 2000) await new Promise(resolve => setTimeout(resolve, 10));
+    expect((h.pubsub as any).ee.listenerCount('flowExecuted')).toBe(0);
   });
 });

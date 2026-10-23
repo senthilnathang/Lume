@@ -52,7 +52,7 @@ export class SecurityAuditService {
 
     const users = await this.prisma.user.findMany({ include: { role: true } });
 
-    if (!users.every((u) => u.roleId)) {
+    if (!users.every((u) => u.role_id)) {
       issues.push({
         type: 'BROKEN_ACCESS_CONTROL',
         severity: 'CRITICAL',

@@ -1,3 +1,4 @@
+import { teamMembers } from '../models/schema';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import {
@@ -36,8 +37,7 @@ export class TeamService {
   }
 
   async create(createDto: CreateTeamMemberDto) {
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     const normalized = this.normalizeTeamMemberData(createDto);
 
@@ -51,7 +51,7 @@ export class TeamService {
     const newMember = await db
       .select()
       .from(teamMembers)
-      .where(eq(teamMembers.id, result.insertId))
+      .where(eq(teamMembers.id, result[0].insertId))
       .limit(1);
 
     return {
@@ -62,8 +62,7 @@ export class TeamService {
   }
 
   async findById(id: number) {
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     const member = await db
       .select()
@@ -85,8 +84,7 @@ export class TeamService {
     const { page = 1, limit = 20, department, search, isActive, isLeader } = query;
     const offset = (page - 1) * limit;
 
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     // Build where clause
     const whereConditions: any[] = [];
@@ -144,8 +142,7 @@ export class TeamService {
   }
 
   async getActive() {
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     const members = await db
       .select()
@@ -160,8 +157,7 @@ export class TeamService {
   }
 
   async getLeaders() {
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     const members = await db
       .select()
@@ -176,8 +172,7 @@ export class TeamService {
   }
 
   async getByDepartment(department: string) {
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     const members = await db
       .select()
@@ -192,8 +187,7 @@ export class TeamService {
   }
 
   async getDepartments() {
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     const results = await db
       .selectDistinct({ department: teamMembers.department })
@@ -216,8 +210,7 @@ export class TeamService {
   }
 
   async update(id: number, updateDto: UpdateTeamMemberDto) {
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     // Check if member exists
     const member = await db
@@ -247,8 +240,7 @@ export class TeamService {
   }
 
   async delete(id: number) {
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     // Check if member exists
     const member = await db
@@ -269,8 +261,7 @@ export class TeamService {
   }
 
   async reorder(reorderDto: ReorderTeamMembersDto) {
-    const db = this.getDrizzle();
-    const { teamMembers } = db;
+    const db = this.getDb();
 
     for (const { id, order } of reorderDto.members) {
       await db

@@ -2,11 +2,9 @@ import { Injectable } from '@nestjs/common';
 import {
   WorkflowDefinition,
   WorkflowStep,
-  ConditionExpr,
   MetadataRegistryService,
-  ExecutionContext,
 } from '@core/runtime/metadata-registry.service';
-import { EventBusService, BuiltInEvents, LumeEvent } from '@core/runtime/event-bus.service';
+import { EventBusService, BuiltInEvents } from '@core/runtime/event-bus.service';
 import { ExecutionPipelineService } from '@core/runtime/execution-pipeline.service';
 import { PrismaService } from '@core/services/prisma.service';
 
@@ -26,6 +24,9 @@ export interface WorkflowRun {
 }
 
 export interface WorkflowRunContext {
+  companyId?: number;
+  executionKey?: string;
+  stepKey?: string;
   workflow: WorkflowDefinition;
   record: any;
   entityName: string;
@@ -34,10 +35,13 @@ export interface WorkflowRunContext {
   stepsLog: Array<{ stepIndex: number; stepType: string; result?: any; error?: string }>;
 }
 
+export type WorkflowActionType = 'send_notification' | 'call_webhook' | 'create_record' | 'ai';
+export type WorkflowActionHandler = (ctx: WorkflowRunContext, step: WorkflowStep) => Promise<unknown>;
+
 @Injectable()
 export class WorkflowExecutorService {
-  private workflowRuns = new Map<number, WorkflowRun>();
   private runCounter = 1;
+  private actionHandlers = new Map<WorkflowActionType, WorkflowActionHandler>();
   private registeredHandlers = new Map<string, (ctx: WorkflowRunContext, step: any) => Promise<void>>();
 
   constructor(
@@ -56,8 +60,9 @@ export class WorkflowExecutorService {
     entityName: string,
     triggerEvent: any,
     userId?: number,
+    options: { companyId?: number; executionKey?: string; definition?: WorkflowDefinition } = {},
   ): Promise<WorkflowRun> {
-    const workflow = this.metadataRegistry.getWorkflow(workflowName);
+    const workflow = options.definition || this.metadataRegistry.getWorkflow(workflowName);
     if (!workflow) {
       throw new Error(`Workflow '${workflowName}' not found`);
     }
@@ -76,7 +81,6 @@ export class WorkflowExecutorService {
       triggeredBy: userId,
     };
 
-    this.workflowRuns.set(runId, run);
 
     // Emit workflow started event
     this.eventBus.emit({
@@ -88,18 +92,20 @@ export class WorkflowExecutorService {
 
     try {
       const context: WorkflowRunContext = {
+        companyId: options.companyId,
+        executionKey: options.executionKey,
         workflow,
         record,
         entityName,
         userId,
-        variables: { ...record }, // Initialize with record data
+        variables: { ...record.data, ...record },
         stepsLog: run.stepsLog || [],
       };
 
       // Execute workflow steps
       for (let i = 0; i < workflow.steps.length; i++) {
         const step = workflow.steps[i];
-        await this.executeStep(step, context, i);
+          await this.executeStep(step, context, i);
       }
 
       run.status = 'completed';
@@ -133,6 +139,13 @@ export class WorkflowExecutorService {
     return run;
   }
 
+  registerActionHandler(type: WorkflowActionType, handler: WorkflowActionHandler): void {
+    if (!['send_notification', 'call_webhook', 'create_record', 'ai'].includes(type) || typeof handler !== 'function') {
+      throw new Error('A supported workflow action and callable handler are required');
+    }
+    this.actionHandlers.set(type, handler);
+  }
+
   registerCustomHandler(
     handlerName: string,
     handler: (ctx: WorkflowRunContext, step: any) => Promise<void>,
@@ -144,18 +157,21 @@ export class WorkflowExecutorService {
     step: WorkflowStep,
     context: WorkflowRunContext,
     stepIndex: number,
+    stepPath = String(stepIndex),
   ): Promise<void> {
-    const stepLog = { stepIndex, stepType: step.type };
+    const stepLog: WorkflowRunContext['stepsLog'][number] = { stepIndex, stepType: step.type };
+    context.stepKey = stepPath;
 
     try {
       switch (step.type) {
         case 'condition':
-          await this.executeCondition(step as any, context, stepIndex);
+          stepLog.result = { condition: await this.executeCondition(step, context, stepIndex, stepPath) };
           break;
 
         case 'set_field':
           {
             const fieldStep = step as any;
+            if (typeof fieldStep.field !== 'string' || ['__proto__','constructor','prototype'].includes(fieldStep.field)) throw new Error('Invalid workflow field');
             const value = this.evaluateExpression(fieldStep.value, context);
             context.variables[fieldStep.field] = value;
             context.record[fieldStep.field] = value;
@@ -164,30 +180,14 @@ export class WorkflowExecutorService {
           break;
 
         case 'send_notification':
-          {
-            const notifStep = step as any;
-            // Stub: in real implementation, integrate with notification service
-            console.log(`Sending notification to ${notifStep.to} using template ${notifStep.template}`);
-            stepLog.result = { sent: true };
-          }
-          break;
-
         case 'call_webhook':
-          {
-            const webhookStep = step as any;
-            // Stub: in real implementation, make actual HTTP request
-            console.log(`Calling webhook: ${webhookStep.method} ${webhookStep.url}`);
-            stepLog.result = { status: 200 };
-          }
-          break;
-
         case 'create_record':
+        case 'ai':
           {
-            const createStep = step as any;
-            const data = this.evaluateExpression(createStep.data, context);
-            // Stub: in real implementation, call entity service to create record
-            console.log(`Creating record in entity ${createStep.entity}:`, data);
-            stepLog.result = { id: Math.floor(Math.random() * 10000), ...data };
+            const handler = this.actionHandlers.get(step.type);
+            if (!handler) throw new Error(`Workflow action '${step.type}' is not configured`);
+            // Preserve the real adapter's result, without fabricated receipts or IDs.
+            stepLog.result = await handler(context, step);
           }
           break;
 
@@ -197,18 +197,6 @@ export class WorkflowExecutorService {
             const ms = this.convertDelayToMs(delayStep.duration, delayStep.unit);
             await new Promise(resolve => setTimeout(resolve, ms));
             stepLog.result = { delayed: ms };
-          }
-          break;
-
-        case 'ai':
-          {
-            const aiStep = step as any;
-            // Stub: in real implementation, call AI service
-            const prompt = this.evaluateExpression(aiStep.prompt, context);
-            console.log(`AI step prompt: ${prompt}`);
-            context.variables[aiStep.outputField] = 'AI response stub';
-            context.record[aiStep.outputField] = 'AI response stub';
-            stepLog.result = { output: 'AI response stub' };
           }
           break;
 
@@ -225,7 +213,7 @@ export class WorkflowExecutorService {
           break;
 
         default:
-          throw new Error(`Unknown step type: ${step.type}`);
+          throw new Error(`Unknown step type: ${(step as { type: string }).type}`);
       }
 
       context.stepsLog.push(stepLog);
@@ -240,30 +228,27 @@ export class WorkflowExecutorService {
     step: any,
     context: WorkflowRunContext,
     parentStepIndex: number,
-  ): Promise<void> {
-    const conditionResult = this.evaluateExpression(step.if, context);
+    stepPath: string,
+  ): Promise<boolean> {
+    const conditionResult = this.matchesCondition(step.if, context);
 
     if (conditionResult) {
       // Execute 'then' steps
       if (step.then && Array.isArray(step.then)) {
         for (let i = 0; i < step.then.length; i++) {
-          await this.executeStep(step.then[i], context, parentStepIndex);
+          await this.executeStep(step.then[i], context, parentStepIndex, `${stepPath}.then.${i}`);
         }
       }
     } else {
       // Execute 'else' steps if provided
       if (step.else && Array.isArray(step.else)) {
         for (let i = 0; i < step.else.length; i++) {
-          await this.executeStep(step.else[i], context, parentStepIndex);
+          await this.executeStep(step.else[i], context, parentStepIndex, `${stepPath}.else.${i}`);
         }
       }
     }
 
-    context.stepsLog.push({
-      stepIndex: parentStepIndex,
-      stepType: 'condition',
-      result: { condition: conditionResult },
-    });
+    return conditionResult;
   }
 
   private evaluateExpression(expr: any, context: WorkflowRunContext): any {
@@ -277,15 +262,36 @@ export class WorkflowExecutorService {
     }
 
     if (typeof expr === 'object' && expr !== null) {
+      if (Array.isArray(expr)) return expr.map(value => this.evaluateExpression(value, context));
       // Evaluate object expressions recursively
       const result: any = {};
       for (const [key, value] of Object.entries(expr)) {
+        if (['__proto__','constructor','prototype'].includes(key)) throw new Error('Invalid workflow expression key');
         result[key] = this.evaluateExpression(value, context);
       }
       return result;
     }
 
     return expr;
+  }
+
+  private matchesCondition(condition:any,context:WorkflowRunContext):boolean {
+    if(typeof condition==='boolean')return condition;
+    if(!condition||typeof condition!=='object'||Array.isArray(condition))throw new Error('Invalid workflow condition');
+    if(!Object.keys(condition).length)return true;
+    const {field,operator}=condition;
+    if(typeof field!=='string'||['__proto__','constructor','prototype'].includes(field))throw new Error('Invalid condition field');
+    if(!['==','===','!=','!==','>','>=','<','<=','in','not_in'].includes(operator))throw new Error('Unsupported condition operator');
+    if(!Object.prototype.hasOwnProperty.call(context.variables,field))return false;
+    const actual=context.variables[field],expected=this.evaluateExpression(condition.value,context);
+    if(operator==='in'||operator==='not_in'){
+      if(!Array.isArray(expected))throw new Error('Condition membership requires an array');
+      return operator==='in'?expected.includes(actual):!expected.includes(actual);
+    }
+    if(operator==='=='||operator==='===')return actual===expected;
+    if(operator==='!='||operator==='!==')return actual!==expected;
+    if(typeof actual!==typeof expected||!['number','string'].includes(typeof actual))return false;
+    switch(operator){case '>':return actual>expected;case '>=':return actual>=expected;case '<':return actual<expected;case '<=':return actual<=expected;}
   }
 
   private convertDelayToMs(duration: number, unit: string): number {
@@ -295,7 +301,9 @@ export class WorkflowExecutorService {
       hours: 60 * 60 * 1000,
       days: 24 * 60 * 60 * 1000,
     };
-    return duration * (unitMs[unit] || 1000);
+    const milliseconds=duration*unitMs[unit];
+    if(!Number.isFinite(milliseconds)||milliseconds<0||milliseconds>30000)throw new Error('Workflow delays must be between 0 and 30 seconds; use scheduling for longer waits');
+    return milliseconds;
   }
 
   private registerDefaultHandlers(): void {

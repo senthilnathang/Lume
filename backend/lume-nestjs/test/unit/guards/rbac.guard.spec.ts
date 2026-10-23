@@ -1,75 +1,44 @@
 import { jest } from '@jest/globals';
-import { ForbiddenException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { RbacGuard } from '@core/guards/rbac.guard';
-import { RbacService } from '@core/services/rbac.service';
+import { Permissions } from '@core/decorators/permissions.decorator';
 
-describe('RbacGuard', () => {
-  let guard: RbacGuard;
-  let rbacService: any;
+@Permissions('base.read')
+class ProtectedController {
+  inherited() {}
+  @Permissions('base.read', 'base.write') write() {}
+  @Permissions() unrestricted() {}
+}
 
-  beforeEach(() => {
-    rbacService = {
-      hasPermission: jest.fn(),
-      isAdminRole: jest.fn(),
-    };
-
-    guard = new RbacGuard(rbacService);
+describe('RbacGuard with decorator metadata', () => {
+  const context = (method: string, user?: any): any => ({
+    getClass: () => ProtectedController,
+    getHandler: () => ProtectedController.prototype[method],
+    switchToHttp: () => ({ getRequest: () => ({ user }) }),
   });
-
-  it('should be defined', () => {
-    expect(guard).toBeDefined();
+  const service = {
+    isAdminRole: (role: string) => ['admin', 'super_admin'].includes(role),
+    hasPermission: jest.fn(async (_id: number, permission: string) => permission === 'base.read'),
+  };
+  const guard = new RbacGuard(service as any, new Reflector());
+  beforeEach(() => service.hasPermission.mockClear());
+  it('enforces class metadata and uses the authenticated user ID', async () => {
+    await expect(guard.canActivate(context('inherited', { id: 7, role_name: 'member' }))).resolves.toBe(true);
+    expect(service.hasPermission).toHaveBeenCalledWith(7, 'base.read');
   });
-
-  it('should allow admin users', async () => {
-    const mockContext = {
-      switchToHttp: () => ({
-        getRequest: () => ({
-          user: { id: 1, role_id: 1, role: { name: 'admin' } },
-        }),
-      }),
-      getHandler: () => ({ __permissions__: ['create_user'] }),
-    };
-
-    (rbacService.isAdminRole as jest.Mock).mockReturnValue(true);
-
-    const result = await guard.canActivate(mockContext as any);
-    expect(result).toBe(true);
+  it('requires every permission on the method', async () => {
+    await expect(guard.canActivate(context('write', { id: 7, role_name: 'member' }))).rejects.toThrow('Missing permission: base.write');
   });
-
-  it('should deny users without required permission', async () => {
-    const mockContext = {
-      switchToHttp: () => ({
-        getRequest: () => ({
-          user: { id: 2, role_id: 2, role: { name: 'user' } },
-        }),
-      }),
-      getHandler: () => ({ __permissions__: ['delete_user'] }),
-    };
-
-    (rbacService.isAdminRole as jest.Mock).mockReturnValue(false);
-    (rbacService.hasPermission as jest.Mock).mockResolvedValue(false);
-
-    try {
-      await guard.canActivate(mockContext as any);
-      expect(true).toBe(false); // Should have thrown
-    } catch (error) {
-      expect(error instanceof ForbiddenException).toBe(true);
-      const response = (error as ForbiddenException).getResponse() as any;
-      expect(response.message).toContain('Missing permission');
-    }
+  it('denies protected handlers without an authenticated identity', async () => {
+    await expect(guard.canActivate(context('inherited'))).rejects.toThrow('User not authenticated');
+    await expect(guard.canActivate(context('inherited', {}))).rejects.toThrow('User not authenticated');
+    expect(service.hasPermission).not.toHaveBeenCalled();
   });
-
-  it('should allow requests with no permission requirements', async () => {
-    const mockContext = {
-      switchToHttp: () => ({
-        getRequest: () => ({
-          user: { id: 2, role_id: 2, role: { name: 'user' } },
-        }),
-      }),
-      getHandler: () => ({ __permissions__: [] }),
-    };
-
-    const result = await guard.canActivate(mockContext as any);
-    expect(result).toBe(true);
+  it.each(['admin', 'super_admin'])('recognizes the JWT role_name for %s', async role => {
+    await expect(guard.canActivate(context('write', { id: 1, role_name: role }))).resolves.toBe(true);
+    expect(service.hasPermission).not.toHaveBeenCalled();
+  });
+  it('supports a method explicitly clearing class permissions', async () => {
+    await expect(guard.canActivate(context('unrestricted'))).resolves.toBe(true);
   });
 });

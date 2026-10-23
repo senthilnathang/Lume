@@ -1,9 +1,20 @@
+import { PrismaService } from '../../../../src/core/services/prisma.service';
+import { FieldPermissionService } from '../../../../src/modules/base/services/field-permission.service';
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { FieldPermissionResolver } from '../../../../src/graphql/grids/policy-grid/resolvers/field-permission.resolver';
 import { PaginationInput } from '../../../../src/graphql/shared/inputs/pagination.input';
 
 describe('FieldPermissionResolver', () => {
   let resolver: FieldPermissionResolver;
+  const permission = { id: 1, fieldId: 1, roleId: 2, canRead: true, canWrite: false, createdAt: new Date() };
+  const service = {
+    getFieldPermission: jest.fn().mockResolvedValue(null),
+    setFieldPermission: jest.fn().mockResolvedValue({ data: permission }),
+    removeFieldPermission: jest.fn().mockResolvedValue(false),
+  };
 
   const mockUser = {
     sub: 1,
@@ -22,11 +33,13 @@ describe('FieldPermissionResolver', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [FieldPermissionResolver],
+      providers: [FieldPermissionResolver,
+        { provide: FieldPermissionService, useValue: service },
+        { provide: PrismaService, useValue: { entityFieldPermission: { findMany: async () => [] } } }],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -94,15 +107,16 @@ describe('FieldPermissionResolver', () => {
       canWrite: false,
     };
 
-    expect(() =>
-      resolver.setFieldPermission(input, mockUser),
-    ).rejects.toThrow('Not implemented');
+    const result = await resolver.setFieldPermission(input, mockUser);
+    expect(result).toMatchObject({ ...permission, isMasked: false, maskChar: '*' });
+    expect(service.setFieldPermission).toHaveBeenCalledWith(1, 2, true, false, undefined, undefined);
   });
 
   it('should remove field permission', async () => {
     const result = await resolver.removeFieldPermission(1, 2, mockUser);
 
     expect(result).toBe(false);
+    expect(service.removeFieldPermission).toHaveBeenCalledWith(1, 2);
   });
 
   it('should resolve role using DataLoader', async () => {
@@ -110,6 +124,7 @@ describe('FieldPermissionResolver', () => {
 
     const result = await resolver.role(fieldPerm, mockContext as any);
 
-    expect(result).toBeNull();
+    expect(result).toEqual({});
+    expect(mockContext.loaders.roleById.load).toHaveBeenCalledWith(2);
   });
 });

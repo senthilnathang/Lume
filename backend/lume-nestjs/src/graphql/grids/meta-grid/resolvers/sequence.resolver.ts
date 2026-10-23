@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
 import { SequenceType } from '../types/sequence.type.js';
 import { CreateSequenceInput } from '../inputs/create-sequence.input.js';
 import { UpdateSequenceInput } from '../inputs/update-sequence.input.js';

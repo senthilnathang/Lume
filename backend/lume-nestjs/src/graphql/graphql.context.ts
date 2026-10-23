@@ -1,3 +1,5 @@
+import { JwtService } from '@nestjs/jwt';
+import { resolveTenant } from './tenant';
 import { Request } from 'express';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../core/services/prisma.service';
@@ -14,8 +16,10 @@ export interface JwtPayload {
   exp?: number;
 }
 
+export type AuthenticatedRequest = Request & { user?: JwtPayload };
+
 export interface GqlContext {
-  req: Request;
+  req: AuthenticatedRequest;
   user: JwtPayload | null;
   companyId: number | null;
   loaders: DataLoaderRegistry;
@@ -28,27 +32,24 @@ export class GraphQLContextFactory {
     private readonly drizzleService: DrizzleService,
   ) {}
 
-  createContext({ req }: { req: Request }): GqlContext {
-    const user = (req.user as JwtPayload) || null;
-
-    // Extract tenant ID from header or JWT claim
-    const companyId =
-      Number(req.headers['x-org-id']) ||
-      user?.company_id ||
-      null;
-
-    // Create per-request DataLoaders scoped to tenant
-    const loaders = new DataLoaderRegistry(
-      this.prismaService,
-      this.drizzleService,
-      companyId,
-    );
-
+  createContext({ req }: { req: AuthenticatedRequest }): GqlContext {
+    // Apollo can copy context properties before guards run. Verify the bearer token
+    // before resolving tenant-scoped loaders; Passport still guards each operation.
+    if (!req.user && typeof req.headers?.authorization === 'string') {
+      const [scheme, token] = req.headers.authorization.split(' ');
+      if (scheme === 'Bearer' && token) {
+        try { req.user = new JwtService({ secret: process.env.JWT_SECRET }).verify<JwtPayload>(token); }
+        catch { /* The authentication guard reports invalid credentials. */ }
+      }
+    }
+    let loaders: DataLoaderRegistry;
+    const prisma = this.prismaService;
+    const drizzle = this.drizzleService;
     return {
       req,
-      user,
-      companyId,
-      loaders,
+      get user() { return req.user || null; },
+      get companyId() { return req.user ? resolveTenant(req) : null; },
+      get loaders() { return loaders ||= new DataLoaderRegistry(prisma, drizzle, req.user ? resolveTenant(req) : null); },
     };
   }
 }

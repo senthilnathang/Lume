@@ -1,118 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/services/prisma.service';
+
+import { RecordService } from './record.service';
+import { executeCascade } from './cascade-operation';
+
+export interface CascadeContext { companyId: number; userId: number }
 
 @Injectable()
 export class CascadeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private records: RecordService) {}
 
-  async handleCascadeDelete(entityId: number, recordId: number): Promise<void> {
-    try {
-      // Get all relationships for this entity
-      const relationships = await this.prisma.entityRelationship.findMany({
-        where: {
-          OR: [
-            { sourceEntityId: entityId },
-            { targetEntityId: entityId },
-          ],
-        },
-      });
-
-      // Process cascade deletes
-      for (const relationship of relationships) {
-        if (!relationship.cascadeDelete) continue;
-
-        // If source entity is being deleted, cascade to target
-        if (relationship.sourceEntityId === entityId) {
-          const relatedRecords = await this.prisma.entityRelationshipRecord.findMany({
-            where: { sourceRecordId: recordId },
-          });
-
-          for (const rel of relatedRecords) {
-            // Soft delete related records
-            await this.prisma.entityRecord.update({
-              where: { id: rel.targetRecordId },
-              data: { deletedAt: new Date() },
-            });
-          }
-        } else if (relationship.targetEntityId === entityId) {
-          const relatedRecords = await this.prisma.entityRelationshipRecord.findMany({
-            where: { targetRecordId: recordId },
-          });
-
-          for (const rel of relatedRecords) {
-            // Soft delete related records
-            await this.prisma.entityRecord.update({
-              where: { id: rel.sourceRecordId },
-              data: { deletedAt: new Date() },
-            });
-          }
-        }
-      }
-    } catch (error: any) {
-      console.error(`Cascade delete failed: ${error.message}`);
-    }
+  async handleCascadeDelete(entityId: number, recordId: number, context: CascadeContext): Promise<void> {
+    await this.cascade(entityId, recordId, 'delete', context);
   }
 
-  async handleCascadeUpdate(entityId: number, recordId: number, updates: Record<string, any>): Promise<void> {
-    try {
-      // Get all relationships for this entity
-      const relationships = await this.prisma.entityRelationship.findMany({
-        where: {
-          OR: [
-            { sourceEntityId: entityId },
-            { targetEntityId: entityId },
-          ],
-        },
-      });
+  async handleCascadeUpdate(entityId: number, recordId: number, updates: Record<string, any>, context: CascadeContext): Promise<void> {
+    await this.cascade(entityId, recordId, 'update', context, updates);
+  }
 
-      // Process cascade updates
-      for (const relationship of relationships) {
-        if (!relationship.cascadeUpdate) continue;
-
-        if (relationship.sourceEntityId === entityId) {
-          const relatedRecords = await this.prisma.entityRelationshipRecord.findMany({
-            where: { sourceRecordId: recordId },
-          });
-
-          for (const rel of relatedRecords) {
-            const targetRecord = await this.prisma.entityRecord.findUnique({
-              where: { id: rel.targetRecordId },
-            });
-
-            if (targetRecord) {
-              const data = JSON.parse(targetRecord.data || '{}');
-              const mergedData = { ...data, ...updates };
-
-              await this.prisma.entityRecord.update({
-                where: { id: rel.targetRecordId },
-                data: { data: JSON.stringify(mergedData) },
-              });
-            }
-          }
-        } else if (relationship.targetEntityId === entityId) {
-          const relatedRecords = await this.prisma.entityRelationshipRecord.findMany({
-            where: { targetRecordId: recordId },
-          });
-
-          for (const rel of relatedRecords) {
-            const sourceRecord = await this.prisma.entityRecord.findUnique({
-              where: { id: rel.sourceRecordId },
-            });
-
-            if (sourceRecord) {
-              const data = JSON.parse(sourceRecord.data || '{}');
-              const mergedData = { ...data, ...updates };
-
-              await this.prisma.entityRecord.update({
-                where: { id: rel.sourceRecordId },
-                data: { data: JSON.stringify(mergedData) },
-              });
-            }
-          }
-        }
-      }
-    } catch (error: any) {
-      console.error(`Cascade update failed: ${error.message}`);
+  private async cascade(
+    entityId: number,
+    recordId: number,
+    operation: 'delete' | 'update',
+    context: CascadeContext,
+    updates: Record<string, any> = {},
+  ): Promise<void> {
+    if (!context || ![context.companyId, context.userId].every(id => Number.isSafeInteger(id) && id > 0)) {
+      throw new ForbiddenException('Cascade requires a valid tenant and actor');
     }
+    if (![entityId, recordId].every(id => Number.isSafeInteger(id) && id > 0) ||
+        !updates || typeof updates !== 'object' || Array.isArray(updates)) {
+      throw new BadRequestException('Invalid cascade input');
+    }
+    await this.prisma.$transaction(async (tx) => {
+      await executeCascade(tx, this.records.withTransaction(tx), entityId, recordId, operation, context, updates);
+    });
   }
 }

@@ -1,9 +1,18 @@
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { RecordRuleManagementService } from '../../../../src/modules/base/services/record-rule-management.service';
+import { jest } from '@jest/globals';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RecordRuleResolver } from '../../../../src/graphql/grids/policy-grid/resolvers/record-rule.resolver';
 import { PaginationInput } from '../../../../src/graphql/shared/inputs/pagination.input';
 
 describe('RecordRuleResolver', () => {
   let resolver: RecordRuleResolver;
+  const service = {
+    list: jest.fn().mockResolvedValue([]), get: jest.fn().mockResolvedValue(null),
+    create: jest.fn().mockResolvedValue({ id: 1 }), update: jest.fn().mockResolvedValue({ id: 1 }),
+    delete: jest.fn().mockResolvedValue(true), reorder: jest.fn().mockResolvedValue([]),
+  };
 
   const mockUser = {
     sub: 1,
@@ -14,11 +23,11 @@ describe('RecordRuleResolver', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RecordRuleResolver],
+      providers: [RecordRuleResolver, { provide: RecordRuleManagementService, useValue: service }],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -58,7 +67,7 @@ describe('RecordRuleResolver', () => {
   });
 
   it('should create record rule', async () => {
-    expect(() =>
+    await expect(
       resolver.createRecordRule(
         'test-rule',
         'entity',
@@ -69,11 +78,12 @@ describe('RecordRuleResolver', () => {
         10,
         mockUser,
       ),
-    ).rejects.toThrow('Not implemented');
+    ).resolves.toEqual({ id: 1 });
+    expect(service.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'test-rule', sequence: 10 }), 1);
   });
 
   it('should update record rule', async () => {
-    expect(() =>
+    await expect(
       resolver.updateRecordRule(
         1,
         'updated-rule',
@@ -85,13 +95,15 @@ describe('RecordRuleResolver', () => {
         undefined,
         mockUser,
       ),
-    ).rejects.toThrow('Not implemented');
+    ).resolves.toEqual({ id: 1 });
+    expect(service.update).toHaveBeenCalledWith(1, expect.objectContaining({ name: 'updated-rule' }), 1);
   });
 
   it('should delete record rule', async () => {
     const result = await resolver.deleteRecordRule(1, mockUser);
 
-    expect(result).toBe(false);
+    expect(result).toBe(true);
+    expect(service.delete).toHaveBeenCalledWith(1, 1);
   });
 
   it('should reorder record rules', async () => {

@@ -1,31 +1,20 @@
-import { Scalar, CustomScalarSymbol } from '@nestjs/graphql';
-import { GraphQLScalarType, Kind } from 'graphql';
+import { Scalar, CustomScalar } from '@nestjs/graphql';
+import { GraphQLJSON } from 'graphql-scalars';
+import { ValueNode } from 'graphql';
 
 @Scalar('JSON', () => Object)
-export class JSONScalar implements CustomScalarSymbol {
+export class JSONScalar implements CustomScalar<unknown, unknown> {
   description = 'JSON custom scalar type';
 
-  parseValue(value: any): any {
-    if (typeof value === 'string') {
-      return JSON.parse(value);
-    }
-    return value;
+  parseValue(value: unknown): unknown {
+    return GraphQLJSON.parseValue(value);
   }
 
-  serialize(value: any): string {
-    if (typeof value === 'string') {
-      return value;
-    }
-    return JSON.stringify(value);
+  serialize(value: unknown): unknown {
+    return GraphQLJSON.serialize(value);
   }
 
-  parseLiteral(ast: any): any {
-    if (ast.kind === Kind.STRING) {
-      return JSON.parse(ast.value);
-    }
-    if (ast.kind === Kind.OBJECT) {
-      return ast.value;
-    }
-    return null;
+  parseLiteral(ast: ValueNode, variables?: Record<string, unknown>): unknown {
+    return GraphQLJSON.parseLiteral(ast, variables);
   }
 }

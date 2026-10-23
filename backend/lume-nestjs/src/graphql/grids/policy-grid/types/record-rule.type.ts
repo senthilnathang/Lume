@@ -1,10 +1,10 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Node } from '../../shared/interfaces/node.interface';
-import { Auditable } from '../../shared/interfaces/auditable.interface';
+import { ObjectType, Field, Int, ID } from '@nestjs/graphql';
+import { Node } from '../../../shared/interfaces/node.interface';
 
-@ObjectType('RecordRule', { implements: [Node, Auditable] })
-export class RecordRuleType implements Node, Auditable {
-  @Field(() => Int)
+// Legacy rows have nullable timestamps, so they cannot implement Auditable's non-null contract.
+@ObjectType('RecordRule', { implements: [Node] })
+export class RecordRuleType implements Node {
+  @Field(() => ID)
   id: number;
 
   @Field()
@@ -25,16 +25,16 @@ export class RecordRuleType implements Node, Auditable {
   @Field({ nullable: true })
   users?: string;
 
-  @Field()
+  @Field({ nullable: true })
   isActive: boolean;
 
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   sequence: number;
 
-  @Field()
+  @Field({ nullable: true })
   createdAt: Date;
 
-  @Field()
+  @Field({ nullable: true })
   updatedAt: Date;
 
   @Field({ nullable: true })

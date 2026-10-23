@@ -9,8 +9,9 @@ import {
   Query,
   UseGuards,
   Response,
+  ParseBoolPipe,
 } from '@nestjs/common';
-import { Response as ExpressResponse } from 'express';
+import type { Response as ExpressResponse } from 'express';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import { RbacGuard } from '@core/guards/rbac.guard';
 import { Permissions, Public } from '@core/decorators';
@@ -34,9 +35,9 @@ export class FeaturesDataController {
   @Get('flags')
   @UseGuards(JwtAuthGuard, RbacGuard)
   @Permissions('base_features_data.export.view')
-  async getFeatureFlags(@Query('enabled') enabled?: boolean) {
+  async getFeatureFlags(@Query('enabled', new ParseBoolPipe({ optional: true })) enabled?: boolean) {
     return this.featuresDataService.getFeatureFlags({
-      enabled: enabled !== undefined ? enabled === true || enabled === 'true' : undefined,
+      enabled,
     });
   }
 

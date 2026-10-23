@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
-import { GqlTenant } from '../../decorators/index.js';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
+import { GqlTenant } from '../../../decorators/index.js';
 import { WebsiteSettingsType } from '../types/website-settings.type.js';
 import { UpdateSettingsInput } from '../inputs/update-settings.input.js';
 

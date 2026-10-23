@@ -1,3 +1,5 @@
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SystemSettingResolver } from '../../../../src/graphql/grids/meta-grid/resolvers/system-setting.resolver';
 
@@ -8,9 +10,9 @@ describe('SystemSettingResolver', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [SystemSettingResolver],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

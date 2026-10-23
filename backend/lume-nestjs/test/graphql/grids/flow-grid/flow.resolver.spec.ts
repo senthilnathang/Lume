@@ -1,3 +1,5 @@
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
 import { Test, TestingModule } from '@nestjs/testing';
 import { FlowResolver } from '../../../../src/graphql/grids/flow-grid/resolvers/flow.resolver';
 import { PaginationInput } from '../../../../src/graphql/shared/inputs/pagination.input';
@@ -17,9 +19,9 @@ describe('FlowResolver', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [FlowResolver],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

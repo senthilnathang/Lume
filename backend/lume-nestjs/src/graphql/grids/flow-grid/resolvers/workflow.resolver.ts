@@ -10,26 +10,28 @@ import { GqlJwtGuard } from '../../../guards/gql-jwt.guard';
 import { GqlRbacGuard } from '../../../guards/gql-rbac.guard';
 import { GqlCurrentUser } from '../../../decorators/gql-current-user.decorator';
 import { GqlTenant } from '../../../decorators/gql-tenant.decorator';
-import { Permissions } from '../../../core/decorators/permissions.decorator';
+import { Permissions } from '../../../../core/decorators/permissions.decorator';
 import { PaginationInput } from '../../../shared/inputs/pagination.input';
 import { Paginated } from '../../../shared/types/paginated.type';
 import { WorkflowType } from '../types/workflow.type';
 import { CreateWorkflowInput } from '../inputs/create-workflow.input';
 import { UpdateWorkflowInput } from '../inputs/update-workflow.input';
 import { TriggerWorkflowInput } from '../inputs/trigger-workflow.input';
-import { GqlContext, JwtPayload } from '../../../graphql.context';
+import type { GqlContext, JwtPayload } from '../../../graphql.context';
 
 /**
  * FlowGrid Workflow Resolver
  * Queries and mutations for automation workflow CRUD and execution
  * Delegates to AutomationService for business logic
  */
+const WorkflowPage = Paginated(WorkflowType);
+
 @Resolver(() => WorkflowType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class WorkflowResolver {
   constructor() {}
 
-  @Query(() => Paginated(WorkflowType), { name: 'workflows' })
+  @Query(() => WorkflowPage, { name: 'workflows' })
   @Permissions('base.workflows.read')
   async workflows(
     @Args('model', { nullable: true }) model?: string,

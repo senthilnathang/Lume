@@ -1,9 +1,9 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Node, Auditable } from '../../shared/interfaces/index.js';
+import { ObjectType, Field, Int, ID } from '@nestjs/graphql';
+import { Node, Auditable } from '../../../shared/interfaces/index.js';
 
 @ObjectType('MarketplaceReview', { implements: [Node, Auditable] })
 export class MarketplaceReviewType implements Node, Auditable {
-  @Field(() => String)
+  @Field(() => ID)
   id: string;
 
   @Field(() => String)

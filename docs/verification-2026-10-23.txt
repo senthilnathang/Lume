@@ -1,0 +1,80 @@
+NestJS verification and startup repair — 2026-10-23
+
+Scope: finish the pending NestJS migration, startup, durable workflow and
+deployment-review tasks. External email/push and AI integrations remain disabled
+at the user's explicit request. No provider credentials were added or exposed.
+
+DATABASE
+The local lume ledger already contained migrations 001–015. Inspected the
+schema additions from 014–015; no replay or reset was needed. Ledger presence
+alone does not establish compatibility of every older migration file.
+
+Created a private logical backup before further changes:
+/opt/Lume/backups.local/lume-2026-10-23T05-09-28-015Z.sql
+Size: 1,161,155 bytes.
+SHA-256: 3c77f68aa59d573054ed0545ebecea259e24865cc8f30868dacbe95c681365f0
+Verified the checksum and restored into a disposable database: 136 base tables
+and 15 migration records recovered. Removed only that disposable database.
+The backup directory is excluded from Git; dump and metadata permissions are 0600.
+
+Full startup exposed five absent Drizzle marketplace tables. Added migration
+016_create_marketplace_tables.sql, verified it against disposable data with
+real catalog initialization and replay preservation, then applied it to lume.
+The ledger now contains 001–016. Existing tables/data were not reset.
+
+FIXES
+- Import shared services into six GraphQL grids so RBAC guards resolve.
+- Register five paginated output types before GraphQL schema construction.
+- Use one JSON scalar implementation and explicit JSON types for remaining
+  untyped fields/import history.
+- Await catalog initialization as a Nest lifecycle hook. Seed transactionally,
+  recover missing entries and preserve existing operator edits and timestamps.
+  Previously startup could close its database pool while seeding was unfinished.
+- Add an environment template with integrations disabled and verify:startup.
+  The startup command checks HTTP health and GraphQL on a temporary loopback
+  port, disables automation workers, and closes the application afterward.
+
+VERIFICATION
+Production build passed after the final application-source changes.
+Typecheck passed after the GraphQL fixes; the subsequent catalog changes were
+also compiled by the final production build with noEmitOnError enabled.
+Application startup, HTTP health and GraphQL passed against local lume with no
+catalog error; the absent-AI-key warning is expected for the disabled integration.
+
+The initial configured suite passed 73 suites / 780 tests. After adding the full
+AppModule regression, the complete run passed 72 suites / 780 tests and exposed
+one isolated subscription fixture missing its AuthService override. That fixture
+was corrected and passed in the final targeted regression run: 4 suites / 45 tests,
+58.175 seconds, normal exit. Together with the full run, all 73 configured suites
+have passing verification; this is not a claim of a second uninterrupted full run.
+No --forceExit was used. Final git diff --check passed.
+
+The full AppModule workflow test uses real polling, event listeners, action
+adapters, Prisma/MySQL and marketplace initialization in a disposable database.
+It checks approval triggering, outcome jobs, a transient failure and retry,
+notification deduplication, partial catalog recovery, preservation of an operator
+title, and rollback after an injected catalog database failure.
+
+Logs: /tmp/lume-final-build.log, /tmp/lume-final-typecheck.log,
+/tmp/lume-startup-20261023.log, /tmp/lume-resume-tests.log,
+/tmp/lume-final-regressions.log. Temporary logs are not durable release artifacts.
+
+REVIEW AND DEPLOYMENT BOUNDARY
+The subsequent local deployment installs lume-nestjs.service as a systemd user
+service for sibin, with boot startup enabled and Linger=yes. It runs in production
+mode at http://127.0.0.1:3000 using the current Node 24 executable and the backend
+.env file. Durable events and continuous automation worker polling are enabled.
+The queue was empty before activation. Live HTTP health and GraphQL checks pass.
+The service handles SIGTERM through Nest shutdown hooks; systemd provides restart
+supervision. The unit template, renderer and operating instructions are stored
+under backend/lume-nestjs/deploy and backend/lume-nestjs/scripts.
+
+Backend changes and verification reports are committed separately from the
+unrelated staged frontend edits. No remote push or public reverse-proxy/domain
+deployment is included. The backend is accessible on loopback on this host.
+External gateways and AI remain unconfigured and were tested only at their local
+contract boundaries. Custom workflow handlers/external recipients still require
+their own idempotency handling. Existing placeholder GraphQL product operations
+and the frontend findings in the 2026-10-21 audit are not implemented by this
+startup/automation repair. These results do not certify the entire product for
+production release.

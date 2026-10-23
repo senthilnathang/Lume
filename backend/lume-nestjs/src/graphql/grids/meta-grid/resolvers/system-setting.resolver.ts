@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
 import { SystemSettingType } from '../types/system-setting.type.js';
 import { UpsertSettingInput } from '../inputs/upsert-setting.input.js';
 

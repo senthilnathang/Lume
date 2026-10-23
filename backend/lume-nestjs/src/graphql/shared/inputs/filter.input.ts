@@ -1,4 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
+import { GraphQLJSON } from 'graphql-scalars';
 
 @InputType()
 export class FilterInput {
@@ -21,6 +22,6 @@ export class FilterInput {
     | 'endsWith'
     | 'contains' = 'eq';
 
-  @Field(() => Object)
+  @Field(() => GraphQLJSON)
   value: any;
 }

@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, BadRequestException, Req } from '@nestjs/common';
+import { resolveTenant } from '../../../graphql/tenant';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, BadRequestException, ForbiddenException, HttpException, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import { RbacGuard } from '@core/guards/rbac.guard';
 import { Permissions } from '@core/decorators';
@@ -13,6 +14,18 @@ export class EntityRecordsController {
     private relationshipService: RelationshipService,
   ) {}
 
+  private company(req: any): number {
+    const companyId = resolveTenant(req);
+    if (companyId == null) throw new ForbiddenException('Company ID required');
+    return companyId;
+  }
+
+  private actor(req: any): number {
+    const id = req.user?.sub ?? req.user?.id;
+    if (!Number.isSafeInteger(id) || id < 1) throw new ForbiddenException('User identity required');
+    return id;
+  }
+
   /**
    * Create a record
    */
@@ -25,8 +38,8 @@ export class EntityRecordsController {
     @Req() req: any,
   ) {
     try {
-      const companyId = req.user?.companyId || 1;
-      const userId = req.user?.id || 1;
+      const companyId = this.company(req);
+      const userId = this.actor(req);
 
       const record = await this.recordService.createRecord(
         parseInt(entityId),
@@ -41,6 +54,7 @@ export class EntityRecordsController {
         message: 'Record created successfully',
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new BadRequestException(error.message);
     }
   }
@@ -53,14 +67,14 @@ export class EntityRecordsController {
   @Permissions('base.records.read')
   async listRecords(
     @Param('entityId') entityId: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('filters') filters?: string,
-    @Query('sort') sort?: string,
+    @Query('page') page: string | undefined,
+    @Query('limit') limit: string | undefined,
+    @Query('filters') filters: string | undefined,
+    @Query('sort') sort: string | undefined,
     @Req() req: any,
   ) {
     try {
-      const companyId = req.user?.companyId || 1;
+      const companyId = this.company(req);
 
       let parsedFilters = [];
       if (filters) {
@@ -88,6 +102,7 @@ export class EntityRecordsController {
           limit: limit ? parseInt(limit) : 20,
           filters: parsedFilters,
           sort: parsedSort,
+          userId: this.actor(req),
         },
       );
 
@@ -97,6 +112,7 @@ export class EntityRecordsController {
         pagination: result.pagination,
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new BadRequestException(error.message);
     }
   }
@@ -107,10 +123,10 @@ export class EntityRecordsController {
   @Get(':recordId')
   @UseGuards(JwtAuthGuard, RbacGuard)
   @Permissions('base.records.read')
-  async getRecord(@Param('recordId') recordId: string, @Req() req: any) {
+  async getRecord(@Param('recordId') recordId: string, @Req() req: any, @Param('entityId') entityId: string) {
     try {
-      const companyId = req.user?.companyId || 1;
-      const record = await this.recordService.getRecord(parseInt(recordId), companyId);
+      const companyId = this.company(req);
+      const record = await this.recordService.getRecord(parseInt(recordId), companyId, this.actor(req), Number(entityId));
 
       if (!record) {
         throw new BadRequestException('Record not found or access denied');
@@ -121,6 +137,7 @@ export class EntityRecordsController {
         data: record,
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new BadRequestException(error.message);
     }
   }
@@ -135,13 +152,16 @@ export class EntityRecordsController {
     @Param('recordId') recordId: string,
     @Body() dto: UpdateRecordDto,
     @Req() req: any,
+    @Param('entityId') entityId: string,
   ) {
     try {
-      const companyId = req.user?.companyId || 1;
+      const companyId = this.company(req);
       const record = await this.recordService.updateRecord(
         parseInt(recordId),
         dto.data,
         companyId,
+        this.actor(req),
+        Number(entityId),
       );
 
       if (!record) {
@@ -154,6 +174,7 @@ export class EntityRecordsController {
         message: 'Record updated successfully',
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new BadRequestException(error.message);
     }
   }
@@ -166,17 +187,20 @@ export class EntityRecordsController {
   @Permissions('base.records.write')
   async deleteRecord(
     @Param('recordId') recordId: string,
-    @Query('hard') hard?: string,
+    @Query('hard') hard: string | undefined,
     @Req() req: any,
+    @Param('entityId') entityId: string,
   ) {
     try {
-      const companyId = req.user?.companyId || 1;
+      const companyId = this.company(req);
       const softDelete = hard !== 'true';
 
       const deleted = await this.recordService.deleteRecord(
         parseInt(recordId),
         softDelete,
         companyId,
+        this.actor(req),
+        Number(entityId),
       );
 
       if (!deleted) {
@@ -188,6 +212,7 @@ export class EntityRecordsController {
         message: 'Record deleted successfully',
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new BadRequestException(error.message);
     }
   }
@@ -201,6 +226,8 @@ export class EntityRecordsController {
   async linkRecords(
     @Param('recordId') recordId: string,
     @Body() dto: LinkRecordsDto,
+    @Param('entityId') entityId: string,
+    @Req() req: any,
   ) {
     try {
       if (!dto.relationshipId || !dto.targetRecordId) {
@@ -209,8 +236,9 @@ export class EntityRecordsController {
 
       const link = await this.relationshipService.linkRecords(
         dto.relationshipId,
-        parseInt(recordId),
+        Number(recordId),
         dto.targetRecordId,
+        { companyId: this.company(req), userId: this.actor(req), entityId: Number(entityId) },
       );
 
       return {
@@ -219,6 +247,7 @@ export class EntityRecordsController {
         message: 'Records linked successfully',
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       if (error.message.includes('circular')) {
         throw new BadRequestException(error.message);
       }
@@ -235,6 +264,8 @@ export class EntityRecordsController {
   async unlinkRecords(
     @Param('recordId') recordId: string,
     @Body() dto: LinkRecordsDto,
+    @Param('entityId') entityId: string,
+    @Req() req: any,
   ) {
     try {
       if (!dto.relationshipId || !dto.targetRecordId) {
@@ -243,8 +274,9 @@ export class EntityRecordsController {
 
       await this.relationshipService.unlinkRecords(
         dto.relationshipId,
-        parseInt(recordId),
+        Number(recordId),
         dto.targetRecordId,
+        { companyId: this.company(req), userId: this.actor(req), entityId: Number(entityId) },
       );
 
       return {
@@ -252,6 +284,7 @@ export class EntityRecordsController {
         message: 'Records unlinked successfully',
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new BadRequestException(error.message);
     }
   }

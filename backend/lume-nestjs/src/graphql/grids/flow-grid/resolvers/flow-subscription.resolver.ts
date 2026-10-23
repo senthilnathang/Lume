@@ -2,13 +2,12 @@ import {
   Resolver,
   Subscription,
   Context,
-  Filter,
 } from '@nestjs/graphql';
 import { UseGuards, Inject } from '@nestjs/common';
 import { GqlJwtGuard } from '../../../guards/gql-jwt.guard';
 import { PubSub } from 'graphql-subscriptions';
 import { FlowEventType } from '../types/flow-event.type';
-import { GqlContext, JwtPayload } from '../../../graphql.context';
+import type { GqlContext, JwtPayload } from '../../../graphql.context';
 
 const FLOW_EXECUTED_EVENT = 'flowExecuted';
 
@@ -32,7 +31,7 @@ export class FlowSubscriptionResolver {
       // Multi-tenant isolation: only emit events for subscriber's company
       const userCompanyId = ctx.user?.company_id;
       const eventCompanyId = payload.flowExecuted.companyId;
-      return userCompanyId === eventCompanyId;
+      return userCompanyId != null && eventCompanyId != null && userCompanyId === eventCompanyId;
     },
   })
   flowExecuted(): AsyncIterator<any> {
@@ -47,7 +46,7 @@ export class FlowSubscriptionResolver {
     filter: (payload: { flowFailed: FlowEventType }, _, ctx: GqlContext) => {
       const userCompanyId = ctx.user?.company_id;
       const eventCompanyId = payload.flowFailed.companyId;
-      return userCompanyId === eventCompanyId;
+      return userCompanyId != null && eventCompanyId != null && userCompanyId === eventCompanyId;
     },
   })
   flowFailed(): AsyncIterator<any> {
@@ -65,7 +64,7 @@ export class FlowSubscriptionResolver {
     ) => {
       const userCompanyId = ctx.user?.company_id;
       const eventCompanyId = payload.flowProgress.companyId;
-      return userCompanyId === eventCompanyId;
+      return userCompanyId != null && eventCompanyId != null && userCompanyId === eventCompanyId;
     },
   })
   flowProgress(): AsyncIterator<any> {

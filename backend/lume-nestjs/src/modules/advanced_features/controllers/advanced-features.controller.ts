@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Req } from '@nestjs/common';
+import { resolveTenant } from '../../../graphql/tenant';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Req, ForbiddenException, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import { RbacGuard } from '@core/guards/rbac.guard';
 import { AdvancedFeaturesService } from '../services/advanced-features.service';
@@ -53,36 +54,42 @@ export class AdvancedFeaturesController {
     return this.service.getWebhookLogs(parseInt(id), limit ? parseInt(limit) : 50);
   }
 
+  private company(req: any): number {
+    const companyId = resolveTenant(req);
+    if (companyId == null) throw new ForbiddenException('Tenant required');
+    return companyId;
+  }
+
   // ── Notifications ─────────────────────────────────────────────
 
   @Get('notifications')
   @UseGuards(JwtAuthGuard, RbacGuard)
   async getNotifications(@Req() req: any, @Query() filters: any) {
-    return this.service.getNotifications(req.user.id, filters);
+    return this.service.getNotifications(req.user.id, filters, this.company(req));
   }
 
   @Get('notifications/unread-count')
   @UseGuards(JwtAuthGuard, RbacGuard)
   async getUnreadCount(@Req() req: any) {
-    return this.service.getUnreadCount(req.user.id);
+    return this.service.getUnreadCount(req.user.id, this.company(req));
   }
 
   @Post('notifications/:id/read')
   @UseGuards(JwtAuthGuard, RbacGuard)
-  async markAsRead(@Param('id') id: string, @Req() req: any) {
-    return this.service.markAsRead(parseInt(id), req.user.id);
+  async markAsRead(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.service.markAsRead(id, req.user.id, this.company(req));
   }
 
   @Post('notifications/read-all')
   @UseGuards(JwtAuthGuard, RbacGuard)
   async markAllAsRead(@Req() req: any) {
-    return this.service.markAllAsRead(req.user.id);
+    return this.service.markAllAsRead(req.user.id, this.company(req));
   }
 
   @Post('notifications/:id/dismiss')
   @UseGuards(JwtAuthGuard, RbacGuard)
-  async dismissNotification(@Param('id') id: string, @Req() req: any) {
-    return this.service.dismissNotification(parseInt(id), req.user.id);
+  async dismissNotification(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+    return this.service.dismissNotification(id, req.user.id, this.company(req));
   }
 
   // ── Notification Channels ─────────────────────────────────────

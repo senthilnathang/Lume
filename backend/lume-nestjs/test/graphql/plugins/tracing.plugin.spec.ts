@@ -17,7 +17,7 @@ describe('TracingPlugin', () => {
   });
 
   it('should implement ApolloServerPlugin interface', () => {
-    expect(plugin.requestDidResolveOperation).toBeDefined();
+    expect(plugin.requestDidStart).toBeDefined();
     expect(plugin.willResolveField).toBeDefined();
     expect(plugin.didResolveField).toBeDefined();
     expect(plugin.didEncounterErrors).toBeDefined();
@@ -36,10 +36,11 @@ describe('TracingPlugin', () => {
       request: { http: {} },
     };
 
-    await plugin.requestDidResolveOperation({
+    const listener = await plugin.requestDidStart();
+    await listener.didResolveOperation!({
       operationName: 'GetEntities',
       operation: { operation: 'query' } as any,
-      context: mockContext,
+      contextValue: mockContext,
     } as any);
   });
 

@@ -165,8 +165,16 @@ export class FontService {
     try {
       const url = `https://www.googleapis.com/webfonts/v1/webfonts?key=${apiKey}&sort=popularity`;
       const response = await fetch(url);
-      const data = await response.json();
-      let fonts = data.items || [];
+      if (!response.ok) throw new Error(`Font catalog request failed (${response.status})`);
+      const data: unknown = await response.json();
+      if (!data || typeof data !== 'object' || !('items' in data) || !Array.isArray(data.items)) {
+        throw new Error('Invalid font catalog response');
+      }
+      let fonts = data.items.filter((font): font is { family: string; variants: string[]; category: string } =>
+        font !== null && typeof font === 'object' && typeof font.family === 'string' &&
+        Array.isArray(font.variants) && font.variants.every((variant: unknown) => typeof variant === 'string') &&
+        typeof font.category === 'string',
+      );
 
       if (query) {
         fonts = fonts.filter((f) =>

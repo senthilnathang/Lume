@@ -57,6 +57,9 @@ export class UpdateBusinessRuleDto {
 }
 
 export class CreateApprovalChainDto {
+  onCompleted?: string | null;
+  onRejected?: string | null;
+  triggerEvent?: 'manual' | 'record.created' | 'record.updated' | 'record.saved';
   name: string;
   model: string;
   description?: string;
@@ -66,6 +69,9 @@ export class CreateApprovalChainDto {
 }
 
 export class UpdateApprovalChainDto {
+  onCompleted?: string | null;
+  onRejected?: string | null;
+  triggerEvent?: 'manual' | 'record.created' | 'record.updated' | 'record.saved';
   name?: string;
   description?: string;
   steps?: any[];

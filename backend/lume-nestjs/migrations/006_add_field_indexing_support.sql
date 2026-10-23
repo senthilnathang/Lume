@@ -2,7 +2,7 @@
 -- Date: 2026-04-29
 -- Description: Enables marking fields as indexed for QueryBuilder filtering
 
-ALTER TABLE entity_fields ADD COLUMN is_indexed TINYINT(1) DEFAULT 0 COMMENT '1 = field should be indexed for queries' AFTER is_primary_key;
+ALTER TABLE entity_fields ADD COLUMN is_indexed TINYINT(1) DEFAULT 0 COMMENT '1 = field should be indexed for queries';
 
 -- Create the entity_record_search_index table for indexed field values
 CREATE TABLE IF NOT EXISTS entity_record_search_index (
@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS entity_record_search_index (
   INDEX idx_value_lower (field_value_lower(100)),
   INDEX idx_numeric (value_numeric),
   INDEX idx_date (value_date),
-  FOREIGN KEY (record_id) REFERENCES records(id) ON DELETE CASCADE
+  FOREIGN KEY (record_id) REFERENCES entity_records(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Add index to entity_fields for faster lookups
-ALTER TABLE entity_fields ADD INDEX idx_entity_field (entity_id, field_name);
+-- The base schema already has a unique (entity_id, name) index. No duplicate
+-- index or obsolete field_name column is needed here.

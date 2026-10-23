@@ -1,10 +1,10 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Node } from '../../shared/interfaces/node.interface';
-import { Auditable } from '../../shared/interfaces/auditable.interface';
+import { ObjectType, Field, Int, ID } from '@nestjs/graphql';
+import { Node } from '../../../shared/interfaces/node.interface';
+import { Auditable } from '../../../shared/interfaces/auditable.interface';
 
 @ObjectType('Permission', { implements: [Node, Auditable] })
 export class PermissionType implements Node, Auditable {
-  @Field(() => Int)
+  @Field(() => ID)
   id: number;
 
   @Field()

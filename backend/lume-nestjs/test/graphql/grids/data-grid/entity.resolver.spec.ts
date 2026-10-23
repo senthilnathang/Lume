@@ -1,3 +1,7 @@
+import { EntityService } from '../../../../src/modules/base/services/entity.service';
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EntityResolver } from '../../../../src/graphql/grids/data-grid/resolvers/entity.resolver';
 import { PaginationInput } from '../../../../src/graphql/shared/inputs/pagination.input';
@@ -22,11 +26,11 @@ describe('EntityResolver', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EntityResolver],
+      providers: [EntityResolver, { provide: EntityService, useValue: { listEntities: async () => ({ items: [] }) } }],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

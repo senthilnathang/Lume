@@ -1,3 +1,4 @@
+import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import {
   Controller,
   Get,
@@ -9,16 +10,16 @@ import {
   Req,
 } from '@nestjs/common';
 import { SubmissionService } from '../services/submission.service';
-import { PolicyGuard, Policy } from '@core/permission/policy.guard';
+import { PolicyGuard, RequireRoles } from '@core/permission/policy.guard';
 
 @Controller('api/admin/marketplace')
-@UseGuards(PolicyGuard)
+@UseGuards(JwtAuthGuard, PolicyGuard)
 export class AdminMarketplaceController {
   constructor(private readonly submissionService: SubmissionService) {}
 
   @Get('submissions')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async getPendingSubmissions() {
     try {
       const result = await this.submissionService.getSubmissionsByStatus('pending');
@@ -30,7 +31,7 @@ export class AdminMarketplaceController {
 
   @Get('submissions/:status')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async getSubmissionsByStatus(@Param('status') status: string) {
     try {
       const validStatuses = ['pending', 'active', 'rejected'];
@@ -50,10 +51,10 @@ export class AdminMarketplaceController {
 
   @Post('submissions/:name/approve')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async approveSubmission(@Param('name') name: string, @Req() req: any) {
     try {
-      const adminId = req.user?.sub;
+      const adminId = req.user?.id;
       if (!adminId) {
         return { success: false, message: 'Admin not authenticated' };
       }
@@ -67,14 +68,14 @@ export class AdminMarketplaceController {
 
   @Post('submissions/:name/reject')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async rejectSubmission(
     @Param('name') name: string,
     @Body() body: { reason?: string },
     @Req() req: any,
   ) {
     try {
-      const adminId = req.user?.sub;
+      const adminId = req.user?.id;
       if (!adminId) {
         return { success: false, message: 'Admin not authenticated' };
       }
@@ -89,7 +90,7 @@ export class AdminMarketplaceController {
 
   @Get('submissions/:name')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async getSubmissionDetail(@Param('name') name: string) {
     try {
       const submission = await this.submissionService.getSubmissionByName(name);

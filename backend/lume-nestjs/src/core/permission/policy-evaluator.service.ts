@@ -15,6 +15,14 @@ export class PolicyEvaluatorService {
     context: RequestContext,
     record?: any,
   ): boolean {
+    return this.matches(policy, context, record) && !policy.deny;
+  }
+
+  private matches(
+    policy: PolicyDefinition,
+    context: RequestContext,
+    record?: any,
+  ): boolean {
     // Check RBAC roles first
     if (policy.roles && policy.roles.length > 0) {
       const hasRole =
@@ -34,8 +42,7 @@ export class PolicyEvaluatorService {
       }
     }
 
-    // If policy.deny is true, this is a deny policy
-    return !policy.deny;
+    return true;
   }
 
   async canCreate(
@@ -58,7 +65,7 @@ export class PolicyEvaluatorService {
     context: RequestContext,
     record?: any,
   ): Promise<boolean> {
-    return this.evaluateEntityAction(entityName, 'update', context, record);
+    return this.evaluateEntityAction(entityName, 'write', context, record);
   }
 
   async canDelete(
@@ -93,7 +100,7 @@ export class PolicyEvaluatorService {
 
   private evaluateEntityAction(
     entityName: string,
-    action: string,
+    action: PolicyDefinition['actions'][number],
     context: RequestContext,
     record?: any,
   ): boolean {
@@ -112,7 +119,7 @@ export class PolicyEvaluatorService {
     // Check for explicit deny policies first
     const denyPolicies = policies.filter(p => p.deny);
     for (const policy of denyPolicies) {
-      if (this.evaluate(policy, context, record)) {
+      if (this.matches(policy, context, record)) {
         return false; // Explicit deny takes precedence
       }
     }

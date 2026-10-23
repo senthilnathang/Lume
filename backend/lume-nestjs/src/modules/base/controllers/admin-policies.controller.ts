@@ -1,11 +1,12 @@
+import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
 import { MetadataRegistryService } from '../../../core/runtime/metadata-registry.service.js';
 import { PolicyEvaluatorService } from '../../../core/permission/policy-evaluator.service.js';
-import { PolicyGuard, Policy } from '../../../core/permission/policy.guard.js';
+import { PolicyGuard, RequireRoles } from '../../../core/permission/policy.guard.js';
 import type { PolicyDefinition } from '../../../core/permission/define-policy.js';
 
 @Controller('admin/policies')
-@UseGuards(PolicyGuard)
+@UseGuards(JwtAuthGuard, PolicyGuard)
 export class AdminPoliciesController {
   constructor(
     private readonly metadataRegistry: MetadataRegistryService,
@@ -13,7 +14,7 @@ export class AdminPoliciesController {
   ) {}
 
   @Get()
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async listPolicies() {
     const policies = this.metadataRegistry.listPolicies();
     return {
@@ -30,7 +31,7 @@ export class AdminPoliciesController {
   }
 
   @Get(':policyName')
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async getPolicy(@Param('policyName') policyName: string) {
     const policy = this.metadataRegistry.getPolicy(policyName);
     if (!policy) {
@@ -41,7 +42,7 @@ export class AdminPoliciesController {
 
   @Post()
   @HttpCode(201)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async createPolicy(@Body() policyDef: PolicyDefinition) {
     try {
       this.metadataRegistry.registerPolicy(policyDef);
@@ -52,7 +53,7 @@ export class AdminPoliciesController {
   }
 
   @Put(':policyName')
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async updatePolicy(@Param('policyName') policyName: string, @Body() updates: Partial<PolicyDefinition>) {
     try {
       const policy = this.metadataRegistry.getPolicy(policyName);
@@ -69,7 +70,7 @@ export class AdminPoliciesController {
   }
 
   @Delete(':policyName')
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async deletePolicy(@Param('policyName') policyName: string) {
     try {
       const policy = this.metadataRegistry.getPolicy(policyName);
@@ -86,7 +87,7 @@ export class AdminPoliciesController {
 
   @Post('test')
   @HttpCode(200)
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async testPolicy(
     @Body()
     body: {
@@ -128,7 +129,7 @@ export class AdminPoliciesController {
   }
 
   @Get('entity/:entityName')
-  @Policy(['admin', 'super_admin'])
+  @RequireRoles('admin', 'super_admin')
   async getPoliciesForEntity(@Param('entityName') entityName: string) {
     const policies = this.metadataRegistry.listPolicies().filter((p) => p.entity === entityName);
     return {

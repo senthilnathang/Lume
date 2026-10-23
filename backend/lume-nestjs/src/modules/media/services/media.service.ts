@@ -1,3 +1,4 @@
+import { mediaLibrary } from '../models/schema';
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import { CreateMediaDto, UpdateMediaDto, QueryMediaDto } from '../dtos';
@@ -5,21 +6,10 @@ import { eq, like, and, ilike } from 'drizzle-orm';
 
 @Injectable()
 export class MediaService {
-  private mediaLibrary: any;
+  private readonly mediaLibrary = mediaLibrary;
 
-  constructor(private drizzle: DrizzleService) {
-    // Import schema dynamically to avoid circular dependencies
-    this.initializeSchema();
-  }
+  constructor(private drizzle: DrizzleService) {}
 
-  private async initializeSchema() {
-    try {
-      const schema = await import('./models/schema');
-      this.mediaLibrary = schema.mediaLibrary;
-    } catch (error) {
-      console.error('Failed to load media schema:', error);
-    }
-  }
 
   async create(data: CreateMediaDto & { uploadedBy: number }) {
     try {

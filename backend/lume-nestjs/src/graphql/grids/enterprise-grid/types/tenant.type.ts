@@ -1,10 +1,10 @@
-import { ObjectType, Field } from '@nestjs/graphql';
-import { Node, Auditable } from '../../shared/interfaces/index.js';
-import { GraphQLJSON } from 'graphql-type-json';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { Node, Auditable } from '../../../shared/interfaces/index.js';
+import { GraphQLJSON } from 'graphql-scalars';
 
 @ObjectType('Tenant', { implements: [Node, Auditable] })
 export class TenantType implements Node, Auditable {
-  @Field(() => String)
+  @Field(() => ID)
   id: string;
 
   @Field(() => String)

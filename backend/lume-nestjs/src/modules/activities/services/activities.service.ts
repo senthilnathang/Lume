@@ -1,3 +1,4 @@
+import { activities } from '../models/schema';
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import { CreateActivityDto, UpdateActivityDto, QueryActivitiesDto } from '../dtos';
@@ -33,8 +34,7 @@ export class ActivitiesService {
     const slug = this.generateSlug(createDto.title);
     const normalized = this.normalizeActivityData(createDto);
 
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     const result = await db.insert(activities).values({
       ...normalized,
@@ -43,7 +43,7 @@ export class ActivitiesService {
       createdBy: userId,
     });
 
-    const newActivity = await db.select().from(activities).where(eq(activities.id, result.insertId)).limit(1);
+    const newActivity = await db.select().from(activities).where(eq(activities.id, result[0].insertId)).limit(1);
 
     return {
       success: true,
@@ -53,8 +53,7 @@ export class ActivitiesService {
   }
 
   async findById(id: number) {
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     const activity = await db.select().from(activities).where(eq(activities.id, id)).limit(1);
 
@@ -69,8 +68,7 @@ export class ActivitiesService {
   }
 
   async findBySlug(slug: string) {
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     const activity = await db.select().from(activities).where(eq(activities.slug, slug)).limit(1);
 
@@ -88,8 +86,7 @@ export class ActivitiesService {
     const { page = 1, limit = 20, status, category, search, isFeatured } = query;
     const offset = (page - 1) * limit;
 
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     // Build where clause
     const whereConditions: any[] = [];
@@ -146,8 +143,7 @@ export class ActivitiesService {
   }
 
   async update(id: number, updateDto: UpdateActivityDto) {
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     // Check if activity exists
     const activity = await db.select().from(activities).where(eq(activities.id, id)).limit(1);
@@ -158,7 +154,7 @@ export class ActivitiesService {
     const normalized = this.normalizeActivityData(updateDto);
 
     // Generate new slug if title is being updated
-    if (updateDto.title && !updateDto.slug) {
+    if (updateDto.title) {
       normalized.slug = this.generateSlug(updateDto.title);
     }
 
@@ -174,8 +170,7 @@ export class ActivitiesService {
   }
 
   async delete(id: number) {
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     // Check if activity exists
     const activity = await db.select().from(activities).where(eq(activities.id, id)).limit(1);
@@ -192,8 +187,7 @@ export class ActivitiesService {
   }
 
   async publish(id: number) {
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     // Check if activity exists
     const activity = await db.select().from(activities).where(eq(activities.id, id)).limit(1);
@@ -217,8 +211,7 @@ export class ActivitiesService {
   }
 
   async cancel(id: number) {
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     // Check if activity exists
     const activity = await db.select().from(activities).where(eq(activities.id, id)).limit(1);
@@ -238,8 +231,7 @@ export class ActivitiesService {
   }
 
   async getUpcoming(limit: number = 10) {
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     const now = new Date();
     const upcoming = await db
@@ -261,8 +253,7 @@ export class ActivitiesService {
   }
 
   async getStats() {
-    const db = this.getDrizzle();
-    const { activities } = db;
+    const db = this.getDb();
 
     const [
       totalResult,

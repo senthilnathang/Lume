@@ -1,16 +1,18 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
-import { GqlTenant } from '../../decorators/index.js';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
+import { GqlTenant } from '../../../decorators/index.js';
 import { MediaType } from '../types/media.type.js';
-import { PaginationInput } from '../../shared/inputs/pagination.input.js';
-import { Paginated } from '../../shared/types/paginated.type.js';
+import { PaginationInput } from '../../../shared/inputs/pagination.input.js';
+import { Paginated } from '../../../shared/types/paginated.type.js';
 import { UploadMediaInput } from '../inputs/upload-media.input.js';
+
+const MediaPage = Paginated(MediaType);
 
 @Resolver(() => MediaType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class MediaResolver {
-  @Query(() => Paginated(MediaType))
+  @Query(() => MediaPage)
   async mediaLibrary(
     @Args('pagination', { nullable: true }) pagination?: PaginationInput,
     @GqlTenant() tenantId?: number,

@@ -23,7 +23,7 @@ export class BaseRbacService {
         include: {
           role: {
             include: {
-              rolePermissions: {
+              role_permissions: {
                 include: {
                   permission: true,
                 },
@@ -43,8 +43,8 @@ export class BaseRbacService {
       }
 
       // Check if permission exists in role's permissions
-      return user.role.rolePermissions.some(
-        (rp) => rp.permission.code === permissionCode,
+      return user.role.role_permissions.some(
+        (rp) => rp.permission.name === permissionCode,
       );
     } catch (error) {
       return false;
@@ -71,7 +71,7 @@ export class BaseRbacService {
         include: {
           role: {
             include: {
-              rolePermissions: {
+              role_permissions: {
                 include: {
                   permission: true,
                 },
@@ -91,8 +91,8 @@ export class BaseRbacService {
       }
 
       // Check if any permission exists in role's permissions
-      return user.role.rolePermissions.some((rp) =>
-        permissionCodes.includes(rp.permission.code),
+      return user.role.role_permissions.some((rp) =>
+        permissionCodes.includes(rp.permission.name),
       );
     } catch (error) {
       return false;
@@ -119,7 +119,7 @@ export class BaseRbacService {
         include: {
           role: {
             include: {
-              rolePermissions: {
+              role_permissions: {
                 include: {
                   permission: true,
                 },
@@ -140,7 +140,7 @@ export class BaseRbacService {
 
       // Check if all permissions exist in role's permissions
       const userPermissions = new Set(
-        user.role.rolePermissions.map((rp) => rp.permission.code),
+        user.role.role_permissions.map((rp) => rp.permission.name),
       );
       return permissionCodes.every((code) => userPermissions.has(code));
     } catch (error) {
@@ -160,7 +160,7 @@ export class BaseRbacService {
         include: {
           role: {
             include: {
-              rolePermissions: {
+              role_permissions: {
                 include: {
                   permission: true,
                 },
@@ -179,7 +179,7 @@ export class BaseRbacService {
         return ['*'];
       }
 
-      return user.role.rolePermissions.map((rp) => rp.permission.code);
+      return user.role.role_permissions.map((rp) => rp.permission.name);
     } catch (error) {
       return [];
     }
@@ -195,7 +195,7 @@ export class BaseRbacService {
       const role = await this.prisma.role.findUnique({
         where: { id: roleId },
         include: {
-          rolePermissions: {
+          role_permissions: {
             include: {
               permission: true,
             },
@@ -212,7 +212,7 @@ export class BaseRbacService {
         return ['*'];
       }
 
-      return role.rolePermissions.map((rp) => rp.permission.code);
+      return role.role_permissions.map((rp) => rp.permission.name);
     } catch (error) {
       return [];
     }
@@ -257,7 +257,7 @@ export class BaseRbacService {
   async getAllPermissions(): Promise<any[]> {
     try {
       return await this.prisma.permission.findMany({
-        orderBy: { code: 'asc' },
+        orderBy: { name: 'asc' },
       });
     } catch (error) {
       return [];
@@ -271,12 +271,12 @@ export class BaseRbacService {
   async getPermissionsGrouped(): Promise<Record<string, any[]>> {
     try {
       const permissions = await this.prisma.permission.findMany({
-        orderBy: { code: 'asc' },
+        orderBy: { name: 'asc' },
       });
 
       const grouped: Record<string, any[]> = {};
       for (const permission of permissions) {
-        const module = permission.code.split('.')[0];
+        const module = permission.name.split('.')[0];
         if (!grouped[module]) {
           grouped[module] = [];
         }

@@ -1,7 +1,8 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { GraphQLJSON } from 'graphql-scalars';
 import { UseGuards } from '@nestjs/common';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
-import { GqlTenant } from '../../decorators/index.js';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
+import { GqlTenant } from '../../../decorators/index.js';
 import { ImportRecordsInput } from '../inputs/import-records.input.js';
 import { ExportOptionsInput } from '../inputs/export-options.input.js';
 import { ImportResultType } from '../types/import-result.type.js';
@@ -9,7 +10,7 @@ import { ImportResultType } from '../types/import-result.type.js';
 @Resolver()
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class ImportExportResolver {
-  @Query(() => [Object], { nullable: true })
+  @Query(() => [GraphQLJSON], { nullable: true })
   async importHistory(@GqlTenant() tenantId?: number) {
     // TODO: Implement import/export service call
     return [];

@@ -1,5 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { FilterInput } from '../../shared/inputs/filter.input.js';
+import { FilterInput } from '../../../shared/inputs/filter.input.js';
 
 @InputType()
 export class ExportOptionsInput {

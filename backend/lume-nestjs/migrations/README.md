@@ -8,15 +8,94 @@ Migrations are numbered SQL files that create tables and modify schemas to suppo
 
 ## Running Migrations
 
+### Current local verification (2026-10-23)
+
+The local `lume` database initially recorded **001–015** as applied. Inspection confirmed
+the tables and columns from 014–015, including job leases/receipts, approval
+outcome fields, entity publication fields and stored-formula metadata. No
+migrations were replayed during this inspection. The ledger is not proof that
+every older migration matches its current file; the 2026-10-22 section below is
+a historical deployment record, not the current migration status.
+
+A fresh private logical backup was created under `/opt/Lume/backups.local/`.
+Its SHA-256 was checked and the dump was restored into a disposable database;
+all 136 base tables and 15 migration records were recovered. The disposable
+restore database was removed. Backup details are recorded in
+`docs/verification-2026-10-23.txt` at the repository root.
+
+014 adds durable automation jobs, action receipts and approval outcome workflow
+configuration. 015 aligns legacy entity tables with Prisma's publication and
+stored-formula fields. Existing installations must inspect schema and ledger
+before selecting files; these migrations are not safe to blindly replay.
+
+Full application startup then exposed five missing Drizzle marketplace tables.
+Migration **016_create_marketplace_tables.sql** was tested in a disposable database
+with real catalog seeding and replay preservation, then applied to local `lume`
+after confirming all five tables were absent. The ledger now records **001–016**.
+016 creates categories, plugins, reviews, downloads and submissions; it does not
+alter existing tables. Its `IF NOT EXISTS` clauses preserve existing tables but
+do not reconcile incompatible pre-existing schemas.
+
+### Application repair deployment (2026-10-22)
+
+Migrations **009–013** were applied to the local `lume` application database
+after a full logical backup. Their filenames and execution times are recorded
+in `migrations`; `schema_migrations` continues to track module versions and
+`_prisma_migrations` retains the earlier Prisma history.
+
+- 009: relationship `cascade_update`, default false.
+- 010: assignment `last_assigned_index`, default -1.
+- 011: approval request history table and lookup index.
+- 012: approval `trigger_event`, default manual.
+- 013: notification tenant/event columns and recipient/inbox indexes.
+
+Verified all added columns/defaults and index definitions, unchanged existing
+data in affected tables, and generated Prisma reads against the application DB.
+The five related integration suites passed (81 tests), as did typecheck, build,
+and compiled AppModule import. Integration tests used disposable databases.
+
+Local evidence: `/tmp/lume-verification/application-migrations-009-013.json`.
+The private backup path is recorded in
+`/tmp/lume-verification/application-migration-backup-path.txt`.
+These temporary files should be retained elsewhere for long-term operations.
+
+**Do not run the entire legacy migration sequence against this database.**
+Migrations 001–008 have not been reconciled with its current module-managed
+schema; some reference legacy `records`/field layouts. This deployment
+executed only the reviewed single-statement files 009–013 and did not baseline
+older migrations or use `prisma db push`/a database reset.
+
 ### Using the TypeScript Runner
 
 ```bash
-# With environment variables
-DB_HOST=localhost DB_USER=gawdesy DB_PASSWORD=gawdesy DB_NAME=lume npx ts-node migrations/run-migrations.ts
+# Read-only status (also the default when no arguments are provided)
+npm run db:migrate:sql -- --status
 
-# Or configure in .env file
-npx ts-node migrations/run-migrations.ts
+# Apply only explicitly reviewed files, in filename order
+npm run db:migrate:sql -- --apply 009_add_relationship_cascade_update.sql
 ```
+
+Run from `backend/lume-nestjs`. The runner loads `.env` without overriding
+existing environment variables and prefers `DATABASE_URL`; otherwise it uses
+`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS` (or `DB_PASSWORD`), and `DB_NAME`.
+The existing `db:migrate` command is the separate Prisma development command.
+
+Status is ledger-based: **unrecorded does not prove a schema change is absent**.
+It creates no ledger and makes no schema changes. Review current table definitions
+and take a backup before selecting migrations. Applied files are skipped; competing
+runners use a database-specific advisory lock. All selected scripts are parsed
+before execution. The parser handles quoted semicolons, comments, and `DELIMITER`
+blocks under standard MySQL quoting rules, and rejects executable version comments.
+
+MySQL DDL is not transactional. A failed file is not recorded, but its earlier
+statements may have committed; inspect and repair that partial state before retrying.
+This runner does not detect edited applied files or automatically reconcile drift.
+
+Migration 002's invalid `SELECT ... INTO NEW.version_number` syntax was repaired
+and tested in a disposable MariaDB database. Its max-plus-one trigger is not a
+concurrent version allocator: concurrent inserts may hit the unique constraint
+and require application-level serialization/retry. Migrations 001–008 remain
+unapplied to the application database pending the wider compatibility review.
 
 ### Manual Execution
 

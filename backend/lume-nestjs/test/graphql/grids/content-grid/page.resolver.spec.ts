@@ -1,3 +1,6 @@
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PageResolver } from '../../../../src/graphql/grids/content-grid/resolvers/page.resolver';
 
@@ -11,9 +14,9 @@ describe('PageResolver', () => {
         { provide: 'PubSub', useValue: { asyncIterableIterator: jest.fn() } },
       ],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

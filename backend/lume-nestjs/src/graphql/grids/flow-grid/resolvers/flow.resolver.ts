@@ -10,25 +10,27 @@ import { GqlJwtGuard } from '../../../guards/gql-jwt.guard';
 import { GqlRbacGuard } from '../../../guards/gql-rbac.guard';
 import { GqlCurrentUser } from '../../../decorators/gql-current-user.decorator';
 import { GqlTenant } from '../../../decorators/gql-tenant.decorator';
-import { Permissions } from '../../../core/decorators/permissions.decorator';
+import { Permissions } from '../../../../core/decorators/permissions.decorator';
 import { PaginationInput } from '../../../shared/inputs/pagination.input';
 import { Paginated } from '../../../shared/types/paginated.type';
 import { FlowType } from '../types/flow.type';
 import { CreateFlowInput } from '../inputs/create-flow.input';
 import { UpdateFlowInput } from '../inputs/update-flow.input';
-import { GqlContext, JwtPayload } from '../../../graphql.context';
+import type { GqlContext, JwtPayload } from '../../../graphql.context';
 
 /**
  * FlowGrid Flow Resolver
  * Queries and mutations for flow diagram CRUD and execution
  * Delegates to FlowService for business logic
  */
+const FlowPage = Paginated(FlowType);
+
 @Resolver(() => FlowType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class FlowResolver {
   constructor() {}
 
-  @Query(() => Paginated(FlowType), { name: 'flows' })
+  @Query(() => FlowPage, { name: 'flows' })
   @Permissions('base.flows.read')
   async flows(
     @Args('model', { nullable: true }) model?: string,

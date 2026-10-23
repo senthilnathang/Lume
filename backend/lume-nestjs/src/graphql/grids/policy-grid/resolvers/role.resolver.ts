@@ -1,3 +1,7 @@
+import { PrismaService } from '@core/services/prisma.service';
+import { RoleManagementService } from '../../../../modules/base/services/role-management.service';
+import { FieldPermissionType } from '../types/field-permission.type';
+import { normalizePagination } from '../../../shared/inputs/pagination.input';
 import {
   Resolver,
   Query,
@@ -12,24 +16,33 @@ import { UseGuards } from '@nestjs/common';
 import { GqlJwtGuard } from '../../../guards/gql-jwt.guard';
 import { GqlRbacGuard } from '../../../guards/gql-rbac.guard';
 import { GqlCurrentUser } from '../../../decorators/gql-current-user.decorator';
-import { Permissions } from '../../../core/decorators/permissions.decorator';
+import { Permissions } from '../../../../core/decorators/permissions.decorator';
 import { PaginationInput } from '../../../shared/inputs/pagination.input';
-import { Paginated } from '../../../shared/types/paginated.type';
 import { RoleType } from '../types/role.type';
 import { PermissionType } from '../types/permission.type';
 import { CreateRoleInput } from '../inputs/create-role.input';
 import { UpdateRoleInput } from '../inputs/update-role.input';
-import { GqlContext, JwtPayload } from '../../../graphql.context';
+import type { GqlContext, JwtPayload } from '../../../graphql.context';
 
 /**
  * PolicyGrid Role Resolver
  * Queries and mutations for RBAC role management
- * Delegates to RbacService for business logic
+ * Delegates role mutations to RoleManagementService
  */
 @Resolver(() => RoleType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class RoleResolver {
-  constructor() {}
+  constructor(private readonly prisma: PrismaService, private readonly management: RoleManagementService) {}
+
+  private mapRole(role: any) {
+    return { ...role, displayName: role.display_name, isSystem: role.is_system ?? false, isActive: role.isActive ?? true };
+  }
+
+  private clearRole(ctx: GqlContext | undefined, id: number) {
+    ctx?.loaders.roleById.clear(id);
+    ctx?.loaders.permissionsByRoleId.clear(id);
+    ctx?.loaders.fieldPermissionsByRoleId.clear(id);
+  }
 
   @Query(() => [RoleType], { name: 'roles' })
   @Permissions('base.roles.read')
@@ -37,11 +50,10 @@ export class RoleResolver {
     @Args('pagination', { nullable: true }) pagination: PaginationInput,
     @GqlCurrentUser() user: JwtPayload,
     @Context() ctx: GqlContext,
-  ): Promise<RoleType[]> {
-    // TODO: Delegate to RbacService.listRoles(pagination)
-    // Filter out system roles if not admin
-    // Return paginated role list
-    return [];
+  ): Promise<Omit<RoleType, 'permissions' | 'fieldPermissions'>[]> {
+    const { page, limit } = normalizePagination(pagination);
+    const roles = await this.prisma.role.findMany({ skip: (page - 1) * limit, take: limit, orderBy: { id: 'asc' } });
+    return roles.map(role => this.mapRole(role));
   }
 
   @Query(() => RoleType, { name: 'role', nullable: true })
@@ -50,9 +62,8 @@ export class RoleResolver {
     @Args('id', { type: () => Int }) id: number,
     @GqlCurrentUser() user: JwtPayload,
   ): Promise<RoleType | null> {
-    // TODO: Delegate to RbacService.getRole(id)
-    // Check if system role and user is admin
-    return null;
+    const role = await this.management.get(id);
+    return role ? this.mapRole(role) : null;
   }
 
   @Mutation(() => RoleType)
@@ -61,11 +72,7 @@ export class RoleResolver {
     @Args('input') input: CreateRoleInput,
     @GqlCurrentUser() user: JwtPayload,
   ): Promise<RoleType> {
-    // TODO: Delegate to RbacService.createRole(input, userId)
-    // - Validate name is unique
-    // - Create role with isSystem = false
-    // - Audit log the creation
-    throw new Error('Not implemented');
+    return this.mapRole(await this.management.create(input, user.sub));
   }
 
   @Mutation(() => RoleType)
@@ -74,11 +81,11 @@ export class RoleResolver {
     @Args('id', { type: () => Int }) id: number,
     @Args('input') input: UpdateRoleInput,
     @GqlCurrentUser() user: JwtPayload,
+    @Context() ctx?: GqlContext,
   ): Promise<RoleType> {
-    // TODO: Delegate to RbacService.updateRole(id, input, userId)
-    // - Prevent updating system roles
-    // - Audit log the changes
-    throw new Error('Not implemented');
+    const role = await this.management.update(id, input, user.sub);
+    this.clearRole(ctx, id);
+    return this.mapRole(role);
   }
 
   @Mutation(() => Boolean)
@@ -86,12 +93,11 @@ export class RoleResolver {
   async deleteRole(
     @Args('id', { type: () => Int }) id: number,
     @GqlCurrentUser() user: JwtPayload,
+    @Context() ctx?: GqlContext,
   ): Promise<boolean> {
-    // TODO: Delegate to RbacService.deleteRole(id, userId)
-    // - Prevent deleting system roles
-    // - Check no users are assigned to this role
-    // - Cascade delete RolePermission + EntityFieldPermission entries
-    return false;
+    const deleted = await this.management.delete(id, user.sub);
+    this.clearRole(ctx, id);
+    return deleted;
   }
 
   @ResolveField('permissions', () => [PermissionType])
@@ -99,8 +105,11 @@ export class RoleResolver {
     @Parent() role: RoleType,
     @Context() ctx: GqlContext,
   ): Promise<PermissionType[]> {
-    // TODO: Use DataLoader to batch-load permissions for multiple roles
-    // Load from RolePermission join table
-    return [];
+    return ctx.loaders.permissionsByRoleId.load(role.id);
+  }
+
+  @ResolveField('fieldPermissions', () => [FieldPermissionType])
+  async fieldPermissions(@Parent() role: RoleType, @Context() ctx: GqlContext): Promise<FieldPermissionType[]> {
+    return ctx.loaders.fieldPermissionsByRoleId.load(role.id);
   }
 }

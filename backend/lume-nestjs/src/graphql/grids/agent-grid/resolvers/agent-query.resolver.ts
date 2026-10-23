@@ -10,13 +10,13 @@ import { GqlJwtGuard } from '../../../guards/gql-jwt.guard';
 import { GqlRbacGuard } from '../../../guards/gql-rbac.guard';
 import { GqlCurrentUser } from '../../../decorators/gql-current-user.decorator';
 import { GqlTenant } from '../../../decorators/gql-tenant.decorator';
-import { Permissions } from '../../../core/decorators/permissions.decorator';
+import { Permissions } from '../../../../core/decorators/permissions.decorator';
 import { AgentQueryResultType } from '../types/agent-query-result.type';
 import { SchemaContextType } from '../types/schema-context.type';
 import { AskQueryInput } from '../inputs/ask-query.input';
 import { SchemaContextService } from '../services/schema-context.service';
 import { NlToGraphqlService } from '../services/nl-to-graphql.service';
-import { GqlContext, JwtPayload } from '../../../graphql.context';
+import type { GqlContext, JwtPayload } from '../../../graphql.context';
 
 /**
  * AgentGrid Query Resolver

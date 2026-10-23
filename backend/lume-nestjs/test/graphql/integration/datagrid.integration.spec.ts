@@ -1,287 +1,96 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import { jest } from '@jest/globals';
+import { createHarness, type Harness } from './harness';
+jest.setTimeout(120000);
 
-/**
- * DataGrid Integration Tests
- * Tests Entity/EntityRecord CRUD, pagination, filtering, field-level RBAC masking
- */
-describe('GraphQL DataGrid Operations (E2E)', () => {
-  let app: INestApplication;
-
-  const adminToken = 'Bearer eyJhbGc...';
-  const restrictedUserToken = 'Bearer eyJhbGc...'; // Limited field permissions
-
-  beforeAll(async () => {
-    // TODO: Create test module with real Prisma/Drizzle services
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      // imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+describe('GraphQL DataGrid integration (real MySQL)', () => {
+  let h: Harness;
+  beforeAll(async () => { h = await createHarness(); });
+  afterAll(async () => { await h?.close(); });
+  it.each([[undefined, 20], [10, 10], [500, 100]])('paginates entities at limit %s', async (limit, expected) => {
+    const response = await h.query(`{ entities${limit ? `(pagination:{limit:${limit}})` : ''} { id name label } }`);
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entities).toHaveLength(expected);
   });
-
-  afterAll(async () => {
-    await app.close();
+  it('rejects invalid pagination', async () => {
+    const response = await h.query('{ entities(pagination:{page:0,limit:-1}) { id } }');
+    expect(response.body.errors[0].extensions.code).toBe('BAD_REQUEST');
   });
-
-  describe('Entity queries', () => {
-    it('should list entities with default pagination (page=1, limit=20)', async () => {
-      const query = `query { entities { id name label } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify response structure:
-      // expect(response.body.data.entities).toBeDefined();
-      // expect(Array.isArray(response.body.data.entities)).toBe(true);
-    });
-
-    it('should paginate entities with custom limit', async () => {
-      const query = `query { entities(pagination: { page: 1, limit: 10 }) { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify limit respected (max 10 results)
-    });
-
-    it('should enforce maximum pagination limit (100)', async () => {
-      const query = `query { entities(pagination: { page: 1, limit: 500 }) { id name } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify limit capped at 100
-      // expect(response.body.data.entities.length).toBeLessThanOrEqual(100);
-    });
-
-    it('should get single entity by id', async () => {
-      const query = `query { entity(id: 1) { id name label } }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .send({ query });
-
-      // TODO: Verify entity returned
-      // expect(response.body.data.entity.id).toBe(1);
-    });
-
-    it('should resolve entity fields using DataLoader', async () => {
-      const query = `query {
-        entities(pagination: { page: 1, limit: 5 }) {
-          id
-          name
-          fields { name type label }
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify fields loaded and no N+1 queries in logs
-      // Check that 5 entities + 1 batch-loaded fields = 2 queries total
-    });
+  it('gets a stored entity by ID', async () => {
+    const response = await h.query('{ entity(id:1) { id name label } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entity).toEqual({ id: 1, name: 'entity_1', label: 'Entity 1' });
   });
-
-  describe('EntityRecord queries', () => {
-    it('should list entity records with pagination', async () => {
-      const query = `query {
-        entityRecords(entityId: 1, pagination: { page: 1, limit: 20 }) {
-          items { id data }
-          total
-          page
-          totalPages
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify paginated result structure
-    });
-
-    it('should deserialize JSON data field correctly', async () => {
-      const query = `query {
-        entityRecord(entityId: 1, recordId: 1) {
-          id
-          data
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .send({ query });
-
-      // TODO: Verify data is valid JSON object (not stringified)
-      // expect(typeof response.body.data.entityRecord.data).toBe('object');
-    });
+  it('resolves fields through one batched query', async () => {
+    h.queries.length = 0;
+    const response = await h.query('{ entities(pagination:{limit:5}) { id fields { name type } } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entities.every((entity: any) => entity.fields.some((field: any) => field.name === 'name'))).toBe(true);
+    expect(h.queries.filter(sql => sql.includes('FROM') && sql.includes('`entity_fields`'))).toHaveLength(1);
   });
-
-  describe('Field-level RBAC masking', () => {
-    it('should mask restricted fields for non-admin users', async () => {
-      // TODO: Set up user with canRead: false on sensitive field
-      // Query entity records and verify sensitive field is excluded
-
-      const query = `query {
-        entityRecords(entityId: 1, pagination: { page: 1, limit: 1 }) {
-          items { id data }
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', restrictedUserToken)
-        .set('x-org-id', '1')
-        .send({ query });
-
-      // TODO: Verify data does not contain restricted field
-      // expect(response.body.data.entityRecords.items[0].data.secretField).toBeUndefined();
-    });
-
-    it('should allow write permission check before update', async () => {
-      // TODO: Set up user with canRead: true, canWrite: false on field
-      // Attempt to update that field and verify error
-
-      const mutation = `mutation {
-        updateEntityRecord(
-          entityId: 1
-          recordId: 1
-          input: { data: { readOnlyField: "value" } }
-        ) { id }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', restrictedUserToken)
-        .set('x-org-id', '1')
-        .send({ query: mutation });
-
-      // TODO: Verify FORBIDDEN error for field write
-    });
+  it('returns tenant-scoped pagination and parsed JSON data', async () => {
+    const response = await h.query('{ entityRecords(entityId:1,pagination:{limit:2}) { items { id data } total page totalPages hasNextPage } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entityRecords).toMatchObject({ total: 3, page: 1, totalPages: 2, hasNextPage: true });
+    expect(response.body.data.entityRecords.items).toHaveLength(2);
+    expect(typeof response.body.data.entityRecords.items[0].data).toBe('object');
   });
-
-  describe('Entity mutations', () => {
-    it('should create entity', async () => {
-      const mutation = `mutation {
-        createEntity(input: { name: "Test Entity", label: "Test" }) {
-          id name label
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query: mutation });
-
-      // TODO: Verify entity created with generated id
-      // expect(response.body.data.createEntity.id).toBeDefined();
-    });
-
-    it('should update entity', async () => {
-      const mutation = `mutation {
-        updateEntity(id: 1, input: { label: "Updated" }) {
-          id label
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query: mutation });
-
-      // TODO: Verify entity updated
-    });
-
-    it('should delete entity (soft delete)', async () => {
-      const mutation = `mutation { deleteEntity(id: 1) }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query: mutation });
-
-      // TODO: Verify soft delete (deletedAt set, not removed from DB)
-      // expect(response.body.data.deleteEntity).toBe(true);
-    });
+  it('gets a record without leaking a different tenant or entity', async () => {
+    const response = await h.query('{ own:entityRecord(entityId:1,recordId:1) { id data } other:entityRecord(entityId:1,recordId:4) { id } wrong:entityRecord(entityId:2,recordId:1) { id } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.own.data.name).toBe('Record 1');
+    expect(response.body.data.other).toBeNull();
+    expect(response.body.data.wrong).toBeNull();
   });
-
-  describe('EntityRecord mutations', () => {
-    it('should create entity record with JSON data', async () => {
-      const mutation = `mutation {
-        createEntityRecord(
-          entityId: 1
-          input: { data: { name: "Test", status: "active" } }
-        ) {
-          id data
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query: mutation });
-
-      // TODO: Verify record created and data stored correctly
-    });
-
-    it('should validate field schema on create', async () => {
-      // TODO: Set up entity with required fields
-      // Attempt to create record without required field and verify error
-
-      const mutation = `mutation {
-        createEntityRecord(
-          entityId: 1
-          input: { data: { status: "active" } }
-        ) { id }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query: mutation });
-
-      // TODO: Verify validation error for missing required field
-    });
-
-    it('should bulk delete entity records', async () => {
-      const mutation = `mutation {
-        deleteEntityRecords(recordIds: [1, 2, 3]) {
-          id
-        }
-      }`;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v2/graphql')
-        .set('Authorization', adminToken)
-        .set('x-org-id', '1')
-        .send({ query: mutation });
-
-      // TODO: Verify soft delete for all records
-      // expect(response.body.data.deleteEntityRecords.length).toBe(3);
-    });
+  it('hides unreadable fields and masks protected values for non-admins', async () => {
+    const response = await h.query('{ entityRecord(entityId:1,recordId:1) { data } }', h.token('member'));
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.entityRecord.data).toEqual({ name: 'Record 1', readonly: 'fixed', masked: '****' });
+  });
+  it('rejects writes to read-only fields without modifying storage', async () => {
+    const response = await h.query('mutation { updateEntityRecord(entityId:1,recordId:1,input:{data:{readonly:"changed"}}) { id } }', h.token('member'));
+    expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
+    expect(JSON.parse((await h.prisma.entityRecord.findUnique({ where: { id: 1 } })).data).readonly).toBe('fixed');
+  });
+  it('creates, updates, and soft-deletes entity metadata with actor attribution', async () => {
+    const created = await h.query('mutation { createEntity(input:{name:"new_entity",label:"New"}) { id name createdBy } }');
+    expect(created.body.errors).toBeUndefined();
+    const id = created.body.data.createEntity.id;
+    expect(created.body.data.createEntity.createdBy).toBe(1);
+    const updated = await h.query(`mutation { updateEntity(id:${id},input:{label:"Updated"}) { label } }`);
+    expect(updated.body.data.updateEntity.label).toBe('Updated');
+    const deleted = await h.query(`mutation { deleteEntity(id:${id}) }`);
+    expect(deleted.body.data.deleteEntity).toBe(true);
+    expect((await h.prisma.entity.findUnique({ where: { id } })).deletedAt).not.toBeNull();
+    expect((await h.query(`{ entity(id:${id}) { id } }`)).body.data.entity).toBeNull();
+  });
+  it('creates and updates records with validated JSON data', async () => {
+    const created = await h.query('mutation { createEntityRecord(entityId:1,input:{data:{name:"New"}}) { id data companyId createdBy } }');
+    expect(created.body.errors).toBeUndefined();
+    const record = created.body.data.createEntityRecord;
+    expect(record).toMatchObject({ data: { name: 'New' }, companyId: 1, createdBy: 1 });
+    const response = await h.query(`mutation { updateEntityRecord(entityId:1,recordId:${record.id},input:{data:{name:"Updated"}}) { data } }`);
+    expect(response.body.data.updateEntityRecord.data.name).toBe('Updated');
+  });
+  it('validates required fields on create', async () => {
+    const count = await h.prisma.entityRecord.count();
+    const response = await h.query('mutation { createEntityRecord(entityId:1,input:{data:{secret:"value"}}) { id } }');
+    expect(response.body.errors[0].extensions.code).toBe('BAD_REQUEST');
+    expect(await h.prisma.entityRecord.count()).toBe(count);
+  });
+  it('rejects cross-tenant updates', async () => {
+    const response = await h.query('mutation { updateEntityRecord(entityId:1,recordId:4,input:{data:{name:"Wrong"}}) { id } }');
+    expect(response.body.errors[0].extensions.code).toBe('NOT_FOUND');
+    expect(JSON.parse((await h.prisma.entityRecord.findUnique({ where: { id: 4 } })).data).name).toBe('Record 4');
+  });
+  it('atomically rejects mixed-tenant bulk deletion', async () => {
+    const response = await h.query('mutation { deleteEntityRecords(recordIds:[1,4]) { id } }');
+    expect(response.body.errors[0].extensions.code).toBe('NOT_FOUND');
+    expect((await h.prisma.entityRecord.findUnique({ where: { id: 1 } })).deletedAt).toBeNull();
+  });
+  it('soft-deletes a batch without removing rows', async () => {
+    const response = await h.query('mutation { deleteEntityRecords(recordIds:[1,2,3]) { id deletedAt } }');
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.deleteEntityRecords).toHaveLength(3);
+    expect(await h.prisma.entityRecord.count({ where: { id: { in: [1,2,3] }, deletedAt: { not: null } } })).toBe(3);
   });
 });

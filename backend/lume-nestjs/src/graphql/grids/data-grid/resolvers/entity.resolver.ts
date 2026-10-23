@@ -1,3 +1,5 @@
+import { EntityService } from '@modules/base/services/entity.service';
+import { normalizePagination } from '../../../shared/inputs/pagination.input';
 import {
   Resolver,
   Query,
@@ -13,14 +15,14 @@ import { GqlJwtGuard } from '../../../guards/gql-jwt.guard';
 import { GqlRbacGuard } from '../../../guards/gql-rbac.guard';
 import { GqlCurrentUser } from '../../../decorators/gql-current-user.decorator';
 import { GqlTenant } from '../../../decorators/gql-tenant.decorator';
-import { Permissions } from '../../../core/decorators/permissions.decorator';
+import { Permissions } from '../../../../core/decorators/permissions.decorator';
 import { PaginationInput } from '../../../shared/inputs/pagination.input';
 import { Paginated } from '../../../shared/types/paginated.type';
 import { EntityType } from '../types/entity.type';
 import { EntityFieldType } from '../types/entity-field.type';
 import { CreateEntityInput } from '../inputs/create-entity.input';
 import { UpdateEntityInput } from '../inputs/update-entity.input';
-import { GqlContext, JwtPayload } from '../../../graphql.context';
+import type { GqlContext, JwtPayload } from '../../../graphql.context';
 
 /**
  * DataGrid Entity Resolver
@@ -31,7 +33,7 @@ import { GqlContext, JwtPayload } from '../../../graphql.context';
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class EntityResolver {
   // Inject existing EntityService when available
-  constructor() {}
+  constructor(private readonly entityService: EntityService) {}
 
   @Query(() => [EntityType], { name: 'entities' })
   @Permissions('base.entities.read')
@@ -40,10 +42,8 @@ export class EntityResolver {
     @GqlCurrentUser() user: JwtPayload,
     @GqlTenant() companyId: number,
   ): Promise<EntityType[]> {
-    // TODO: Delegate to EntityService.listEntities()
-    // For now, return empty array as placeholder
-    // Service integration will be done when EntityService is wired
-    return [];
+    const result = await this.entityService.listEntities(normalizePagination(pagination));
+    return result.items;
   }
 
   @Query(() => EntityType, { name: 'entity', nullable: true })
@@ -52,8 +52,8 @@ export class EntityResolver {
     @Args('id', { type: () => Int }) id: number,
     @GqlCurrentUser() user: JwtPayload,
   ): Promise<EntityType | null> {
-    // TODO: Delegate to EntityService.getEntity(id)
-    return null;
+    try { return await this.entityService.getEntity(id); }
+    catch (error) { if (error.message === 'Entity not found') return null; throw error; }
   }
 
   @Mutation(() => EntityType)
@@ -62,8 +62,7 @@ export class EntityResolver {
     @Args('input') input: CreateEntityInput,
     @GqlCurrentUser() user: JwtPayload,
   ): Promise<EntityType> {
-    // TODO: Delegate to EntityService.createEntity(input, userId)
-    throw new Error('Not implemented');
+    return this.entityService.createEntity(input, user.sub);
   }
 
   @Mutation(() => EntityType)
@@ -73,8 +72,7 @@ export class EntityResolver {
     @Args('input') input: UpdateEntityInput,
     @GqlCurrentUser() user: JwtPayload,
   ): Promise<EntityType> {
-    // TODO: Delegate to EntityService.updateEntity(id, input, userId)
-    throw new Error('Not implemented');
+    return this.entityService.updateEntity(id, input);
   }
 
   @Mutation(() => Boolean)
@@ -83,8 +81,8 @@ export class EntityResolver {
     @Args('id', { type: () => Int }) id: number,
     @GqlCurrentUser() user: JwtPayload,
   ): Promise<boolean> {
-    // TODO: Delegate to EntityService.deleteEntity(id, userId)
-    return false;
+    await this.entityService.deleteEntity(id);
+    return true;
   }
 
   @ResolveField('fields', () => [EntityFieldType])

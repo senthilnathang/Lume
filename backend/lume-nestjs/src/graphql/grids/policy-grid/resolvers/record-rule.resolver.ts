@@ -6,13 +6,15 @@ import {
   Int,
 } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
+import { RecordRuleManagementService } from '../../../../modules/base/services/record-rule-management.service';
+import { normalizePagination } from '../../../shared/inputs/pagination.input';
 import { GqlJwtGuard } from '../../../guards/gql-jwt.guard';
 import { GqlRbacGuard } from '../../../guards/gql-rbac.guard';
 import { GqlCurrentUser } from '../../../decorators/gql-current-user.decorator';
-import { Permissions } from '../../../core/decorators/permissions.decorator';
+import { Permissions } from '../../../../core/decorators/permissions.decorator';
 import { PaginationInput } from '../../../shared/inputs/pagination.input';
 import { RecordRuleType } from '../types/record-rule.type';
-import { JwtPayload } from '../../../graphql.context';
+import type { JwtPayload } from '../../../graphql.context';
 
 /**
  * PolicyGrid RecordRule Resolver
@@ -22,7 +24,7 @@ import { JwtPayload } from '../../../graphql.context';
 @Resolver(() => RecordRuleType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class RecordRuleResolver {
-  constructor() {}
+  constructor(private readonly rules: RecordRuleManagementService) {}
 
   @Query(() => [RecordRuleType], { name: 'recordRules' })
   @Permissions('base.record_rules.read')
@@ -31,10 +33,8 @@ export class RecordRuleResolver {
     @Args('pagination', { nullable: true }) pagination?: PaginationInput,
     @GqlCurrentUser() user?: JwtPayload,
   ): Promise<RecordRuleType[]> {
-    // TODO: Delegate to RecordRuleService.listRecordRules(modelName, pagination)
-    // Filter by modelName if provided
-    // Return paginated list ordered by sequence
-    return [];
+    const { page, limit } = normalizePagination(pagination);
+    return this.rules.list(modelName, page, limit);
   }
 
   @Query(() => RecordRuleType, { name: 'recordRule', nullable: true })
@@ -43,8 +43,7 @@ export class RecordRuleResolver {
     @Args('id', { type: () => Int }) id: number,
     @GqlCurrentUser() user?: JwtPayload,
   ): Promise<RecordRuleType | null> {
-    // TODO: Delegate to RecordRuleService.getRecordRule(id)
-    return null;
+    return this.rules.get(id);
   }
 
   @Mutation(() => RecordRuleType)
@@ -59,14 +58,7 @@ export class RecordRuleResolver {
     @Args('sequence', { type: () => Int, nullable: true }) sequence?: number,
     @GqlCurrentUser() user?: JwtPayload,
   ): Promise<RecordRuleType> {
-    // TODO: Delegate to RecordRuleService.createRecordRule(input, userId)
-    // - Validate modelName exists
-    // - Validate action is valid enum (read, write, delete)
-    // - Validate domain filter JSON is parseable
-    // - Parse groups/users JSON if provided
-    // - Create rule with next sequence
-    // - Audit log creation
-    throw new Error('Not implemented');
+    return this.rules.create({ name, modelName, action, domain, groups, users, sequence: sequence ?? undefined }, user.sub);
   }
 
   @Mutation(() => RecordRuleType)
@@ -82,10 +74,7 @@ export class RecordRuleResolver {
     @Args('sequence', { type: () => Int, nullable: true }) sequence?: number,
     @GqlCurrentUser() user?: JwtPayload,
   ): Promise<RecordRuleType> {
-    // TODO: Delegate to RecordRuleService.updateRecordRule(id, input, userId)
-    // - Validate domain/groups/users JSON if provided
-    // - Audit log changes
-    throw new Error('Not implemented');
+    return this.rules.update(id, { name, action, domain, groups, users, isActive, sequence }, user.sub);
   }
 
   @Mutation(() => Boolean)
@@ -94,10 +83,7 @@ export class RecordRuleResolver {
     @Args('id', { type: () => Int }) id: number,
     @GqlCurrentUser() user?: JwtPayload,
   ): Promise<boolean> {
-    // TODO: Delegate to RecordRuleService.deleteRecordRule(id, userId)
-    // - Soft delete (set is_active = false)
-    // - Audit log deletion
-    return false;
+    return this.rules.delete(id, user.sub);
   }
 
   @Mutation(() => [RecordRuleType])
@@ -106,9 +92,6 @@ export class RecordRuleResolver {
     @Args('rules', { type: () => [Int] }) ruleIds: number[],
     @GqlCurrentUser() user?: JwtPayload,
   ): Promise<RecordRuleType[]> {
-    // TODO: Delegate to RecordRuleService.reorderRecordRules(ruleIds, userId)
-    // - Update sequence field for each rule in order
-    // - Audit log the reorder
-    return [];
+    return this.rules.reorder(ruleIds, user.sub);
   }
 }

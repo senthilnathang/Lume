@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import {
   automationWorkflows,
@@ -28,7 +28,7 @@ import {
   CreateRollupFieldDto,
   UpdateRollupFieldDto,
 } from '../dtos';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 @Injectable()
 export class AutomationService {
@@ -282,16 +282,10 @@ export class AutomationService {
   // ── Approval Chains ───────────────────────────────────────────
 
   async getApprovalChains(filters?: { status?: string; model?: string }) {
-    let query = this.db.select().from(automationApprovalChains);
-
-    if (filters?.status) {
-      query = query.where(eq(automationApprovalChains.status, filters.status));
-    }
-    if (filters?.model) {
-      query = query.where(eq(automationApprovalChains.model, filters.model));
-    }
-
-    const results = await query;
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(automationApprovalChains.status,filters.status));
+    if (filters?.model) conditions.push(eq(automationApprovalChains.model,filters.model));
+    const results = await this.db.select().from(automationApprovalChains).where(and(...conditions));
     return { success: true, data: results };
   }
 
@@ -309,17 +303,27 @@ export class AutomationService {
   }
 
   async createApprovalChain(dto: CreateApprovalChainDto) {
+    this.validateApprovalWorkflows(dto);
+    this.validateApprovalTrigger(dto.triggerEvent);
     try {
       const result = await this.db
         .insert(automationApprovalChains)
         .values(dto);
-      return { success: true, data: { id: result.insertId, ...dto } };
+      return this.getApprovalChain(Number(result[0].insertId));
     } catch (error: any) {
       return { success: false, error: error.message };
     }
   }
 
+  private validateApprovalWorkflows(dto: {onCompleted?: string | null;onRejected?: string | null}) {
+    for (const name of [dto.onCompleted,dto.onRejected]) {
+      if (name != null && (typeof name !== 'string' || !/^[a-zA-Z0-9_.-]{1,100}$/.test(name))) throw new BadRequestException('Invalid approval workflow name');
+    }
+  }
+
   async updateApprovalChain(id: number, dto: UpdateApprovalChainDto) {
+    this.validateApprovalWorkflows(dto);
+    this.validateApprovalTrigger(dto.triggerEvent);
     try {
       await this.db
         .update(automationApprovalChains)
@@ -359,6 +363,12 @@ export class AutomationService {
       return { success: true, message: 'Approval chain deleted' };
     } catch (error: any) {
       return { success: false, error: error.message };
+    }
+  }
+
+  private validateApprovalTrigger(trigger: unknown) {
+    if (trigger !== undefined && !['manual','record.created','record.updated','record.saved'].includes(trigger as string)) {
+      throw new BadRequestException('Invalid approval trigger event');
     }
   }
 

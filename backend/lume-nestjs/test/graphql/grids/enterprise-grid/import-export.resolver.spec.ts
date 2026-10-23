@@ -1,3 +1,5 @@
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ImportExportResolver } from '../../../../src/graphql/grids/enterprise-grid/resolvers/import-export.resolver';
 
@@ -8,9 +10,9 @@ describe('ImportExportResolver', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [ImportExportResolver],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

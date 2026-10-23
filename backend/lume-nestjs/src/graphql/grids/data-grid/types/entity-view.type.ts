@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { GraphQLJSON } from 'graphql-scalars';
 
 @ObjectType('EntityView')
 export class EntityViewType {
@@ -17,7 +18,7 @@ export class EntityViewType {
   @Field(() => Boolean, { nullable: true })
   isDefault?: boolean;
 
-  @Field(() => Object, { nullable: true }) // JSON scalar
+  @Field(() => GraphQLJSON, { nullable: true })
   config?: any;
 
   @Field(() => Date)

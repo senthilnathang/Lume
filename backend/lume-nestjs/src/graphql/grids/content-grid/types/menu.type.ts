@@ -1,10 +1,10 @@
-import { ObjectType, Field } from '@nestjs/graphql';
-import { Node, Auditable } from '../../shared/interfaces/index.js';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { Node, Auditable } from '../../../shared/interfaces/index.js';
 import { MenuItemType } from './menu-item.type.js';
 
 @ObjectType('Menu', { implements: [Node, Auditable] })
 export class MenuType implements Node, Auditable {
-  @Field(() => String)
+  @Field(() => ID)
   id: string;
 
   @Field(() => String)

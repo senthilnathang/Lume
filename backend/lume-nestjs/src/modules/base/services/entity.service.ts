@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@core/services/prisma.service';
 import { DrizzleService } from '@core/services/drizzle.service';
 import { CreateEntityDto, UpdateEntityDto, CreateFieldDto, UpdateFieldDto, CreateViewDto } from '../dtos';
@@ -13,7 +13,8 @@ export class EntityService {
   /**
    * Create a new custom entity
    */
-  async createEntity(dto: CreateEntityDto): Promise<any> {
+  async createEntity(dto: CreateEntityDto, userId: number): Promise<any> {
+    if (!Number.isSafeInteger(userId) || userId <= 0) throw new BadRequestException('A valid creator is required');
     // Check if entity name already exists
     const existing = await this.prisma.entity.findFirst({
       where: { name: dto.name },
@@ -25,6 +26,7 @@ export class EntityService {
 
     return this.prisma.entity.create({
       data: {
+        createdBy: userId,
         name: dto.name,
         label: dto.label,
         description: dto.description || null,
@@ -40,7 +42,7 @@ export class EntityService {
       where: { id },
     });
 
-    if (!entity) {
+    if (!entity || entity.deletedAt) {
       throw new Error('Entity not found');
     }
 
@@ -70,11 +72,12 @@ export class EntityService {
 
     const [items, total] = await Promise.all([
       this.prisma.entity.findMany({
+        where: { deletedAt: null },
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.entity.count(),
+      this.prisma.entity.count({ where: { deletedAt: null } }),
     ]);
 
     return {
@@ -92,7 +95,7 @@ export class EntityService {
   async updateEntity(id: number, dto: UpdateEntityDto): Promise<any> {
     const entity = await this.prisma.entity.findUnique({ where: { id } });
 
-    if (!entity) {
+    if (!entity || entity.deletedAt) {
       throw new Error('Entity not found');
     }
 
@@ -111,7 +114,7 @@ export class EntityService {
   async deleteEntity(id: number): Promise<any> {
     const entity = await this.prisma.entity.findUnique({ where: { id } });
 
-    if (!entity) {
+    if (!entity || entity.deletedAt) {
       throw new Error('Entity not found');
     }
 
@@ -127,7 +130,7 @@ export class EntityService {
   async publishEntity(id: number): Promise<any> {
     const entity = await this.prisma.entity.findUnique({ where: { id } });
 
-    if (!entity) {
+    if (!entity || entity.deletedAt) {
       throw new Error('Entity not found');
     }
 
@@ -149,7 +152,7 @@ export class EntityService {
   async unpublishEntity(id: number): Promise<any> {
     const entity = await this.prisma.entity.findUnique({ where: { id } });
 
-    if (!entity) {
+    if (!entity || entity.deletedAt) {
       throw new Error('Entity not found');
     }
 
@@ -165,7 +168,7 @@ export class EntityService {
   async createField(entityId: number, dto: CreateFieldDto): Promise<any> {
     const entity = await this.prisma.entity.findUnique({ where: { id: entityId } });
 
-    if (!entity) {
+    if (!entity || entity.deletedAt) {
       throw new Error('Entity not found');
     }
 
@@ -285,7 +288,7 @@ export class EntityService {
   async createView(entityId: number, dto: CreateViewDto): Promise<any> {
     const entity = await this.prisma.entity.findUnique({ where: { id: entityId } });
 
-    if (!entity) {
+    if (!entity || entity.deletedAt) {
       throw new Error('Entity not found');
     }
 

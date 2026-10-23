@@ -13,4 +13,10 @@ export class SetFieldPermissionInput {
 
   @Field({ nullable: true, defaultValue: false })
   canWrite?: boolean;
+
+  @Field({ nullable: true })
+  isMasked?: boolean;
+
+  @Field({ nullable: true })
+  maskChar?: string;
 }

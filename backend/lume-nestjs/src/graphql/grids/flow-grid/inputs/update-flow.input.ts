@@ -1,4 +1,5 @@
-import { InputType, Field, JSON as GraphQLJSON } from '@nestjs/graphql';
+import { GraphQLJSON } from 'graphql-scalars';
+import { InputType, Field } from '@nestjs/graphql';
 
 @InputType('UpdateFlowInput')
 export class UpdateFlowInput {

@@ -12,6 +12,8 @@ import { DrizzleService } from '../../core/services/drizzle.service';
 export class DataLoaderRegistry {
   readonly userById: DataLoader<number, any>;
   readonly roleById: DataLoader<number, any>;
+  readonly permissionsByRoleId: DataLoader<number, any[]>;
+  readonly fieldPermissionsByRoleId: DataLoader<number, any[]>;
   readonly entityById: DataLoader<number, any>;
   readonly entityFieldsByEntityId: DataLoader<number, any[]>;
   readonly workflowById: DataLoader<number, any>;
@@ -23,6 +25,23 @@ export class DataLoaderRegistry {
   ) {
     this.userById = this.createUserLoader();
     this.roleById = this.createRoleLoader();
+    this.permissionsByRoleId = new DataLoader(async (ids: readonly number[]) => {
+      const rows = await this.prisma.rolePermission.findMany({
+        where: { roleId: { in: [...ids] } }, include: { permission: true }, orderBy: { id: 'asc' },
+      });
+      return ids.map(id => rows.filter(row => row.roleId === id).map(({ permission }) => ({
+        ...permission, displayName: permission.display_name, isActive: permission.isActive ?? true,
+      })));
+    });
+    this.fieldPermissionsByRoleId = new DataLoader(async (ids: readonly number[]) => {
+      const rows = await this.prisma.entityFieldPermission.findMany({
+        where: { roleId: { in: [...ids] }, field: { deletedAt: null, entity: { deletedAt: null } } }, orderBy: { id: 'asc' },
+      });
+      return ids.map(id => rows.filter(row => row.roleId === id).map(row => ({
+        ...row, canRead: row.canRead ?? true, canWrite: row.canWrite ?? false,
+        isMasked: row.isMasked ?? false, maskChar: row.maskChar ?? '*', updatedAt: row.createdAt,
+      })));
+    });
     this.entityById = this.createEntityLoader();
     this.entityFieldsByEntityId = this.createEntityFieldsLoader();
     this.workflowById = this.createWorkflowLoader();
@@ -51,7 +70,8 @@ export class DataLoaderRegistry {
       const roles = await this.prisma.role.findMany({
         where: { id: { in: [...ids] } },
       });
-      const map = new Map(roles.map(r => [r.id, r]));
+      const map = new Map(roles.map(r => [r.id, { ...r, displayName: r.display_name,
+        isSystem: r.is_system ?? false, isActive: r.isActive ?? true }]));
       return ids.map(id => map.get(id) ?? new Error(`Role ${id} not found`));
     });
   }

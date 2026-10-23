@@ -1,9 +1,24 @@
 import { Type } from '@nestjs/common';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 
+export interface PaginatedType<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+const pageTypes = new WeakMap<Type<unknown>, Type<PaginatedType<unknown>>>();
+
 export function Paginated<T>(classRef: Type<T>): Type<PaginatedType<T>> {
-  @ObjectType({ isAbstract: true })
-  abstract class PaginatedType {
+  const existing = pageTypes.get(classRef);
+  if (existing) return existing as Type<PaginatedType<T>>;
+
+  @ObjectType(`${classRef.name}Page`)
+  abstract class PaginatedObject implements PaginatedType<T> {
     @Field(() => [classRef])
     items: T[];
 
@@ -26,5 +41,6 @@ export function Paginated<T>(classRef: Type<T>): Type<PaginatedType<T>> {
     hasPreviousPage: boolean;
   }
 
-  return PaginatedType as Type<PaginatedType<T>>;
+  pageTypes.set(classRef, PaginatedObject as Type<PaginatedType<unknown>>);
+  return PaginatedObject as Type<PaginatedType<T>>;
 }

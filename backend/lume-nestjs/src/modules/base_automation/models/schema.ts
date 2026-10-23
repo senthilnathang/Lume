@@ -44,6 +44,9 @@ export const automationApprovalChains = table('automation_approval_chains', {
   description: text('description'),
   steps: json('steps').$type<any[]>().default([]),
   condition: json('condition').$type<any>().default({}),
+  triggerEvent: varchar('trigger_event', { length: 30 }).notNull().default('manual'),
+  onCompleted: varchar('on_completed', {length:100}),
+  onRejected: varchar('on_rejected', {length:100}),
   status: varchar('status', { length: 20 }).default('active'),
 });
 
@@ -82,6 +85,7 @@ export const automationAssignmentRules = table('automation_assignment_rules', {
   description: text('description'),
   assignTo: varchar('assign_to', { length: 20 }).default('user'),
   assigneeId: idCol('assignee_id'),
+  lastAssignedIndex: idCol('last_assigned_index').notNull().default(-1),
   condition: json('condition').$type<any>().default({}),
   priority: idCol('priority').default(10),
   status: varchar('status', { length: 20 }).default('active'),

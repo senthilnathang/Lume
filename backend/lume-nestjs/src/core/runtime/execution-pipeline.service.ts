@@ -34,21 +34,12 @@ export class ExecutionPipelineService {
       }
       index = i;
 
-      let fn: (() => Promise<any>) | undefined;
-
-      if (i < this.middlewares.length) {
-        fn = this.middlewares[i];
-      } else {
-        fn = handler;
+      const middleware = this.middlewares[i];
+      if (middleware) {
+        return middleware(ctx, () => dispatch(i + 1));
       }
 
-      if (!fn) return;
-
-      try {
-        return await fn(ctx, () => dispatch(i + 1));
-      } catch (err) {
-        throw err;
-      }
+      return handler();
     };
 
     return dispatch(0);

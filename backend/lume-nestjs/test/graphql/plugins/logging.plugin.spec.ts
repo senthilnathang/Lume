@@ -17,7 +17,7 @@ describe('LoggingPlugin', () => {
   });
 
   it('should implement ApolloServerPlugin interface', () => {
-    expect(plugin.requestDidResolveOperation).toBeDefined();
+    expect(plugin.requestDidStart).toBeDefined();
     expect(plugin.didEncounterErrors).toBeDefined();
     expect(plugin.willSendResponse).toBeDefined();
   });
@@ -26,8 +26,9 @@ describe('LoggingPlugin', () => {
     // TODO: Mock Date.now() and verify context.requestStartTime set
     const mockContext: any = {};
 
-    await plugin.requestDidResolveOperation({
-      context: mockContext,
+    const listener = await plugin.requestDidStart();
+    await listener.didResolveOperation!({
+      contextValue: mockContext,
       operationName: 'GetEntities',
     } as any);
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import { RbacGuard } from '@core/guards/rbac.guard';
 import { Permissions } from '@core/decorators';
@@ -15,9 +15,9 @@ export class EntityController {
   @Post()
   @UseGuards(JwtAuthGuard, RbacGuard)
   @Permissions('base.entities.write')
-  async createEntity(@Body() dto: CreateEntityDto) {
+  async createEntity(@Body() dto: CreateEntityDto, @Req() req: any) {
     try {
-      const entity = await this.entityService.createEntity(dto);
+      const entity = await this.entityService.createEntity(dto, req.user.id);
       return {
         success: true,
         data: entity,

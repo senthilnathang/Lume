@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { RecordService } from '@modules/base/services/record.service';
+import { FormulaService } from '@modules/base/services/formula.service';
 import { SharedModule } from '@core/modules/shared.module';
 import { AutomationService } from './services/automation.service';
 import { BusinessRuleEngineService } from './services/business-rule-engine.service';
@@ -7,17 +9,22 @@ import { AssignmentRuleEngineService } from './services/assignment-rule-engine.s
 import { RollupEngineService } from './services/rollup-engine.service';
 import { ApprovalChainEngineService } from './services/approval-chain-engine.service';
 import { AutomationController } from './controllers/automation.controller';
+import { ApprovalRequestsController } from './controllers/approval-requests.controller';
+import { ApprovalTriggerService } from './services/approval-trigger.service';
 
 @Module({
   imports: [SharedModule],
-  controllers: [AutomationController],
+  controllers: [AutomationController, ApprovalRequestsController],
   providers: [
+    RecordService,
+    FormulaService,
     AutomationService,
     BusinessRuleEngineService,
     ValidationRuleEngineService,
     AssignmentRuleEngineService,
     RollupEngineService,
     ApprovalChainEngineService,
+    ApprovalTriggerService,
   ],
   exports: [
     AutomationService,

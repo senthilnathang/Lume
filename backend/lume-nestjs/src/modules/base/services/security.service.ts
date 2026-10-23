@@ -1,5 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import type { record_rules_action } from '@prisma/client';
+import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '@core/services/prisma.service';
+
+export interface RecordRuleContext {
+  userId?: number;
+  roleId?: number;
+  roleIds?: number[];
+}
 
 @Injectable()
 export class SecurityService {
@@ -7,6 +14,15 @@ export class SecurityService {
   private recordRuleCache = new Map<string, any>();
 
   constructor(private prisma: PrismaService) {}
+
+  private parseRecordAction(action: string): record_rules_action {
+    switch (action) {
+      case 'create': case 'read': case 'write': case 'unlink': return action;
+      case 'update': return 'write';
+      case 'delete': return 'unlink';
+      default: throw new BadRequestException(`Unsupported record action: ${action}`);
+    }
+  }
 
   /**
    * Check if user has a specific permission
@@ -82,22 +98,10 @@ export class SecurityService {
   /**
    * Check record rules for an action
    */
-  async checkRecordRules(modelName: string, action: string, record: any, context: any = {}): Promise<boolean> {
-    const rules = await this.prisma.recordRule.findMany({
-      where: {
-        modelName,
-        action,
-        isActive: true,
-      },
-      orderBy: { sequence: 'asc' },
-    });
-
-    for (const rule of rules) {
-      const domain = typeof rule.domain === 'string' ? JSON.parse(rule.domain || '{}') : rule.domain || {};
-      const matches = this.evaluateDomain(domain, record);
-      if (!matches) {
-        throw new Error(`Access denied by record rule: ${rule.name}`);
-      }
+  async checkRecordRules(modelName: string, action: string, record: any, context: RecordRuleContext = {}): Promise<boolean> {
+    const domain = await this.getRecordRuleDomain(modelName, action, context);
+    if (!this.evaluateDomain(domain, record)) {
+      throw new ForbiddenException('Access denied by record rule');
     }
 
     return true;
@@ -106,19 +110,66 @@ export class SecurityService {
   /**
    * Get domain filter from record rules
    */
-  async getRecordRuleDomain(modelName: string, action: string, context: any = {}): Promise<Record<string, any>> {
+  async recordPredicate(modelNames: string[], action: string, context: RecordRuleContext = {}) {
+    const domains = await Promise.all([...new Set(modelNames)].map(model => this.getRecordRuleDomain(model, action, context)));
+    return (record: Record<string, any>) => domains.every(domain => this.evaluateDomain(domain, record));
+  }
+
+  async getRecordRuleDomain(modelName: string, action: string, context: RecordRuleContext = {}): Promise<Record<string, any>> {
     const rules = await this.prisma.recordRule.findMany({
       where: {
         modelName,
-        action,
+        action: this.parseRecordAction(action),
         isActive: true,
       },
+      orderBy: [{ sequence: 'asc' }, { id: 'asc' }],
     });
 
     if (rules.length === 0) return {};
 
-    const domains = rules.map((r) => (typeof r.domain === 'string' ? JSON.parse(r.domain || '{}') : r.domain || {}));
+    const domains = rules.filter(rule => this.applies(rule, context)).map(rule => this.parseDomain(rule.domain));
     return this.combineDomains(domains);
+  }
+
+  private scope(value: string | null | undefined): number[] {
+    if (value == null) return [];
+    try {
+      const ids = JSON.parse(value);
+      if (!Array.isArray(ids) || ids.some(id => !Number.isSafeInteger(id) || id < 1)) throw new Error();
+      return ids;
+    } catch { throw new ForbiddenException('Invalid record-rule scope'); }
+  }
+
+  private applies(rule: { groups?: string; users?: string }, context: RecordRuleContext): boolean {
+    const roles = this.scope(rule.groups);
+    const users = this.scope(rule.users);
+    if (!roles.length && !users.length) return true;
+    if (!Number.isSafeInteger(context.userId) || context.userId < 1) throw new ForbiddenException('User identity required for scoped record rules');
+    const actorRoles = context.roleIds ?? (context.roleId === undefined ? [] : [context.roleId]);
+    if (roles.length && (!actorRoles.length || actorRoles.some(id => !Number.isSafeInteger(id) || id < 1))) {
+      throw new ForbiddenException('Role identity required for scoped record rules');
+    }
+    return users.includes(context.userId) || roles.some(id => actorRoles.includes(id));
+  }
+
+  private parseDomain(value: string): Record<string, any> {
+    try {
+      const domain = JSON.parse(value);
+      if (!domain || typeof domain !== 'object' || Array.isArray(domain)) throw new Error();
+      for (const [field, condition] of Object.entries(domain)) {
+        if (!field || ['__proto__', 'constructor', 'prototype', '$and'].includes(field) || Array.isArray(condition)) throw new Error();
+        if (condition !== null && typeof condition === 'object') {
+          if (!Object.keys(condition).length) throw new Error();
+          for (const [op, operand] of Object.entries(condition)) {
+            if (!['eq','ne','gt','gte','lt','lte','in','nin'].includes(op)) throw new Error();
+            if (['in','nin'].includes(op)) {
+              if (!Array.isArray(operand) || operand.some(item => item !== null && typeof item === 'object')) throw new Error();
+            } else if (operand !== null && typeof operand === 'object') throw new Error();
+          }
+        }
+      }
+      return domain;
+    } catch { throw new ForbiddenException('Invalid record-rule domain'); }
   }
 
   /**
@@ -126,8 +177,11 @@ export class SecurityService {
    */
   private evaluateDomain(domain: Record<string, any>, record: any): boolean {
     if (!domain || Object.keys(domain).length === 0) return true;
+    if (domain.$and) return domain.$and.every((child: Record<string, any>) => this.evaluateDomain(child, record));
+    if (!record || typeof record !== 'object') return false;
 
     for (const [field, condition] of Object.entries(domain)) {
+      if (!Object.prototype.hasOwnProperty.call(record, field)) return false;
       const value = record[field];
 
       if (typeof condition === 'object' && condition !== null) {
@@ -175,7 +229,8 @@ export class SecurityService {
   private combineDomains(domains: Record<string, any>[]): Record<string, any> {
     if (domains.length === 0) return {};
     if (domains.length === 1) return domains[0];
-    return domains.reduce((combined, domain) => ({ ...combined, ...domain }), {});
+    // Preserve every condition, including multiple constraints on the same field.
+    return { $and: domains };
   }
 
   /**

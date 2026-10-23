@@ -1,0 +1,120 @@
+Lume verification — 2026-10-21
+
+RESULT: NOT READY FOR RELEASE. Core Express tests pass after prerequisites are
+configured, but frontend builds, lint/type gates, and the alternative NestJS
+backend fail. This was a verification audit; no application source fixes were made.
+
+PLAN EXECUTED
+1. Inspect workspace, scripts, CI, test isolation, dependencies and existing changes.
+2. Run uncached workspace lint, type checks, builds, and application tests.
+3. Initialize a separate database; run integration and live API checks.
+4. Exercise browser login/dashboard, CLI/MCP, legacy build, NestJS, and config syntax.
+5. Recheck prerequisite/resource-related failures and record remaining blockers.
+
+ENVIRONMENT AND DATA
+Repository: /opt/Lume; Node v24.0.1; pnpm 10.28.2; installed dependencies used.
+Integration database: lume_verify_20261021 on local MySQL-compatible service.
+Prisma db push, setupDrizzle.js, createAdmin.js and seedData.js succeeded.
+Drizzle scanned 107 tables, created 44, found 63 existing, with zero failures.
+The website module was installed through the API in the verification database.
+No existing application database was reset. The isolated database is retained.
+Existing staged composable index modification and useExport.ts deletion preserved.
+
+FINAL RESULTS
+Express backend unit tests: PASS — 110 suites, 2,175 assertions.
+Express backend integration tests: PASS — 14 suites, 225 assertions, final full run.
+Admin unit/component tests: PASS — 9 files, 54 assertions with --maxWorkers=1.
+CLI generator and MCP tests: PASS — 10 assertions across two suites.
+Website default tests: BLOCKED — missing jsdom dependency.
+Website tests with --environment node: PASS — 3 assertions; these only test mocked
+fetch responses, not the actual composable implementation.
+Backend typecheck: PASS.
+Backend build script: exits successfully but only prints 'No build step required'.
+Admin production build: FAIL — duplicate filterOptions declaration at lines 38/49
+of backend/src/modules/website/static/views/theme-builder.vue.
+Admin typecheck: FAIL — 5,586 TypeScript diagnostics (including cascading errors).
+Website build: FAIL — Tailwind used directly as a PostCSS plugin with Tailwind v4.
+Website typecheck: BLOCKED — missing vue-tsc or another supported Vue checker.
+Backend lint: FAIL — 2 errors.
+Admin lint: FAIL — 2 errors, 259 warnings.
+Website lint: FAIL — 519 errors, 43 warnings; includes generated Nuxt declarations
+and Nuxt auto-import globals, so this count is not all application defects.
+Admin configured Playwright suite: FAIL — no tests found.
+Alternative NestJS typecheck: FAIL — 399 TypeScript diagnostics.
+Alternative NestJS configured tests: FAIL — 29 failed/12 passed suites;
+58 failed/101 passed assertions, including suites unable to load imports.
+Older frontend/lume-admin build: FAIL — cannot resolve ant-design-vue imported
+by backend/src/modules/base_automation/static/views/workflow-execution.vue.
+Shell syntax: PASS for lume.sh, test-basic.sh, test-comprehensive.sh,
+final-verification.sh and deploy-cpanel.sh (syntax only; scripts not executed).
+Docker Compose config validation: PASS for default, prod, staging, observability;
+obsolete version fields and missing deployment environment variables warned.
+
+LIVE VERIFICATION
+Backend starts and listens on port 3000; table parity reports 107 tables checked.
+GET /health, /api/openapi.json, /api/modules: HTTP 200.
+GET /api/users/me unauthenticated: HTTP 401.
+POST /api/users/login with disposable seeded admin: HTTP 200 with token.
+GET /api/users/me authenticated: HTTP 200.
+Browser login at port 3001 reaches /dashboard; zero console errors, one warning.
+Dashboard screenshot: /opt/Lume/output/playwright/lume-verification-dashboard.png.
+This confirms login and dashboard rendering, not every administrative workflow.
+
+IMPORTANT REMAINING FINDINGS
+- Live queue startup fails: TypeError: QueueScheduler is not a constructor
+  at backend/src/core/services/queue-manager.service.js:91. HTTP startup continues.
+- Live entity synchronization reports an entity_fields insert failure for contact.
+  Observed after integration fixtures ran; clean-database reproduction still needed.
+- Runtime also logs 'Invalid router ... function' and unavailable notification
+  service warnings; these require investigation despite passing tested routes.
+- Admin Playwright testDir is ./tests, while specs are in ./e2e; configuration
+  expects port 5173 but Vite defaults to 3001.
+- Admin Vite 8 build warns that object-form manualChunks is unsupported.
+- Backend lint: unused context in core/runtime/kernel.js:122 and duplicate
+  getAgent in core/runtime/registry.js:361.
+- Admin lint: unused props in components/EmptyState.vue:29 and explicit any
+  in components/ModuleView.vue:386.
+- NestJS failures include missing GraphQL guard/decorator imports, invalid ORM
+  dialect exports and module-definition/type mismatches.
+
+FAILURES RECHECKED
+Initial admin tests had worker startup timeouts: all 54 passed with one worker.
+Initial backend integration: 206 passed, 19 failed. The workflow suite needed an
+external server; website/cache checks needed the optional website module installed.
+After prerequisites, the final complete integration run passed all 225 assertions.
+Two intermediate performance timings failed under concurrent build/typecheck load;
+the isolated performance run passed all 13 checks, and the final full run passed.
+Jest runs used --forceExit: absence of dangling handles was not verified.
+
+LIMITS
+No claim of exhaustive correctness or release readiness. Full deployment/container
+image builds, external email/SMS/SSO services, cross-browser/mobile flows, coverage
+thresholds, production secrets/configuration and sustained load were not verified.
+k6 is not installed; the 8–34 minute high-concurrency scenarios were not run.
+The alternative NestJS configuration discovers .spec.ts; other .test.ts integration
+and e2e files are not covered by its configured command. The older frontend root
+workspace was not installed or comprehensively exercised.
+No production deployment or dependency upgrade was performed.
+
+RECOMMENDED FIX ORDER
+1. Restore both active frontend builds: duplicate declaration and Tailwind/PostCSS.
+2. Fix queue startup and reproduce/fix entity sync on a fresh database.
+3. Repair test discovery/dependencies and align Playwright server port.
+4. Resolve lint/type errors, starting with import/configuration causes of cascades.
+5. Repair or clearly quarantine the alternative NestJS and older admin paths.
+6. Repeat gates, then complete cross-browser, deployment, coverage and load checks.
+
+EVIDENCE AND REPRODUCTION
+Raw logs: /tmp/lume-verification/ (may contain disposable test tokens; do not publish
+raw integration output without redaction).
+Workspace: pnpm exec turbo run {lint,typecheck,build} --force --continue
+Backend units: npm test -- --runInBand --forceExit --testPathPattern=tests/unit
+Backend integrations: npm test -- --runInBand --forceExit --testPathPattern=tests/integration
+  Set DATABASE_URL and DB_* to an isolated seeded database, install website module,
+  and start the backend on localhost:3000 before running integrations.
+Admin: npm test -- --run --maxWorkers=1
+Website diagnostic override: npm test -- --run --environment node
+Packages: node --test packages/create-lume-app/test/generate.test.js packages/lume-mcp/test/server.test.js
+NestJS: npm run typecheck; npm test -- --runInBand --forceExit
+Browser skill: /home/sibin/.codex/skills/playwright/SKILL.md; referenced wrapper
+was missing, so npx --package @playwright/cli playwright-cli was used directly.

@@ -1,3 +1,6 @@
+import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
+import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
+import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuditLogResolver } from '../../../../src/graphql/grids/enterprise-grid/resolvers/audit-log.resolver';
 
@@ -11,9 +14,9 @@ describe('AuditLogResolver', () => {
         { provide: 'PubSub', useValue: { asyncIterableIterator: jest.fn() } },
       ],
     })
-      .overrideGuard('GqlJwtGuard')
+      .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard('GqlRbacGuard')
+      .overrideGuard(GqlRbacGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

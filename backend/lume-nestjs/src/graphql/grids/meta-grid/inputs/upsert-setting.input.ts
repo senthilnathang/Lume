@@ -1,5 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { GraphQLJSON } from 'graphql-type-json';
+import { GraphQLJSON } from 'graphql-scalars';
 
 @InputType()
 export class UpsertSettingInput {

@@ -30,11 +30,12 @@ BEFORE INSERT ON record_versions
 FOR EACH ROW
 BEGIN
   IF NEW.version_number IS NULL THEN
-    SELECT COALESCE(MAX(version_number), 0) + 1
-    INTO NEW.version_number
-    FROM record_versions
-    WHERE entity_name = NEW.entity_name
-      AND record_id = NEW.record_id;
+    SET NEW.version_number = (
+      SELECT COALESCE(MAX(version_number), 0) + 1
+      FROM record_versions
+      WHERE entity_name = NEW.entity_name
+        AND record_id = NEW.record_id
+    );
   END IF;
 END$$
 DELIMITER ;

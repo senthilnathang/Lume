@@ -1,3 +1,4 @@
+import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import {
   Controller,
   Get,
@@ -10,16 +11,16 @@ import {
   Req,
 } from '@nestjs/common';
 import { SubmissionService } from '../services/submission.service';
-import { PolicyGuard, Policy } from '@core/permission/policy.guard';
+import { PolicyGuard, Authenticated } from '@core/permission/policy.guard';
 
 @Controller('api/developer/plugins')
-@UseGuards(PolicyGuard)
+@UseGuards(JwtAuthGuard, PolicyGuard)
 export class DeveloperController {
   constructor(private readonly submissionService: SubmissionService) {}
 
   @Post('submit')
   @HttpCode(201)
-  @Policy(['authenticated'])
+  @Authenticated()
   async submitPlugin(
     @Body()
     body: {
@@ -30,7 +31,7 @@ export class DeveloperController {
     @Req() req: any,
   ) {
     try {
-      const userId = req.user?.sub;
+      const userId = req.user?.id;
       if (!userId) {
         return { success: false, message: 'User not authenticated' };
       }
@@ -48,10 +49,10 @@ export class DeveloperController {
   }
 
   @Get()
-  @Policy(['authenticated'])
+  @Authenticated()
   async listMyPlugins(@Req() req: any) {
     try {
-      const userId = req.user?.sub;
+      const userId = req.user?.id;
       if (!userId) {
         return { success: false, message: 'User not authenticated' };
       }
@@ -64,7 +65,7 @@ export class DeveloperController {
   }
 
   @Get(':name')
-  @Policy(['authenticated'])
+  @Authenticated()
   async getPluginSubmission(@Param('name') name: string) {
     try {
       const submission = await this.submissionService.getSubmissionByName(name);
@@ -78,14 +79,14 @@ export class DeveloperController {
   }
 
   @Put(':name')
-  @Policy(['authenticated'])
+  @Authenticated()
   async updatePluginSubmission(
     @Param('name') name: string,
     @Body() body: { displayName?: string; description?: string },
     @Req() req: any,
   ) {
     try {
-      const userId = req.user?.sub;
+      const userId = req.user?.id;
 
       // Verify ownership - in production, fetch from DB and check submittedBy
       const submission = await this.submissionService.getSubmissionByName(name);
@@ -111,13 +112,13 @@ export class DeveloperController {
   }
 
   @Get(':name/analytics')
-  @Policy(['authenticated'])
+  @Authenticated()
   async getPluginAnalytics(
     @Param('name') name: string,
     @Req() req: any,
   ) {
     try {
-      const userId = req.user?.sub;
+      const userId = req.user?.id;
 
       // Verify ownership
       const submission = await this.submissionService.getSubmissionByName(name);

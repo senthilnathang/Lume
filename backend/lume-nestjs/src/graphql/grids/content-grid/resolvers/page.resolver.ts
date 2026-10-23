@@ -1,20 +1,22 @@
 import { Resolver, Query, Mutation, Subscription, Args, Int } from '@nestjs/graphql';
 import { UseGuards, Inject } from '@nestjs/common';
 import { PubSub } from 'graphql-subscriptions';
-import { GqlJwtGuard, GqlRbacGuard } from '../../guards/index.js';
-import { GqlTenant } from '../../decorators/index.js';
+import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
+import { GqlTenant } from '../../../decorators/index.js';
 import { PageType } from '../types/page.type.js';
-import { PaginationInput } from '../../shared/inputs/pagination.input.js';
-import { Paginated } from '../../shared/types/paginated.type.js';
+import { PaginationInput } from '../../../shared/inputs/pagination.input.js';
+import { Paginated } from '../../../shared/types/paginated.type.js';
 import { CreatePageInput } from '../inputs/create-page.input.js';
 import { UpdatePageInput } from '../inputs/update-page.input.js';
+
+const PagePage = Paginated(PageType);
 
 @Resolver(() => PageType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class PageResolver {
   constructor(@Inject('PubSub') private pubSub: PubSub) {}
 
-  @Query(() => Paginated(PageType))
+  @Query(() => PagePage)
   async pages(
     @Args('status', { nullable: true }) status?: string,
     @Args('pagination', { nullable: true }) pagination?: PaginationInput,
@@ -101,7 +103,8 @@ export class PageResolver {
 
   @Subscription(() => PageType, {
     filter: (payload, variables, context) => {
-      return !context.user?.company_id ? false : true;
+      const companyId = context.user?.company_id;
+      return companyId != null && payload.pagePublished?.companyId === companyId;
     },
   })
   pagePublished(@GqlTenant() tenantId?: number) {

@@ -1,17 +1,11 @@
 import * as mysqlCore from 'drizzle-orm/mysql-core';
 
-const DB_TYPE = (process.env.DB_TYPE || 'mysql').toLowerCase();
-const usePostgres = DB_TYPE === 'postgresql' || DB_TYPE === 'postgres' || DB_TYPE === 'pg';
-
-const dialect = usePostgres ? null : mysqlCore;
-
 // Re-export for MySQL (default in Lume)
 export const table = mysqlCore.mysqlTable;
 export const dbEnum = mysqlCore.mysqlEnum;
 
 export const {
   int,
-  integer,
   varchar,
   text,
   boolean,
@@ -21,12 +15,15 @@ export const {
   smallint,
   decimal,
   real,
-  doublePrecision,
   date,
   time,
   serial,
   char,
 } = mysqlCore;
+
+// Portable aliases backed by actual MySQL column builders.
+export const integer = mysqlCore.int;
+export const doublePrecision = mysqlCore.double;
 
 export const longtext = mysqlCore.longtext;
 
