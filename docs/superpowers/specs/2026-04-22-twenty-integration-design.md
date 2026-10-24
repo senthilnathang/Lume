@@ -48,7 +48,7 @@
 
 ### Core Services
 
-#### 2.1 EntityService (`backend/src/core/services/entity.service.js`)
+#### 2.1 EntityService (`legacy/express/src/core/services/entity.service.js`)
 
 Manages custom entity definitions, fields, and access control.
 
@@ -123,7 +123,7 @@ export const entitySyncHistory = pgTable('entity_sync_history', {
 });
 ```
 
-#### 2.2 ViewRegistry (`backend/src/core/services/view-registry.js`)
+#### 2.2 ViewRegistry (`legacy/express/src/core/services/view-registry.js`)
 
 Plugin system for view types. Each view implements a standard interface.
 
@@ -206,12 +206,12 @@ export class ListViewAdapter extends BaseViewAdapter {
 }
 ```
 
-#### 2.3 SyncService (`backend/src/core/services/sync.service.js`)
+#### 2.3 SyncService (`legacy/express/src/core/services/sync.service.js`)
 
 Bidirectional synchronization between code-first definitions and DB.
 
 **Methods:**
-- `loadCodeDefinitions(path)` — Read entity definitions from `/backend/src/entities/`
+- `loadCodeDefinitions(path)` — Read entity definitions from `/legacy/express/src/entities/`
 - `syncToDb(codeDefs)` — Merge code definitions into DB (create new, update existing, detect conflicts)
 - `syncToCode(entityId)` — Export DB entity to code format
 - `detectConflicts(codeVersion, dbVersion)` — Identify divergences
@@ -221,7 +221,7 @@ Bidirectional synchronization between code-first definitions and DB.
 **Code Definition Format** (YAML):
 
 ```yaml
-# backend/src/entities/contact.entity.yaml
+# legacy/express/src/entities/contact.entity.yaml
 name: Contact
 slug: contact
 icon: user
@@ -299,7 +299,7 @@ Supported types (extensible):
 
 #### 4.1 Admin Panel Views
 
-Location: `backend/src/modules/base/static/views/` (entity management UI)
+Location: `legacy/express/src/modules/base/static/views/` (entity management UI)
 
 **Views:**
 - `entities/` — Entity list and CRUD
@@ -308,7 +308,7 @@ Location: `backend/src/modules/base/static/views/` (entity management UI)
 - `view-configurator.vue` — Configure views per entity
 - `entity-preview.vue` — Live preview of entity in each view type
 
-**Components:** `backend/src/modules/base/static/components/`
+**Components:** `legacy/express/src/modules/base/static/components/`
 - `EntityBuilder.vue` — Form for entity creation
 - `FieldManager.vue` — Drag-to-reorder field editor
 - `ViewTypeSelector.vue` — Choose and configure view type
@@ -316,7 +316,7 @@ Location: `backend/src/modules/base/static/views/` (entity management UI)
 
 #### 4.2 Entity Display Components
 
-**Admin Views:** `apps/web-lume/src/components/views/`
+**Admin Views:** `apps/admin/src/components/views/`
 - `EntityListView.vue` — Sortable, filterable table (uses BaseService)
 - `EntityGridView.vue` — Card grid with images
 - `EntityFormView.vue` — Inline/modal form editor
@@ -324,13 +324,13 @@ Location: `backend/src/modules/base/static/views/` (entity management UI)
 - `EntityCalendarView.vue` — Month/week/day calendar
 - `EntityGalleryView.vue` — Image grid with lightbox
 
-**Public Views:** `apps/riagri-website/components/entities/`
+**Public Views:** `apps/website/components/entities/`
 - Reusable view components (same as admin, styled for public)
 - `EntityRenderer.vue` — Dynamic dispatcher to correct view type
 
 #### 4.3 API Clients
 
-**Admin:** `apps/web-lume/src/api/entity.ts`
+**Admin:** `apps/admin/src/api/entity.ts`
 ```typescript
 export const entityApi = {
   // Entities
@@ -352,7 +352,7 @@ export const entityApi = {
 };
 ```
 
-**Public:** `apps/riagri-website/api/publicEntity.ts`
+**Public:** `apps/website/api/publicEntity.ts`
 ```typescript
 export const publicEntityApi = {
   listEntities: () => get('/api/public/entities'),
@@ -501,7 +501,7 @@ Specific errors:
 1. Create Drizzle tables (custom_entities, entity_fields, entity_views, entity_sync_history)
 2. Deploy EntityService and ViewRegistry
 3. Deploy admin UI for entity builder
-4. Deploy SyncService (watch `/backend/src/entities/`)
+4. Deploy SyncService (watch `/legacy/express/src/entities/`)
 5. Seed example entity definitions (optional)
 
 **Backward Compatibility:**
@@ -533,24 +533,24 @@ Specific errors:
 ## 10. File Manifest
 
 **Create:**
-- `/opt/Lume/backend/src/core/services/entity.service.js`
-- `/opt/Lume/backend/src/core/services/view-registry.js`
-- `/opt/Lume/backend/src/core/services/sync.service.js`
-- `/opt/Lume/backend/src/core/adapters/views/base-view.adapter.js`
-- `/opt/Lume/backend/src/entities/` (directory for code-first definitions)
-- `/opt/Lume/backend/src/entities/contact.entity.yaml` (example)
-- `/opt/Lume/backend/src/modules/base/static/views/entities/` (admin UI)
-- `/opt/Lume/backend/src/modules/base/static/components/` (entity builder components)
-- `/opt/Lume/apps/web-lume/src/components/views/` (admin view components)
-- `/opt/Lume/apps/web-lume/src/api/entity.ts`
-- `/opt/Lume/apps/riagri-website/components/entities/` (public view components)
-- `/opt/Lume/apps/riagri-website/api/publicEntity.ts`
+- `/opt/Lume/legacy/express/src/core/services/entity.service.js`
+- `/opt/Lume/legacy/express/src/core/services/view-registry.js`
+- `/opt/Lume/legacy/express/src/core/services/sync.service.js`
+- `/opt/Lume/legacy/express/src/core/adapters/views/base-view.adapter.js`
+- `/opt/Lume/legacy/express/src/entities/` (directory for code-first definitions)
+- `/opt/Lume/legacy/express/src/entities/contact.entity.yaml` (example)
+- `/opt/Lume/legacy/express/src/modules/base/static/views/entities/` (admin UI)
+- `/opt/Lume/legacy/express/src/modules/base/static/components/` (entity builder components)
+- `/opt/Lume/apps/admin/src/components/views/` (admin view components)
+- `/opt/Lume/apps/admin/src/api/entity.ts`
+- `/opt/Lume/apps/website/components/entities/` (public view components)
+- `/opt/Lume/apps/website/api/publicEntity.ts`
 
 **Modify:**
-- `/opt/Lume/backend/src/modules/base/models/schema.js` (add entity tables)
-- `/opt/Lume/backend/src/modules/base/__init__.js` (register entity routes)
-- `/opt/Lume/backend/src/index.js` (init SyncService on startup)
-- `/opt/Lume/backend/src/core/middleware/entityAccess.js` (new middleware for public/admin filtering)
+- `/opt/Lume/legacy/express/src/modules/base/models/schema.js` (add entity tables)
+- `/opt/Lume/legacy/express/src/modules/base/__init__.js` (register entity routes)
+- `/opt/Lume/legacy/express/src/index.js` (init SyncService on startup)
+- `/opt/Lume/legacy/express/src/core/middleware/entityAccess.js` (new middleware for public/admin filtering)
 
 ---
 

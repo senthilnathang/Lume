@@ -413,5 +413,5 @@ We'll respond within 48 hours and provide fix timeline.
 
 ---
 
-**See [SECURITY_HARDENING_GUIDE.md](../SECURITY_HARDENING_GUIDE.md) for detailed hardening procedures.**
+**See [SECURITY_HARDENING_GUIDE.md](SECURITY_HARDENING.md) for detailed hardening procedures.**
 

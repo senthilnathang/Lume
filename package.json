@@ -2,24 +2,27 @@
   "name": "lume-framework",
   "version": "2.0.0",
   "private": true,
-  "description": "Lume — Full-stack enterprise framework v2.0 (Monorepo)",
+  "description": "Lume \u2014 Full-stack enterprise framework v2.0 (Monorepo)",
   "type": "module",
   "engines": {
-    "node": ">=20.12.0",
+    "node": ">=22.12.0",
     "pnpm": ">=10.0.0"
   },
   "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "turbo run dev --parallel",
-    "dev:admin": "turbo run dev --filter=lume-backend --filter=@lume/web-lume --parallel",
-    "dev:backend-admin": "turbo run dev --filter=lume-backend --filter=@lume/web-lume --parallel",
+    "dev:admin": "turbo run dev --filter=@lume/api --filter=@lume/admin --parallel",
+    "dev:backend-admin": "pnpm run dev:admin",
     "build": "turbo run build",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean --parallel && pnpm store prune"
+    "clean": "turbo run clean --parallel && pnpm store prune",
+    "dev:api": "pnpm --filter @lume/api dev",
+    "dev:website": "pnpm --filter @lume/website dev",
+    "setup": "pnpm install --frozen-lockfile"
   },
   "pnpm": {
     "overrides": {

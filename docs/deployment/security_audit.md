@@ -34,11 +34,11 @@ All security-sensitive configurations properly use `process.env.*` pattern:
 - **API Keys/Tokens:** Not found hardcoded
 
 **Files Reviewed:**
-- `/backend/lume-nestjs/src/main.ts`
-- `/backend/lume-nestjs/src/app.module.ts`
-- `/backend/lume-nestjs/src/core/services/jwt.service.ts`
-- `/backend/lume-nestjs/src/modules/auth/auth.module.ts`
-- `/backend/lume-nestjs/src/modules/auth/strategies/jwt.strategy.ts`
+- `/apps/api/src/main.ts`
+- `/apps/api/src/app.module.ts`
+- `/apps/api/src/core/services/jwt.service.ts`
+- `/apps/api/src/modules/auth/auth.module.ts`
+- `/apps/api/src/modules/auth/strategies/jwt.strategy.ts`
 
 #### ❌ CRITICAL: .env Files Tracked in Git
 **Issue:** Environment files with sensitive credentials are committed to the repository.
@@ -56,7 +56,7 @@ Files tracked in git:
 
 **Remediation Required:**
 ```bash
-git rm --cached backend/.env backend/.env.production backend/lume-nestjs/.env.staging
+git rm --cached backend/.env backend/.env.production apps/api/.env.staging
 git commit -m "security: remove exposed .env files from tracking"
 ```
 
@@ -67,7 +67,7 @@ All JWT operations correctly reference environment variables:
 - Token Verification: `process.env.JWT_SECRET` in `verifyToken()`
 - JwtModule Registration: `secret: process.env.JWT_SECRET`
 
-**File:** `/backend/lume-nestjs/src/core/services/jwt.service.ts`
+**File:** `/apps/api/src/core/services/jwt.service.ts`
 
 #### ✅ Database Credentials from Environment
 Database configuration follows best practices:
@@ -80,7 +80,7 @@ Database configuration follows best practices:
 ### 2. CORS Configuration
 
 #### ✅ CORS Enabled with Whitelist (No Wildcard)
-**File:** `/backend/lume-nestjs/src/main.ts`
+**File:** `/apps/api/src/main.ts`
 
 ```typescript
 const corsOrigins: (string | RegExp)[] = [
@@ -173,7 +173,7 @@ Uses `class-validator` + `class-transformer`:
 **Finding:** No rate limiting middleware or ThrottlerModule detected.
 
 ```bash
-grep -r "ThrottlerModule\|@Throttle\|rateLimit" backend/lume-nestjs/src/
+grep -r "ThrottlerModule\|@Throttle\|rateLimit" apps/api/src/
 # Returns: (no results)
 ```
 
@@ -204,7 +204,7 @@ Install `@nestjs/helmet` and register in main.ts before listening.
 ### 7. Logging & Error Handling
 
 #### ⚠️ SQL Logging Enabled in Production
-**File:** `/backend/lume-nestjs/src/core/services/prisma.service.ts`
+**File:** `/apps/api/src/core/services/prisma.service.ts`
 
 ```typescript
 super({

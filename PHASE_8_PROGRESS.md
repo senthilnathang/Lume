@@ -29,7 +29,7 @@
   - `metadata` (JSONB for approval_id, webhook_response, etc.)
   - All base columns
 
-**File**: `/opt/Lume/backend/src/modules/base_automation/models/schema.js`
+**File**: `/opt/Lume/legacy/express/src/modules/base_automation/models/schema.js`
 
 ### ✅ Backend API Endpoints
 Created 4 new RESTful endpoints at `/api/base_automation`:
@@ -52,7 +52,7 @@ Created 4 new RESTful endpoints at `/api/base_automation`:
    - All state transitions audited
    - Tracks: from_state, to_state, user_id, timestamp, metadata
 
-**File**: `/opt/Lume/backend/src/modules/base_automation/api/index.js` (lines 470-505)
+**File**: `/opt/Lume/legacy/express/src/modules/base_automation/api/index.js` (lines 470-505)
 
 ### ✅ Backend Service Methods
 Added to `AutomationService` class:
@@ -77,7 +77,7 @@ Added to `AutomationService` class:
    - Update executionData with transition metadata
    - Returns: updated execution object
 
-**File**: `/opt/Lume/backend/src/modules/base_automation/services/index.js` (lines 195-291)
+**File**: `/opt/Lume/legacy/express/src/modules/base_automation/services/index.js` (lines 195-291)
 
 ### ✅ Frontend Components
 Created **WorkflowExecutionView.vue** component:
@@ -89,7 +89,7 @@ Created **WorkflowExecutionView.vue** component:
 - **Refresh**: reload execution state + history
 - **Status Tags**: color-coded status (active=blue, completed=green, rejected=red)
 
-**File**: `/opt/Lume/backend/src/modules/base_automation/static/views/workflow-execution.vue`
+**File**: `/opt/Lume/legacy/express/src/modules/base_automation/static/views/workflow-execution.vue`
 
 ### ✅ Manifest Registration
 Updated `base_automation/__manifest__.js`:
@@ -115,7 +115,7 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 
 # Database schema added (verified via code)
 grep -n "automationWorkflowExecutions\|automationWorkflowExecutionHistory" \
-  /opt/Lume/backend/src/modules/base_automation/models/schema.js
+  /opt/Lume/legacy/express/src/modules/base_automation/models/schema.js
 ```
 
 ---
@@ -205,25 +205,25 @@ Errors:
 
 ## Files Modified
 
-1. **backend/src/modules/base_automation/models/schema.js**
+1. **legacy/express/src/modules/base_automation/models/schema.js**
    - Added: automationWorkflowExecutions table definition
    - Added: automationWorkflowExecutionHistory table definition
 
-2. **backend/src/modules/base_automation/api/index.js**
+2. **legacy/express/src/modules/base_automation/api/index.js**
    - Added: POST /workflows/:id/run/:recordId
    - Added: GET /workflows/:id/executions/:executionId
    - Added: POST /workflows/:id/executions/:executionId/transition
 
-3. **backend/src/modules/base_automation/services/index.js**
+3. **legacy/express/src/modules/base_automation/services/index.js**
    - Added: startWorkflowExecution()
    - Added: getWorkflowExecution()
    - Added: getExecutionHistory()
    - Added: transitionWorkflowState()
 
-4. **backend/src/modules/base_automation/__manifest__.js**
+4. **legacy/express/src/modules/base_automation/__manifest__.js**
    - Added: 'views/workflow-execution.vue' to frontend.views
 
-5. **backend/src/modules/base_automation/static/views/workflow-execution.vue** (NEW)
+5. **legacy/express/src/modules/base_automation/static/views/workflow-execution.vue** (NEW)
    - Complete workflow execution UI component
    - State display + available transitions
    - Execution history timeline

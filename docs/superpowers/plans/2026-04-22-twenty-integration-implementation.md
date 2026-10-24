@@ -15,21 +15,21 @@
 ### Task 1: Create Drizzle Schema for Entity Tables
 
 **Files:**
-- Modify: `backend/src/modules/base/models/schema.js`
+- Modify: `legacy/express/src/modules/base/models/schema.js`
 
 **Context:** Add four new Drizzle tables to base module: `customEntities`, `entityFields`, `entityViews`, `entitySyncHistory`. These track custom entity definitions, fields, view configs, and sync history.
 
 - [ ] **Step 1: Read base module schema**
 
 ```bash
-head -50 /opt/Lume/backend/src/modules/base/models/schema.js
+head -50 /opt/Lume/legacy/express/src/modules/base/models/schema.js
 ```
 
 Expected: See existing Drizzle table definitions (baseGroups, baseRecordRules, etc.)
 
 - [ ] **Step 2: Add custom entity tables**
 
-Edit `/opt/Lume/backend/src/modules/base/models/schema.js` — append before the closing export statements:
+Edit `/opt/Lume/legacy/express/src/modules/base/models/schema.js` — append before the closing export statements:
 
 ```javascript
 export const customEntities = pgTable('custom_entities', {
@@ -123,7 +123,7 @@ Expected: Tables created in database, no errors.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/modules/base/models/schema.js
+git add legacy/express/src/modules/base/models/schema.js
 git commit -m "feat: add entity builder drizzle tables (custom_entities, entity_fields, entity_views, sync_history)"
 ```
 
@@ -132,13 +132,13 @@ git commit -m "feat: add entity builder drizzle tables (custom_entities, entity_
 ### Task 2: Implement EntityService - CRUD Methods
 
 **Files:**
-- Create: `backend/src/core/services/entity.service.js`
+- Create: `legacy/express/src/core/services/entity.service.js`
 
 **Context:** Core service for managing entities, fields, and their lifecycle. Follows BaseService patterns but manages multiple related tables. No BaseAdapter needed — direct Drizzle queries.
 
 - [ ] **Step 1: Create EntityService class with create/read/update/delete**
 
-Create `/opt/Lume/backend/src/core/services/entity.service.js`:
+Create `/opt/Lume/legacy/express/src/core/services/entity.service.js`:
 
 ```javascript
 import { db } from '../db/drizzle.js';
@@ -303,7 +303,7 @@ export const entityService = new EntityService();
 
 - [ ] **Step 2: Test EntityService.createEntity**
 
-Create `/opt/Lume/backend/tests/unit/entity.service.test.js`:
+Create `/opt/Lume/legacy/express/tests/unit/entity.service.test.js`:
 
 ```javascript
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
@@ -370,7 +370,7 @@ Expected: 3 tests pass (create valid, validation error, invalid slug).
 
 - [ ] **Step 4: Test getEntity and listEntities**
 
-Add to `/opt/Lume/backend/tests/unit/entity.service.test.js`:
+Add to `/opt/Lume/legacy/express/tests/unit/entity.service.test.js`:
 
 ```javascript
   it('should retrieve entity by ID with fields', async () => {
@@ -422,7 +422,7 @@ Expected: All 6 tests pass.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add backend/src/core/services/entity.service.js backend/tests/unit/entity.service.test.js
+git add legacy/express/src/core/services/entity.service.js legacy/express/tests/unit/entity.service.test.js
 git commit -m "feat: implement EntityService with CRUD and validation"
 ```
 
@@ -431,13 +431,13 @@ git commit -m "feat: implement EntityService with CRUD and validation"
 ### Task 3: Implement Field Management in EntityService
 
 **Files:**
-- Modify: `backend/src/core/services/entity.service.js`
+- Modify: `legacy/express/src/core/services/entity.service.js`
 
 **Context:** Add methods to create, update, delete, and list fields. Field types include text, email, number, date, select, rich-text, etc. Validation config stored as JSON.
 
 - [ ] **Step 1: Add field management methods**
 
-Edit `/opt/Lume/backend/src/core/services/entity.service.js` — add before closing brace:
+Edit `/opt/Lume/legacy/express/src/core/services/entity.service.js` — add before closing brace:
 
 ```javascript
   /**
@@ -556,7 +556,7 @@ Edit `/opt/Lume/backend/src/core/services/entity.service.js` — add before clos
 
 - [ ] **Step 2: Test field creation and validation**
 
-Add to `/opt/Lume/backend/tests/unit/entity.service.test.js`:
+Add to `/opt/Lume/legacy/express/tests/unit/entity.service.test.js`:
 
 ```javascript
   it('should create field for entity', async () => {
@@ -625,7 +625,7 @@ Expected: All tests pass (9 total).
 - [ ] **Step 4: Commit**
 
 ```bash
-git add backend/src/core/services/entity.service.js backend/tests/unit/entity.service.test.js
+git add legacy/express/src/core/services/entity.service.js legacy/express/tests/unit/entity.service.test.js
 git commit -m "feat: add field management (create, update, delete, validate) to EntityService"
 ```
 
@@ -634,13 +634,13 @@ git commit -m "feat: add field management (create, update, delete, validate) to 
 ### Task 4: Implement ViewRegistry Service
 
 **Files:**
-- Create: `backend/src/core/services/view-registry.js`
+- Create: `legacy/express/src/core/services/view-registry.js`
 
 **Context:** Plugin registry for view types. Views are adapters that render entity data in different formats (list, grid, form, etc.). Registry tracks available view types and resolves them on demand.
 
 - [ ] **Step 1: Create ViewRegistry class**
 
-Create `/opt/Lume/backend/src/core/services/view-registry.js`:
+Create `/opt/Lume/legacy/express/src/core/services/view-registry.js`:
 
 ```javascript
 /**
@@ -747,7 +747,7 @@ export const viewRegistry = new ViewRegistry();
 
 - [ ] **Step 2: Test ViewRegistry registration and resolution**
 
-Create `/opt/Lume/backend/tests/unit/view-registry.test.js`:
+Create `/opt/Lume/legacy/express/tests/unit/view-registry.test.js`:
 
 ```javascript
 import { describe, it, expect } from '@jest/globals';
@@ -825,7 +825,7 @@ Expected: 4 tests pass.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add backend/src/core/services/view-registry.js backend/tests/unit/view-registry.test.js
+git add legacy/express/src/core/services/view-registry.js legacy/express/tests/unit/view-registry.test.js
 git commit -m "feat: implement ViewRegistry plugin system for view adapters"
 ```
 
@@ -834,19 +834,19 @@ git commit -m "feat: implement ViewRegistry plugin system for view adapters"
 ### Task 5: Implement SyncService - Code-First Loading
 
 **Files:**
-- Create: `backend/src/core/services/sync.service.js`
-- Create: `backend/src/entities/` directory
-- Create: `backend/src/entities/contact.entity.yaml` (example)
+- Create: `legacy/express/src/core/services/sync.service.js`
+- Create: `legacy/express/src/entities/` directory
+- Create: `legacy/express/src/entities/contact.entity.yaml` (example)
 
-**Context:** SyncService loads code-first entity definitions from YAML files in `/backend/src/entities/`. Parses YAML, validates structure, and syncs to database. One-way sync initially (code → DB).
+**Context:** SyncService loads code-first entity definitions from YAML files in `/legacy/express/src/entities/`. Parses YAML, validates structure, and syncs to database. One-way sync initially (code → DB).
 
 - [ ] **Step 1: Create entities directory and example**
 
 ```bash
-mkdir -p /opt/Lume/backend/src/entities
+mkdir -p /opt/Lume/legacy/express/src/entities
 ```
 
-Create `/opt/Lume/backend/src/entities/contact.entity.yaml`:
+Create `/opt/Lume/legacy/express/src/entities/contact.entity.yaml`:
 
 ```yaml
 name: Contact
@@ -898,7 +898,7 @@ npm install --save yaml
 
 - [ ] **Step 3: Create SyncService with code loading**
 
-Create `/opt/Lume/backend/src/core/services/sync.service.js`:
+Create `/opt/Lume/legacy/express/src/core/services/sync.service.js`:
 
 ```javascript
 import fs from 'fs';
@@ -1121,7 +1121,7 @@ export const syncService = new SyncService();
 
 - [ ] **Step 4: Test code loading**
 
-Create `/opt/Lume/backend/tests/unit/sync.service.test.js`:
+Create `/opt/Lume/legacy/express/tests/unit/sync.service.test.js`:
 
 ```javascript
 import { describe, it, expect, beforeEach } from '@jest/globals';
@@ -1180,7 +1180,7 @@ Expected: Both tests pass.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add backend/src/entities/ backend/src/core/services/sync.service.js backend/tests/unit/sync.service.test.js backend/package.json
+git add legacy/express/src/entities/ legacy/express/src/core/services/sync.service.js legacy/express/tests/unit/sync.service.test.js backend/package.json
 git commit -m "feat: implement SyncService for loading code-first YAML entity definitions"
 ```
 
@@ -1189,14 +1189,14 @@ git commit -m "feat: implement SyncService for loading code-first YAML entity de
 ### Task 6: Implement Publish/Unpublish and Access Control
 
 **Files:**
-- Modify: `backend/src/core/services/entity.service.js`
-- Modify: `backend/src/core/middleware/entityAccess.js` (create)
+- Modify: `legacy/express/src/core/services/entity.service.js`
+- Modify: `legacy/express/src/core/middleware/entityAccess.js` (create)
 
 **Context:** Add publish/unpublish methods to EntityService. Create middleware to filter entities based on access level (admin-only vs. public).
 
 - [ ] **Step 1: Add publish methods to EntityService**
 
-Edit `/opt/Lume/backend/src/core/services/entity.service.js` — add before closing brace:
+Edit `/opt/Lume/legacy/express/src/core/services/entity.service.js` — add before closing brace:
 
 ```javascript
   /**
@@ -1256,7 +1256,7 @@ Edit `/opt/Lume/backend/src/core/services/entity.service.js` — add before clos
 
 - [ ] **Step 2: Add tests for publish methods**
 
-Add to `/opt/Lume/backend/tests/unit/entity.service.test.js`:
+Add to `/opt/Lume/legacy/express/tests/unit/entity.service.test.js`:
 
 ```javascript
   it('should publish publishable entity', async () => {
@@ -1304,7 +1304,7 @@ Add to `/opt/Lume/backend/tests/unit/entity.service.test.js`:
 
 - [ ] **Step 3: Create entity access middleware**
 
-Create `/opt/Lume/backend/src/core/middleware/entityAccess.js`:
+Create `/opt/Lume/legacy/express/src/core/middleware/entityAccess.js`:
 
 ```javascript
 /**
@@ -1342,7 +1342,7 @@ Expected: All 12 tests pass.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/services/entity.service.js backend/src/core/middleware/entityAccess.js backend/tests/unit/entity.service.test.js
+git add legacy/express/src/core/services/entity.service.js legacy/express/src/core/middleware/entityAccess.js legacy/express/tests/unit/entity.service.test.js
 git commit -m "feat: add entity publish/unpublish and access control"
 ```
 
@@ -1351,21 +1351,21 @@ git commit -m "feat: add entity publish/unpublish and access control"
 ### Task 7: Register Entity Routes (Admin CRUD API)
 
 **Files:**
-- Modify: `backend/src/modules/base/__init__.js`
+- Modify: `legacy/express/src/modules/base/__init__.js`
 
 **Context:** Register Express routes for entity CRUD operations. Routes follow RESTful pattern: GET /api/entities, POST /api/entities, etc.
 
 - [ ] **Step 1: Read base module __init__.js**
 
 ```bash
-head -80 /opt/Lume/backend/src/modules/base/__init__.js
+head -80 /opt/Lume/legacy/express/src/modules/base/__init__.js
 ```
 
 Expected: See module initialization pattern with router setup.
 
 - [ ] **Step 2: Create entity routes file**
 
-Create `/opt/Lume/backend/src/modules/base/api/entity.routes.js`:
+Create `/opt/Lume/legacy/express/src/modules/base/api/entity.routes.js`:
 
 ```javascript
 import { Router } from 'express';
@@ -1549,7 +1549,7 @@ export default router;
 
 - [ ] **Step 3: Create field routes**
 
-Create `/opt/Lume/backend/src/modules/base/api/field.routes.js`:
+Create `/opt/Lume/legacy/express/src/modules/base/api/field.routes.js`:
 
 ```javascript
 import { Router } from 'express';
@@ -1670,7 +1670,7 @@ export default router;
 
 - [ ] **Step 4: Register routes in base module __init__.js**
 
-Edit `/opt/Lume/backend/src/modules/base/__init__.js` — find the router registration section and add:
+Edit `/opt/Lume/legacy/express/src/modules/base/__init__.js` — find the router registration section and add:
 
 ```javascript
 import entityRoutes from './api/entity.routes.js';
@@ -1686,7 +1686,7 @@ router.use('/entities/:entityId/fields', fieldRoutes);
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/modules/base/api/entity.routes.js backend/src/modules/base/api/field.routes.js backend/src/modules/base/__init__.js
+git add legacy/express/src/modules/base/api/entity.routes.js legacy/express/src/modules/base/api/field.routes.js legacy/express/src/modules/base/__init__.js
 git commit -m "feat: register entity and field CRUD API routes"
 ```
 
@@ -1695,13 +1695,13 @@ git commit -m "feat: register entity and field CRUD API routes"
 ### Task 8: Initialize SyncService on Startup
 
 **Files:**
-- Modify: `backend/src/index.js`
+- Modify: `legacy/express/src/index.js`
 
 **Context:** Load code-first entity definitions on server startup. Run sync to keep code and DB in sync automatically.
 
 - [ ] **Step 1: Add sync initialization to backend startup**
 
-Edit `/opt/Lume/backend/src/index.js` — find the initialization section (after database connects), add:
+Edit `/opt/Lume/legacy/express/src/index.js` — find the initialization section (after database connects), add:
 
 ```javascript
 import { syncService } from './core/services/sync.service.js';
@@ -1728,7 +1728,7 @@ try {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add backend/src/index.js
+git add legacy/express/src/index.js
 git commit -m "feat: initialize entity sync service on server startup"
 ```
 
@@ -1737,8 +1737,8 @@ git commit -m "feat: initialize entity sync service on server startup"
 ### Task 9: Create Admin UI - Entity Builder Form
 
 **Files:**
-- Create: `backend/src/modules/base/static/views/entities/index.vue`
-- Create: `backend/src/modules/base/static/views/entities/entity-editor.vue`
+- Create: `legacy/express/src/modules/base/static/views/entities/index.vue`
+- Create: `legacy/express/src/modules/base/static/views/entities/entity-editor.vue`
 
 **Context:** Vue components for the admin panel. Entity list view with CRUD buttons, and entity editor form for creating/editing entities.
 
@@ -1750,15 +1750,15 @@ Due to length, Phase 1 implementation plan is substantial. **Do you want me to:*
 ### Task 9: Create Admin UI - Entity Builder
 
 **Files:**
-- Create: `backend/src/modules/base/static/views/entities/index.vue`
-- Create: `backend/src/modules/base/static/views/entities/entity-editor.vue`
-- Create: `backend/src/modules/base/static/views/entities/field-editor.vue`
+- Create: `legacy/express/src/modules/base/static/views/entities/index.vue`
+- Create: `legacy/express/src/modules/base/static/views/entities/entity-editor.vue`
+- Create: `legacy/express/src/modules/base/static/views/entities/field-editor.vue`
 
 **Context:** Vue 3 SFC components for entity management. List view showing all entities with create/edit/delete buttons. Editor forms for creating/updating entities and fields.
 
 - [ ] **Step 1: Create entity list view**
 
-Create `/opt/Lume/backend/src/modules/base/static/views/entities/index.vue`:
+Create `/opt/Lume/legacy/express/src/modules/base/static/views/entities/index.vue`:
 
 ```vue
 <template>
@@ -1863,7 +1863,7 @@ onMounted(loadEntities);
 
 - [ ] **Step 2: Create entity editor form**
 
-Create `/opt/Lume/backend/src/modules/base/static/views/entities/entity-editor.vue`:
+Create `/opt/Lume/legacy/express/src/modules/base/static/views/entities/entity-editor.vue`:
 
 ```vue
 <template>
@@ -1990,7 +1990,7 @@ const handleSave = async () => {
 
 - [ ] **Step 3: Create field editor component**
 
-Create `/opt/Lume/backend/src/modules/base/static/views/entities/field-editor.vue`:
+Create `/opt/Lume/legacy/express/src/modules/base/static/views/entities/field-editor.vue`:
 
 ```vue
 <template>
@@ -2050,7 +2050,7 @@ defineEmits(['update', 'delete']);
 
 - [ ] **Step 4: Create entity API client**
 
-Create `/opt/Lume/backend/src/modules/base/static/api/entity.ts`:
+Create `/opt/Lume/legacy/express/src/modules/base/static/api/entity.ts`:
 
 ```typescript
 import { get, post, put, del } from '@/api/request';
@@ -2074,7 +2074,7 @@ export const entityApi = {
 
 - [ ] **Step 5: Register entity views in router**
 
-Edit `/opt/Lume/frontend/apps/web-lume/src/router/index.ts` — add to customViews map:
+Edit `/opt/Lume/frontend/apps/admin/src/router/index.ts` — add to customViews map:
 
 ```typescript
 customViews: {
@@ -2085,7 +2085,7 @@ customViews: {
 
 - [ ] **Step 6: Add entity menu item**
 
-Edit `/opt/Lume/backend/src/modules/base/__manifest__.js` — add to menus:
+Edit `/opt/Lume/legacy/express/src/modules/base/__manifest__.js` — add to menus:
 
 ```javascript
 menus: [
@@ -2102,7 +2102,7 @@ menus: [
 - [ ] **Step 7: Commit**
 
 ```bash
-git add backend/src/modules/base/static/views/entities/ backend/src/modules/base/static/api/entity.ts frontend/apps/web-lume/src/router/index.ts backend/src/modules/base/__manifest__.js
+git add legacy/express/src/modules/base/static/views/entities/ legacy/express/src/modules/base/static/api/entity.ts frontend/apps/admin/src/router/index.ts legacy/express/src/modules/base/__manifest__.js
 git commit -m "feat: implement entity builder admin UI (list, create, edit, delete)"
 ```
 
@@ -2111,11 +2111,11 @@ git commit -m "feat: implement entity builder admin UI (list, create, edit, dele
 ### Task 10: Test Phase 1 Integration
 
 **Files:**
-- Create: `backend/tests/integration/entity-builder.test.js`
+- Create: `legacy/express/tests/integration/entity-builder.test.js`
 
 - [ ] **Step 1: Write integration test for full entity workflow**
 
-Create `/opt/Lume/backend/tests/integration/entity-builder.test.js`:
+Create `/opt/Lume/legacy/express/tests/integration/entity-builder.test.js`:
 
 ```javascript
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
@@ -2213,7 +2213,7 @@ Expected: All 4 tests pass.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add backend/tests/integration/entity-builder.test.js
+git add legacy/express/tests/integration/entity-builder.test.js
 git commit -m "test: add entity builder integration tests (create, list, fields, publish)"
 ```
 
@@ -2270,7 +2270,7 @@ Edit `/opt/Lume/docs/ARCHITECTURE.md` — add new section:
 
 **Admin UI:** `http://localhost:5173/#/entities` — Create and manage entities
 
-**Code-First Definitions:** `/backend/src/entities/*.yaml` — YAML files synced on startup
+**Code-First Definitions:** `/legacy/express/src/entities/*.yaml` — YAML files synced on startup
 ```
 
 - [ ] **Step 4: Create CHANGELOG entry**

@@ -3,7 +3,7 @@
 > current migration certification. Use the [active task list](../../nestjs-migration-tasks.txt) and
 > [developer guide](../../DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
 > remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
 
 # Lume v2.0: NestJS Migration + Public Release — Implementation Plan
 
@@ -31,7 +31,7 @@
 
 **Files:**
 - Create: `.env.development`, `.env.staging`, `.env.production.example`
-- Create: `backend/lume-nestjs/` (new NestJS project directory)
+- Create: `apps/api/` (new NestJS project directory)
 - Modify: `backend/package.json`, `pnpm-workspace.yaml`
 
 - [ ] **Step 1: Create NestJS project structure**
@@ -47,7 +47,7 @@ Expected: Directory structure created
 
 - [ ] **Step 2: Create root NestJS package.json**
 
-Create `/opt/Lume/backend/lume-nestjs/package.json`:
+Create `/opt/Lume/apps/api/package.json`:
 ```json
 {
   "name": "lume-nestjs",
@@ -107,7 +107,7 @@ Create `/opt/Lume/backend/lume-nestjs/package.json`:
 
 - [ ] **Step 3: Create TypeScript configuration**
 
-Create `/opt/Lume/backend/lume-nestjs/tsconfig.json`:
+Create `/opt/Lume/apps/api/tsconfig.json`:
 ```json
 {
   "compilerOptions": {
@@ -138,7 +138,7 @@ Create `/opt/Lume/backend/lume-nestjs/tsconfig.json`:
 
 - [ ] **Step 4: Create environment templates**
 
-Create `/opt/Lume/backend/lume-nestjs/.env.development`:
+Create `/opt/Lume/apps/api/.env.development`:
 ```bash
 NODE_ENV=development
 PORT=3000
@@ -167,7 +167,7 @@ ADMIN_URL=http://localhost:5173
 PUBLIC_URL=http://localhost:3001
 ```
 
-Create `/opt/Lume/backend/lume-nestjs/.env.staging`:
+Create `/opt/Lume/apps/api/.env.staging`:
 ```bash
 NODE_ENV=staging
 PORT=3000
@@ -196,7 +196,7 @@ ADMIN_URL=https://staging-admin.example.com
 PUBLIC_URL=https://staging.example.com
 ```
 
-Create `/opt/Lume/backend/lume-nestjs/.env.production.example`:
+Create `/opt/Lume/apps/api/.env.production.example`:
 ```bash
 NODE_ENV=production
 PORT=3000
@@ -230,7 +230,7 @@ PUBLIC_URL=https://www.yourdomain.com
 
 ```bash
 cd /opt/Lume
-git add backend/lume-nestjs
+git add apps/api
 git commit -m "chore: scaffold NestJS project structure with configuration"
 ```
 
@@ -241,12 +241,12 @@ git commit -m "chore: scaffold NestJS project structure with configuration"
 ### Task 1: Prisma Service (Database Client)
 
 **Files:**
-- Create: `backend/lume-nestjs/src/core/services/prisma.service.ts`
-- Create: `backend/lume-nestjs/test/unit/services/prisma.service.spec.ts`
+- Create: `apps/api/src/core/services/prisma.service.ts`
+- Create: `apps/api/test/unit/services/prisma.service.spec.ts`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/lume-nestjs/test/unit/services/prisma.service.spec.ts`:
+Create `apps/api/test/unit/services/prisma.service.spec.ts`:
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@core/services/prisma.service';
@@ -281,7 +281,7 @@ describe('PrismaService', () => {
 
 - [ ] **Step 2: Implement PrismaService**
 
-Create `backend/lume-nestjs/src/core/services/prisma.service.ts`:
+Create `apps/api/src/core/services/prisma.service.ts`:
 ```typescript
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
@@ -339,7 +339,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 - [ ] **Step 3: Run test**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm install
 npm run test -- test/unit/services/prisma.service.spec.ts
 ```
@@ -350,8 +350,8 @@ Expected: PASS (all 3 tests passing)
 
 ```bash
 cd /opt/Lume
-git add backend/lume-nestjs/src/core/services/prisma.service.ts \
-        backend/lume-nestjs/test/unit/services/prisma.service.spec.ts
+git add apps/api/src/core/services/prisma.service.ts \
+        apps/api/test/unit/services/prisma.service.spec.ts
 git commit -m "feat: add PrismaService for core database connectivity"
 ```
 
@@ -360,12 +360,12 @@ git commit -m "feat: add PrismaService for core database connectivity"
 ### Task 2: JWT Service (Authentication)
 
 **Files:**
-- Create: `backend/lume-nestjs/src/core/services/jwt.service.ts`
-- Create: `backend/lume-nestjs/test/unit/services/jwt.service.spec.ts`
+- Create: `apps/api/src/core/services/jwt.service.ts`
+- Create: `apps/api/test/unit/services/jwt.service.spec.ts`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/lume-nestjs/test/unit/services/jwt.service.spec.ts`:
+Create `apps/api/test/unit/services/jwt.service.spec.ts`:
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
@@ -424,7 +424,7 @@ describe('AuthService (JWT)', () => {
 
 - [ ] **Step 2: Implement AuthService**
 
-Create `backend/lume-nestjs/src/core/services/jwt.service.ts`:
+Create `apps/api/src/core/services/jwt.service.ts`:
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -472,7 +472,7 @@ export class AuthService {
 - [ ] **Step 3: Run test**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run test -- test/unit/services/jwt.service.spec.ts
 ```
 
@@ -482,8 +482,8 @@ Expected: PASS (all 5 tests passing)
 
 ```bash
 cd /opt/Lume
-git add backend/lume-nestjs/src/core/services/jwt.service.ts \
-        backend/lume-nestjs/test/unit/services/jwt.service.spec.ts
+git add apps/api/src/core/services/jwt.service.ts \
+        apps/api/test/unit/services/jwt.service.spec.ts
 git commit -m "feat: add AuthService for JWT token generation and password hashing"
 ```
 
@@ -492,12 +492,12 @@ git commit -m "feat: add AuthService for JWT token generation and password hashi
 ### Task 3: Logger Service
 
 **Files:**
-- Create: `backend/lume-nestjs/src/core/services/logger.service.ts`
-- Create: `backend/lume-nestjs/test/unit/services/logger.service.spec.ts`
+- Create: `apps/api/src/core/services/logger.service.ts`
+- Create: `apps/api/test/unit/services/logger.service.spec.ts`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/lume-nestjs/test/unit/services/logger.service.spec.ts`:
+Create `apps/api/test/unit/services/logger.service.spec.ts`:
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerService } from '@core/services/logger.service';
@@ -538,7 +538,7 @@ describe('LoggerService', () => {
 
 - [ ] **Step 2: Implement LoggerService**
 
-Create `backend/lume-nestjs/src/core/services/logger.service.ts`:
+Create `apps/api/src/core/services/logger.service.ts`:
 ```typescript
 import { Injectable, Logger } from '@nestjs/common';
 
@@ -577,7 +577,7 @@ export class LoggerService {
 - [ ] **Step 3: Run test**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run test -- test/unit/services/logger.service.spec.ts
 ```
 
@@ -587,8 +587,8 @@ Expected: PASS (all 5 tests passing)
 
 ```bash
 cd /opt/Lume
-git add backend/lume-nestjs/src/core/services/logger.service.ts \
-        backend/lume-nestjs/test/unit/services/logger.service.spec.ts
+git add apps/api/src/core/services/logger.service.ts \
+        apps/api/test/unit/services/logger.service.spec.ts
 git commit -m "feat: add LoggerService for structured logging"
 ```
 
@@ -597,12 +597,12 @@ git commit -m "feat: add LoggerService for structured logging"
 ### Task 4: RBAC Service (Role-Based Access Control)
 
 **Files:**
-- Create: `backend/lume-nestjs/src/core/services/rbac.service.ts`
-- Create: `backend/lume-nestjs/test/unit/services/rbac.service.spec.ts`
+- Create: `apps/api/src/core/services/rbac.service.ts`
+- Create: `apps/api/test/unit/services/rbac.service.spec.ts`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/lume-nestjs/test/unit/services/rbac.service.spec.ts`:
+Create `apps/api/test/unit/services/rbac.service.spec.ts`:
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
 import { RbacService } from '@core/services/rbac.service';
@@ -658,7 +658,7 @@ describe('RbacService', () => {
 
 - [ ] **Step 2: Implement RbacService**
 
-Create `backend/lume-nestjs/src/core/services/rbac.service.ts`:
+Create `apps/api/src/core/services/rbac.service.ts`:
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
@@ -721,7 +721,7 @@ export class RbacService {
 - [ ] **Step 3: Run test**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run test -- test/unit/services/rbac.service.spec.ts
 ```
 
@@ -731,8 +731,8 @@ Expected: PASS (all 5 tests passing)
 
 ```bash
 cd /opt/Lume
-git add backend/lume-nestjs/src/core/services/rbac.service.ts \
-        backend/lume-nestjs/test/unit/services/rbac.service.spec.ts
+git add apps/api/src/core/services/rbac.service.ts \
+        apps/api/test/unit/services/rbac.service.spec.ts
 git commit -m "feat: add RbacService for role-based access control (147 permissions)"
 ```
 
@@ -741,12 +741,12 @@ git commit -m "feat: add RbacService for role-based access control (147 permissi
 ### Task 5: RBAC Guard (Middleware)
 
 **Files:**
-- Create: `backend/lume-nestjs/src/core/guards/rbac.guard.ts`
-- Create: `backend/lume-nestjs/test/unit/guards/rbac.guard.spec.ts`
+- Create: `apps/api/src/core/guards/rbac.guard.ts`
+- Create: `apps/api/test/unit/guards/rbac.guard.spec.ts`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/lume-nestjs/test/unit/guards/rbac.guard.spec.ts`:
+Create `apps/api/test/unit/guards/rbac.guard.spec.ts`:
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
 import { RbacGuard } from '@core/guards/rbac.guard';
@@ -815,7 +815,7 @@ describe('RbacGuard', () => {
 
 - [ ] **Step 2: Implement RbacGuard**
 
-Create `backend/lume-nestjs/src/core/guards/rbac.guard.ts`:
+Create `apps/api/src/core/guards/rbac.guard.ts`:
 ```typescript
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { RbacService } from '@core/services/rbac.service';
@@ -861,7 +861,7 @@ export class RbacGuard implements CanActivate {
 - [ ] **Step 3: Run test**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run test -- test/unit/guards/rbac.guard.spec.ts
 ```
 
@@ -871,8 +871,8 @@ Expected: PASS (all 4 tests passing)
 
 ```bash
 cd /opt/Lume
-git add backend/lume-nestjs/src/core/guards/rbac.guard.ts \
-        backend/lume-nestjs/test/unit/guards/rbac.guard.spec.ts
+git add apps/api/src/core/guards/rbac.guard.ts \
+        apps/api/test/unit/guards/rbac.guard.spec.ts
 git commit -m "feat: add RbacGuard for authorization middleware"
 ```
 
@@ -881,13 +881,13 @@ git commit -m "feat: add RbacGuard for authorization middleware"
 ### Task 6: Validation Service & Pipes
 
 **Files:**
-- Create: `backend/lume-nestjs/src/core/pipes/validation.pipe.ts`
-- Create: `backend/lume-nestjs/src/core/pipes/parse-int.pipe.ts`
-- Create: `backend/lume-nestjs/test/unit/pipes/validation.pipe.spec.ts`
+- Create: `apps/api/src/core/pipes/validation.pipe.ts`
+- Create: `apps/api/src/core/pipes/parse-int.pipe.ts`
+- Create: `apps/api/test/unit/pipes/validation.pipe.spec.ts`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/lume-nestjs/test/unit/pipes/validation.pipe.spec.ts`:
+Create `apps/api/test/unit/pipes/validation.pipe.spec.ts`:
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
 import { ValidationPipe } from '@nestjs/common';
@@ -931,7 +931,7 @@ describe('ValidationPipe', () => {
 
 - [ ] **Step 2: Implement ValidationPipe**
 
-Create `backend/lume-nestjs/src/core/pipes/validation.pipe.ts`:
+Create `apps/api/src/core/pipes/validation.pipe.ts`:
 ```typescript
 import { Injectable, PipeTransform, BadRequestException, ArgumentMetadata } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
@@ -968,7 +968,7 @@ export class ValidatePipe implements PipeTransform {
 
 - [ ] **Step 3: Implement ParseIntPipe**
 
-Create `backend/lume-nestjs/src/core/pipes/parse-int.pipe.ts`:
+Create `apps/api/src/core/pipes/parse-int.pipe.ts`:
 ```typescript
 import { Injectable, PipeTransform, BadRequestException, ArgumentMetadata } from '@nestjs/common';
 
@@ -987,7 +987,7 @@ export class ParseIntPipe implements PipeTransform<string, number> {
 - [ ] **Step 4: Run test**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run test -- test/unit/pipes/validation.pipe.spec.ts
 ```
 
@@ -997,9 +997,9 @@ Expected: PASS (all 3 tests passing)
 
 ```bash
 cd /opt/Lume
-git add backend/lume-nestjs/src/core/pipes/validation.pipe.ts \
-        backend/lume-nestjs/src/core/pipes/parse-int.pipe.ts \
-        backend/lume-nestjs/test/unit/pipes/validation.pipe.spec.ts
+git add apps/api/src/core/pipes/validation.pipe.ts \
+        apps/api/src/core/pipes/parse-int.pipe.ts \
+        apps/api/test/unit/pipes/validation.pipe.spec.ts
 git commit -m "feat: add ValidationPipe and ParseIntPipe for input validation"
 ```
 
@@ -1010,14 +1010,14 @@ git commit -m "feat: add ValidationPipe and ParseIntPipe for input validation"
 ### Task 7: App Module & Main Bootstrap
 
 **Files:**
-- Create: `backend/lume-nestjs/src/app.module.ts`
-- Create: `backend/lume-nestjs/src/main.ts`
-- Create: `backend/lume-nestjs/Dockerfile`
-- Create: `backend/lume-nestjs/docker-compose.yml`
+- Create: `apps/api/src/app.module.ts`
+- Create: `apps/api/src/main.ts`
+- Create: `apps/api/Dockerfile`
+- Create: `apps/api/docker-compose.yml`
 
 - [ ] **Step 1: Create AppModule**
 
-Create `backend/lume-nestjs/src/app.module.ts`:
+Create `apps/api/src/app.module.ts`:
 ```typescript
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -1060,7 +1060,7 @@ export class AppModule {}
 
 - [ ] **Step 2: Create main.ts**
 
-Create `backend/lume-nestjs/src/main.ts`:
+Create `apps/api/src/main.ts`:
 ```typescript
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -1100,7 +1100,7 @@ bootstrap().catch((error) => {
 
 - [ ] **Step 3: Create Health Controller**
 
-Create `backend/lume-nestjs/src/health.controller.ts`:
+Create `apps/api/src/health.controller.ts`:
 ```typescript
 import { Controller, Get } from '@nestjs/common';
 
@@ -1120,7 +1120,7 @@ export class HealthController {
 
 - [ ] **Step 4: Create Dockerfile**
 
-Create `backend/lume-nestjs/Dockerfile`:
+Create `apps/api/Dockerfile`:
 ```dockerfile
 FROM node:20-alpine AS builder
 
@@ -1151,7 +1151,7 @@ CMD ["node", "dist/main.js"]
 
 - [ ] **Step 5: Create docker-compose.yml**
 
-Create `backend/lume-nestjs/docker-compose.yml`:
+Create `apps/api/docker-compose.yml`:
 ```yaml
 version: '3.8'
 
@@ -1206,7 +1206,7 @@ volumes:
 - [ ] **Step 6: Build and test**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run build
 npm run dev &
 sleep 3
@@ -1225,11 +1225,11 @@ pkill -f "npm run dev"
 
 ```bash
 cd /opt/Lume
-git add backend/lume-nestjs/src/app.module.ts \
-        backend/lume-nestjs/src/main.ts \
-        backend/lume-nestjs/src/health.controller.ts \
-        backend/lume-nestjs/Dockerfile \
-        backend/lume-nestjs/docker-compose.yml
+git add apps/api/src/app.module.ts \
+        apps/api/src/main.ts \
+        apps/api/src/health.controller.ts \
+        apps/api/Dockerfile \
+        apps/api/docker-compose.yml
 git commit -m "feat: bootstrap NestJS app with health check endpoint and Docker support"
 ```
 
@@ -1238,12 +1238,12 @@ git commit -m "feat: bootstrap NestJS app with health check endpoint and Docker 
 ### Task 8: Drizzle Service (Module ORM)
 
 **Files:**
-- Create: `backend/lume-nestjs/src/core/services/drizzle.service.ts`
-- Create: `backend/lume-nestjs/test/unit/services/drizzle.service.spec.ts`
+- Create: `apps/api/src/core/services/drizzle.service.ts`
+- Create: `apps/api/test/unit/services/drizzle.service.spec.ts`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/lume-nestjs/test/unit/services/drizzle.service.spec.ts`:
+Create `apps/api/test/unit/services/drizzle.service.spec.ts`:
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
 import { DrizzleService } from '@core/services/drizzle.service';
@@ -1277,7 +1277,7 @@ describe('DrizzleService', () => {
 
 - [ ] **Step 2: Implement DrizzleService**
 
-Create `backend/lume-nestjs/src/core/services/drizzle.service.ts`:
+Create `apps/api/src/core/services/drizzle.service.ts`:
 ```typescript
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { createPool } from 'mysql2/promise';
@@ -1329,7 +1329,7 @@ export class DrizzleService implements OnModuleInit {
 - [ ] **Step 3: Run test**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run test -- test/unit/services/drizzle.service.spec.ts
 ```
 
@@ -1339,8 +1339,8 @@ Expected: PASS (all 4 tests passing)
 
 ```bash
 cd /opt/Lume
-git add backend/lume-nestjs/src/core/services/drizzle.service.ts \
-        backend/lume-nestjs/test/unit/services/drizzle.service.spec.ts
+git add apps/api/src/core/services/drizzle.service.ts \
+        apps/api/test/unit/services/drizzle.service.spec.ts
 git commit -m "feat: add DrizzleService for module table ORM"
 ```
 
@@ -1358,7 +1358,7 @@ git commit -m "feat: add DrizzleService for module table ORM"
 - [ ] **Step 1: Run all core tests**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run test:cov
 ```
 

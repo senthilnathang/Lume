@@ -39,7 +39,7 @@ Phase 7 frontend implementation is complete, tested, and production-ready. All 1
 **Root Cause**: Backend endpoint path didn't include `/api` prefix that matches frontend axios baseURL configuration
 
 **Fix Applied**: 
-- File: `/opt/Lume/backend/src/index.js` line 621
+- File: `/opt/Lume/legacy/express/src/index.js` line 621
 - Changed: `app.get('/modules/installed/menus', ...)`
 - To: `app.get('/api/modules/installed/menus', ...)`
 
@@ -160,7 +160,7 @@ cd /opt/Lume/backend
 npm run dev
 
 # Terminal 2: Frontend
-cd /opt/Lume/frontend/lume-admin
+cd /opt/Lume/legacy/frontend/lume-admin
 npm run dev
 
 # Open browser: http://localhost:5173

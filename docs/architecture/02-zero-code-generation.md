@@ -3,7 +3,7 @@
 **Status:** Design Specification  
 **Version:** 2.0  
 **Date:** 2026-04-30  
-**Builds on:** [01-core-runtime-architecture.md](01-core-runtime-architecture.md)
+**Builds on:** [01-core-runtime-architecture.md](01-runtime-core.md)
 
 ## Overview
 
@@ -1054,7 +1054,7 @@ This section demonstrates a complete entity definition flowing through the entir
 ### 5.1 Entity Definition
 
 ```typescript
-// backend/src/modules/ticket/entity.ts
+// legacy/express/src/modules/ticket/entity.ts
 
 import { defineEntity } from '@runtime/registry';
 
@@ -1324,7 +1324,7 @@ Response: {
 ### 5.3 Generated Form View
 
 ```vue
-<!-- backend/src/modules/ticket/static/views/TicketForm.vue -->
+<!-- legacy/express/src/modules/ticket/static/views/TicketForm.vue -->
 <!-- This is the custom form if customViews.form is used -->
 <!-- If no custom form provided, a default would be generated -->
 
@@ -1515,7 +1515,7 @@ onMounted(() => {
 ### 5.4 Generated Table View
 
 ```vue
-<!-- backend/src/modules/ticket/static/views/TicketList.vue -->
+<!-- legacy/express/src/modules/ticket/static/views/TicketList.vue -->
 
 <template>
   <div class="ticket-list">
@@ -2168,7 +2168,7 @@ This specification assumes:
 
 ## Appendix B: References
 
-- [01-core-runtime-architecture.md](01-core-runtime-architecture.md) — Runtime and entity definitions
-- [DEVELOPMENT.md](/docs/DEVELOPMENT.md) — Developer guide for creating modules
-- [ARCHITECTURE.md](/docs/ARCHITECTURE.md) — Overall system architecture
+- [01-core-runtime-architecture.md](01-runtime-core.md) — Runtime and entity definitions
+- [DEVELOPMENT.md](../DEVELOPMENT.md) — Developer guide for creating modules
+- [ARCHITECTURE.md](../ARCHITECTURE.md) — Overall system architecture
 

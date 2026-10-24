@@ -3,7 +3,7 @@
 > current migration certification. Use the [active task list](nestjs-migration-tasks.txt) and
 > [developer guide](DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
 > remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
 
 # Architecture Analysis: Express vs NestJS + Frontend Compatibility
 
@@ -190,8 +190,8 @@ These are genuinely original and would be awkward in NestJS's rigid structure.
 
 ```
 Original Plan:
-- Nuxt.js for SSR + public site    ✅ Implemented: frontend/apps/riagri-website
-- Vue.js for admin                 ✅ Implemented: frontend/apps/web-lume
+- Nuxt.js for SSR + public site    ✅ Implemented: frontend/apps/website
+- Vue.js for admin                 ✅ Implemented: frontend/apps/admin
 - TypeScript support               ✅ Implemented throughout
 - Ant Design Vue                   ✅ Implemented with Tailwind theming
 

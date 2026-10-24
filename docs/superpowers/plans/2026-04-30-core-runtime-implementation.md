@@ -13,7 +13,7 @@
 ## File Structure
 
 ```
-backend/src/core/runtime/
+legacy/express/src/core/runtime/
 ├── index.ts                          # Public exports
 ├── registry.ts                       # RuntimeRegistry (central coordinator)
 ├── types.ts                          # All core interfaces & types
@@ -22,7 +22,7 @@ backend/src/core/runtime/
 ├── bootstrap.ts                      # Registry initialization & module discovery
 └── hooks.ts                          # Hook executor & validation
 
-backend/tests/unit/
+legacy/express/tests/unit/
 ├── runtime-registry.test.ts          # Registry operations
 ├── event-bus.test.ts                 # Event subscription/emission
 ├── execution-pipeline.test.ts        # Pipeline orchestration
@@ -50,9 +50,9 @@ backend/tests/unit/
 ## Task 1: Core Interfaces & Types
 
 **Files:**
-- Create: `backend/src/core/runtime/types.ts`
-- Create: `backend/tests/unit/runtime-types.test.ts`
-- Modify: `backend/src/core/runtime/index.ts` (add exports)
+- Create: `legacy/express/src/core/runtime/types.ts`
+- Create: `legacy/express/tests/unit/runtime-types.test.ts`
+- Modify: `legacy/express/src/core/runtime/index.ts` (add exports)
 
 **Goal:** Define all core TypeScript interfaces that form the contract for the entire runtime system.
 
@@ -63,7 +63,7 @@ backend/tests/unit/
 - [ ] **Step 1: Write test file with interface definitions**
 
 ```typescript
-// File: backend/tests/unit/runtime-types.test.ts
+// File: legacy/express/tests/unit/runtime-types.test.ts
 import { describe, it, expect } from '@jest/globals';
 
 describe('Runtime Core Types', () => {
@@ -305,7 +305,7 @@ Expected: FAIL (types not yet defined)
 - [ ] **Step 3: Create types.ts with all interfaces**
 
 ```typescript
-// File: backend/src/core/runtime/types.ts
+// File: legacy/express/src/core/runtime/types.ts
 
 /**
  * Execution context passed through entire operation pipeline.
@@ -522,7 +522,7 @@ Expected: PASS
 - [ ] **Step 5: Update index.ts with exports**
 
 ```typescript
-// File: backend/src/core/runtime/index.ts (add to file)
+// File: legacy/express/src/core/runtime/index.ts (add to file)
 
 export * from './types';
 export { EventBus } from './event-bus';
@@ -542,8 +542,8 @@ cd /opt/Lume && git add -A && git commit -m "feat: define core runtime types and
 ## Task 2: EventBus Implementation
 
 **Files:**
-- Create: `backend/src/core/runtime/event-bus.ts`
-- Create: `backend/tests/unit/event-bus.test.ts`
+- Create: `legacy/express/src/core/runtime/event-bus.ts`
+- Create: `legacy/express/tests/unit/event-bus.test.ts`
 
 **Goal:** Implement the central event bus for pub/sub communication between runtime components.
 
@@ -554,7 +554,7 @@ cd /opt/Lume && git add -A && git commit -m "feat: define core runtime types and
 - [ ] **Step 1: Write failing test for EventBus**
 
 ```typescript
-// File: backend/tests/unit/event-bus.test.ts
+// File: legacy/express/tests/unit/event-bus.test.ts
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { EventBus } from '../../src/core/runtime/event-bus';
 import { RuntimeEvent, ExecutionContext } from '../../src/core/runtime/types';
@@ -743,7 +743,7 @@ Expected: FAIL (EventBus not yet implemented)
 - [ ] **Step 3: Implement EventBus**
 
 ```typescript
-// File: backend/src/core/runtime/event-bus.ts
+// File: legacy/express/src/core/runtime/event-bus.ts
 import { EventEmitter } from 'events';
 import { RuntimeEvent, EventBusInterface } from './types';
 
@@ -827,8 +827,8 @@ cd /opt/Lume && git add -A && git commit -m "feat: implement EventBus for pub/su
 ## Task 3: Execution Pipeline
 
 **Files:**
-- Create: `backend/src/core/runtime/execution-pipeline.ts`
-- Create: `backend/tests/unit/execution-pipeline.test.ts`
+- Create: `legacy/express/src/core/runtime/execution-pipeline.ts`
+- Create: `legacy/express/tests/unit/execution-pipeline.test.ts`
 
 **Goal:** Implement the 7-step execution pipeline that orchestrates entity operations through permission checks, hooks, DB mutations, and event emission.
 
@@ -839,7 +839,7 @@ cd /opt/Lume && git add -A && git commit -m "feat: implement EventBus for pub/su
 - [ ] **Step 1: Write failing test for execution pipeline**
 
 ```typescript
-// File: backend/tests/unit/execution-pipeline.test.ts
+// File: legacy/express/tests/unit/execution-pipeline.test.ts
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { ExecutionPipeline } from '../../src/core/runtime/execution-pipeline';
 import { EntityDef, ExecutionContext, RuntimeEvent } from '../../src/core/runtime/types';
@@ -1075,7 +1075,7 @@ Expected: FAIL (ExecutionPipeline not yet implemented)
 - [ ] **Step 3: Implement ExecutionPipeline**
 
 ```typescript
-// File: backend/src/core/runtime/execution-pipeline.ts
+// File: legacy/express/src/core/runtime/execution-pipeline.ts
 import { v4 as uuidv4 } from 'uuid';
 import {
   EntityDef,
@@ -1267,8 +1267,8 @@ cd /opt/Lume && git add -A && git commit -m "feat: implement 7-step execution pi
 ## Task 4: RuntimeRegistry Implementation
 
 **Files:**
-- Create: `backend/src/core/runtime/registry.ts`
-- Create: `backend/tests/unit/runtime-registry.test.ts`
+- Create: `legacy/express/src/core/runtime/registry.ts`
+- Create: `legacy/express/tests/unit/runtime-registry.test.ts`
 
 **Goal:** Implement the central RuntimeRegistry that holds all entity, workflow, view, and policy definitions. This is the single source of truth.
 
@@ -1279,7 +1279,7 @@ cd /opt/Lume && git add -A && git commit -m "feat: implement 7-step execution pi
 - [ ] **Step 1: Write failing test for RuntimeRegistry**
 
 ```typescript
-// File: backend/tests/unit/runtime-registry.test.ts
+// File: legacy/express/tests/unit/runtime-registry.test.ts
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { RuntimeRegistry } from '../../src/core/runtime/registry';
 import { EntityDef, WorkflowDef, ViewDef, PolicyDef } from '../../src/core/runtime/types';
@@ -1443,7 +1443,7 @@ Expected: FAIL (RuntimeRegistry not yet implemented)
 - [ ] **Step 3: Implement RuntimeRegistry**
 
 ```typescript
-// File: backend/src/core/runtime/registry.ts
+// File: legacy/express/src/core/runtime/registry.ts
 import {
   RuntimeRegistry as IRegistry,
   EntityDef,
@@ -1749,8 +1749,8 @@ cd /opt/Lume && git add -A && git commit -m "feat: implement central RuntimeRegi
 ## Task 5: Registry Bootstrap & Module Discovery
 
 **Files:**
-- Create: `backend/src/core/runtime/bootstrap.ts`
-- Create: `backend/tests/unit/bootstrap.test.ts`
+- Create: `legacy/express/src/core/runtime/bootstrap.ts`
+- Create: `legacy/express/tests/unit/bootstrap.test.ts`
 
 **Goal:** Implement the bootstrap process that initializes the registry from installed modules, discovers entity/workflow/view definitions, validates schema integrity, and emits ready event.
 
@@ -1761,7 +1761,7 @@ cd /opt/Lume && git add -A && git commit -m "feat: implement central RuntimeRegi
 - [ ] **Step 1: Write failing test for bootstrap**
 
 ```typescript
-// File: backend/tests/unit/bootstrap.test.ts
+// File: legacy/express/tests/unit/bootstrap.test.ts
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { bootstrapRegistry, validateSchemaIntegrity } from '../../src/core/runtime/bootstrap';
 import { RuntimeRegistry } from '../../src/core/runtime/registry';
@@ -1936,7 +1936,7 @@ Expected: FAIL (bootstrap functions not yet implemented)
 - [ ] **Step 3: Implement bootstrap functions**
 
 ```typescript
-// File: backend/src/core/runtime/bootstrap.ts
+// File: legacy/express/src/core/runtime/bootstrap.ts
 import { RuntimeRegistry } from './registry';
 import { RuntimeEvent } from './types';
 
@@ -2139,8 +2139,8 @@ cd /opt/Lume && git add -A && git commit -m "feat: implement registry bootstrap 
 ## Task 6: Hook Executor & Entity Lifecycle
 
 **Files:**
-- Create: `backend/src/core/runtime/hooks.ts`
-- Create: `backend/tests/unit/hooks.test.ts`
+- Create: `legacy/express/src/core/runtime/hooks.ts`
+- Create: `legacy/express/tests/unit/hooks.test.ts`
 
 **Goal:** Implement hook execution system that runs before/after-hooks for create/update/delete operations. Integrates hooks into the execution pipeline.
 
@@ -2151,7 +2151,7 @@ cd /opt/Lume && git add -A && git commit -m "feat: implement registry bootstrap 
 - [ ] **Step 1: Write failing test for hooks**
 
 ```typescript
-// File: backend/tests/unit/hooks.test.ts
+// File: legacy/express/tests/unit/hooks.test.ts
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { HookExecutor } from '../../src/core/runtime/hooks';
 import { EntityDef, ExecutionContext } from '../../src/core/runtime/types';
@@ -2376,7 +2376,7 @@ Expected: FAIL (HookExecutor not yet implemented)
 - [ ] **Step 3: Implement HookExecutor**
 
 ```typescript
-// File: backend/src/core/runtime/hooks.ts
+// File: legacy/express/src/core/runtime/hooks.ts
 import { EntityDef, ExecutionContext } from './types';
 
 /**
@@ -2510,21 +2510,21 @@ All 6 core runtime tasks are now complete. The foundation is in place for:
 - ✅ Hook executor for lifecycle management (Task 6)
 
 ### Files Created
-- `backend/src/core/runtime/types.ts` — All core interfaces
-- `backend/src/core/runtime/event-bus.ts` — Event pub/sub
-- `backend/src/core/runtime/execution-pipeline.ts` — Operation orchestration
-- `backend/src/core/runtime/registry.ts` — Central registry
-- `backend/src/core/runtime/bootstrap.ts` — Initialization and validation
-- `backend/src/core/runtime/hooks.ts` — Lifecycle hook execution
-- `backend/src/core/runtime/index.ts` — Public API exports
+- `legacy/express/src/core/runtime/types.ts` — All core interfaces
+- `legacy/express/src/core/runtime/event-bus.ts` — Event pub/sub
+- `legacy/express/src/core/runtime/execution-pipeline.ts` — Operation orchestration
+- `legacy/express/src/core/runtime/registry.ts` — Central registry
+- `legacy/express/src/core/runtime/bootstrap.ts` — Initialization and validation
+- `legacy/express/src/core/runtime/hooks.ts` — Lifecycle hook execution
+- `legacy/express/src/core/runtime/index.ts` — Public API exports
 
 ### Files Tested
-- `backend/tests/unit/runtime-types.test.ts`
-- `backend/tests/unit/event-bus.test.ts`
-- `backend/tests/unit/execution-pipeline.test.ts`
-- `backend/tests/unit/runtime-registry.test.ts`
-- `backend/tests/unit/bootstrap.test.ts`
-- `backend/tests/unit/hooks.test.ts`
+- `legacy/express/tests/unit/runtime-types.test.ts`
+- `legacy/express/tests/unit/event-bus.test.ts`
+- `legacy/express/tests/unit/execution-pipeline.test.ts`
+- `legacy/express/tests/unit/runtime-registry.test.ts`
+- `legacy/express/tests/unit/bootstrap.test.ts`
+- `legacy/express/tests/unit/hooks.test.ts`
 
 ### Next Implementation Phases
 

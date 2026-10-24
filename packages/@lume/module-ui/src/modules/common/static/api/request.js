@@ -4,7 +4,7 @@
  */
 
 /* global axios */
-// `axios` is provided as a runtime global by the host frontend (apps/web-lume).
+// `axios` is provided as a runtime global by the host frontend (apps/admin).
 // This file is loaded by the SFC runtime loader, not bundled — there's no
 // import resolver to wire it through, so we declare it as ambient.
 // Phase 2 (CODE_QUALITY.md): silences the no-undef false positive.

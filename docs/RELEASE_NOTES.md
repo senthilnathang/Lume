@@ -130,8 +130,8 @@ Lume v2.0.0 is a major release featuring comprehensive modernization across depe
 ### CSS Variables for Theming
 
 **Global Styles Updated:**
-- `apps/web-lume/src/styles/globals.css`
-- `apps/riagri-website/assets/css/main.css`
+- `apps/admin/src/styles/globals.css`
+- `apps/website/assets/css/main.css`
 
 **CSS Variable Definitions:**
 ```css
@@ -209,7 +209,7 @@ pnpm test:coverage
 pnpm test -- tests/integration/auth-workflow.test.js
 
 # E2E tests
-cd apps/web-lume && npm run test:e2e
+cd apps/admin && npm run test:e2e
 ```
 
 ---

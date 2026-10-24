@@ -4,10 +4,10 @@
 
 **Goal:** Audit the Lume monorepo for unnecessary files/docs, verify security posture, deploy the complete Express.js + Vue/Nuxt stack to a test environment, and create a comprehensive SEO + public release strategy.
 
-**Architecture:** 
+**Architecture:**
 - Express.js backend (22 modules, 49+ tables, 147 permissions) with Prisma core + Drizzle modules
-- Vue 3 admin panel at `/frontend/apps/web-lume` 
-- Nuxt 3 public site (to be created at `/frontend/apps/riagri-website`)
+- Vue 3 admin panel at `/frontend/apps/admin`
+- Nuxt 3 public site (to be created at `/frontend/apps/website`)
 - pnpm monorepo with Turbo orchestration
 - Deployment target: Local dev/staging environment with MySQL + Redis
 
@@ -48,10 +48,10 @@
 - `/opt/Lume/docs/README.md` — Consolidate and index all remaining docs
 - `/opt/Lume/docs/DEPLOYMENT.md` — Update with current Express setup
 - `/opt/Lume/backend/` — Run security audit, fix any issues
-- `/opt/Lume/frontend/apps/web-lume/` — Verify and test
+- `/opt/Lume/frontend/apps/admin/` — Verify and test
 
 ### To Be Created
-- `/opt/Lume/frontend/apps/riagri-website/` — Nuxt 3 public site
+- `/opt/Lume/frontend/apps/website/` — Nuxt 3 public site
 - `/opt/Lume/docs/SEO_STRATEGY.md` — SEO implementation plan
 - `/opt/Lume/docs/DEPLOYMENT_CHECKLIST.md` — Step-by-step deployment guide
 - `/opt/Lume/docs/PUBLIC_RELEASE_STRATEGY.md` — v2.0 launch plan
@@ -65,7 +65,7 @@
 
 - [ ] **Step 1: Verify no active references to legacy dirs**
 
-Run: `grep -r "from ['\\"].*\/server\|from ['\\"].*\/app" backend/src frontend/apps 2>/dev/null | wc -l`
+Run: `grep -r "from ['\\"].*\/server\|from ['\\"].*\/app" legacy/express/src frontend/apps 2>/dev/null | wc -l`
 
 Expected: 0 (no references found)
 
@@ -78,7 +78,7 @@ git commit -m "chore: remove legacy directories
 
 Removed old implementation code:
 - server/ (~1.2MB)
-- app/ (~336KB)  
+- app/ (~336KB)
 - src/ (~8KB)
 - database/ (~24KB)
 - workspace/ (~12KB)
@@ -124,19 +124,19 @@ Update `/opt/Lume/docs/README.md`:
 # Lume v2.0 Documentation Index
 
 ## Core Reference
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** — System design, modules, ORM, features
-- **[INSTALLATION.md](./INSTALLATION.md)** — Setup guide for all components
-- **[DEVELOPMENT.md](./DEVELOPMENT.md)** — Developer guide, module creation, patterns
-- **[TESTING.md](./TESTING.md)** — Test setup, patterns, running tests
+- **[ARCHITECTURE.md](../../ARCHITECTURE.md)** — System design, modules, ORM, features
+- **[INSTALLATION.md](../../INSTALLATION.md)** — Setup guide for all components
+- **[DEVELOPMENT.md](../../DEVELOPMENT.md)** — Developer guide, module creation, patterns
+- **[TESTING.md](../../TESTING.md)** — Test setup, patterns, running tests
 
 ## Deployment & Operations
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** — Environment setup, deployment basics
-- **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** — Step-by-step deployment procedure
+- **[DEPLOYMENT.md](../../DEPLOYMENT.md)** — Environment setup, deployment basics
+- **[DEPLOYMENT_CHECKLIST.md](../../../legacy/deployment/DEPLOYMENT_CHECKLIST.md)** — Step-by-step deployment procedure
 
 ## Release & Strategy
-- **[PUBLIC_RELEASE_STRATEGY.md](./PUBLIC_RELEASE_STRATEGY.md)** — v2.0 launch plan
-- **[SEO_STRATEGY.md](./SEO_STRATEGY.md)** — SEO optimization roadmap
-- **[MIGRATION_STATUS.md](./MIGRATION_STATUS.md)** — Migration progress tracking
+- **[PUBLIC_RELEASE_STRATEGY.md](../../deployment/PUBLIC_RELEASE_CHECKLIST.md)** — v2.0 launch plan
+- **[SEO_STRATEGY.md](../../deployment/SEO_AUDIT.md)** — SEO optimization roadmap
+- **[MIGRATION_STATUS.md](../../MIGRATION_PRODUCTION_ROADMAP.md)** — Migration progress tracking
 ```
 
 Expected: Clear, concise index
@@ -171,7 +171,7 @@ Create `/opt/Lume/docs/SECURITY_AUDIT.md`:
 
 ## Findings
 - Dependencies: [COUNT] vulnerabilities found
-- Code patterns: [STATUS]  
+- Code patterns: [STATUS]
 - Hardcoded secrets: [NONE|List]
 - Auth implementation: ✓ Verified
 
@@ -277,7 +277,7 @@ pkill -f "npm run dev"
 - [ ] **Step 1: Build admin panel**
 
 ```bash
-cd frontend/apps/web-lume
+cd frontend/apps/admin
 npm install
 npm run build
 ```
@@ -314,7 +314,7 @@ pkill -f "vite\|npm run dev"
 ## Task 7: Scaffold Nuxt 3 Public Site
 
 **Files:**
-- Create: `/opt/Lume/frontend/apps/riagri-website/`
+- Create: `/opt/Lume/frontend/apps/website/`
 
 - [ ] **Step 1: Create Nuxt app**
 
@@ -375,7 +375,7 @@ Expected: Pages created
 
 ```bash
 cd /opt/Lume
-git add frontend/apps/riagri-website
+git add frontend/apps/website
 git commit -m "feat: scaffold Nuxt 3 public site with CMS integration"
 ```
 
@@ -467,7 +467,7 @@ LOG_LEVEL=info
 
 ```bash
 git log -p --all -S "password=" | head -50
-grep -r "password.*=" backend/src frontend/apps/web-lume/src | wc -l
+grep -r "password.*=" legacy/express/src frontend/apps/admin/src | wc -l
 ```
 
 Expected: No hardcoded secrets found
@@ -519,7 +519,7 @@ This comprehensive plan covers 12 major tasks grouped into phases:
 
 **Two execution options:**
 
-**Option 1: Subagent-Driven (Recommended)** 
+**Option 1: Subagent-Driven (Recommended)**
 - Fresh subagent per task
 - Parallel execution where possible
 - Review checkpoints between task groups

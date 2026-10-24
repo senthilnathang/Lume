@@ -24,9 +24,9 @@
 
 ## File Structure
 
-### Core Runtime (`backend/src/core/runtime/`)
+### Core Runtime (`legacy/express/src/core/runtime/`)
 ```
-backend/src/core/
+legacy/express/src/core/
 ├─ runtime/
 │  ├─ runtime.ts                 # Main Runtime class, execute() entry point
 │  ├─ registry.ts                # MetadataRegistry (in-memory + Redis)
@@ -60,9 +60,9 @@ backend/src/core/
    └─ logger.ts                  # Execution logger for debugging
 ```
 
-### Entities & Domains (`backend/src/domains/`)
+### Entities & Domains (`legacy/express/src/domains/`)
 ```
-backend/src/domains/
+legacy/express/src/domains/
 ├─ entity/
 │  ├─ entity.builder.ts          # defineEntity(), defineField() APIs
 │  ├─ entity-store.ts            # EntityDefinitionStore (register, retrieve)
@@ -86,9 +86,9 @@ backend/src/domains/
    └─ types.ts                   # DomainTemplate types
 ```
 
-### API Routes (`backend/src/api/`)
+### API Routes (`legacy/express/src/api/`)
 ```
-backend/src/api/
+legacy/express/src/api/
 ├─ crud.routes.ts                # Auto-generated CRUD endpoints
 ├─ view.routes.ts                # View-specific endpoints (kanban, calendar, etc)
 ├─ entity.routes.ts              # Entity metadata endpoints
@@ -98,9 +98,9 @@ backend/src/api/
    └─ runtime.middleware.ts       # Load Runtime into request
 ```
 
-### Frontend (`frontend/apps/web-lume/src/`)
+### Frontend (`frontend/apps/admin/src/`)
 ```
-frontend/apps/web-lume/src/
+frontend/apps/admin/src/
 ├─ components/
 │  ├─ DataGrid.vue               # Generic table/grid component
 │  ├─ EntityForm.vue             # Generic form component
@@ -121,9 +121,9 @@ frontend/apps/web-lume/src/
 └─ types.ts                      # Frontend types (align with backend)
 ```
 
-### Tests (`backend/tests/`)
+### Tests (`legacy/express/tests/`)
 ```
-backend/tests/
+legacy/express/tests/
 ├─ unit/
 │  ├─ runtime.test.ts
 │  ├─ registry.test.ts
@@ -153,15 +153,15 @@ backend/tests/
 ### Task 1: Create Core Runtime Types & Interfaces
 
 **Files:**
-- Create: `backend/src/core/runtime/types.ts`
-- Create: `backend/src/core/runtime/execution-context.ts`
-- Create: `backend/src/core/permissions/types.ts`
-- Create: `backend/src/core/db/adapters/orm-adapter.interface.ts`
+- Create: `legacy/express/src/core/runtime/types.ts`
+- Create: `legacy/express/src/core/runtime/execution-context.ts`
+- Create: `legacy/express/src/core/permissions/types.ts`
+- Create: `legacy/express/src/core/db/adapters/orm-adapter.interface.ts`
 
 - [ ] **Step 1: Write types.ts with all core interfaces**
 
 ```typescript
-// backend/src/core/runtime/types.ts
+// legacy/express/src/core/runtime/types.ts
 
 export interface ExecutionContext {
   userId: string
@@ -337,7 +337,7 @@ export interface WorkflowStep {
 - [ ] **Step 2: Write execution-context.ts with context extraction**
 
 ```typescript
-// backend/src/core/runtime/execution-context.ts
+// legacy/express/src/core/runtime/execution-context.ts
 
 import { ExecutionContext } from './types'
 
@@ -379,7 +379,7 @@ export class ContextLoader {
 - [ ] **Step 3: Write permission types**
 
 ```typescript
-// backend/src/core/permissions/types.ts
+// legacy/express/src/core/permissions/types.ts
 
 export interface PolicyEngine {
   evaluate(request: PermissionRequest): Promise<PermissionResult>
@@ -411,7 +411,7 @@ export interface PermissionResult {
 - [ ] **Step 4: Write ORM adapter interface**
 
 ```typescript
-// backend/src/core/db/adapters/orm-adapter.interface.ts
+// legacy/express/src/core/db/adapters/orm-adapter.interface.ts
 
 export interface IOrmAdapter {
   create(tableName: string, data: any): Promise<any>
@@ -435,7 +435,7 @@ export interface QueryOptions {
 - [ ] **Step 5: Write test for types (smoke test)**
 
 ```typescript
-// backend/tests/unit/types.test.ts
+// legacy/express/tests/unit/types.test.ts
 
 import { ExecutionContext, OperationRequest, EntityDefinition } from '../../../src/core/runtime/types'
 
@@ -493,7 +493,7 @@ Expected: PASS (types compile and smoke test passes)
 - [ ] **Step 7: Commit types**
 
 ```bash
-git add backend/src/core/runtime/types.ts backend/src/core/runtime/execution-context.ts backend/src/core/permissions/types.ts backend/src/core/db/adapters/orm-adapter.interface.ts backend/tests/unit/types.test.ts
+git add legacy/express/src/core/runtime/types.ts legacy/express/src/core/runtime/execution-context.ts legacy/express/src/core/permissions/types.ts legacy/express/src/core/db/adapters/orm-adapter.interface.ts legacy/express/tests/unit/types.test.ts
 git commit -m "feat: add core runtime types and interfaces
 
 - ExecutionContext, OperationRequest, OperationResult
@@ -510,14 +510,14 @@ git commit -m "feat: add core runtime types and interfaces
 ### Task 2: Create Metadata Registry with Redis Backing
 
 **Files:**
-- Create: `backend/src/core/runtime/registry.ts`
-- Create: `backend/src/core/cache/redis-cache.ts`
-- Create: `backend/tests/unit/registry.test.ts`
+- Create: `legacy/express/src/core/runtime/registry.ts`
+- Create: `legacy/express/src/core/cache/redis-cache.ts`
+- Create: `legacy/express/tests/unit/registry.test.ts`
 
 - [ ] **Step 1: Write RedisCache wrapper**
 
 ```typescript
-// backend/src/core/cache/redis-cache.ts
+// legacy/express/src/core/cache/redis-cache.ts
 
 import { Injectable } from '@nestjs/common'
 import { Redis } from 'ioredis'
@@ -559,7 +559,7 @@ export class RedisCache {
 - [ ] **Step 2: Write MetadataRegistry**
 
 ```typescript
-// backend/src/core/runtime/registry.ts
+// legacy/express/src/core/runtime/registry.ts
 
 import { Injectable } from '@nestjs/common'
 import { EntityDefinition, WorkflowDefinition, ViewDefinition, AgentDefinition, PermissionPolicy } from './types'
@@ -667,7 +667,7 @@ export class MetadataRegistry {
 - [ ] **Step 3: Write tests for registry**
 
 ```typescript
-// backend/tests/unit/registry.test.ts
+// legacy/express/tests/unit/registry.test.ts
 
 import { Test, TestingModule } from '@nestjs/testing'
 import { MetadataRegistry } from '../../../src/core/runtime/registry'
@@ -791,7 +791,7 @@ Expected: PASS (all registry tests pass)
 - [ ] **Step 5: Commit registry**
 
 ```bash
-git add backend/src/core/cache/redis-cache.ts backend/src/core/runtime/registry.ts backend/tests/unit/registry.test.ts
+git add legacy/express/src/core/cache/redis-cache.ts legacy/express/src/core/runtime/registry.ts legacy/express/tests/unit/registry.test.ts
 git commit -m "feat: implement metadata registry with redis caching
 
 - RedisCache wrapper for TTL-based caching
@@ -806,14 +806,14 @@ git commit -m "feat: implement metadata registry with redis caching
 ### Task 3: Create Interceptor Pipeline Infrastructure
 
 **Files:**
-- Create: `backend/src/core/runtime/interceptor-pipeline.ts`
-- Create: `backend/src/core/runtime/interceptor.interface.ts`
-- Create: `backend/tests/unit/interceptor-pipeline.test.ts`
+- Create: `legacy/express/src/core/runtime/interceptor-pipeline.ts`
+- Create: `legacy/express/src/core/runtime/interceptor.interface.ts`
+- Create: `legacy/express/tests/unit/interceptor-pipeline.test.ts`
 
 - [ ] **Step 1: Write Interceptor interface**
 
 ```typescript
-// backend/src/core/runtime/interceptor.interface.ts
+// legacy/express/src/core/runtime/interceptor.interface.ts
 
 import { ExecutionContext, OperationRequest, OperationResult } from './types'
 
@@ -846,7 +846,7 @@ export interface InterceptorResult {
 - [ ] **Step 2: Write InterceptorPipeline orchestrator**
 
 ```typescript
-// backend/src/core/runtime/interceptor-pipeline.ts
+// legacy/express/src/core/runtime/interceptor-pipeline.ts
 
 import { Injectable } from '@nestjs/common'
 import { Interceptor, InterceptorContext, InterceptorResult } from './interceptor.interface'
@@ -940,7 +940,7 @@ export class InterceptorPipeline {
 - [ ] **Step 3: Write tests for pipeline**
 
 ```typescript
-// backend/tests/unit/interceptor-pipeline.test.ts
+// legacy/express/tests/unit/interceptor-pipeline.test.ts
 
 import { InterceptorPipeline } from '../../../src/core/runtime/interceptor-pipeline'
 import { Interceptor, InterceptorContext, InterceptorResult } from '../../../src/core/runtime/interceptor.interface'
@@ -1069,7 +1069,7 @@ Expected: PASS (all pipeline tests pass)
 - [ ] **Step 5: Commit pipeline**
 
 ```bash
-git add backend/src/core/runtime/interceptor.interface.ts backend/src/core/runtime/interceptor-pipeline.ts backend/tests/unit/interceptor-pipeline.test.ts
+git add legacy/express/src/core/runtime/interceptor.interface.ts legacy/express/src/core/runtime/interceptor-pipeline.ts legacy/express/tests/unit/interceptor-pipeline.test.ts
 git commit -m "feat: implement interceptor pipeline infrastructure
 
 - Interceptor interface with process() method
@@ -1085,13 +1085,13 @@ git commit -m "feat: implement interceptor pipeline infrastructure
 ### Task 4: Create Main Runtime Class
 
 **Files:**
-- Create: `backend/src/core/runtime/runtime.ts`
-- Create: `backend/tests/unit/runtime.test.ts`
+- Create: `legacy/express/src/core/runtime/runtime.ts`
+- Create: `legacy/express/tests/unit/runtime.test.ts`
 
 - [ ] **Step 1: Write main Runtime class**
 
 ```typescript
-// backend/src/core/runtime/runtime.ts
+// legacy/express/src/core/runtime/runtime.ts
 
 import { Injectable } from '@nestjs/common'
 import { MetadataRegistry } from './registry'
@@ -1182,7 +1182,7 @@ export class LumeRuntime {
 - [ ] **Step 2: Write tests for Runtime**
 
 ```typescript
-// backend/tests/unit/runtime.test.ts
+// legacy/express/tests/unit/runtime.test.ts
 
 import { Test } from '@nestjs/testing'
 import { LumeRuntime } from '../../../src/core/runtime/runtime'
@@ -1345,7 +1345,7 @@ Expected: PASS (all runtime tests pass)
 - [ ] **Step 4: Commit Runtime**
 
 ```bash
-git add backend/src/core/runtime/runtime.ts backend/tests/unit/runtime.test.ts
+git add legacy/express/src/core/runtime/runtime.ts legacy/express/tests/unit/runtime.test.ts
 git commit -m "feat: implement main LumeRuntime class
 
 - Single execute() entry point for all operations

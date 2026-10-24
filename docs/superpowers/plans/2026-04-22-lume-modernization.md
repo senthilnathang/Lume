@@ -150,11 +150,11 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ## Task 1.2: Update Frontend Dependencies (web-lume admin app)
 
 **Files:**
-- Modify: `frontend/apps/web-lume/package.json`
+- Modify: `frontend/apps/admin/package.json`
 
 - [ ] **Step 1: Update web-lume dependencies**
 
-Update `frontend/apps/web-lume/package.json` dependencies section to:
+Update `frontend/apps/admin/package.json` dependencies section to:
 
 ```json
 {
@@ -204,7 +204,7 @@ Update `frontend/apps/web-lume/package.json` dependencies section to:
 
 - [ ] **Step 2: Update web-lume devDependencies**
 
-Update `frontend/apps/web-lume/package.json` devDependencies section to:
+Update `frontend/apps/admin/package.json` devDependencies section to:
 
 ```json
 {
@@ -234,7 +234,7 @@ Update `frontend/apps/web-lume/package.json` devDependencies section to:
 
 - [ ] **Step 3: Update Node engines for web-lume**
 
-Update `frontend/apps/web-lume/package.json` engines section to:
+Update `frontend/apps/admin/package.json` engines section to:
 
 ```json
 {
@@ -247,7 +247,7 @@ Update `frontend/apps/web-lume/package.json` engines section to:
 - [ ] **Step 4: Verify web-lume package.json is valid**
 
 ```bash
-cd frontend/apps/web-lume && cat package.json | jq '.dependencies | keys | length'
+cd frontend/apps/admin && cat package.json | jq '.dependencies | keys | length'
 ```
 
 Expected output: A number (count of dependencies, should be ~20+)
@@ -255,7 +255,7 @@ Expected output: A number (count of dependencies, should be ~20+)
 - [ ] **Step 5: Commit web-lume dependency updates**
 
 ```bash
-cd /opt/Lume && git add frontend/apps/web-lume/package.json && git commit -m "deps(web-lume): upgrade to latest compatible versions
+cd /opt/Lume && git add frontend/apps/admin/package.json && git commit -m "deps(web-lume): upgrade to latest compatible versions
 
 - Vue: 3.5.30 → 3.6.0
 - Vite: 5.4.0 → 5.6.0
@@ -274,17 +274,17 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ## Task 1.3: Update Frontend Dependencies (riagri-website public site)
 
 **Files:**
-- Modify: `frontend/apps/riagri-website/package.json`
+- Modify: `frontend/apps/website/package.json`
 
 - [ ] **Step 1: Read current riagri-website package.json**
 
 ```bash
-cat frontend/apps/riagri-website/package.json | jq '.dependencies' | head -20
+cat frontend/apps/website/package.json | jq '.dependencies' | head -20
 ```
 
 - [ ] **Step 2: Update riagri-website dependencies**
 
-Update `frontend/apps/riagri-website/package.json` dependencies section to:
+Update `frontend/apps/website/package.json` dependencies section to:
 
 ```json
 {
@@ -319,7 +319,7 @@ Update `frontend/apps/riagri-website/package.json` dependencies section to:
 
 - [ ] **Step 3: Update riagri-website devDependencies**
 
-Update `frontend/apps/riagri-website/package.json` devDependencies section to:
+Update `frontend/apps/website/package.json` devDependencies section to:
 
 ```json
 {
@@ -346,7 +346,7 @@ Update `frontend/apps/riagri-website/package.json` devDependencies section to:
 
 - [ ] **Step 4: Update Node engines for riagri-website**
 
-Update `frontend/apps/riagri-website/package.json` engines section to:
+Update `frontend/apps/website/package.json` engines section to:
 
 ```json
 {
@@ -360,7 +360,7 @@ Update `frontend/apps/riagri-website/package.json` engines section to:
 - [ ] **Step 5: Commit riagri-website dependency updates**
 
 ```bash
-cd /opt/Lume && git add frontend/apps/riagri-website/package.json && git commit -m "deps(riagri-website): upgrade to latest compatible versions
+cd /opt/Lume && git add frontend/apps/website/package.json && git commit -m "deps(riagri-website): upgrade to latest compatible versions
 
 - Vue: 3.5.0 → 3.6.0
 - Nuxt: 3.15.0 → 3.15.0 (latest 3.15.x)
@@ -398,7 +398,7 @@ Expected output: Shows successful installation, no errors. Watch for any peer de
 - [ ] **Step 3: Install web-lume dependencies**
 
 ```bash
-cd /opt/Lume/frontend/apps/web-lume && pnpm install
+cd /opt/Lume/frontend/apps/admin && pnpm install
 ```
 
 Expected output: Shows successful installation
@@ -406,7 +406,7 @@ Expected output: Shows successful installation
 - [ ] **Step 4: Install riagri-website dependencies**
 
 ```bash
-cd /opt/Lume/frontend/apps/riagri-website && pnpm install
+cd /opt/Lume/frontend/apps/website && pnpm install
 ```
 
 Expected output: Shows successful installation
@@ -431,7 +431,7 @@ Run: `cd /opt/Lume/backend && npm run typecheck` (if script exists)
 - [ ] **Step 7: Verify web-lume TypeScript compilation**
 
 ```bash
-cd /opt/Lume/frontend/apps/web-lume && npm run typecheck
+cd /opt/Lume/frontend/apps/admin && npm run typecheck
 ```
 
 Expected output: No errors or list of errors to fix
@@ -439,7 +439,7 @@ Expected output: No errors or list of errors to fix
 - [ ] **Step 8: Verify riagri-website TypeScript compilation**
 
 ```bash
-cd /opt/Lume/frontend/apps/riagri-website && npm run typecheck
+cd /opt/Lume/frontend/apps/website && npm run typecheck
 ```
 
 Expected output: No errors
@@ -480,8 +480,8 @@ grep '"node":' backend/package.json frontend/apps/*/package.json
 Expected output:
 ```
 backend/package.json:    "node": ">=20.12.0"
-frontend/apps/web-lume/package.json:    "node": ">=20.12.0"
-frontend/apps/riagri-website/package.json:    "node": ">=20.12.0"
+frontend/apps/admin/package.json:    "node": ">=20.12.0"
+frontend/apps/website/package.json:    "node": ">=20.12.0"
 ```
 
 - [ ] **Step 2: Verify pnpm-lock.yaml updated**
@@ -1258,8 +1258,8 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ## Task 2.6: Move Frontend Apps to `apps/` Directory
 
 **Files:**
-- Reorganize: `frontend/apps/web-lume/` → `apps/web-lume/`
-- Reorganize: `frontend/apps/riagri-website/` → `apps/riagri-website/`
+- Reorganize: `frontend/apps/admin/` → `apps/admin/`
+- Reorganize: `frontend/apps/website/` → `apps/website/`
 
 - [ ] **Step 1: Create apps directory**
 
@@ -1270,13 +1270,13 @@ mkdir -p /opt/Lume/apps
 - [ ] **Step 2: Move web-lume to apps**
 
 ```bash
-mv /opt/Lume/frontend/apps/web-lume /opt/Lume/apps/web-lume
+mv /opt/Lume/frontend/apps/admin /opt/Lume/apps/admin
 ```
 
 - [ ] **Step 3: Move riagri-website to apps**
 
 ```bash
-mv /opt/Lume/frontend/apps/riagri-website /opt/Lume/apps/riagri-website
+mv /opt/Lume/frontend/apps/website /opt/Lume/apps/website
 ```
 
 - [ ] **Step 4: Remove empty frontend directory**
@@ -1317,8 +1317,8 @@ No changes needed unless it references old `frontend/apps/` paths.
 cd /opt/Lume && git add -A && git commit -m "chore: reorganize frontend apps to monorepo structure
 
 Move:
-- frontend/apps/web-lume → apps/web-lume
-- frontend/apps/riagri-website → apps/riagri-website
+- frontend/apps/admin → apps/admin
+- frontend/apps/website → apps/website
 - Remove empty frontend directory
 
 New monorepo structure:
@@ -1342,8 +1342,8 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `backend/package.json`
-- Modify: `apps/web-lume/package.json`
-- Modify: `apps/riagri-website/package.json`
+- Modify: `apps/admin/package.json`
+- Modify: `apps/website/package.json`
 
 - [ ] **Step 1: Update backend package.json**
 
@@ -1378,13 +1378,13 @@ Update `backend/package.json` to reference shared configs and use turbo-friendly
 }
 ```
 
-- [ ] **Step 2: Update apps/web-lume package.json**
+- [ ] **Step 2: Update apps/admin package.json**
 
-Update `apps/web-lume/package.json` to use shared configs:
+Update `apps/admin/package.json` to use shared configs:
 
 ```json
 {
-  "name": "@lume/web-lume",
+  "name": "@lume/admin",
   "version": "2.0.0",
   "description": "Lume Framework v2.0 - Admin Panel (Vue 3 + Vite)",
   "private": true,
@@ -1410,13 +1410,13 @@ Update `apps/web-lume/package.json` to use shared configs:
 }
 ```
 
-- [ ] **Step 3: Update apps/riagri-website package.json**
+- [ ] **Step 3: Update apps/website package.json**
 
-Update `apps/riagri-website/package.json` to use shared configs:
+Update `apps/website/package.json` to use shared configs:
 
 ```json
 {
-  "name": "@lume/riagri-website",
+  "name": "@lume/website",
   "version": "2.0.0",
   "description": "Lume Framework v2.0 - Public Website (Nuxt 3)",
   "private": true,
@@ -1442,7 +1442,7 @@ Update `apps/riagri-website/package.json` to use shared configs:
 - [ ] **Step 4: Verify package.json updates**
 
 ```bash
-cd /opt/Lume && jq '.scripts.lint' backend/package.json apps/web-lume/package.json apps/riagri-website/package.json
+cd /opt/Lume && jq '.scripts.lint' backend/package.json apps/admin/package.json apps/website/package.json
 ```
 
 Expected output: All three return 'eslint' commands
@@ -1450,7 +1450,7 @@ Expected output: All three return 'eslint' commands
 - [ ] **Step 5: Commit package.json updates**
 
 ```bash
-cd /opt/Lume && git add backend/package.json apps/web-lume/package.json apps/riagri-website/package.json && git commit -m "chore: update package.json scripts for monorepo
+cd /opt/Lume && git add backend/package.json apps/admin/package.json apps/website/package.json && git commit -m "chore: update package.json scripts for monorepo
 
 Backend:
 - Add typecheck script
@@ -1523,8 +1523,8 @@ Create `/opt/Lume/tsconfig.json`:
     "baseUrl": ".",
     "paths": {
       "@lume/*": ["packages/@lume/*/src"],
-      "@backend/*": ["backend/src/*"],
-      "@modules/*": ["backend/src/modules/*"]
+      "@backend/*": ["legacy/express/src/*"],
+      "@modules/*": ["legacy/express/src/modules/*"]
     }
   },
   "include": [
@@ -1648,8 +1648,8 @@ cat > /tmp/phase2-summary.txt << 'EOF'
 
 ✅ Package updates:
   - backend/package.json with turbo scripts
-  - apps/web-lume/package.json updated
-  - apps/riagri-website/package.json updated
+  - apps/admin/package.json updated
+  - apps/website/package.json updated
 
 ✅ Verification:
   - pnpm install successful
@@ -1676,13 +1676,13 @@ Expected output: Shows Phase 2 commits (config packages, directory moves, etc.)
 Due to length constraints, I'll provide the essential structure for Phase 3. The full phase includes:
 
 ## Task 3.1: Upgrade Tailwind CSS to 4.2.2
-- Update `apps/web-lume/package.json` and `apps/riagri-website/package.json`
+- Update `apps/admin/package.json` and `apps/website/package.json`
 - Remove tailwindcss 3.4.14, install 4.2.2
 - Update PostCSS configuration
 - Migrate to Tailwind 4 CSS-first approach
 
 ## Task 3.2: Create Tailwind 4 CSS Variables
-- Update `apps/web-lume/src/styles/globals.css` with `@theme` directive
+- Update `apps/admin/src/styles/globals.css` with `@theme` directive
 - Create CSS variables for colors, spacing, typography
 - Integrate with Ant Design Vue theming
 

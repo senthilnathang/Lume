@@ -2,7 +2,7 @@ import lumeEslintConfig from './packages/@lume/eslint-config/index.mjs'
 import globals from 'globals'
 import { readFileSync, existsSync } from 'node:fs'
 
-const nuxtImportsFile = new URL('./apps/riagri-website/.nuxt/imports.d.ts', import.meta.url)
+const nuxtImportsFile = new URL('./apps/website/.nuxt/imports.d.ts', import.meta.url)
 const nuxtImports = existsSync(nuxtImportsFile) ? readFileSync(nuxtImportsFile, 'utf8') : ''
 const nuxtGlobals = Object.fromEntries([...nuxtImports.matchAll(/^export \{([^}]+)\}/gm)]
   .flatMap(match => match[1].split(',').map(name => name.trim().split(/\s+as\s+/).pop()))
@@ -22,18 +22,18 @@ export default [
   ...lumeEslintConfig,
 
   {
-    files: ['apps/riagri-website/**/*.{ts,js,vue}'],
+    files: ['apps/website/**/*.{ts,js,vue}'],
     languageOptions: { globals: { ...nuxtGlobals, $fetch: 'readonly', defineNuxtConfig: 'readonly' } },
   },
   {
-    files: ['apps/riagri-website/server/**/*.ts'],
+    files: ['apps/website/server/**/*.ts'],
     languageOptions: { globals: { ...globals.node, defineEventHandler: 'readonly', setHeader: 'readonly' } },
   },
 
   // Phase 3 (CODE_QUALITY.md): paths excluded from lint because they're
   // not part of the actual compile target.
   //
-  // backend/src/core/graphql/**:
+  // legacy/express/src/core/graphql/**:
   //   Orphan NestJS scaffolding from a planned/abandoned migration.
   //   Zero callers in the codebase, dependencies (@nestjs/common,
   //   @nestjs/apollo, graphql, etc.) not even installed. Already excluded
@@ -42,18 +42,18 @@ export default [
   //
   // packages/@lume/module-ui/src/modules/*/static/**:
   //   Vue frontend files served as backend static assets. Linted (and
-  //   compiled) by apps/web-lume's own toolchain. Backend lint of these
+  //   compiled) by apps/admin's own toolchain. Backend lint of these
   //   produces false positives for browser globals + @tiptap/* imports.
   {
     ignores: [
-      'backend/src/core/graphql/**',
+      'legacy/**',
       'packages/@lume/module-ui/src/modules/*/static/**',
     ],
   },
 
-  // Backend (Node/ESM): backend/src + scripts.
+  // Backend (Node/ESM): legacy/express/src + scripts.
   {
-    files: ['backend/**/*.{js,mjs,cjs,ts}', 'scripts/**/*.{js,mjs,cjs,ts}'],
+    files: ['apps/api/**/*.{js,mjs,cjs,ts}', 'scripts/**/*.{js,mjs,cjs,ts}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -64,10 +64,10 @@ export default [
     },
   },
 
-  // Frontend (browser): Vue admin (apps/web-lume) + Nuxt public site
-  // (apps/riagri-website). Vue files also caught by the .vue block below.
+  // Frontend (browser): Vue admin (apps/admin) + Nuxt public site
+  // (apps/website). Vue files also caught by the .vue block below.
   {
-    files: ['apps/**/*.{js,mjs,cjs,ts,tsx}', 'frontend/**/*.{js,mjs,cjs,ts,tsx}'],
+    files: ['apps/admin/**/*.{js,mjs,cjs,ts,tsx}', 'apps/website/**/*.{js,mjs,cjs,ts,tsx}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

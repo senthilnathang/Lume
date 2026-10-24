@@ -27,7 +27,7 @@ This document demonstrates how all components of the Lume Unified Runtime work t
 The Ticket entity is the core of our system. It defines what data we store, how we validate it, what happens on create/update/delete, and what constraints apply.
 
 ```typescript
-// File: backend/src/modules/support/tickets.entity.ts
+// File: legacy/express/src/modules/support/tickets.entity.ts
 // This file registers the Ticket entity with the Runtime
 
 import { defineEntity } from '@/core/entity/entity-builder.js';
@@ -469,7 +469,7 @@ export class ValidationError extends Error {
 When the support module initializes, the ticket entity is registered with the RuntimeRegistry, which triggers auto-generation of all downstream artifacts.
 
 ```typescript
-// File: backend/src/modules/support/__manifest__.js
+// File: legacy/express/src/modules/support/__manifest__.js
 // Module manifest executed on app startup
 
 export default {
@@ -1020,7 +1020,7 @@ The frontend consumes the generated schema and API to render dynamic forms and g
 ### 3.1 TicketForm Component
 
 ```vue
-<!-- File: frontend/apps/web-lume/src/components/tickets/TicketForm.vue -->
+<!-- File: frontend/apps/admin/src/components/tickets/TicketForm.vue -->
 <template>
   <a-card title="Create Support Ticket" class="ticket-form">
     <a-form
@@ -1251,7 +1251,7 @@ const onReset = () => {
 ### 3.2 TicketGrid Component
 
 ```vue
-<!-- File: frontend/apps/web-lume/src/components/tickets/TicketGrid.vue -->
+<!-- File: frontend/apps/admin/src/components/tickets/TicketGrid.vue -->
 <template>
   <div class="ticket-grid-container">
     <!-- Header with actions -->
@@ -1697,7 +1697,7 @@ Workflows orchestrate multi-step business processes. Here are two complete workf
 ### 4.1 Auto-Assign Workflow
 
 ```typescript
-// File: backend/src/modules/support/workflows/auto-assign.workflow.ts
+// File: legacy/express/src/modules/support/workflows/auto-assign.workflow.ts
 // Triggered when ticket is created: finds available agent and assigns
 
 import { defineWorkflow } from '@/core/workflow/workflow-builder.js';
@@ -1824,7 +1824,7 @@ export const autoAssignWorkflow = defineWorkflow({
 ### 4.2 Escalation Workflow
 
 ```typescript
-// File: backend/src/modules/support/workflows/escalate.workflow.ts
+// File: legacy/express/src/modules/support/workflows/escalate.workflow.ts
 // Triggered on ticket update: checks SLA and escalates if breached
 
 import { defineWorkflow } from '@/core/workflow/workflow-builder.js';
@@ -1977,7 +1977,7 @@ Agents are independent programs that listen to events and take action. Here are 
 ### 5.1 Auto-Assign Agent
 
 ```typescript
-// File: backend/src/modules/support/agents/auto-assign.agent.ts
+// File: legacy/express/src/modules/support/agents/auto-assign.agent.ts
 // Listens for 'ticket:created' and automatically assigns to available agent
 
 import { agent } from '@/core/agent/agent-builder.js';
@@ -2100,7 +2100,7 @@ export const autoAssignAgent = agent({
 ### 5.2 Escalation Agent
 
 ```typescript
-// File: backend/src/modules/support/agents/escalation.agent.ts
+// File: legacy/express/src/modules/support/agents/escalation.agent.ts
 // Runs periodically or on update: checks SLA and escalates if breached
 
 import { agent } from '@/core/agent/agent-builder.js';
@@ -2285,7 +2285,7 @@ export const escalationAgent = agent({
 ### 5.3 Notification Agent
 
 ```typescript
-// File: backend/src/modules/support/agents/notification.agent.ts
+// File: legacy/express/src/modules/support/agents/notification.agent.ts
 // Sends email notifications for ticket events
 
 import { agent } from '@/core/agent/agent-builder.js';
@@ -2411,7 +2411,7 @@ Permissions enforce who can do what with tickets at both role and field levels.
 ### 6.1 Role-Based Access Control (RBAC)
 
 ```typescript
-// File: backend/src/modules/support/rbac.config.ts
+// File: legacy/express/src/modules/support/rbac.config.ts
 
 export const ticketRbac = [
   // =========================================================================
@@ -2547,7 +2547,7 @@ export const ticketRbac = [
 ### 6.2 Attribute-Based Access Control (ABAC)
 
 ```typescript
-// File: backend/src/modules/support/abac.config.ts
+// File: legacy/express/src/modules/support/abac.config.ts
 
 export const ticketAbac = [
   // =========================================================================
@@ -3057,7 +3057,7 @@ Complete testing approach covering unit, integration, and end-to-end scenarios.
 ### 8.1 Unit Tests
 
 ```typescript
-// File: backend/tests/unit/ticket-entity.test.ts
+// File: legacy/express/tests/unit/ticket-entity.test.ts
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { ticketEntity } from '@/modules/support/tickets.entity';
@@ -3155,7 +3155,7 @@ describe('Ticket Entity', () => {
 ### 8.2 Integration Tests
 
 ```typescript
-// File: backend/tests/integration/ticket-workflow.test.ts
+// File: legacy/express/tests/integration/ticket-workflow.test.ts
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { runtimeRegistry } from '@/core/runtime/registry';
@@ -3298,7 +3298,7 @@ describe('Ticket Workflow Integration', () => {
 ### 8.3 Agent Tests
 
 ```typescript
-// File: backend/tests/unit/ticket-agents.test.ts
+// File: legacy/express/tests/unit/ticket-agents.test.ts
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { autoAssignAgent } from '@/modules/support/agents/auto-assign.agent';
@@ -3434,7 +3434,7 @@ describe('Ticket Agents', () => {
 ### 8.4 Permission Tests
 
 ```typescript
-// File: backend/tests/unit/ticket-permissions.test.ts
+// File: legacy/express/tests/unit/ticket-permissions.test.ts
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { permissionEngine } from '@/core/permissions/engine';
@@ -3530,7 +3530,7 @@ The ticket management system goes from idea to production-ready in hours, not we
 ## Appendix: File Structure
 
 ```
-backend/src/modules/support/
+legacy/express/src/modules/support/
 ├── __manifest__.js                    # Module registration
 ├── tickets.entity.ts                  # Entity definition (10 fields, 6 permissions)
 ├── rbac.config.ts                     # Role-based access (4 roles)
@@ -3552,7 +3552,7 @@ backend/src/modules/support/
     └── api/
         └── ticket-api.ts              # Frontend API client
 
-frontend/apps/web-lume/
+frontend/apps/admin/
 ├── src/
 │   ├── components/
 │   │   └── tickets/
@@ -3564,7 +3564,7 @@ frontend/apps/web-lume/
 │   └── router/
 │       └── index.ts                   # Route definitions
 
-backend/tests/
+legacy/express/tests/
 ├── unit/
 │   ├── ticket-entity.test.ts          # Field validation, hooks
 │   └── ticket-agents.test.ts          # Agent logic

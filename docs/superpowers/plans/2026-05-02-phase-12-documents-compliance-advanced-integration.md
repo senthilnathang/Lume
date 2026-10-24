@@ -17,16 +17,16 @@
 ## File Structure
 
 ### New Files
-- `backend/src/modules/documents/` — New document management module with versioning, approvals, access control
-- `backend/src/modules/compliance/` — New compliance tracking module with audit logs, policy management, reporting
-- `backend/src/modules/base_automation/services/advanced-workflows.js` — Parallel paths, conditional logic
-- `backend/src/modules/integrations/webhooks/` — External system integration with webhook routing
-- `frontend/apps/web-lume/src/modules/documents/` — Document UI components
-- `frontend/apps/web-lume/src/modules/compliance/` — Compliance dashboard and reporting
+- `legacy/express/src/modules/documents/` — New document management module with versioning, approvals, access control
+- `legacy/express/src/modules/compliance/` — New compliance tracking module with audit logs, policy management, reporting
+- `legacy/express/src/modules/base_automation/services/advanced-workflows.js` — Parallel paths, conditional logic
+- `legacy/express/src/modules/integrations/webhooks/` — External system integration with webhook routing
+- `frontend/apps/admin/src/modules/documents/` — Document UI components
+- `frontend/apps/admin/src/modules/compliance/` — Compliance dashboard and reporting
 
 ### Modified Files
-- `backend/src/core/db/prisma.js` — Add webhook event logging
-- `backend/src/modules/base_automation/__init__.js` — Register new services
+- `legacy/express/src/core/db/prisma.js` — Add webhook event logging
+- `legacy/express/src/modules/base_automation/__init__.js` — Register new services
 - Backend API routers for webhooks and document/compliance endpoints
 
 ---
@@ -34,12 +34,12 @@
 ## Task 1: Document Management & Versioning
 
 **Files:**
-- Create: `backend/src/modules/documents/models/schema.js`
-- Create: `backend/src/modules/documents/services/document.service.js`
-- Create: `backend/src/modules/documents/services/document-versioning.js`
-- Create: `backend/src/modules/documents/api/index.js`
-- Create: `frontend/apps/web-lume/src/modules/documents/DocumentEditor.vue`
-- Create: `frontend/apps/web-lume/src/modules/documents/components/VersionHistory.vue`
+- Create: `legacy/express/src/modules/documents/models/schema.js`
+- Create: `legacy/express/src/modules/documents/services/document.service.js`
+- Create: `legacy/express/src/modules/documents/services/document-versioning.js`
+- Create: `legacy/express/src/modules/documents/api/index.js`
+- Create: `frontend/apps/admin/src/modules/documents/DocumentEditor.vue`
+- Create: `frontend/apps/admin/src/modules/documents/components/VersionHistory.vue`
 - Test: `tests/unit/phase-12-documents.test.js`
 
 **Context:** Create a document management system with version control, approval workflows for changes, and access control. Each document can have multiple versions, and changes can be reviewed before publication.
@@ -141,7 +141,7 @@ describe('Document Management & Versioning', () => {
 
 - [ ] **Step 2: Create document schema**
 
-Create `backend/src/modules/documents/models/schema.js`:
+Create `legacy/express/src/modules/documents/models/schema.js`:
 
 ```javascript
 export const documents = table('documents', {
@@ -182,7 +182,7 @@ export const documentAccess = table('document_access', {
 
 - [ ] **Step 3: Create DocumentService**
 
-Create `backend/src/modules/documents/services/document.service.js`:
+Create `legacy/express/src/modules/documents/services/document.service.js`:
 
 ```javascript
 export class DocumentService {
@@ -278,7 +278,7 @@ export class DocumentService {
 
 - [ ] **Step 4: Create DocumentVersioningService**
 
-Create `backend/src/modules/documents/services/document-versioning.js`:
+Create `legacy/express/src/modules/documents/services/document-versioning.js`:
 
 ```javascript
 export class DocumentVersioningService {
@@ -361,7 +361,7 @@ Expected: PASS
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/documents/ tests/unit/phase-12-documents.test.js && git commit -m "feat: Add document management with versioning and approval workflows"
+cd /opt/Lume && git add legacy/express/src/modules/documents/ tests/unit/phase-12-documents.test.js && git commit -m "feat: Add document management with versioning and approval workflows"
 ```
 
 ---
@@ -369,11 +369,11 @@ cd /opt/Lume && git add backend/src/modules/documents/ tests/unit/phase-12-docum
 ## Task 2: Compliance & Audit Tracking
 
 **Files:**
-- Create: `backend/src/modules/compliance/models/schema.js`
-- Create: `backend/src/modules/compliance/services/compliance.service.js`
-- Create: `backend/src/modules/compliance/services/audit.service.js`
-- Create: `backend/src/modules/compliance/api/index.js`
-- Create: `frontend/apps/web-lume/src/modules/compliance/ComplianceDashboard.vue`
+- Create: `legacy/express/src/modules/compliance/models/schema.js`
+- Create: `legacy/express/src/modules/compliance/services/compliance.service.js`
+- Create: `legacy/express/src/modules/compliance/services/audit.service.js`
+- Create: `legacy/express/src/modules/compliance/api/index.js`
+- Create: `frontend/apps/admin/src/modules/compliance/ComplianceDashboard.vue`
 - Test: `tests/unit/phase-12-compliance.test.js`
 
 **Context:** Track regulatory compliance, policy adherence, and generate audit trails. Support compliance rules, audit logging for all state changes, and compliance reporting.
@@ -446,7 +446,7 @@ describe('Compliance & Audit', () => {
 
 - [ ] **Step 2: Create compliance schema**
 
-Create `backend/src/modules/compliance/models/schema.js`:
+Create `legacy/express/src/modules/compliance/models/schema.js`:
 
 ```javascript
 export const complianceRules = table('compliance_rules', {
@@ -485,7 +485,7 @@ export const complianceReports = table('compliance_reports', {
 
 - [ ] **Step 3: Create services and run tests**
 
-Create `backend/src/modules/compliance/services/compliance.service.js` and `audit.service.js` following the test-defined interface. Run tests to ensure all tests pass.
+Create `legacy/express/src/modules/compliance/services/compliance.service.js` and `audit.service.js` following the test-defined interface. Run tests to ensure all tests pass.
 
 ```bash
 cd /opt/Lume && npm test -- tests/unit/phase-12-compliance.test.js 2>&1
@@ -494,7 +494,7 @@ cd /opt/Lume && npm test -- tests/unit/phase-12-compliance.test.js 2>&1
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/compliance/ tests/unit/phase-12-compliance.test.js && git commit -m "feat: Add compliance tracking and audit logging system"
+cd /opt/Lume && git add legacy/express/src/modules/compliance/ tests/unit/phase-12-compliance.test.js && git commit -m "feat: Add compliance tracking and audit logging system"
 ```
 
 ---
@@ -502,8 +502,8 @@ cd /opt/Lume && git add backend/src/modules/compliance/ tests/unit/phase-12-comp
 ## Task 3: Advanced Workflows
 
 **Files:**
-- Create: `backend/src/modules/base_automation/services/advanced-workflows.js`
-- Modify: `backend/src/modules/base_automation/models/schema.js` (add parallel paths and conditions tables)
+- Create: `legacy/express/src/modules/base_automation/services/advanced-workflows.js`
+- Modify: `legacy/express/src/modules/base_automation/models/schema.js` (add parallel paths and conditions tables)
 - Test: `tests/unit/phase-12-advanced-workflows.test.js`
 
 **Context:** Support advanced workflow patterns: parallel approvers, conditional transitions, loops, and role-based routing.
@@ -567,10 +567,10 @@ Similar pattern to other tasks. Full test suite, implementation, commit.
 ## Task 4: Webhook Integration & External Systems
 
 **Files:**
-- Create: `backend/src/modules/integrations/webhooks/webhook.handler.js`
-- Create: `backend/src/modules/integrations/webhooks/webhook.router.js`
-- Create: `backend/src/modules/integrations/models/schema.js` (webhook subscriptions, event logs)
-- Create: `backend/src/modules/integrations/services/webhook.service.js`
+- Create: `legacy/express/src/modules/integrations/webhooks/webhook.handler.js`
+- Create: `legacy/express/src/modules/integrations/webhooks/webhook.router.js`
+- Create: `legacy/express/src/modules/integrations/models/schema.js` (webhook subscriptions, event logs)
+- Create: `legacy/express/src/modules/integrations/services/webhook.service.js`
 - Test: `tests/unit/phase-12-webhooks.test.js`
 
 **Context:** Enable external systems to trigger workflows, receive events, and perform actions based on approval outcomes.

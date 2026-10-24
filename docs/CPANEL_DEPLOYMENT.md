@@ -26,7 +26,7 @@ under a single domain.
 **Deploy order: Backend → Admin → Public.** The backend must be reachable
 before the admin SPA can authenticate or the Nuxt site can fetch page content.
 
-A separate **NestJS migration target** exists at `backend/lume-nestjs/`. It is
+A separate **NestJS migration target** exists at `apps/api/`. It is
 not the production backend yet. If you're deploying the NestJS rewrite, see
 [Section 6](#6-optional-deploy-the-nestjs-backend) at the end of this doc —
 the rest of the guide deploys the current Express backend.
@@ -63,8 +63,8 @@ cd /path/to/lume
 ```
 
 The script:
-- Builds the Vue admin (`apps/web-lume`) to `dist/`.
-- Builds the Nuxt public site (`apps/riagri-website`) to `.output/`.
+- Builds the Vue admin (`apps/admin`) to `dist/`.
+- Builds the Nuxt public site (`apps/website`) to `.output/`.
 - Generates `demo/app.js` — a small ESM-to-startup shim that
   Passenger (cPanel's app server) launches; it does
   `import('./.output/server/index.mjs')` with `NITRO_PORT` set from
@@ -336,7 +336,7 @@ The Vite build inlines `import.meta.env.VITE_API_URL` into the JS bundle.
 If the SPA can't reach the API, your build had the wrong URL. Fix locally:
 
 ```bash
-# In apps/web-lume/
+# In apps/admin/
 cat > .env.production <<EOF
 VITE_API_URL=https://ri-agri.in/backend/api
 VITE_PUBLIC_SITE_URL=https://ri-agri.in/demo
@@ -534,7 +534,7 @@ node src/scripts/setupDrizzle.js        # only if Drizzle schemas changed
 
 ```bash
 # Local
-cd apps/web-lume && npm run build
+cd apps/admin && npm run build
 # Upload dist/* to ~/ri-agri.in/frontend/
 # No restart needed — static files apply on the next request.
 ```
@@ -645,20 +645,20 @@ Files inside should be `644`.
 
 ## 10. Optional — deploy the NestJS backend
 
-The repo carries a migration target at `backend/lume-nestjs/`. It's not
-the production backend yet — the Express backend in `backend/src/` is
+The repo carries a migration target at `apps/api/`. It's not
+the production backend yet — the Express backend in `legacy/express/src/` is
 what the deploy script bundles and what this guide assumes. Use the
 NestJS path only if you've intentionally chosen to deploy it.
 
 ### 10.1 Build locally
 
 ```bash
-cd backend/lume-nestjs
+cd apps/api
 npm install
 npm run build       # writes dist/
 ```
 
-The output is `backend/lume-nestjs/dist/main.js`.
+The output is `apps/api/dist/main.js`.
 
 ### 10.2 cPanel Node.js App
 
@@ -701,8 +701,8 @@ version and zip it alongside.
 
 Same hybrid-ORM setup as the Express path — Prisma push + Drizzle
 table creation + seeds. The NestJS backend uses the same schema files
-in `backend/prisma/schema.prisma` and the same Drizzle module schemas,
-so the setup scripts at `backend/src/scripts/*.js` apply unchanged.
+in `legacy/express/prisma/schema.prisma` and the same Drizzle module schemas,
+so the setup scripts at `legacy/express/src/scripts/*.js` apply unchanged.
 
 > If you're running both backends in parallel during migration, point
 > them at **different databases**. Two backends owning the same DB will
@@ -717,7 +717,7 @@ so the setup scripts at `backend/src/scripts/*.js` apply unchanged.
   contract-compatible so the admin SPA and Nuxt site don't need
   changes when you switch.
 - Module loader: the NestJS target uses dynamic module registration —
-  see `backend/lume-nestjs/docs/` for the per-module deployment story
+  see `apps/api/docs/` for the per-module deployment story
   if any modules ship with their own assets.
 
 ---

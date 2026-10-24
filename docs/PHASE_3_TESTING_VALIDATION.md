@@ -3,7 +3,7 @@
 > current migration certification. Use the [active task list](nestjs-migration-tasks.txt) and
 > [developer guide](DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
 > remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
 
 # Phase 3: Testing & Validation — Comprehensive Guide
 

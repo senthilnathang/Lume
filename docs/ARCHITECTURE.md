@@ -22,25 +22,23 @@ flowchart LR
 
 | Location | Responsibility |
 |---|---|
-| `backend/lume-nestjs/src/core` | Database, permissions, runtime metadata, events, workflows and shared infrastructure |
-| `backend/lume-nestjs/src/modules/<feature>` | Nest modules, REST controllers, DTOs, services and feature persistence |
-| `backend/lume-nestjs/src/graphql` | GraphQL context, guards, transport adapters and schema |
-| `backend/lume-nestjs/prisma` | Canonical active Prisma schema |
-| `backend/lume-nestjs/migrations` | Ordered SQL migrations and runner |
-| `backend/lume-nestjs/test` | Unit, HTTP and GraphQL integration regressions |
-| `backend/lume-nestjs/deploy` | Service templates and operations |
+| `apps/api/src/core` | Database, permissions, runtime metadata, events, workflows and shared infrastructure |
+| `apps/api/src/modules/<feature>` | Nest modules, REST controllers, DTOs, services and feature persistence |
+| `apps/api/src/graphql` | GraphQL context, guards, transport adapters and schema |
+| `apps/api/prisma` | Canonical active Prisma schema |
+| `apps/api/migrations` | Ordered SQL migrations and runner |
+| `apps/api/test` | Unit, HTTP and GraphQL integration regressions |
+| `apps/api/deploy` | Service templates and operations |
 | `packages/@lume/module-ui/src/modules/<feature>/static` | Shared Vue components, widgets, styles and browser API adapters |
-| `apps/web-lume`, `apps/riagri-website` | Admin and public application shells |
+| `apps/admin`, `apps/website` | Admin and public application shells |
 
-The backend workspace package delegates normal commands to the NestJS package.
-Its `legacy:*` commands and `backend/src`, `backend/prisma`, `backend/drizzle`, and
-`backend/tests` remain for comparison and rollback. They are not the active schema
-or the default development server. Legacy static symlinks preserve old asset paths.
-
-The final `backend/api` move is a deployment task. Do not move the running service's
-directory until its working directory, environment, build paths and rollback have
-been updated. NestJS uses `@nestjs/platform-express`; that HTTP adapter is separate
-from the standalone legacy Express application being retired.
+All applications are direct workspace packages using the root pnpm lockfile.
+`legacy/express`, `legacy/frontend`, the obsolete root Nuxt server and old tooling
+are retained outside the workspace for feature comparison. Shared UI symlinks in
+legacy modules preserve reference paths. Active apps do not import legacy code.
+The service definition now uses `apps/api`; no further backend folder move is planned.
+NestJS uses `@nestjs/platform-express`; its HTTP adapter is separate from the old
+standalone Express application being retired.
 
 ## Persistence and transactions
 
@@ -74,10 +72,10 @@ from enabling internal durable workers.
 
 ## Delivery and verification
 
-The locally deployed service is `lume-nestjs.service`. Recent migration changes
-remain undeployed until release gates pass. The admin uses `VITE_API_URL`; Nuxt uses
+The locally deployed service is `lume-nestjs.service`. The local API has restarted from its canonical directory and passed health and
+GraphQL checks. Built client assets remain undeployed. The admin uses `VITE_API_URL`; Nuxt uses
 `NUXT_PUBLIC_API_BASE` for public website APIs. Production proxying must route those
 requests to NestJS without relying on an Express fallback.
 
 See [testing](TESTING.md), [deployment](DEPLOYMENT.md), and the
-[backend structure note](../backend/STRUCTURE.txt).
+[workspace structure](STRUCTURE.md).

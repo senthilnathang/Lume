@@ -981,11 +981,11 @@ Lume v2.0 is positioned for a successful public launch on **May 31, 2026**. This
 
 ## Quick Links
 
-- [SEO Implementation Guide](/docs/deployment/SEO_IMPLEMENTATION_GUIDE.md)
-- [Security Audit](/docs/deployment/security_audit.md)
-- [Architecture](/docs/ARCHITECTURE.md)
-- [Development Guide](/docs/DEVELOPMENT.md)
-- [Testing Guide](/docs/TESTING.md)
+- [SEO Implementation Guide](SEO_IMPLEMENTATION_GUIDE.md)
+- [Security Audit](security_audit.md)
+- [Architecture](../ARCHITECTURE.md)
+- [Development Guide](../DEVELOPMENT.md)
+- [Testing Guide](../TESTING.md)
 
 ---
 

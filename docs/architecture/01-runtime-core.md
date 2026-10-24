@@ -1001,7 +1001,7 @@ class RuntimeRegistry {
     try {
       // Phase 1: Discover definitions from modules
       for (const module of installedModules) {
-        const modulePath = `/opt/Lume/backend/src/modules/${module.name}`;
+        const modulePath = `/opt/Lume/legacy/express/src/modules/${module.name}`;
         const moduleExports = await import(modulePath);
 
         // Collect entity definitions

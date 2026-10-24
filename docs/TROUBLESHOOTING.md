@@ -20,7 +20,7 @@ npm install --legacy-peer-deps
 
 **`nuxi: not found` / Nuxt commands fail.** The public site deps aren't installed:
 ```bash
-cd apps/riagri-website && npm install --legacy-peer-deps   # then npm run dev|build|typecheck
+cd apps/website && npm install --legacy-peer-deps   # then npm run dev|build|typecheck
 ```
 
 **Lint fails with `ERR_MODULE_NOT_FOUND: .../packages/@lume/eslint-config/index.mjs`.**
@@ -85,8 +85,8 @@ Defaults to `http://localhost:3100` when unset.
 | Service | Port | Start |
 |---------|------|-------|
 | Backend (Express) | 3000 | `cd backend && npm run dev` |
-| Admin panel (Vue 3) | 5173 | `cd apps/web-lume && npm run dev` |
-| Public site (Nuxt 3) | 3100 | `cd apps/riagri-website && npm run dev` |
+| Admin panel (Vue 3) | 5173 | `cd apps/admin && npm run dev` |
+| Public site (Nuxt 3) | 3100 | `cd apps/website && npm run dev` |
 
 ## CI
 

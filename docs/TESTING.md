@@ -7,20 +7,19 @@ handlers. See [acceptance cases](UAT_TEST_CASES.md) and
 ## Commands
 
 ```bash
-npm --prefix backend/lume-nestjs test -- --runInBand --forceExit
-pnpm --filter @lume/web-lume test run --maxWorkers=1
-pnpm --filter @lume/riagri-website test run --maxWorkers=1
-pnpm --filter lume-backend build
-pnpm --filter @lume/web-lume build
-pnpm --filter @lume/riagri-website build
-pnpm --filter @lume/web-lume typecheck
-pnpm --filter @lume/riagri-website typecheck
+pnpm --filter @lume/api test --runInBand --forceExit
+pnpm --filter @lume/admin test run --maxWorkers=1
+pnpm --filter @lume/website test run --maxWorkers=1
+pnpm --filter @lume/api build
+pnpm --filter @lume/admin build
+pnpm --filter @lume/website build
+pnpm --filter @lume/admin typecheck
+pnpm --filter @lume/website typecheck
 ```
 
-Backend tests live under `backend/lume-nestjs/test`, including GraphQL/HTTP integration
-fixtures. `backend/tests` contains legacy Express tests. The backend workspace
-`test` command delegates to NestJS, but direct npm commands above simplify passing
-Jest arguments through the task gateway.
+Backend tests live under `apps/api/test`, including GraphQL/HTTP integration
+fixtures. `legacy/express/tests` contains legacy Express tests. All commands target application packages directly; there is no backend gateway.
+Run `python3 scripts/check_layout.py` to validate workspace ownership and lockfiles.
 
 ## Database isolation
 
@@ -40,10 +39,17 @@ require a real tenant claim. Test provider-disabled behavior without enabling
 external deliveries. Browser availability and required system libraries vary by host.
 
 ```bash
-pnpm --filter @lume/web-lume test:e2e
+pnpm --filter @lume/admin test:e2e
 ```
 
 ## Latest recorded evidence
+
+- Canonical workspace: API 809 tests, admin 80 tests, website 6 tests passed.
+- All three images build from the frozen lockfile. API AppModule, Prisma, Sharp and
+  upload-directory permissions pass; admin and website startup/HTTP asset checks pass.
+- Installed API restarted from apps/api; HTTP health and GraphQL passed.
+- Isolated full AppModule startup, HTTP health and GraphQL passed from apps/api.
+- Lint has zero errors; existing warning debt remains (API 1142, admin 147, website 25).
 
 - Shared UI extraction: admin 80 tests, website 6 tests; both builds/types passed.
 - Final pre-commit backend full run: 79 suites / 809 tests passed, including the sequence follow-up.

@@ -54,7 +54,7 @@
 ### DocumentsAdapter Unit Tests
 
 ```typescript
-// backend/src/core/graphql/adapters/__tests__/documents.adapter.spec.ts
+// legacy/express/src/core/graphql/adapters/__tests__/documents.adapter.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { GraphQLError } from 'graphql';
 import { DocumentsAdapter } from '../documents.adapter.js';
@@ -383,7 +383,7 @@ describe('DocumentsAdapter', () => {
 ### MessagesAdapter Unit Tests
 
 ```typescript
-// backend/src/core/graphql/adapters/__tests__/messages.adapter.spec.ts
+// legacy/express/src/core/graphql/adapters/__tests__/messages.adapter.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessagesAdapter } from '../messages.adapter.js';
 import { MessageService } from '../../../services/message.service.js';
@@ -552,7 +552,7 @@ describe('MessagesAdapter', () => {
 ### TeamAdapter Unit Tests
 
 ```typescript
-// backend/src/core/graphql/adapters/__tests__/team.adapter.spec.ts
+// legacy/express/src/core/graphql/adapters/__tests__/team.adapter.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { TeamAdapter } from '../team.adapter.js';
 import { TeamService } from '../../../services/team.service.js';
@@ -702,7 +702,7 @@ describe('TeamAdapter', () => {
 ### BaseModuleAdapter Unit Tests
 
 ```typescript
-// backend/src/core/graphql/adapters/__tests__/base.adapter.spec.ts
+// legacy/express/src/core/graphql/adapters/__tests__/base.adapter.spec.ts
 import { GraphQLError } from 'graphql';
 import { BaseModuleAdapter } from '../base.adapter.js';
 

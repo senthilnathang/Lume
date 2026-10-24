@@ -79,7 +79,7 @@ npm install graphql-query-complexity
 ### Directory Layout
 
 ```
-backend/src/
+legacy/express/src/
 ├── core/
 │   └── graphql/
 │       ├── graphql.module.ts            // Main GraphQL module
@@ -117,7 +117,7 @@ backend/src/
 ### Step 1: Create GraphQL Configuration File
 
 ```typescript
-// backend/src/core/graphql/graphql.config.ts
+// legacy/express/src/core/graphql/graphql.config.ts
 import { GraphQLModuleOptions } from '@nestjs/graphql';
 import { ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
@@ -174,7 +174,7 @@ export const graphqlConfig = (): ApolloDriverConfig => ({
 ### Step 2: Update app.module.ts
 
 ```typescript
-// backend/src/app.module.ts
+// legacy/express/src/app.module.ts
 import { Module } from '@nestjs/common';
 import { GraphQLModule as NestGraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver } from '@nestjs/apollo';
@@ -234,7 +234,7 @@ export default config;
 ### Step 1: Register GraphQL Module with NestJS
 
 ```typescript
-// backend/src/main.ts
+// legacy/express/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
@@ -257,7 +257,7 @@ bootstrap();
 ### Step 2: Add Authentication Middleware
 
 ```typescript
-// backend/src/core/graphql/middleware/auth.middleware.ts
+// legacy/express/src/core/graphql/middleware/auth.middleware.ts
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
@@ -298,7 +298,7 @@ export class AuthMiddleware implements NestMiddleware {
 ### Step 3: Register Middleware in App Module
 
 ```typescript
-// backend/src/app.module.ts
+// legacy/express/src/app.module.ts
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthMiddleware } from './core/graphql/middleware/auth.middleware';
 

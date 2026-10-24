@@ -3,7 +3,7 @@
 > current migration certification. Use the [active task list](docs/nestjs-migration-tasks.txt) and
 > [developer guide](docs/DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
 > remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
 
 # Lume Framework v2.0 — Modern Modular NestJS Platform
 
@@ -281,7 +281,7 @@ lume/
 ### Creating Custom Module
 
 ```javascript
-// backend/src/modules/custom/manifest.js
+// legacy/express/src/modules/custom/manifest.js
 export default {
   name: 'custom',
   displayName: 'Custom Module',

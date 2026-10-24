@@ -27,7 +27,7 @@
 ### OpenTelemetry Integration
 
 ```typescript
-// backend/src/core/flowgrid/observability/tracing.ts
+// legacy/express/src/core/flowgrid/observability/tracing.ts
 
 import {
   trace,
@@ -245,7 +245,7 @@ export class FlowGridTracing {
 ### Metrics Collection
 
 ```typescript
-// backend/src/core/flowgrid/observability/metrics.ts
+// legacy/express/src/core/flowgrid/observability/metrics.ts
 
 import { prometheus } from '@opentelemetry/sdk-metrics-node';
 
@@ -342,7 +342,7 @@ export class FlowGridMetrics {
 ### Replay System for Debugging
 
 ```typescript
-// backend/src/core/flowgrid/observability/replay.ts
+// legacy/express/src/core/flowgrid/observability/replay.ts
 
 export interface ExecutionReplay {
   workflowId: string;
@@ -486,7 +486,7 @@ export class InteractiveDebugger {
 ### Profiler & Analysis
 
 ```typescript
-// backend/src/core/flowgrid/observability/profiler.ts
+// legacy/express/src/core/flowgrid/observability/profiler.ts
 
 export interface ExecutionProfile {
   workflowId: string;
@@ -757,7 +757,7 @@ interface ComparisonResult {
 ### Node Inspection
 
 ```typescript
-// backend/src/core/flowgrid/observability/inspector.ts
+// legacy/express/src/core/flowgrid/observability/inspector.ts
 
 export class ExecutionInspector {
   /**

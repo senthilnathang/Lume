@@ -27,9 +27,9 @@ export default [
   js.configs.recommended,
   ...typescriptEslint.configs.recommended,
 
-  // Backend (Node/ESM). All backend/src code + scripts.
+  // Backend and repository scripts run in Node.
   {
-    files: ['backend/**/*.{js,mjs,cjs,ts}', 'scripts/**/*.{js,mjs,cjs,ts}'],
+    files: ['apps/api/**/*.{js,mjs,cjs,ts}', 'scripts/**/*.{js,mjs,cjs,ts}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -42,7 +42,7 @@ export default [
 
   // Frontend (browser). Vue admin + Nuxt public site.
   {
-    files: ['apps/**/*.{js,mjs,cjs,ts,tsx,vue}', 'frontend/**/*.{js,mjs,cjs,ts,tsx,vue}'],
+    files: ['apps/admin/**/*.{js,mjs,cjs,ts,tsx,vue}', 'apps/website/**/*.{js,mjs,cjs,ts,tsx,vue}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

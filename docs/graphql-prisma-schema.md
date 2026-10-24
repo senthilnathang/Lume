@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document outlines the Prisma schema additions needed to support the four grid modules. Add these models to `backend/prisma/schema.prisma`.
+This document outlines the Prisma schema additions needed to support the four grid modules. Add these models to `legacy/express/prisma/schema.prisma`.
 
 ## DataGrid Models
 

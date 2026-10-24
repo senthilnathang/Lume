@@ -1,7 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["NODE_ENV"],
-  "globalDependencies": ["**/package.json", "packages/@lume/module-ui/src/**"],
+  "globalEnv": [
+    "NODE_ENV"
+  ],
+  "globalDependencies": [
+    "**/package.json",
+    "packages/@lume/module-ui/src/**"
+  ],
   "tasks": {
     "typecheck": {
       "cache": false,
@@ -9,25 +14,45 @@
     },
     "lint": {
       "cache": true,
-      "outputs": [".eslintcache"]
+      "outputs": [
+        ".eslintcache"
+      ]
     },
     "lint:fix": {
       "cache": false,
       "outputs": []
     },
     "test": {
-      "cache": true,
-      "outputs": ["coverage/**", ".nyc_output/**"],
-      "inputs": ["$TURBO_DEFAULT$", "src/**/*.{ts,js,vue}", "tests/**/*.{ts,js}"]
+      "cache": false,
+      "outputs": [
+        "coverage/**",
+        ".nyc_output/**"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.{ts,js,vue}",
+        "tests/**/*.{ts,js}"
+      ]
     },
     "test:coverage": {
       "cache": true,
-      "outputs": ["coverage/**"]
+      "outputs": [
+        "coverage/**"
+      ]
     },
     "build": {
       "cache": true,
-      "outputs": ["dist/**", "lume-nestjs/dist/**", ".next/**", ".nuxt/**", ".output/**"],
-      "inputs": ["$TURBO_DEFAULT$", "src/**/*.{ts,js,vue,tsx,jsx}", "public/**/*"]
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        ".nuxt/**",
+        ".output/**"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "src/**/*.{ts,js,vue,tsx,jsx}",
+        "public/**/*"
+      ]
     },
     "dev": {
       "cache": false,

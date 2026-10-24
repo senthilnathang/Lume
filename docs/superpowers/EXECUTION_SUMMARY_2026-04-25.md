@@ -103,7 +103,7 @@ This session executed a comprehensive cleanup, security audit, and hardening of 
 - **3 .env files tracked in git with live credentials:**
   - `backend/.env` (DB password: gawdesy, JWT secret visible)
   - `backend/.env.production` (production placeholders)
-  - `backend/lume-nestjs/.env.staging` (staging credentials)
+  - `apps/api/.env.staging` (staging credentials)
 - **Action:** Fixed in Critical Fixes task (see below)
 
 **Documentation Created:**
@@ -159,7 +159,7 @@ This session executed a comprehensive cleanup, security audit, and hardening of 
 
 ## Current State of Codebase
 
-### Backend (NestJS - `/opt/Lume/backend/lume-nestjs/`)
+### Backend (NestJS - `/opt/Lume/apps/api/`)
 
 **Build Status:** ✅ **CLEAN**
 ```
@@ -202,7 +202,7 @@ npm audit --audit-level=critical → 0 critical vulnerabilities
 
 ---
 
-### Frontend (Vue.js - `/opt/Lume/frontend/apps/web-lume/`)
+### Frontend (Vue.js - `/opt/Lume/frontend/apps/admin/`)
 
 **Status:** ✅ **SECURE**
 ```

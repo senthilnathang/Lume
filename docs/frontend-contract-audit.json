@@ -3,31 +3,31 @@
   "controller_route_variants": 1023,
   "unmatched_calls": [
     {
-      "file": "apps/web-lume/src/components/CommandPalette.vue",
+      "file": "apps/admin/src/components/CommandPalette.vue",
       "line": 108,
       "method": "GET",
       "path": "/search"
     },
     {
-      "file": "apps/web-lume/src/modules/dashboard/views/DashboardView.vue",
+      "file": "apps/admin/src/modules/dashboard/views/DashboardView.vue",
       "line": 141,
       "method": "GET",
       "path": "/dashboard/stats"
     },
     {
-      "file": "apps/web-lume/src/store/admin.ts",
+      "file": "apps/admin/src/store/admin.ts",
       "line": 147,
       "method": "POST",
       "path": "/admin/modules/reload"
     },
     {
-      "file": "apps/web-lume/src/store/admin.ts",
+      "file": "apps/admin/src/store/admin.ts",
       "line": 207,
       "method": "POST",
       "path": "/admin/workflows/_parameter_/test"
     },
     {
-      "file": "apps/web-lume/src/store/admin.ts",
+      "file": "apps/admin/src/store/admin.ts",
       "line": 312,
       "method": "POST",
       "path": "/admin/policies/_parameter_/test"
@@ -61,6 +61,18 @@
       "line": 193,
       "method": "GET",
       "path": "/activity-logs"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base/static/views/admin/WorkflowsManagement.vue",
+      "line": 175,
+      "method": "POST",
+      "path": "/admin/workflows"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base/static/views/admin/WorkflowsManagement.vue",
+      "line": 202,
+      "method": "POST",
+      "path": "/admin/workflows/test/_parameter_"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base/static/views/menus.vue",
@@ -421,6 +433,24 @@
       "line": 117,
       "method": "POST",
       "path": "/flowgrid/workflows"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/plugins/static/api/marketplace.ts",
+      "line": 31,
+      "method": "GET",
+      "path": "/marketplace/plugins_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/plugins/static/api/marketplace.ts",
+      "line": 59,
+      "method": "POST",
+      "path": "/marketplace/plugins/_parameter_/install_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/plugins/static/api/marketplace.ts",
+      "line": 68,
+      "method": "GET",
+      "path": "/marketplace/plugins/_parameter_/reviews_parameter_"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/website/static/api/index.ts",

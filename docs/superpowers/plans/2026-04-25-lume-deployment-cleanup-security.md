@@ -48,7 +48,7 @@ docs/
 - Keep: `README.md`, `CLAUDE.md` (project instructions), `.env.example`
 
 ### Code Cleanup Targets
-- `backend/lume-nestjs/`: Remove TODO comments, fix type definitions, ensure ESM compliance
+- `apps/api/`: Remove TODO comments, fix type definitions, ensure ESM compliance
 - `frontend/apps/`: Verify aliases, check unused components
 - Root scripts: Audit `package.json` scripts, remove obsolete entries
 
@@ -119,12 +119,12 @@ Create `/opt/Lume/docs/INDEX.md`:
 # Lume Framework Documentation
 
 ## Quick Links
-- **[Development](development/DEVELOPMENT.md)** - Getting started, creating modules, testing
-- **[Architecture](architecture/ARCHITECTURE.md)** - System design, ORM hybrid approach, module system
-- **[Deployment](deployment/DEPLOYMENT.md)** - Docker setup, environment config, staging/prod
-- **[Security Audit](deployment/SECURITY_AUDIT.md)** - Vulnerability findings, hardening steps
-- **[Testing](development/TESTING.md)** - Test configuration and patterns
-- **[SEO & Public Release](deployment/SEO_PUBLIC_RELEASE.md)** - Meta tags, sitemaps, performance
+- **[Development](../../DEVELOPMENT.md)** - Getting started, creating modules, testing
+- **[Architecture](../../ARCHITECTURE.md)** - System design, ORM hybrid approach, module system
+- **[Deployment](../../DEPLOYMENT.md)** - Docker setup, environment config, staging/prod
+- **[Security Audit](../../SECURITY_HARDENING.md)** - Vulnerability findings, hardening steps
+- **[Testing](../../TESTING.md)** - Test configuration and patterns
+- **[SEO & Public Release](../../deployment/PUBLIC_RELEASE_CHECKLIST.md)** - Meta tags, sitemaps, performance
 
 ## Directory Structure
 ```
@@ -137,7 +137,7 @@ docs/
 ```
 
 ## Migration Status
-See [CLAUDE.md](../CLAUDE.md) for up-to-date project instructions.
+See [CLAUDE.md](../../../CLAUDE.md) for up-to-date project instructions.
 ```
 
 - [ ] **Step 6: Commit cleanup**
@@ -155,14 +155,14 @@ git commit -m "docs: reorganize 36 root documentation files into structured docs
 ### Task 2: Verify NestJS Backend Structure & Auth Module
 
 **Files:**
-- Check: `backend/lume-nestjs/src/`
-- Verify: `backend/lume-nestjs/src/modules/users/` (Auth module)
-- Test: `backend/lume-nestjs/test/`
+- Check: `apps/api/src/`
+- Verify: `apps/api/src/modules/users/` (Auth module)
+- Test: `apps/api/test/`
 
 - [ ] **Step 1: Verify NestJS app structure**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run build 2>&1 | head -50
 ```
 
@@ -176,8 +176,8 @@ If errors → note them for Phase 3 security audit.
 - [ ] **Step 2: Check auth module implementation**
 
 ```bash
-ls -la backend/lume-nestjs/src/modules/users/
-cat backend/lume-nestjs/src/modules/users/users.controller.ts | head -30
+ls -la apps/api/src/modules/users/
+cat apps/api/src/modules/users/users.controller.ts | head -30
 ```
 
 Expected: Auth controller with login, refresh, logout endpoints defined.
@@ -185,8 +185,8 @@ Expected: Auth controller with login, refresh, logout endpoints defined.
 - [ ] **Step 3: Verify type definitions exist**
 
 ```bash
-ls backend/lume-nestjs/src/types/
-cat backend/lume-nestjs/src/types/index.ts
+ls apps/api/src/types/
+cat apps/api/src/types/index.ts
 ```
 
 Expected: `index.ts` exporting common types (JwtPayload, AuthRequest, etc.).
@@ -194,8 +194,8 @@ Expected: `index.ts` exporting common types (JwtPayload, AuthRequest, etc.).
 - [ ] **Step 4: Check test structure**
 
 ```bash
-find backend/lume-nestjs/test -name "*.spec.ts" | head -10
-wc -l backend/lume-nestjs/test/integration/users/*.ts
+find apps/api/test -name "*.spec.ts" | head -10
+wc -l apps/api/test/integration/users/*.ts
 ```
 
 Expected: Integration tests for users module exist, >100 lines total.
@@ -203,7 +203,7 @@ Expected: Integration tests for users module exist, >100 lines total.
 - [ ] **Step 5: Verify .env.example exists**
 
 ```bash
-cat backend/lume-nestjs/.env.example
+cat apps/api/.env.example
 ```
 
 Expected: Lists all required env vars (DB credentials, JWT secret, ports, etc.).
@@ -222,13 +222,13 @@ git commit -m "chore: verify NestJS backend structure and auth module implementa
 ### Task 3: Dependency Vulnerability Scan
 
 **Files:**
-- Scan: `backend/lume-nestjs/package.json`, `frontend/apps/web-lume/package.json`
+- Scan: `apps/api/package.json`, `frontend/apps/admin/package.json`
 - Report: `docs/deployment/security_audit.md` (append findings)
 
 - [ ] **Step 1: Run npm audit on backend**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm audit --audit-level=moderate 2>&1 | tee /tmp/backend_audit.txt
 echo "=== BACKEND AUDIT ===" && cat /tmp/backend_audit.txt
 ```
@@ -238,7 +238,7 @@ Expected: Summary of vulnerabilities (if any).
 - [ ] **Step 2: Run npm audit on frontend**
 
 ```bash
-cd /opt/Lume/frontend/apps/web-lume
+cd /opt/Lume/frontend/apps/admin
 npm audit --audit-level=moderate 2>&1 | tee /tmp/frontend_audit.txt
 echo "=== FRONTEND AUDIT ===" && cat /tmp/frontend_audit.txt
 ```
@@ -284,8 +284,8 @@ git commit -m "docs: security audit Phase 3 - dependency vulnerability scan"
 ### Task 4: Code Security Review (Secrets, CORS, Auth)
 
 **Files:**
-- Review: `backend/lume-nestjs/src/main.ts`
-- Review: `backend/lume-nestjs/src/app.module.ts`
+- Review: `apps/api/src/main.ts`
+- Review: `apps/api/src/app.module.ts`
 - Check: All `.env` files (should NOT be in repo)
 
 - [ ] **Step 1: Check for hardcoded secrets**
@@ -309,7 +309,7 @@ Expected: Pattern like `.env*` and `!.env.example`.
 - [ ] **Step 3: Review CORS configuration**
 
 ```bash
-cat backend/lume-nestjs/src/main.ts
+cat apps/api/src/main.ts
 ```
 
 Check for:
@@ -322,7 +322,7 @@ If wildcard present, create task to fix CORS config.
 - [ ] **Step 4: Verify JWT secret is env-based**
 
 ```bash
-grep -A 5 "JWT_SECRET\|jwtSecret" backend/lume-nestjs/src/modules/users/users.service.ts
+grep -A 5 "JWT_SECRET\|jwtSecret" apps/api/src/modules/users/users.service.ts
 ```
 
 Expected: 
@@ -335,7 +335,7 @@ NOT hardcoded value.
 - [ ] **Step 5: Check rate limiting / brute-force protection**
 
 ```bash
-grep -r "ThrottlerModule\|@Throttle\|rateLimit" backend/lume-nestjs/src/ | head -5
+grep -r "ThrottlerModule\|@Throttle\|rateLimit" apps/api/src/ | head -5
 ```
 
 If missing → note as recommendation for future hardening.
@@ -380,13 +380,13 @@ git commit -m "docs: security review - CORS, JWT, secrets, input validation"
 
 **Files:**
 - Create/Verify: `.env` (local development)
-- Verify: `backend/lume-nestjs/.env.example`
-- Check: `backend/prisma/schema.prisma`
+- Verify: `apps/api/.env.example`
+- Check: `legacy/express/prisma/schema.prisma`
 
 - [ ] **Step 1: Create .env from .env.example**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 cp .env.example .env
 cat .env
 ```
@@ -424,7 +424,7 @@ docker run --name lume-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=lume 
 - [ ] **Step 3: Initialize database schema**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm run db:push 2>&1 | tail -20
 ```
 
@@ -454,7 +454,7 @@ roles.COUNT(*) = 3 (admin, super_admin, user)
 - [ ] **Step 6: Commit environment setup**
 
 ```bash
-git add backend/lume-nestjs/.env
+git add apps/api/.env
 git commit -m "chore: configure development environment and database"
 ```
 
@@ -465,12 +465,12 @@ git commit -m "chore: configure development environment and database"
 ### Task 6: Start Backend Server
 
 **Files:**
-- Run: `backend/lume-nestjs/src/main.ts`
+- Run: `apps/api/src/main.ts`
 
 - [ ] **Step 1: Install backend dependencies**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs
+cd /opt/Lume/apps/api
 npm install 2>&1 | tail -10
 ```
 
@@ -512,7 +512,7 @@ Expected: Returns JWT token in response:
 ```bash
 # Backend should remain running for frontend testing
 # If needed, restart:
-cd /opt/Lume/backend/lume-nestjs && npm start &
+cd /opt/Lume/apps/api && npm start &
 ```
 
 - [ ] **Step 6: Commit backend startup verification**
@@ -527,12 +527,12 @@ git commit -m "chore: verify NestJS backend starts and health check endpoint res
 ### Task 7: Start Frontend (Vue.js Admin Panel)
 
 **Files:**
-- Run: `frontend/apps/web-lume/`
+- Run: `frontend/apps/admin/`
 
 - [ ] **Step 1: Install frontend dependencies**
 
 ```bash
-cd /opt/Lume/frontend/apps/web-lume
+cd /opt/Lume/frontend/apps/admin
 npm install 2>&1 | tail -10
 ```
 
@@ -602,11 +602,11 @@ sleep 2
 - [ ] **Step 2: Restart both servers**
 
 ```bash
-cd /opt/Lume/backend/lume-nestjs && npm start > /tmp/backend.log 2>&1 &
+cd /opt/Lume/apps/api && npm start > /tmp/backend.log 2>&1 &
 BACKEND_PID=$!
 sleep 3
 
-cd /opt/Lume/frontend/apps/web-lume && npm run dev > /tmp/frontend.log 2>&1 &
+cd /opt/Lume/frontend/apps/admin && npm run dev > /tmp/frontend.log 2>&1 &
 FRONTEND_PID=$!
 sleep 5
 

@@ -3,7 +3,7 @@
 > current migration certification. Use the [active task list](nestjs-migration-tasks.txt) and
 > [developer guide](DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
 > remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
 
 # GraphQL Implementation Checklist
 
@@ -24,14 +24,14 @@
 - [ ] Test build: `npm run build` (should succeed)
 
 ### Project Structure
-- [ ] Create `backend/src/core/graphql/` directory structure
-- [ ] Create schema directory: `backend/src/core/graphql/schema/`
-- [ ] Create resolvers directory: `backend/src/core/graphql/resolvers/`
-- [ ] Create services directory: `backend/src/core/graphql/services/`
-- [ ] Create middleware directory: `backend/src/core/graphql/middleware/`
-- [ ] Create loaders directory: `backend/src/core/graphql/loaders/`
-- [ ] Create directives directory: `backend/src/core/graphql/directives/`
-- [ ] Create config directory: `backend/src/core/graphql/config/`
+- [ ] Create `legacy/express/src/core/graphql/` directory structure
+- [ ] Create schema directory: `legacy/express/src/core/graphql/schema/`
+- [ ] Create resolvers directory: `legacy/express/src/core/graphql/resolvers/`
+- [ ] Create services directory: `legacy/express/src/core/graphql/services/`
+- [ ] Create middleware directory: `legacy/express/src/core/graphql/middleware/`
+- [ ] Create loaders directory: `legacy/express/src/core/graphql/loaders/`
+- [ ] Create directives directory: `legacy/express/src/core/graphql/directives/`
+- [ ] Create config directory: `legacy/express/src/core/graphql/config/`
 
 ### Configuration Files
 - [ ] Copy GraphQL config file: `graphql.config.ts`

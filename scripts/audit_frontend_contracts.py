@@ -18,7 +18,7 @@ def normalize(path):
 
 
 routes = []
-for file in (ROOT / 'backend/lume-nestjs/src').rglob('*controller.ts'):
+for file in (ROOT / 'apps/api/src').rglob('*controller.ts'):
     source = file.read_text()
     controller = re.search(r'@Controller\(([^)]*)\)', source)
     if not controller:
@@ -32,7 +32,7 @@ for file in (ROOT / 'backend/lume-nestjs/src').rglob('*controller.ts'):
                 routes.append((method.upper(), re.compile(pattern)))
 
 calls = []
-sources = [ROOT / 'apps/web-lume/src', ROOT / 'packages/@lume/module-ui/src/modules']
+sources = [ROOT / 'apps/admin/src', ROOT / 'packages/@lume/module-ui/src/modules']
 call_pattern = re.compile(r'\b(get|post|put|patch|del|apiFetch)\s*(?:<[^;\n]*?>)?\s*\(\s*([\'"`])(/.*?)\2', re.S)
 for directory in sources:
     for file in sorted(directory.rglob('*')):

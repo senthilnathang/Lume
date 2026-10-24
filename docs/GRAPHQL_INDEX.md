@@ -40,7 +40,7 @@ This is your complete reference for implementing, testing, and deploying the Gra
 ## 💻 Implementation Code
 
 ### Ready-to-Use Code Files
-All implementation files are in `/opt/Lume/backend/src/core/graphql/`:
+All implementation files are in `/opt/Lume/legacy/express/src/core/graphql/`:
 
 **Schema Files** (GraphQL type definitions)
 - `schema/base.schema.graphql` — Shared types, User, Role, Permission
@@ -283,7 +283,7 @@ docs/
 ├── GRAPHQL_INDEX.md                 ← YOU ARE HERE
 └── graphql-summary.md
 
-backend/src/core/graphql/
+legacy/express/src/core/graphql/
 ├── graphql.module.ts
 ├── graphql.service.ts
 ├── schema/
@@ -332,7 +332,7 @@ root/
 
 ### Implementation (Weeks 2-5)
 1. Follow: Phases 2-4 in checklist
-2. Reference: Code files in `backend/src/core/graphql/`
+2. Reference: Code files in `legacy/express/src/core/graphql/`
 3. Copy: Queries from `graphql-quick-reference.md`
 4. Write: Tests using `graphql-testing-guide.md` patterns
 
@@ -361,7 +361,7 @@ root/
 | How do I deploy? | graphql-deployment.md |
 | What tables do I need? | graphql-prisma-schema.md |
 | What should I work on next? | GRAPHQL_IMPLEMENTATION_CHECKLIST.md |
-| Where's my code? | backend/src/core/graphql/ |
+| Where's my code? | legacy/express/src/core/graphql/ |
 
 ---
 

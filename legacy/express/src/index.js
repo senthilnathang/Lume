@@ -1,0 +1,1225 @@
+import express, { Router } from 'express';
+import { createServer } from 'http';
+import cors from 'cors';
+import compression from 'compression';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
+import { config } from 'dotenv';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import { buildOpenApiSpec } from './core/openapi/openapi-spec.js';
+
+// ─── Observability: Initialize Tracing Early ────────────────────────────────────
+// IMPORTANT: Must be called before importing other modules to ensure
+// proper instrumentation of HTTP, database, and cache clients
+import { initTracing, shutdownTracing } from './core/tracing/index.js';
+import { traceContextMiddleware } from './core/middleware/trace-context.middleware.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+config();
+
+// Initialize OpenTelemetry tracing first (before any other module imports)
+// Run initialization asynchronously without blocking startup
+let tracingInitialized = false;
+(async () => {
+  try {
+    await initTracing();
+    tracingInitialized = true;
+  } catch (error) {
+    console.error('❌ Failed to initialize tracing, continuing without it:', error.message);
+  }
+})();
+
+import { responseUtil, jwtUtil } from './shared/utils/index.js';
+import { quotaForRequest, rateLimitKey } from './core/services/api-quota.js';
+import { errorHandler, notFoundHandler } from './core/middleware/errorHandler.js';
+import { loggingMiddleware } from './core/middleware/logging.middleware.js';
+import { ipAccessMiddleware } from './core/middleware/ipAccess.js';
+import { responseCache } from './core/middleware/cacheControl.js';
+import { requestTracing } from './core/middleware/requestTracing.js';
+import { metricsMiddleware as metricsMiddlewareNew } from './core/middleware/metrics.middleware.js';
+import { errorTracker, getHealthMetrics } from './core/middleware/metrics.js';
+import { getMetrics, initMetricsCache } from './core/metrics/index.js';
+import { packageVersion } from './config/version.js';
+
+// ORM adapters
+import prisma from './core/db/prisma.js';
+import { initDrizzle } from './core/db/drizzle.js';
+
+// Module loader
+import {
+  initializeModuleSystem,
+  getAllModules,
+  getAllMenus as _getAllMenus,
+  getAllPermissions,
+  runInstallHook,
+  runUninstallHook
+} from './core/modules/__loader__.js';
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// ─── Security: JWT Secret Validation ─────────────────────────────────────────
+const _weak = new Set(['jwt-secret', 'your-super-secret-key-change-this-in-production', 'secret', 'test']);
+if (!process.env.JWT_SECRET || _weak.has(process.env.JWT_SECRET) || process.env.JWT_SECRET.length < 32) {
+  if (isProduction) {
+    console.error('❌ FATAL: JWT_SECRET is not set or uses default value. This is a security vulnerability in production!');
+    console.error('   Set JWT_SECRET to a random 32+ character string in your .env file');
+    console.error('   Example: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
+    process.exit(1);
+  } else {
+    console.warn('⚠️  WARNING: JWT_SECRET is not set or uses default value. Set a strong secret before deploying to production!');
+  }
+}
+
+// ─── Security: Additional Secret Validation ─────────────────────────────────
+if (isProduction && (!process.env.JWT_REFRESH_SECRET || process.env.JWT_REFRESH_SECRET === 'your-refresh-secret-change-in-production')) {
+  console.error('❌ FATAL: JWT_REFRESH_SECRET is not set or uses default value!');
+  process.exit(1);
+}
+
+if (isProduction && (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'your-session-secret-change-in-production')) {
+  console.error('❌ FATAL: SESSION_SECRET is not set or uses default value!');
+  process.exit(1);
+}
+
+// ─── Security: Rate Limiting ─────────────────────────────────────────────────
+const enableRateLimit = isProduction || process.env.ENABLE_RATE_LIMIT === 'true';
+
+const limiter = enableRateLimit ? rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: async (req) => quotaForRequest(req),
+  keyGenerator: (req) => rateLimitKey(req),
+  message: {
+    success: false,
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many requests, please try again later.'
+    }
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+}) : (req, res, next) => next();
+
+// Auth rate limiter is ALWAYS enabled to prevent brute force
+// skipSuccessfulRequests: only failed attempts count, so legitimate logins
+// never lock out while credential-stuffing is throttled (5 fails / 15 min prod,
+// 10 in test env so brute-force behavior stays covered by integration tests)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isProduction ? 5 : (process.env.NODE_ENV === 'test' ? 10 : 50),
+  skipSuccessfulRequests: true,
+  message: {
+    success: false,
+    error: {
+      code: 'AUTH_RATE_LIMIT',
+      message: 'Too many login attempts, please try again later.'
+    }
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// ─── Security: Helmet HTTP Headers ───────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
+}));
+
+// ─── Security: API Content-Security-Policy ───────────────────────────────────
+// The API serves JSON, never HTML — lock it down so responses cannot be
+// framed or executed as documents. Swagger UI (/api/docs) ships inline
+// scripts/styles, so it is excluded from this policy.
+app.use((req, res, next) => {
+  if (req.path === '/api/docs' || req.path.startsWith('/api/docs/')) {
+    return next();
+  }
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'deny'"
+  );
+  next();
+});
+
+// ─── Security: CORS ──────────────────────────────────────────────────────────
+// In production, CORS_ORIGIN MUST be explicitly set (no default to '*' or '')
+// In development, default to common localhost ports for frontend apps
+const defaultCorsOrigins = isProduction
+  ? '' // Production requires explicit env var
+  : 'http://localhost:5173,http://localhost:5174,http://localhost:3100,http://localhost:3004';
+
+const corsEnv = process.env.CORS_ORIGIN || defaultCorsOrigins;
+
+// Validate CORS in production
+if (isProduction && !process.env.CORS_ORIGIN) {
+  console.warn('⚠️  WARNING: CORS_ORIGIN not set in production. Defaulting to no CORS origins (only same-origin requests).');
+}
+
+// Support comma-separated origins (e.g. "http://localhost:5173,http://localhost:3100")
+// Fail closed: '*' with credentials:true would reflect any origin with cookies
+// attached, so it is rejected — set explicit origins in CORS_ORIGIN instead.
+let corsOrigin;
+if (corsEnv === '*') {
+  console.warn('⚠️  WARNING: CORS_ORIGIN=* is incompatible with credentials. Denying cross-origin requests — set explicit origins.');
+  corsOrigin = false;
+} else if (corsEnv.includes(',')) {
+  corsOrigin = corsEnv.split(',').map(o => o.trim()).filter(o => o);
+} else {
+  corsOrigin = corsEnv || false;
+}
+app.use(cors({
+  origin: corsOrigin,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-API-Key'],
+  credentials: true,
+  maxAge: 86400
+}));
+
+// Response compression — gzip responses larger than 1KB.
+// `compression` is already in package.json; this is the wire-up.
+// Skips already-compressed responses (images, gzipped assets) automatically.
+app.use(compression({ threshold: 1024 }));
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('combined'));
+}
+
+// ─── Observability: W3C Trace Context ────────────────────────────────────────
+// Register trace context middleware EARLY to capture all request/response spans
+if (tracingInitialized) {
+  app.use(traceContextMiddleware);
+}
+
+app.use(loggingMiddleware);
+app.use(ipAccessMiddleware);
+app.use(limiter);
+
+// ─── Observability: Request Tracing & Metrics ────────────────────────────────
+app.use(requestTracing);
+app.use(metricsMiddlewareNew);  // Prometheus metrics middleware
+
+// ─── Security: Authentication Middleware ──────────────────────────────────────
+// Paths that never require authentication
+const publicApiPaths = [
+  '/health',
+  '/api/users/login',
+  '/api/users/login/verify-2fa',
+  '/api/users/register',
+  '/api/auth/refresh-token',
+  '/api/public/config',
+];
+
+// Paths that optionally parse auth token but don't require it
+// (modules handle their own auth via route-level middleware)
+const optionalAuthPaths = [
+  '/api/menus',
+  '/api/modules',
+  '/api/permissions',
+  '/api/lume/health',
+  '/api/base/health',
+  '/api/base_automation/health',
+  '/api/base_features_data/health',
+  '/api/base_security/health',
+  '/api/base_customization/health',
+  '/api/advanced_features/health',
+];
+
+app.use(async (req, res, next) => {
+  // Public paths skip auth entirely
+  const isPublicPath = publicApiPaths.some(path =>
+    req.path === path
+  );
+  if (isPublicPath) {
+    return next();
+  }
+
+  // Optional auth paths - parse token if present, but don't require it
+  const isOptionalAuth = optionalAuthPaths.some(path =>
+    req.path === path || req.path.startsWith(path + '/')
+  );
+
+  // For API routes, try to parse the auth token or API key
+  if (req.path.startsWith('/api/')) {
+    const authHeader = req.headers.authorization;
+    const apiKeyHeader = req.headers['x-api-key'];
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwtUtil.verifyToken(token);
+      if (decoded && !decoded.pending2FA) {
+        req.user = decoded;
+      } else if (!isOptionalAuth) {
+        return res.status(401).json(responseUtil.unauthorized('Invalid or expired token'));
+      }
+    } else if (apiKeyHeader) {
+      // API Key authentication at global level
+      try {
+        const { default: crypto } = await import('crypto');
+        const hash = crypto.createHash('sha256').update(apiKeyHeader).digest('hex');
+        const { DrizzleAdapter } = await import('./core/db/adapters/drizzle-adapter.js');
+        const { apiKeys } = await import('./modules/base_security/models/schema.js');
+        const adapter = new DrizzleAdapter(apiKeys);
+        const apiKey = await adapter.findOne([['key', '=', hash], ['status', '=', 'active']]);
+
+        if (apiKey && apiKey.userId) {
+          if (!apiKey.expiresAt || new Date(apiKey.expiresAt) >= new Date()) {
+            // Update last used (fire-and-forget)
+            adapter.update(apiKey.id, { lastUsedAt: new Date() }).catch(() => {});
+            // Resolve user
+            const user = await prisma.user.findUnique({ where: { id: apiKey.userId } });
+            if (user && user.isActive) {
+              const role = await prisma.role.findUnique({ where: { id: user.role_id } });
+              req.user = {
+                id: user.id,
+                email: user.email,
+                role: role?.name || 'viewer',
+                role_id: user.role_id,
+                authMethod: 'api_key',
+              };
+            }
+          }
+        }
+      } catch (err) {
+        // Non-blocking: if API key check fails at global level, continue
+      }
+    } else if (!isOptionalAuth) {
+      // STRICT_AUTH=true: deny-by-default for /api/* without credentials.
+      // Public surface must be listed in publicApiPaths / optionalAuthPaths /
+      // website-public below. Default false to preserve module-level auth.
+      const strictAuth = String(process.env.STRICT_AUTH || '').toLowerCase() === 'true';
+      const isWebsitePublic = req.path.startsWith('/api/website/public/');
+      if (strictAuth && !isPublicPath && !isWebsitePublic) {
+        return res.status(401).json(responseUtil.unauthorized('Authentication required'));
+      }
+      // Otherwise module routes handle their own auth via route-level middleware
+    }
+  }
+
+  next();
+});
+
+// ─── Performance: Response Caching ────────────────────────────────────────────
+// Cache GET responses for frequently accessed routes (settings, menus, templates)
+app.use(responseCache);
+
+// Health check with observability metrics.
+//
+// Cache-Control: public, max-age=5 — health monitors typically poll every
+// 10-30s, browsers and L7 load balancers benefit from a 5-second cache.
+// Critical metrics (db_pool, cache, job_queue counts) lag at most 5s,
+// which is well inside reasonable SLO observation windows. Anything
+// shorter (or no-cache) wastes the LB's bandwidth and the backend's
+// uptime/metric serialization cost on every probe.
+app.get('/health', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=5');
+  res.json({
+    success: true,
+    message: 'Lume Framework is running',
+    timestamp: new Date().toISOString(),
+    version: packageVersion,
+    framework: 'Lume',
+    modular: true,
+    metrics: getHealthMetrics()
+  });
+});
+
+// ─── Global Search (Command Palette) ────────────────────────────────────
+// Federated, permission-aware search over records + documents. Auth is
+// enforced by the global /api/* middleware above (req.user required).
+app.get('/api/search', async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json(responseUtil.unauthorized());
+    }
+    const { globalSearch } = await import('./core/services/search.service.js');
+    const data = await globalSearch(prisma, {
+      query: req.query.q || '',
+      limit: req.query.limit,
+      companyId: req.user.companyId ?? 1,
+      userId: req.user.id,
+      isPrivileged: ['super_admin', 'admin'].includes(req.user.role),
+    });
+    res.json({ success: true, ...data });
+  } catch (error) {
+    res.status(500).json(responseUtil.error('Search failed'));
+  }
+});
+
+// ─── Prometheus Metrics Endpoint ────────────────────────────────────
+// Production: gated behind METRICS_TOKEN bearer or localhost. Dev: open.
+app.get('/metrics', (req, res, next) => {
+  if (isProduction) {
+    const tok = process.env.METRICS_TOKEN;
+    const auth = req.headers.authorization || '';
+    const isLocal = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.ip);
+    if ((tok && auth === `Bearer ${tok}`) || (!tok && isLocal)) return next();
+    return res.status(403).json({ success: false, error: 'Forbidden' });
+  }
+  return next();
+}, (req, res) => {
+  try {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.send(getMetrics());
+  } catch (error) {
+    console.error('Failed to generate metrics:', error);
+    res.status(500).send('# Error generating metrics\n');
+  }
+});
+
+// ─── OpenAPI / Swagger UI ─────────────────────────────────────────────────────
+// Available in:
+//   - all non-production environments by default
+//   - production only when OPENAPI_ENABLED=true (default off — keep the
+//     public API surface minimal; serve docs from docs.lume.dev instead)
+//
+// Endpoints:
+//   GET /api/openapi.json — raw OpenAPI 3.0 spec for codegen + SDKs
+//   GET /api/docs         — Swagger UI (interactive explorer)
+//
+// Implementation: legacy/express/src/core/openapi/openapi-spec.js. The spec is
+// hand-curated for platform endpoints (health, login, modules) and merged
+// with `@swagger` JSDoc comments scraped from module route files.
+{
+  const openapiEnabledInProd = String(process.env.OPENAPI_ENABLED || '').toLowerCase() === 'true';
+  const docsToken = process.env.DOCS_TOKEN || '';
+  const docsGate = (req, res, next) => {
+    if (!docsToken) {
+      return next();
+    }
+    if (req.headers.authorization === `Bearer ${docsToken}`) {
+      return next();
+    }
+    return res.status(401).json({ success: false, error: 'Docs authentication required' });
+  };
+  if (process.env.NODE_ENV !== 'production' || openapiEnabledInProd) {
+    try {
+      const baseSpec = buildOpenApiSpec();
+      let cachedSpec = null;
+      let cachedAt = 0;
+
+      const getSpec = async () => {
+        if (cachedSpec && Date.now() - cachedAt < 60000) {
+          return cachedSpec;
+        }
+        const spec = JSON.parse(JSON.stringify(baseSpec));
+        try {
+          const { inventoryRoutes, inventoryToPaths } = await import('./core/openapi/route-inventory.js');
+          const auto = inventoryToPaths(inventoryRoutes(app), spec.paths || {});
+          spec.paths = spec.paths || {};
+          for (const [path, methods] of Object.entries(auto)) {
+            spec.paths[path] = { ...(spec.paths[path] || {}), ...methods };
+          }
+        } catch {
+          /* auto-inventory is best-effort; curated spec still serves */
+        }
+        cachedSpec = spec;
+        cachedAt = Date.now();
+        return spec;
+      };
+
+      app.get('/api/openapi.json', docsGate, async (req, res) => {
+        // OpenAPI spec is public + cacheable. 1-minute window — short enough
+        // that hot-reloaded annotations show up quickly in dev, long enough
+        // that SDK codegen tools don't hammer the endpoint.
+        res.set('Cache-Control', 'public, max-age=60');
+        res.json(await getSpec());
+      });
+
+      const docsHandler = async (req, res, next) => {
+        try {
+          const spec = await getSpec();
+          swaggerUi.setup(spec, {
+            explorer: true,
+            customSiteTitle: 'Lume API — Reference',
+            swaggerOptions: { persistAuthorization: true },
+          })(req, res, next);
+        } catch (err) {
+          next(err);
+        }
+      };
+      app.use('/api/docs', docsGate, swaggerUi.serve, docsHandler);
+
+      console.log('✅ OpenAPI mounted at /api/docs (spec at /api/openapi.json)');
+    } catch (err) {
+      console.warn(`⚠️  OpenAPI setup failed: ${err.message}`);
+    }
+  }
+}
+
+// ─── Public Config (no auth) ────────────────────────────────────────────────
+// Returns framework config including which modules are installed.
+// Used by frontend router to decide landing page behavior.
+app.get('/api/public/config', async (req, res) => {
+  try {
+    let websiteInstalled = false;
+    try {
+      const record = await prisma.installedModule.findUnique({
+        where: { name: 'website' },
+      });
+      websiteInstalled = record?.state === 'installed';
+    } catch (e) { /* table may not exist yet */ }
+
+    res.json({
+      success: true,
+      data: {
+        framework: 'Lume',
+        version: packageVersion,
+        websiteInstalled,
+        publicUrl: process.env.PUBLIC_WEBSITE_URL || null,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to fetch config' });
+  }
+});
+
+// Also allow website module public routes without auth
+optionalAuthPaths.push('/api/website/public');
+
+// Serve module static files (views) - FastVue style
+// Views are served from: /modules/{moduleName}/static/views/{viewName}.vue
+const modulesDir = join(__dirname, 'modules');
+app.use('/modules', express.static(modulesDir, {
+  index: false,
+  maxAge: '1h',
+  setHeaders: (res, path) => {
+    if (path.endsWith('.vue')) {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    }
+  }
+}));
+
+// Module management endpoints
+/**
+ * Compute which lifecycle actions are valid for a module in its current
+ * state. Lets the admin UI render buttons directly off the response
+ * (P2-3 backend hook — UI itself is v2.1).
+ *
+ * Decision matrix:
+ *   state=uninstalled  → ['install']    (if installable AND all deps installed)
+ *   state=installed    → ['uninstall', 'upgrade']
+ *   state=to_upgrade   → ['upgrade']    (resume an interrupted upgrade)
+ *   state=to_remove    → ['uninstall']  (resume an interrupted uninstall)
+ *   state=error        → ['install', 'uninstall']  (let admin retry either)
+ */
+function computeModuleActions(module, state, depsResolved) {
+  const installable = module.manifest?.installable !== false;
+  switch (state) {
+    case 'installed':
+      return ['uninstall', 'upgrade'];
+    case 'to_upgrade':
+      return ['upgrade'];
+    case 'to_remove':
+      return ['uninstall'];
+    case 'error':
+      return ['install', 'uninstall'];
+    case 'uninstalled':
+    default:
+      return installable && depsResolved ? ['install'] : [];
+  }
+}
+
+app.get('/api/modules', async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  const modules = getAllModules();
+
+  // Build a map of persisted states from DB
+  let dbStates = {};
+  try {
+    const records = await prisma.installedModule.findMany();
+    for (const r of records) {
+      dbStates[r.name] = { state: r.state, installedAt: r.installedAt };
+    }
+  } catch (e) { /* table may not exist yet */ }
+
+  res.json({
+    success: true,
+    data: modules.map(m => {
+      const manifest = m.manifest || {};
+      const dbRecord = dbStates[m.name];
+      const state = dbRecord ? dbRecord.state : (m.initialized ? 'installed' : 'uninstalled');
+      const depends = manifest.depends || [];
+
+      // Dependency check: every non-`base` dep must be installed before
+      // this module can be installed. Pre-computed here so the admin UI
+      // can disable the "Install" button without making N more requests.
+      const depsResolved = depends
+        .filter((d) => d !== 'base')
+        .every((d) => dbStates[d]?.state === 'installed');
+
+      return {
+        name: m.name,
+        display_name: manifest.name || m.name,
+        version: manifest.version || '1.0.0',
+        summary: manifest.summary || '',
+        description: manifest.description || '',
+        author: manifest.author || '',
+        website: manifest.website || '',
+        category: manifest.category || 'Uncategorized',
+        license: manifest.license || 'MIT',
+        application: manifest.application || false,
+        installable: manifest.installable !== false,
+        state,
+        depends,
+        deps_resolved: depsResolved,
+        // P2-3: drives the admin UI's button row. Lists the lifecycle
+        // actions valid for this module right now. Each action maps
+        // 1:1 to a POST /api/modules/:name/<action> endpoint.
+        actions: computeModuleActions(m, state, depsResolved),
+        installed_at: dbRecord?.installedAt || (m.initialized ? new Date().toISOString() : null),
+        module_path: `modules/${m.name}`,
+        loaded: m.loaded,
+        initialized: m.initialized,
+      };
+    })
+  });
+});
+
+app.get('/api/modules/:name', async (req, res) => {
+  const module = getAllModules().find(m => m.name === req.params.name);
+  if (!module) {
+    return res.status(404).json(responseUtil.notFound('Module'));
+  }
+  const manifest = module.manifest || {};
+
+  let state = module.initialized ? 'installed' : 'uninstalled';
+  let installedAt = module.initialized ? new Date().toISOString() : null;
+  try {
+    const record = await prisma.installedModule.findUnique({ where: { name: module.name } });
+    if (record) {
+      state = record.state;
+      installedAt = record.installedAt;
+    }
+  } catch (e) { /* fallback to in-memory */ }
+
+  res.json({
+    success: true,
+    data: {
+      name: module.name,
+      display_name: manifest.name || module.name,
+      version: manifest.version || '1.0.0',
+      summary: manifest.summary || '',
+      description: manifest.description || '',
+      author: manifest.author || '',
+      website: manifest.website || '',
+      category: manifest.category || 'Uncategorized',
+      license: manifest.license || 'MIT',
+      application: manifest.application || false,
+      installable: manifest.installable !== false,
+      state,
+      depends: manifest.depends || [],
+      installed_at: installedAt,
+      module_path: `modules/${module.name}`,
+      loaded: module.loaded,
+      initialized: module.initialized,
+      permissions: manifest.permissions || [],
+    }
+  });
+});
+
+app.post('/api/modules/:name/install', async (req, res) => {
+  try {
+    const moduleName = req.params.name;
+    const module = getAllModules().find(m => m.name === moduleName);
+    if (!module) {
+      return res.status(404).json({ success: false, error: `Module "${moduleName}" not found` });
+    }
+
+    // Check dependencies are installed
+    const deps = module.manifest?.depends || [];
+    for (const dep of deps) {
+      if (dep === 'base') continue;
+      const depRecord = await prisma.installedModule.findUnique({ where: { name: dep } });
+      if (!depRecord || depRecord.state !== 'installed') {
+        return res.status(400).json({ success: false, error: `Dependency "${dep}" is not installed` });
+      }
+    }
+
+    // Upsert InstalledModule record. Return value unused — we re-read
+    // the catalogue via getAllModules below.
+    await prisma.installedModule.upsert({
+      where: { name: moduleName },
+      create: {
+        name: moduleName,
+        displayName: module.manifest?.name || moduleName,
+        version: module.manifest?.version || '1.0.0',
+        state: 'installed',
+        depends: JSON.stringify(deps),
+        modulePath: `modules/${moduleName}`,
+        installedAt: new Date(),
+      },
+      update: {
+        state: 'installed',
+        version: module.manifest?.version || '1.0.0',
+      },
+    });
+
+    // Update in-memory state
+    module.initialized = true;
+
+    // Run install hook if defined
+    await runInstallHook(module, app.locals.moduleContext || {});
+
+    res.json({
+      success: true,
+      message: `Module "${module.manifest?.name || moduleName}" installed successfully`,
+      data: { name: moduleName, state: 'installed' }
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/modules/:name/uninstall', async (req, res) => {
+  try {
+    const moduleName = req.params.name;
+    const module = getAllModules().find(m => m.name === moduleName);
+    if (!module) {
+      return res.status(404).json({ success: false, error: `Module "${moduleName}" not found` });
+    }
+    if (moduleName === 'base') {
+      return res.status(400).json({ success: false, error: 'Cannot uninstall the base module' });
+    }
+
+    // Check no installed modules depend on this one
+    const allRecords = await prisma.installedModule.findMany({ where: { state: 'installed' } });
+    const dependents = [];
+    for (const r of allRecords) {
+      const deps = typeof r.depends === 'string' ? JSON.parse(r.depends || '[]') : (Array.isArray(r.depends) ? r.depends : []);
+      if (deps.includes(moduleName) && r.name !== moduleName) {
+        dependents.push(r.name);
+      }
+    }
+    if (dependents.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot uninstall: required by ${dependents.join(', ')}. Uninstall them first.`
+      });
+    }
+
+    // Run uninstall hook before changing state
+    await runUninstallHook(module, app.locals.moduleContext || {});
+
+    // Update DB state
+    await prisma.installedModule.update({
+      where: { name: moduleName },
+      data: { state: 'uninstalled' },
+    });
+
+    // Update in-memory state
+    module.initialized = false;
+
+    res.json({
+      success: true,
+      message: `Module "${module.manifest?.name || moduleName}" uninstalled`,
+      data: { name: moduleName, state: 'uninstalled' }
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/modules/:name/upgrade', async (req, res) => {
+  try {
+    const moduleName = req.params.name;
+    const module = getAllModules().find(m => m.name === moduleName);
+    if (!module) {
+      return res.status(404).json({ success: false, error: `Module "${moduleName}" not found` });
+    }
+    res.json({
+      success: true,
+      message: `Module "${module.manifest?.name || moduleName}" upgraded to v${module.manifest?.version || '1.0.0'}`,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+// Get all menus from modules (merges children when same path declared by multiple modules)
+// Only returns menus from installed modules
+app.get('/api/menus', async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+
+  // Get installed module names from DB
+  let installedModuleNames = null;
+  try {
+    const installedRecords = await prisma.installedModule.findMany({ where: { state: 'installed' } });
+    installedModuleNames = new Set(installedRecords.map(r => r.name));
+  } catch (e) { /* fallback to in-memory check */ }
+
+  const menuMap = new Map();
+
+  for (const module of getAllModules()) {
+    // Skip modules that are not installed
+    if (installedModuleNames) {
+      if (!installedModuleNames.has(module.name)) continue;
+    } else {
+      if (!module.initialized) continue;
+    }
+
+    const menus = module.manifest?.menus || module.manifest?.frontend?.menus || [];
+
+    for (const menu of menus) {
+      const path = menu.path;
+
+      if (menuMap.has(path)) {
+        // Merge children from multiple modules declaring the same parent path
+        const existing = menuMap.get(path);
+        const newChildren = (menu.children || []).map(child => ({
+          ...child,
+          name: child.name || child.title,
+          module: module.name
+        }));
+        const childPaths = new Set((existing.children || []).map(c => c.path));
+        for (const child of newChildren) {
+          if (!childPaths.has(child.path)) {
+            existing.children = existing.children || [];
+            existing.children.push(child);
+          }
+        }
+        if (existing.children) {
+          existing.children.sort((a, b) => (a.sequence || 99) - (b.sequence || 99));
+        }
+      } else {
+        const enrichedMenu = {
+          ...menu,
+          name: menu.name || menu.title,
+          module: module.name,
+        };
+
+        if (menu.children && menu.children.length > 0) {
+          enrichedMenu.children = menu.children.map(child => ({
+            ...child,
+            name: child.name || child.title,
+            module: module.name
+          }));
+        }
+
+        menuMap.set(path, enrichedMenu);
+      }
+    }
+  }
+
+  const allMenus = Array.from(menuMap.values());
+  allMenus.sort((a, b) => (a.sequence || 10) - (b.sequence || 10));
+
+  res.json({
+    success: true,
+    data: allMenus
+  });
+});
+
+// FastVue-compatible /modules/installed/menus endpoint
+// Only returns menus from installed modules
+app.get('/api/modules/installed/menus', async (req, res) => {
+  let installedModuleNames = null;
+  try {
+    const installedRecords = await prisma.installedModule.findMany({ where: { state: 'installed' } });
+    installedModuleNames = new Set(installedRecords.map(r => r.name));
+  } catch (e) { /* fallback to in-memory check */ }
+
+  const allMenus = [];
+
+  for (const module of getAllModules()) {
+    if (installedModuleNames) {
+      if (!installedModuleNames.has(module.name)) continue;
+    } else {
+      if (!module.initialized) continue;
+    }
+
+    const menus = module.manifest?.menus || module.manifest?.frontend?.menus || [];
+
+    for (const menu of menus) {
+      const enrichedMenu = {
+        ...menu,
+        name: menu.name || menu.title,
+        title: menu.name || menu.title,
+        module: module.name,
+      };
+
+      if (menu.children && menu.children.length > 0) {
+        enrichedMenu.children = menu.children.map(child => ({
+          ...child,
+          name: child.name || child.title,
+          title: child.name || child.title,
+          module: module.name
+        }));
+      }
+
+      allMenus.push(enrichedMenu);
+    }
+  }
+
+  allMenus.sort((a, b) => (a.sequence || 10) - (b.sequence || 10));
+
+  res.json({ success: true, data: allMenus });
+});
+
+// Get all permissions (only from installed modules)
+app.get('/api/permissions', async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+
+  // Get installed module names from DB
+  let installedModuleNames = null;
+  try {
+    const installedRecords = await prisma.installedModule.findMany({ where: { state: 'installed' } });
+    installedModuleNames = new Set(installedRecords.map(r => r.name));
+  } catch (e) { /* fallback to in-memory check */ }
+
+  const permissionsData = getAllPermissions();
+  const allPermissions = [];
+
+  for (const permGroup of permissionsData) {
+    // Skip permissions from uninstalled modules
+    if (installedModuleNames && !installedModuleNames.has(permGroup.module)) continue;
+
+    for (const perm of permGroup.permissions) {
+      if (typeof perm === 'string') {
+        allPermissions.push(perm);
+      } else if (perm.name) {
+        allPermissions.push(perm.name);
+      }
+    }
+  }
+
+  res.json({
+    success: true,
+    data: allPermissions
+  });
+});
+
+// Dashboard Stats Endpoint
+app.get('/api/dashboard/stats', async (req, res) => {
+  try {
+    const [
+      totalUsers, activeUsers, totalActivities, publishedActivities,
+      totalDonations, totalDonors, totalMessages, unreadMessages,
+      totalDocuments, totalTeamMembers
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { isActive: true } }),
+      prisma.activities.count(),
+      prisma.activities.count({ where: { status: 'published' } }),
+      prisma.donations.count({ where: { status: 'completed' } }),
+      prisma.donors.count(),
+      prisma.messages.count(),
+      prisma.messages.count({ where: { status: 'new' } }),
+      prisma.documents.count(),
+      prisma.team_members.count()
+    ]);
+
+    const donationAgg = await prisma.donations.aggregate({
+      _sum: { amount: true },
+      where: { status: 'completed' }
+    });
+    const totalDonationAmount = Number(donationAgg._sum.amount) || 0;
+
+    const recentActivities = await prisma.activities.findMany({
+      where: { status: 'published' },
+      orderBy: { start_date: 'asc' },
+      take: 5
+    });
+
+    const recentDonations = await prisma.donations.findMany({
+      where: { status: 'completed' },
+      include: { donors: true },
+      orderBy: { created_at: 'desc' },
+      take: 5
+    });
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          totalUsers, activeUsers, totalActivities, publishedActivities,
+          totalDonations, totalDonationAmount, totalDonors,
+          totalMessages, unreadMessages, totalDocuments, totalTeamMembers
+        },
+        recentActivities: recentActivities.map(a => ({
+          id: a.id, title: a.title, slug: a.slug, start_date: a.start_date, status: a.status
+        })),
+        recentDonations: recentDonations.map(d => ({
+          id: d.id, amount: Number(d.amount),
+          donor: d.donors ? `${d.donors.first_name} ${d.donors.last_name}` : 'Anonymous',
+          created_at: d.created_at
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Dashboard stats error:', error);
+    res.status(500).json(responseUtil.error('Failed to fetch dashboard statistics'));
+  }
+});
+
+// Mount core module routes (users, auth, etc.)
+app.use('/api/users', authLimiter, (await import('./modules/user/index.js')).userRoutes);
+app.use('/api/auth', authLimiter, (await import('./modules/auth/index.js')).authRoutes);
+
+// Optional modules mount only when installed (plugin model). Fail open on
+// DB errors so boot never bricks; the module loader applies the same rule.
+const mountIfInstalled = async (path, moduleName, importer) => {
+  try {
+    const row = await prisma.installedModule.findUnique({ where: { name: moduleName } });
+    if (row && row.state !== 'installed') {
+      console.log(`⏭️  Skipping uninstalled optional routes: ${path} (install via Admin → Modules)`);
+      return;
+    }
+  } catch (err) {
+    console.warn(`⚠️  Install-state check failed for ${moduleName} (${err.message}) — mounting anyway`);
+  }
+  app.use(path, await importer());
+};
+
+// Mount other module routes
+await mountIfInstalled('/api/activities', 'activities', async () => (await import('./modules/activities/index.js')).activityRoutes);
+await mountIfInstalled('/api/donations', 'donations', async () => (await import('./modules/donations/index.js')).donationRoutes);
+await mountIfInstalled('/api/documents', 'documents', async () => (await import('./modules/documents/index.js')).documentRoutes);
+await mountIfInstalled('/api/team', 'team', async () => (await import('./modules/team/index.js')).teamRoutes);
+await mountIfInstalled('/api/messages', 'messages', async () => (await import('./modules/messages/index.js')).messageRoutes);
+app.use('/api/settings', (await import('./modules/settings/index.js')).settingRoutes);
+app.use('/api/audit', (await import('./modules/audit/index.js')).auditRoutes);
+await mountIfInstalled('/api/media', 'media', async () => (await import('./modules/media/index.js')).mediaRoutes);
+
+// Module routes (base_automation, base_security, base_features_data, base_customization, advanced_features)
+// are registered by the module system via their __init__.js during initialization
+
+// Lume routes
+const lumeRouter = Router();
+lumeRouter.get('/health', (req, res) => res.json({ success: true, status: 'healthy', module: 'lume' }));
+app.use('/api/lume', lumeRouter);
+app.use('/api/rbac', (await import('./modules/rbac/api/index.js')).default);
+app.use('/api/search', (await import('./core/api/search.js')).default);
+
+// Error handling — registered after module system init in startServer()
+// (moved to end of startServer so module-registered routes aren't shadowed)
+
+// Initialize databases and modules (can be called before startServer for testing)
+export const initializeDatabasesAndModules = async () => {
+  try {
+    // Initialize Prisma (core tables)
+    await prisma.$connect();
+    console.log('✅ Prisma connected (core tables)');
+
+    // Initialize Drizzle (module tables)
+    await initDrizzle();
+    console.log('✅ Drizzle connected (module tables)');
+
+    // Table parity check — surfaces missing Drizzle module tables at boot
+    // as ONE grouped warning instead of opaque per-query 500s later. See
+    // docs/deployment/PRE_LAUNCH_IMPROVEMENTS.md → P0-1. Skipped in test
+    // mode because Jest's per-suite setup races with this check.
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const { checkTableParity } = await import('./core/db/check-table-parity.js');
+        await checkTableParity(prisma);
+      } catch (err) {
+        // Strict-mode bypass only — propagate parity failures intentionally.
+        if (process.env.LUME_STRICT_TABLE_PARITY === 'true') throw err;
+        console.warn(`[table-parity] Skipped: ${err.message}`);
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error.message);
+    throw error;
+  }
+};
+
+// Start server
+const startServer = async () => {
+  try {
+    console.log('🚀 Starting Lume Modular Backend...');
+
+    // Initialize databases and modules
+    await initializeDatabasesAndModules();
+
+    // Initialize module system (base module creates models, services, routes via __init__.js)
+    const modulesDir = join(__dirname, 'modules');
+    const moduleContext = { app };
+    await initializeModuleSystem(modulesDir, moduleContext);
+    console.log('✅ Module system initialized');
+
+    // Initialize entity sync service (code-first loading of entity definitions)
+    try {
+      const { SyncService } = await import('./core/services/sync.service.js');
+      const { DrizzleAdapter } = await import('./core/db/adapters/drizzle-adapter.js');
+      const { EntityService } = await import('./core/services/entity.service.js');
+      const { getDrizzle } = await import('./core/db/drizzle.js');
+      const { customEntities, entityFields, entityViews, entitySyncHistory } = await import('./modules/base/models/schema.js');
+
+      const db = getDrizzle();
+      const entityAdapter = new DrizzleAdapter(customEntities);
+      const fieldsAdapter = new DrizzleAdapter(entityFields);
+      const entityService = new EntityService(entityAdapter, fieldsAdapter);
+      const syncService = new SyncService(entityService, db, entityViews, entitySyncHistory);
+
+      const entitiesDir = path.join(__dirname, 'entities');
+      const codeDefs = await syncService.loadCodeDefinitions(entitiesDir);
+
+      if (codeDefs.length > 0) {
+        const syncResult = await syncService.syncToDb(codeDefs);
+        console.log(`✅ Entity sync complete: ${syncResult.created} created, ${syncResult.updated} updated`);
+        if (syncResult.errors.length > 0) {
+          console.warn('⚠️  Entity sync errors:', syncResult.errors);
+        }
+      } else {
+        console.log('ℹ️  No entity definitions found to sync');
+      }
+    } catch (error) {
+      console.warn('⚠️  Entity sync skipped or failed:', error.message);
+    }
+
+    // Sync module state to installed_modules table via Prisma
+    for (const mod of getAllModules()) {
+      try {
+        const record = await prisma.installedModule.upsert({
+          where: { name: mod.name },
+          create: {
+            name: mod.name,
+            displayName: mod.manifest?.name || mod.name,
+            version: mod.manifest?.version || '1.0.0',
+            state: 'installed',
+            depends: JSON.stringify(mod.manifest?.depends || []),
+            modulePath: `modules/${mod.name}`,
+            installedAt: new Date(),
+          },
+          update: {},  // Don't update existing records
+        });
+        // Respect persisted state on subsequent runs
+        mod.initialized = record.state === 'installed';
+        if (record.createdAt && record.createdAt.getTime() > Date.now() - 5000) {
+          console.log(`📦 Registered module: ${mod.name} (installed)`);
+        } else if (record.state !== 'installed') {
+          console.log(`📦 Module ${mod.name} state: ${record.state}`);
+        }
+      } catch (err) {
+        console.warn(`⚠️  Failed to sync module state for ${mod.name}:`, err.message);
+      }
+    }
+    console.log('✅ Module states synced to database');
+
+    // Make base models and module context accessible to route handlers
+    const baseModels = moduleContext.baseModels || {};
+    app.locals.baseModels = baseModels;
+    app.locals.moduleContext = moduleContext;
+
+    // Register error handlers AFTER module routes (so module routes aren't shadowed)
+    app.use(notFoundHandler);
+    app.use(errorTracker);  // Track errors for observability
+    app.use(errorHandler);
+
+    // Initialize BullMQ job queues
+    try {
+      const { initializeQueues } = await import('./core/queue/queue-init.js');
+      await initializeQueues();
+      console.log('✅ Job queue system initialized');
+
+      // Setup Bull Board UI dashboard
+      try {
+        const { setupBullBoard, getBullBoardAdapter } = await import('./core/queue/bull-board-setup.js');
+        setupBullBoard();
+        const bullBoardAdapter = getBullBoardAdapter();
+        app.use('/admin/queues', bullBoardAdapter.getRouter());
+        console.log('✅ Bull Board UI available at http://localhost:3000/admin/queues');
+      } catch (bbErr) {
+        console.warn('⚠️ Bull Board UI setup skipped:', bbErr.message);
+      }
+    } catch (queueErr) {
+      console.warn('⚠️ Queue system initialization failed:', queueErr.message);
+    }
+
+    // Initialize Prometheus metrics cache
+    try {
+      initMetricsCache();
+      console.log('✅ Prometheus metrics cache initialized');
+    } catch (metricsErr) {
+      console.warn('⚠️ Metrics cache initialization failed:', metricsErr.message);
+    }
+
+    // Create HTTP server and initialize WebSocket
+    const server = createServer(app);
+
+    try {
+      const { wsService } = await import('./core/services/websocket.service.js');
+      wsService.initialize(server);
+    } catch (wsErr) {
+      console.warn('⚠️ WebSocket initialization skipped:', wsErr.message);
+    }
+
+    // Start listening
+    server.listen(PORT, () => {
+      console.log(`\n╔════════════════════════════════════════════════════════════╗`);
+      console.log(`║              Lume Framework v1.0.0                        ║`);
+      console.log(`╠════════════════════════════════════════════════════════════╣`);
+      console.log(`║  Server:        http://localhost:${PORT}                  ║`);
+      console.log(`║  API Base:      http://localhost:${PORT}/api               ║`);
+      console.log(`║  WebSocket:     ws://localhost:${PORT}/ws                  ║`);
+      console.log(`║  Job Queues:    http://localhost:${PORT}/admin/queues      ║`);
+      console.log(`║  Modules:       ${String(getAllModules().length).padEnd(28)}║`);
+      console.log(`╚════════════════════════════════════════════════════════════╝\n`);
+    });
+
+    // Graceful shutdown for queues, tracing, and server on process termination
+    const gracefulShutdown = async (signal) => {
+      console.log(`\n⏹️  Received ${signal}, shutting down gracefully...`);
+      try {
+        const { shutdownQueues } = await import('./core/queue/queue-init.js');
+        await shutdownQueues();
+      } catch (err) {
+        console.warn('⚠️ Queue shutdown warning:', err.message);
+      }
+
+      // Shutdown OpenTelemetry tracing (flushes pending spans)
+      if (tracingInitialized) {
+        await shutdownTracing();
+      }
+
+      server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+      });
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Only start server if this file is run directly (not imported for testing)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  startServer();
+}
+
+export default app;
+export { startServer };
+
+let modulesInitialized = false;
+export const initializeModules = async () => {
+  if (modulesInitialized) {
+    return;
+  }
+  modulesInitialized = true;
+  const modulesDir = join(__dirname, 'modules');
+  await initializeModuleSystem(modulesDir, { app });
+};

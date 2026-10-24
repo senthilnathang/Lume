@@ -532,8 +532,8 @@ Community Manager: __________________ Date: _______
 - [RELEASE_EXECUTION_PLAN.md](RELEASE_EXECUTION_PLAN.md) - Detailed timeline and execution
 - [SEO_IMPLEMENTATION_GUIDE.md](SEO_IMPLEMENTATION_GUIDE.md) - SEO setup and optimization
 - [security_audit.md](security_audit.md) - Security audit results
-- [/docs/ARCHITECTURE.md](/docs/ARCHITECTURE.md) - System architecture
-- [/docs/DEVELOPMENT.md](/docs/DEVELOPMENT.md) - Development guide
+- [/docs/ARCHITECTURE.md](../ARCHITECTURE.md) - System architecture
+- [/docs/DEVELOPMENT.md](../DEVELOPMENT.md) - Development guide
 
 ---
 

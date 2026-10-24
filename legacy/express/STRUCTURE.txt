@@ -1,0 +1,10 @@
+Inactive Express reference
+
+The active backend is ../../apps/api (from this directory). Active clients are
+../../apps/admin and ../../apps/website. Install dependencies once from the root
+with pnpm install --frozen-lockfile. This package is excluded from the workspace.
+Do not run its old setup scripts against the active database.
+
+Legacy static symlinks resolve to packages/@lume/module-ui at repository root.
+Required feature parity and data reconciliation remain open; see
+../../docs/nestjs-migration-tasks.txt and ../../docs/STRUCTURE.md.

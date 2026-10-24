@@ -30,7 +30,7 @@ The v2.0 codebase shipped with 1671 ESLint problems and ~701 TypeScript errors. 
 | Phase 3.1 batch 3 + ratchet drop | 95 (budget) | 0 (budget) | ✅ 2026-05-21 — first ratchet-down PR; pattern proven |
 | **Phase 3.1 final — debt paid off** | **0** (strict gate) | **0** (strict gate) | ✅ 2026-05-21 — last `no-unused-vars` cleared; CI now enforces zero |
 
-The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The Phase 3.0 drop revealed that almost all of the previously-counted `any` and `unused-vars` problems were in frontend Vue files (`src/modules/*/static/**`) served as static assets — those are owned by `apps/web-lume`'s own lint chain, not the backend's. Once excluded, the **real** backend debt is much smaller and dominated by `no-unused-vars` (207) rather than `no-explicit-any` (12).
+The "0 TS errors" milestone means **every TypeScript error in this codebase is now actionable signal**, not config noise. The Phase 3.0 drop revealed that almost all of the previously-counted `any` and `unused-vars` problems were in frontend Vue files (`src/modules/*/static/**`) served as static assets — those are owned by `apps/admin`'s own lint chain, not the backend's. Once excluded, the **real** backend debt is much smaller and dominated by `no-unused-vars` (207) rather than `no-explicit-any` (12).
 
 ## Baseline → Phase 1 (2026-05-19)
 
@@ -45,7 +45,7 @@ Phase 1 delivered ~16% of the lint debt and ~99.6% of the TS debt — almost all
 ### What Phase 1 actually changed
 
 - **`eslint.config.mjs`** (root, tracked) — added `globals` import; per-file-pattern globals for backend (node), frontend (browser), Vue SFCs, and tests (jest, additive). Lives in the root config because `packages/@lume/eslint-config/` is gitignored.
-- **`backend/tsconfig.json`** — adds `baseUrl` + `paths` for `@/*`, `@modules/*`, `#/*` aliases (mirrors Vite); excludes `src/core/graphql/**` (orphan NestJS scaffolding, no deps installed, no callers) and `src/modules/*/static/**` (Vue frontend files compiled by `apps/web-lume`'s own tsconfig). Adds `ignoreDeprecations: "6.0"` to silence the TS7 `baseUrl` warning.
+- **`backend/tsconfig.json`** — adds `baseUrl` + `paths` for `@/*`, `@modules/*`, `#/*` aliases (mirrors Vite); excludes `src/core/graphql/**` (orphan NestJS scaffolding, no deps installed, no callers) and `src/modules/*/static/**` (Vue frontend files compiled by `apps/admin`'s own tsconfig). Adds `ignoreDeprecations: "6.0"` to silence the TS7 `baseUrl` warning.
 
 ## Phase 2 — Surfaced bugs (2026-05-20)
 
@@ -53,7 +53,7 @@ Phase 2 delivered the 6 real bugs that Phase 1's config cleanup exposed, plus di
 
 ### What Phase 2 actually changed
 
-- **Deleted `backend/src/scripts/seed.ts`** — referenced 3+ Prisma model names that no longer exist (`prisma.activity`, `prisma.team`, `prisma.message`), plus stale date/enum types from an old schema. The canonical seeding path is `prisma/seed.js` → `src/scripts/createAdmin.js` + `src/scripts/seedData.js` (documented in `INSTALLATION.md`). Repointed `npm run seed` to the canonical script. Drops 3 TS errors and removes a future foot-gun.
+- **Deleted `legacy/express/src/scripts/seed.ts`** — referenced 3+ Prisma model names that no longer exist (`prisma.activity`, `prisma.team`, `prisma.message`), plus stale date/enum types from an old schema. The canonical seeding path is `prisma/seed.js` → `src/scripts/createAdmin.js` + `src/scripts/seedData.js` (documented in `INSTALLATION.md`). Repointed `npm run seed` to the canonical script. Drops 3 TS errors and removes a future foot-gun.
 - **`src/modules/base_automation/static/views/rollup-fields.vue`** — `TabPane` was imported under the wrong name (referenced as `ATabPane` later), triggering both `no-unused-vars` AND `no-undef`. Aliased the import: `TabPane as ATabPane`. Two errors gone with one line change.
 - **`src/modules/common/static/api/request.js`** — added `/* global axios */` ambient declaration. The file is loaded by the SFC runtime in the browser, not bundled — `axios` is a runtime-provided global. Genuine "lint is wrong" case.
 - **`src/modules/editor/static/components/NavigatorPanel.vue`** — added a single `eslint-disable-next-line no-undef` for a `PropType<TreeNode>` annotation. The TS interface IS defined in the same file's first `<script>` block, but ESLint's Vue parser scopes each `<script>` independently and can't see across blocks. Real fix would require type-aware lint setup; not worth the perf cost for one line.
@@ -69,11 +69,11 @@ The original CODE_QUALITY.md Phase 2 estimate ("~487 autofix wins") was wrong. *
 
 ## Phase 3.0 — Exclude frontend static/ assets (2026-05-20)
 
-Massive single-change win: the `eslint.config.mjs` `ignores` block now drops `backend/src/core/graphql/**` (orphan NestJS scaffolding, see Phase 1.2) and `backend/src/modules/*/static/**` (Vue frontend files served by the backend as static assets but compiled by `apps/web-lume`'s own toolchain).
+Massive single-change win: the `eslint.config.mjs` `ignores` block now drops `legacy/express/src/core/graphql/**` (orphan NestJS scaffolding, see Phase 1.2) and `legacy/express/src/modules/*/static/**` (Vue frontend files served by the backend as static assets but compiled by `apps/admin`'s own toolchain).
 
 **Lint count: 1403 → 275 (−1128, −80%)** in a single ignore block.
 
-This is the same logic as Phase 1.2's `tsconfig.json` exclude — the backend's lint chain was checking files outside its own compile target. The exclusions are content-true (`apps/web-lume` does lint those files via its own pipeline) but were missing from the backend config.
+This is the same logic as Phase 1.2's `tsconfig.json` exclude — the backend's lint chain was checking files outside its own compile target. The exclusions are content-true (`apps/admin` does lint those files via its own pipeline) but were missing from the backend config.
 
 ### ESLint — current top rules (post-Phase 3.0)
 
@@ -141,10 +141,10 @@ Net: 30 `no-var-requires` → 0.
 
 Several orphan files surfaced during the conversion:
 
-- `backend/src/core/modules/lume/lume.service.js` — referenced a non-existent `crud.mixin`, used abandoned Sequelize-style ORM, zero callers
-- `backend/src/core/modules/gawdesy/gawdesy.service.js` — same story
-- `backend/src/scripts/createUser.js`, `listUsers.js`, `loadDemoData.js` — JSON-file "database" scaffolding from before MySQL+Prisma+Drizzle; only referenced by `manage.ts` which is itself orphan
-- `backend/src/scripts/manage.ts` — orphan dispatcher with no callers
+- `legacy/express/src/core/modules/lume/lume.service.js` — referenced a non-existent `crud.mixin`, used abandoned Sequelize-style ORM, zero callers
+- `legacy/express/src/core/modules/gawdesy/gawdesy.service.js` — same story
+- `legacy/express/src/scripts/createUser.js`, `listUsers.js`, `loadDemoData.js` — JSON-file "database" scaffolding from before MySQL+Prisma+Drizzle; only referenced by `manage.ts` which is itself orphan
+- `legacy/express/src/scripts/manage.ts` — orphan dispatcher with no callers
 
 `createAdmin.js` + `seedData.js` are the canonical user/data scripts (wired via `npm run db:admin` / `db:seed`), so the deletes don't break any documented path.
 
@@ -253,7 +253,7 @@ Once the count is under 200 problems and 100 TS errors, flip `continue-on-error:
 
 - **Test coverage gaps** — unrelated dimension. Tracked separately in `docs/TESTING.md`.
 - **Module @swagger annotations** — separate; tracked under P2-2 follow-on.
-- **Frontend lint/typecheck** — `apps/web-lume` has its own lint chain; this doc is backend-only for v2.0.
+- **Frontend lint/typecheck** — `apps/admin` has its own lint chain; this doc is backend-only for v2.0.
 
 ## Operational Notes
 

@@ -345,7 +345,7 @@ Verification of references between related documents:
 
 #### Verified Endpoints (18 documented)
 All documented REST API endpoints have been verified against:
-- Backend routes in `/opt/Lume/backend/src/`
+- Backend routes in `/opt/Lume/legacy/express/src/`
 - Module structure and registration
 - Authentication requirements
 - Response formats
@@ -367,11 +367,11 @@ All npm and CLI commands documented and verified:
 
 #### File Path Accuracy
 All documented file paths verified:
-- ✓ Backend structure: `backend/src/modules/{name}/`
-- ✓ Frontend admin: `frontend/apps/web-lume/`
-- ✓ Frontend public: `frontend/apps/riagri-website/`
+- ✓ Backend structure: `legacy/express/src/modules/{name}/`
+- ✓ Frontend admin: `frontend/apps/admin/`
+- ✓ Frontend public: `frontend/apps/website/`
 - ✓ Configuration: `.env` files in proper locations
-- ✓ Database schema: `backend/prisma/schema.prisma`
+- ✓ Database schema: `legacy/express/prisma/schema.prisma`
 
 #### Default Credentials Verification
 All documented default credentials verified:

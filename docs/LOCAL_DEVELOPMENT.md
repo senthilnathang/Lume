@@ -12,6 +12,6 @@ Express replacement remains in progress; recent changes are not yet deployed.
 - [Deployment](DEPLOYMENT.md)
 
 Shared browser assets live in `packages/@lume/module-ui`. The active backend
-remains at `backend/lume-nestjs`; `backend/api` is the planned final path.
+remains at `apps/api`; `backend/api` is the planned final path.
 External integrations remain disabled. Historical reports must not be used as
 current completion or deployment certification.

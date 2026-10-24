@@ -13,17 +13,17 @@
 ## File Structure
 
 ### New Files
-- `backend/src/modules/base_automation/services/escalation-chain-handler.js` — Multi-level escalation logic
-- `backend/src/modules/base_automation/services/approval-analytics.js` — Metrics and reporting
+- `legacy/express/src/modules/base_automation/services/escalation-chain-handler.js` — Multi-level escalation logic
+- `legacy/express/src/modules/base_automation/services/approval-analytics.js` — Metrics and reporting
 - `tests/unit/base-automation-escalation-chain.test.js` — Chain escalation tests
 
 ### Modified Files
-- `backend/src/modules/base_automation/models/schema.js` — Add escalation chain config table
-- `backend/src/modules/base_automation/models/index.js` — Register adapters
-- `backend/src/modules/base_automation/services/approval-escalation.js` — Integrate chain handler + timeout recovery
-- `backend/src/modules/base_automation/__init__.js` — Register new services
-- `backend/src/modules/base_automation/api/index.js` — Add analytics endpoints
-- `backend/src/modules/base_automation/static/api/index.ts` — Add frontend client
+- `legacy/express/src/modules/base_automation/models/schema.js` — Add escalation chain config table
+- `legacy/express/src/modules/base_automation/models/index.js` — Register adapters
+- `legacy/express/src/modules/base_automation/services/approval-escalation.js` — Integrate chain handler + timeout recovery
+- `legacy/express/src/modules/base_automation/__init__.js` — Register new services
+- `legacy/express/src/modules/base_automation/api/index.js` — Add analytics endpoints
+- `legacy/express/src/modules/base_automation/static/api/index.ts` — Add frontend client
 
 ---
 
@@ -32,9 +32,9 @@
 ### Task 1: Add Escalation Chain Configuration Table
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/models/schema.js`
-- Modify: `backend/src/modules/base_automation/models/index.js`
-- Modify: `backend/src/modules/base_automation/__init__.js`
+- Modify: `legacy/express/src/modules/base_automation/models/schema.js`
+- Modify: `legacy/express/src/modules/base_automation/models/index.js`
+- Modify: `legacy/express/src/modules/base_automation/__init__.js`
 - Test: `tests/unit/base-automation-escalation-chain.test.js`
 
 **Context:** Escalation chains define multi-level escalation rules. Each level specifies: who to escalate to, how many hours at that level before escalating further, what notification action to take.
@@ -84,7 +84,7 @@ Expected: Test fails because table doesn't exist
 - [ ] **Step 3: Add table to schema.js**
 
 ```javascript
-// In backend/src/modules/base_automation/models/schema.js
+// In legacy/express/src/modules/base_automation/models/schema.js
 
 export const automationApprovalEscalationChains = table('automation_approval_escalation_chains', {
   ...baseColumns(),
@@ -121,7 +121,7 @@ Expected: PASS
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/models/schema.js backend/src/modules/base_automation/models/index.js backend/src/modules/base_automation/__init__.js tests/unit/base-automation-escalation-chain.test.js && git commit -m "feat: Add escalation chain configuration table"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/models/schema.js legacy/express/src/modules/base_automation/models/index.js legacy/express/src/modules/base_automation/__init__.js tests/unit/base-automation-escalation-chain.test.js && git commit -m "feat: Add escalation chain configuration table"
 ```
 
 ---
@@ -129,9 +129,9 @@ cd /opt/Lume && git add backend/src/modules/base_automation/models/schema.js bac
 ### Task 2: Create EscalationChainHandler Service
 
 **Files:**
-- Create: `backend/src/modules/base_automation/services/escalation-chain-handler.js`
+- Create: `legacy/express/src/modules/base_automation/services/escalation-chain-handler.js`
 - Modify: `tests/unit/base-automation-escalation-chain.test.js`
-- Modify: `backend/src/modules/base_automation/__init__.js`
+- Modify: `legacy/express/src/modules/base_automation/__init__.js`
 
 **Context:** This service handles multi-level escalation. When a task at level 1 exceeds its SLA, it escalates to level 2. Repeats until max level reached or task resolved.
 
@@ -191,9 +191,9 @@ Service should have:
 ### Task 3: Create ApprovalAnalyticsService
 
 **Files:**
-- Create: `backend/src/modules/base_automation/services/approval-analytics.js`
+- Create: `legacy/express/src/modules/base_automation/services/approval-analytics.js`
 - Modify: `tests/unit/base-automation-escalation-chain.test.js`
-- Modify: `backend/src/modules/base_automation/__init__.js`
+- Modify: `legacy/express/src/modules/base_automation/__init__.js`
 
 **Context:** Track approval metrics: average approval time, SLA compliance rate, bottleneck tasks (longest pending).
 
@@ -242,8 +242,8 @@ Tests should cover:
 ### Task 4: Add Analytics API Endpoints & Frontend
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/api/index.js`
-- Modify: `backend/src/modules/base_automation/static/api/index.ts`
+- Modify: `legacy/express/src/modules/base_automation/api/index.js`
+- Modify: `legacy/express/src/modules/base_automation/static/api/index.ts`
 - Modify: `tests/unit/base-automation-escalation-chain.test.js`
 
 **Context:** Expose analytics via REST API for dashboard display.

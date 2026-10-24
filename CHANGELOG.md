@@ -25,7 +25,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Removed a hardcoded admin password literal from the e2e specs and the
   reset-admin script; admin password is now env-driven
   (`LUME_TEST_ADMIN_PASSWORD`). **Rotate that credential anywhere it was used.**
-- Removed `frontend/lume-admin/test-credentials.mjs` (debug artifact).
+- Removed `legacy/frontend/lume-admin/test-credentials.mjs` (debug artifact).
 
 ## [2.0.1]
 

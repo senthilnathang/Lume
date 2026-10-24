@@ -38,7 +38,7 @@ cd backend && npm install && npx prisma generate
 npx prisma db push && npm run db:init
 
 # Frontend apps
-cd ../frontend/apps/web-lume && npm install
+cd ../frontend/apps/admin && npm install
 cd ../riagri-website && npm install
 
 # Start development servers
@@ -474,7 +474,7 @@ All examples verified against:
 
 4. **Node.js Requirements**: All JavaScript examples assume ES modules support (Node.js 18+).
 
-5. **Monorepo Structure**: Examples assume the standard Lume monorepo structure with `backend/`, `frontend/apps/web-lume/`, and `frontend/apps/riagri-website/`.
+5. **Monorepo Structure**: Examples assume the standard Lume monorepo structure with `backend/`, `frontend/apps/admin/`, and `frontend/apps/website/`.
 
 ---
 

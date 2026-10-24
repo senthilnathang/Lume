@@ -7,7 +7,7 @@ Task 3 successfully integrated the admin dashboard and framework admin features 
 ## Components Created
 
 ### 1. Router Configuration Updates
-**File**: `apps/web-lume/src/router/index.ts`
+**File**: `apps/admin/src/router/index.ts`
 
 - Added 5 admin routes under `/admin` path
 - Updated `customViews` mapping to include admin dashboard paths
@@ -24,7 +24,7 @@ Task 3 successfully integrated the admin dashboard and framework admin features 
 ```
 
 ### 2. Pinia Store
-**File**: `apps/web-lume/src/store/admin.ts` (520 lines)
+**File**: `apps/admin/src/store/admin.ts` (520 lines)
 
 Complete state management for admin features with:
 
@@ -73,7 +73,7 @@ Complete state management for admin features with:
 - Graceful degradation
 
 ### 3. Integration Tests
-**File**: `apps/web-lume/src/__tests__/integration/admin-dashboard.integration.test.ts` (420 lines)
+**File**: `apps/admin/src/__tests__/integration/admin-dashboard.integration.test.ts` (420 lines)
 
 Comprehensive test suite covering:
 
@@ -152,7 +152,7 @@ Complete integration guide covering:
 - Complete response examples in JSON
 
 ### 5. Test Configuration
-**File**: `apps/web-lume/vitest.config.ts`
+**File**: `apps/admin/vitest.config.ts`
 
 Updated vitest configuration with:
 - Added `@modules` alias for backend module imports
@@ -357,13 +357,13 @@ npm run test -- admin-dashboard.integration.test.ts
 
 ## Files Modified
 
-1. `apps/web-lume/src/router/index.ts` — Added admin routes
-2. `apps/web-lume/vitest.config.ts` — Added @modules alias
+1. `apps/admin/src/router/index.ts` — Added admin routes
+2. `apps/admin/vitest.config.ts` — Added @modules alias
 
 ## Files Created
 
-1. `apps/web-lume/src/store/admin.ts` — Admin Pinia store (520 lines)
-2. `apps/web-lume/src/__tests__/integration/admin-dashboard.integration.test.ts` — Tests (420 lines)
+1. `apps/admin/src/store/admin.ts` — Admin Pinia store (520 lines)
+2. `apps/admin/src/__tests__/integration/admin-dashboard.integration.test.ts` — Tests (420 lines)
 3. `docs/FRONTEND_INTEGRATION.md` — Integration guide (550 lines)
 4. `docs/TASK3_FRONTEND_INTEGRATION_SUMMARY.md` — This file
 

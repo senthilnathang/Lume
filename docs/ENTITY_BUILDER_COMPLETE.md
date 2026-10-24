@@ -212,7 +212,7 @@ backend/
 │   │       └── schema.js (Drizzle)
 │   └── index.js (with queue init)
 │
-frontend/apps/web-lume/
+frontend/apps/admin/
 ├── src/
 │   ├── modules/
 │   │   └── entity-builder/
@@ -264,7 +264,7 @@ npm test -- tests/integration/
 ### 3. E2E Tests with Playwright
 
 ```bash
-cd frontend/apps/web-lume
+cd frontend/apps/admin
 
 # Run E2E tests
 npm run test:e2e
@@ -499,8 +499,8 @@ curl http://localhost:3000/api/entities
 
 1. Start with `docs/ARCHITECTURE.md` to understand the system
 2. Read entity builder specification in `superpowers/specs/`
-3. Review service implementations in `backend/src/core/services/`
-4. Explore Vue 3 components in `frontend/apps/web-lume/src/modules/entity-builder/`
+3. Review service implementations in `legacy/express/src/core/services/`
+4. Explore Vue 3 components in `frontend/apps/admin/src/modules/entity-builder/`
 5. Try the API endpoints with curl or Postman
 6. Deploy locally with `docker-compose.prod.yml`
 7. Monitor with Bull Board at `/admin/queues`

@@ -771,7 +771,7 @@ backend/
 │        └─ __manifest__.js
 │
 frontend/
-├─ apps/web-lume/
+├─ apps/admin/
 │  └─ src/
 │     ├─ views/
 │     │  └─ EntityListView.vue       # Generic entity view

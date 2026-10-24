@@ -31,7 +31,7 @@ fetch responses, not the actual composable implementation.
 Backend typecheck: PASS.
 Backend build script: exits successfully but only prints 'No build step required'.
 Admin production build: FAIL — duplicate filterOptions declaration at lines 38/49
-of backend/src/modules/website/static/views/theme-builder.vue.
+of legacy/express/src/modules/website/static/views/theme-builder.vue.
 Admin typecheck: FAIL — 5,586 TypeScript diagnostics (including cascading errors).
 Website build: FAIL — Tailwind used directly as a PostCSS plugin with Tailwind v4.
 Website typecheck: BLOCKED — missing vue-tsc or another supported Vue checker.
@@ -43,8 +43,8 @@ Admin configured Playwright suite: FAIL — no tests found.
 Alternative NestJS typecheck: FAIL — 399 TypeScript diagnostics.
 Alternative NestJS configured tests: FAIL — 29 failed/12 passed suites;
 58 failed/101 passed assertions, including suites unable to load imports.
-Older frontend/lume-admin build: FAIL — cannot resolve ant-design-vue imported
-by backend/src/modules/base_automation/static/views/workflow-execution.vue.
+Older legacy/frontend/lume-admin build: FAIL — cannot resolve ant-design-vue imported
+by legacy/express/src/modules/base_automation/static/views/workflow-execution.vue.
 Shell syntax: PASS for lume.sh, test-basic.sh, test-comprehensive.sh,
 final-verification.sh and deploy-cpanel.sh (syntax only; scripts not executed).
 Docker Compose config validation: PASS for default, prod, staging, observability;
@@ -62,7 +62,7 @@ This confirms login and dashboard rendering, not every administrative workflow.
 
 IMPORTANT REMAINING FINDINGS
 - Live queue startup fails: TypeError: QueueScheduler is not a constructor
-  at backend/src/core/services/queue-manager.service.js:91. HTTP startup continues.
+  at legacy/express/src/core/services/queue-manager.service.js:91. HTTP startup continues.
 - Live entity synchronization reports an entity_fields insert failure for contact.
   Observed after integration fixtures ran; clean-database reproduction still needed.
 - Runtime also logs 'Invalid router ... function' and unavailable notification

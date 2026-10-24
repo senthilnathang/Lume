@@ -1,6 +1,6 @@
 Frontend to NestJS migration — core contracts verified; release not complete
 
-Scope: apps/web-lume and apps/riagri-website. External integrations remain
+Scope: apps/admin and apps/website. External integrations remain
 disabled. The production NestJS process has not been restarted with these changes.
 
 Implemented:

@@ -3,7 +3,7 @@
 > current migration certification. Use the [active task list](nestjs-migration-tasks.txt) and
 > [developer guide](DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
 > remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
 
 # Lume Framework — Migration & Upgrade Guide
 
@@ -40,13 +40,13 @@ This is a major version update with significant improvements and architectural c
    ```
    v1.0:
    - backend/
-   - apps/web-lume/
-   - apps/riagri-website/
+   - apps/admin/
+   - apps/website/
 
    v2.0:
    - backend/                    (same)
-   - apps/web-lume/             (moved from frontend/apps)
-   - apps/riagri-website/        (moved from frontend/apps)
+   - apps/admin/             (moved from frontend/apps)
+   - apps/website/        (moved from frontend/apps)
    - packages/@lume/*/           (shared config packages)
    ```
 
@@ -154,14 +154,14 @@ The shared config package (`packages/@lume/tailwind-config/`) defines:
 All apps extend this config:
 
 ```javascript
-// apps/web-lume/tailwind.config.js
+// apps/admin/tailwind.config.js
 import baseConfig from '@lume/tailwind-config';
 
 export default {
   ...baseConfig,
   content: [
     './src/**/*.{vue,js,ts}',
-    '../../../backend/src/modules/**/static/**/*.{vue,js,ts}'
+    '../../../legacy/express/src/modules/**/static/**/*.{vue,js,ts}'
   ]
 };
 ```
@@ -186,7 +186,7 @@ npx prisma generate
 npx prisma db push
 
 # 5. Install any new admin panel dependencies
-cd ../apps/web-lume
+cd ../apps/admin
 npm install
 
 # 6. Install any new public site dependencies
@@ -204,11 +204,11 @@ npm install
 | Backend dependencies | `npm install` | `backend/` |
 | Prisma client | `npx prisma generate` | `backend/` |
 | Schema sync | `npx prisma db push` | `backend/` |
-| Admin panel dependencies | `npm install` | `apps/web-lume/` |
-| Public site dependencies | `npm install` | `apps/riagri-website/` |
+| Admin panel dependencies | `npm install` | `apps/admin/` |
+| Public site dependencies | `npm install` | `apps/website/` |
 | Restart backend | `npm run dev` | `backend/` |
-| Restart admin panel | `npm run dev` | `apps/web-lume/` |
-| Restart public site | `npm run dev` | `apps/riagri-website/` |
+| Restart admin panel | `npm run dev` | `apps/admin/` |
+| Restart public site | `npm run dev` | `apps/website/` |
 
 ---
 
@@ -441,7 +441,7 @@ git checkout <commit>      # Revert to it
 
 # Re-sync
 cd backend && npm install && npx prisma generate
-cd ../apps/web-lume && npm install
+cd ../apps/admin && npm install
 cd ../riagri-website && npm install
 ```
 
@@ -481,11 +481,11 @@ git checkout <last-known-good-commit>
 
 # 5. Re-sync
 cd backend && npm install && npx prisma generate
-cd ../apps/web-lume && npm install
-cd ../apps/riagri-website && npm install
+cd ../apps/admin && npm install
+cd ../apps/website && npm install
 
 # 6. Restart
 cd backend && npm run dev &
-cd ../apps/web-lume && npm run dev &
-cd ../apps/riagri-website && npm run dev &
+cd ../apps/admin && npm run dev &
+cd ../apps/website && npm run dev &
 ```

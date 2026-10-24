@@ -4,15 +4,14 @@
     "baseUrl": ".",
     "paths": {
       "@lume/*": ["packages/@lume/*/src"],
-      "@backend/*": ["backend/src/*"],
-      "@modules/*": ["backend/src/modules/*"]
+      "@backend/*": ["apps/api/src/*"],
+      "@modules/*": ["packages/@lume/module-ui/src/modules/*"]
     }
   },
   "include": [
-    "backend/**/*.ts",
     "apps/**/*.ts",
     "apps/**/*.vue",
     "packages/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "legacy", "**/dist", "**/.nuxt", "**/.output"]
 }

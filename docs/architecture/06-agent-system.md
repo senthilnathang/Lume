@@ -201,7 +201,7 @@ export function agent(
 Agents register via the module manifest:
 
 ```typescript
-// backend/src/modules/support/manifest.ts
+// legacy/express/src/modules/support/manifest.ts
 
 export default {
   id: 'support',
@@ -357,7 +357,7 @@ export default {
 
 **Code:**
 ```typescript
-// backend/src/core/agent/agent-registry.ts
+// legacy/express/src/core/agent/agent-registry.ts
 export class AgentRegistry {
   private agents = new Map<string, AgentDefinition>();
   private listeners = new Map<string, Set<AgentDefinition>>();
@@ -408,7 +408,7 @@ export class AgentRegistry {
 
 **Code:**
 ```typescript
-// backend/src/core/agent/agent-executor.ts
+// legacy/express/src/core/agent/agent-executor.ts
 export class AgentExecutor {
   constructor(
     private registry: AgentRegistry,

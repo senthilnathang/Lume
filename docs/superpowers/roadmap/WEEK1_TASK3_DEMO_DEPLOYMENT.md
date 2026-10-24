@@ -391,7 +391,7 @@ railway logs -s backend
 ```
 
 **Common issues:**
-1. **Prisma schema mismatch:** Railway MySQL schema must match `backend/prisma/schema.prisma`
+1. **Prisma schema mismatch:** Railway MySQL schema must match `legacy/express/prisma/schema.prisma`
    - Solution: Run `npx prisma db push` in Railway's terminal
 2. **JWT secrets not set:** Check environment variables
 3. **Database not ready:** Wait 2-3 minutes for MySQL to initialize

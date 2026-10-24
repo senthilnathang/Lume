@@ -1,7 +1,7 @@
 Frontend release-blocker repairs — 2026-10-23
 
-Scope: active apps/web-lume admin and apps/riagri-website public website,
-including their shared Vue views/widgets under backend/src/modules.
+Scope: active apps/admin admin and apps/website public website,
+including their shared Vue views/widgets under legacy/express/src/modules.
 
 VERIFIED
 - Admin production build, strict Vue typecheck, and lint pass.
@@ -52,7 +52,7 @@ The NestJS service and its application database were not changed by this work.
 LIMITS AND FOLLOW-UP
 This closes the identified build/type/lint/discovery blockers for the two active
 frontends. It does not certify every feature or a production frontend deployment.
-The old frontend/lume-admin application is outside this scope.
+The old legacy/frontend/lume-admin application is outside this scope.
 The full legacy browser suite still needs updated fixture assumptions and a
 dedicated cross-browser run; several specs reference the old GAWDESY account/UI.
 The temporary Express API still reports the pre-existing QueueScheduler constructor

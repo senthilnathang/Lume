@@ -62,7 +62,7 @@ A **module** is a self-contained, pluggable unit of functionality. Each module:
 ## Module Structure
 
 ```
-backend/src/modules/{name}/
+legacy/express/src/modules/{name}/
 ├── manifest.js              # Module metadata & configuration
 ├── __init__.js              # Module initialization
 ├── models/
@@ -89,12 +89,12 @@ backend/src/modules/{name}/
 ### Step 1: Create Directory Structure
 
 ```bash
-mkdir -p backend/src/modules/mymodule/{models,services,routes,static/views,static/api,tests}
+mkdir -p legacy/express/src/modules/mymodule/{models,services,routes,static/views,static/api,tests}
 ```
 
 ### Step 2: Create Manifest
 
-**File: `backend/src/modules/mymodule/manifest.js`**
+**File: `legacy/express/src/modules/mymodule/manifest.js`**
 
 ```javascript
 export default {
@@ -158,7 +158,7 @@ export default {
 
 ### Step 3: Define Database Schema
 
-**File: `backend/src/modules/mymodule/models/schema.js`**
+**File: `legacy/express/src/modules/mymodule/models/schema.js`**
 
 ```javascript
 import { table, varchar, text, int, timestamp, boolean } from '../../../core/db/dialect.js';
@@ -180,7 +180,7 @@ export const mymoduleItems = table('mymodule_items', {
 
 ### Step 4: Create Service Layer
 
-**File: `backend/src/modules/mymodule/services/mymodule.service.js`**
+**File: `legacy/express/src/modules/mymodule/services/mymodule.service.js`**
 
 ```javascript
 import { BaseService } from '../../../core/services/base.service.js';
@@ -218,7 +218,7 @@ export class MyModuleService extends BaseService {
 
 ### Step 5: Create API Routes
 
-**File: `backend/src/modules/mymodule/routes.js`**
+**File: `legacy/express/src/modules/mymodule/routes.js`**
 
 ```javascript
 import { Router } from 'express';
@@ -271,7 +271,7 @@ export function createMyModuleRoutes(drizzle, prisma) {
 
 ### Step 6: Create Initialization
 
-**File: `backend/src/modules/mymodule/__init__.js`**
+**File: `legacy/express/src/modules/mymodule/__init__.js`**
 
 ```javascript
 import manifest from './manifest.js';
@@ -310,7 +310,7 @@ export default manifest;
 
 ### Step 7: Create Frontend Views
 
-**File: `backend/src/modules/mymodule/static/views/index.vue`**
+**File: `legacy/express/src/modules/mymodule/static/views/index.vue`**
 
 ```vue
 <template>
@@ -570,7 +570,7 @@ router.delete('/:id', authorize('mymodule.delete'), handler);
 All module frontend code lives in `static/` directory:
 
 ```
-backend/src/modules/mymodule/static/
+legacy/express/src/modules/mymodule/static/
 ├── views/
 │   ├── index.vue           # List view
 │   ├── detail.vue          # Detail view
@@ -667,7 +667,7 @@ The module loader handles:
 ## Testing Modules
 
 ```javascript
-// backend/src/modules/mymodule/tests/mymodule.service.test.js
+// legacy/express/src/modules/mymodule/tests/mymodule.service.test.js
 import { MyModuleService } from '../services/mymodule.service.js';
 
 describe('MyModuleService', () => {

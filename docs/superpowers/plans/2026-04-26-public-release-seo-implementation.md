@@ -31,7 +31,7 @@ docs/
 
 ### Website Files to Modify/Create
 ```
-frontend/apps/riagri-website/
+frontend/apps/website/
 ├── nuxt.config.ts (update SEO metadata, sitemap)
 ├── pages/
 │   ├── index.vue (marketing homepage)
@@ -70,7 +70,7 @@ frontend/apps/riagri-website/
 
 ### Backend SEO Files
 ```
-backend/src/
+legacy/express/src/
 ├── core/seo/ (new module)
 │   ├── schema-generator.ts (JSON-LD, OpenGraph)
 │   ├── sitemap-service.ts (dynamic sitemap generation)
@@ -455,7 +455,7 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 
 **Files:**
 - Create: `docs/PUBLIC_API_REFERENCE.md`
-- Reference: `backend/src/` controllers, routes, types
+- Reference: `legacy/express/src/` controllers, routes, types
 
 **Steps:**
 
@@ -781,18 +781,18 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 #### Task 5: Implement SEO Metadata & Schema.org Markup
 
 **Files:**
-- Modify: `frontend/apps/riagri-website/nuxt.config.ts`
-- Create: `frontend/apps/riagri-website/composables/useMetadata.ts`
-- Create: `frontend/apps/riagri-website/utils/schema-generator.ts`
-- Create: `frontend/apps/riagri-website/public/robots.txt`
-- Create: `frontend/apps/riagri-website/public/security.txt`
+- Modify: `frontend/apps/website/nuxt.config.ts`
+- Create: `frontend/apps/website/composables/useMetadata.ts`
+- Create: `frontend/apps/website/utils/schema-generator.ts`
+- Create: `frontend/apps/website/public/robots.txt`
+- Create: `frontend/apps/website/public/security.txt`
 
 **Steps:**
 
 - [ ] **Step 1: Write useMetadata composable**
 
 ```typescript
-// frontend/apps/riagri-website/composables/useMetadata.ts
+// frontend/apps/website/composables/useMetadata.ts
 export const useMetadata = (props: {
   title: string
   description: string
@@ -859,7 +859,7 @@ export const useMetadata = (props: {
 - [ ] **Step 2: Write schema-generator utility**
 
 ```typescript
-// frontend/apps/riagri-website/utils/schema-generator.ts
+// frontend/apps/website/utils/schema-generator.ts
 export const generateOrgSchema = () => ({
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -921,7 +921,7 @@ export const generateBreadcrumbSchema = (breadcrumbs: Array<{name: string, url: 
 - [ ] **Step 3: Create robots.txt**
 
 ```text
-# frontend/apps/riagri-website/public/robots.txt
+# frontend/apps/website/public/robots.txt
 User-agent: *
 Allow: /
 Disallow: /admin
@@ -942,7 +942,7 @@ Crawl-delay: 10
 - [ ] **Step 4: Create security.txt**
 
 ```text
-# frontend/apps/riagri-website/public/security.txt
+# frontend/apps/website/public/security.txt
 Contact: security@lume.dev
 Expires: 2026-12-31T23:59:59.000Z
 Preferred-Languages: en
@@ -999,7 +999,7 @@ export default defineNuxtConfig({
 - [ ] **Step 6: Commit**
 
 ```bash
-git add frontend/apps/riagri-website/
+git add frontend/apps/website/
 git commit -m "feat: implement SEO metadata, schema.org markup, robots.txt
 
 - useMetadata composable for page-level SEO
@@ -1017,17 +1017,17 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 #### Task 6: Create Marketing Homepage & Feature Pages
 
 **Files:**
-- Create: `frontend/apps/riagri-website/pages/index.vue` (marketing homepage)
-- Create: `frontend/apps/riagri-website/pages/features.vue`
-- Create: `frontend/apps/riagri-website/pages/pricing.vue`
-- Modify: `frontend/apps/riagri-website/app.vue`
+- Create: `frontend/apps/website/pages/index.vue` (marketing homepage)
+- Create: `frontend/apps/website/pages/features.vue`
+- Create: `frontend/apps/website/pages/pricing.vue`
+- Modify: `frontend/apps/website/app.vue`
 
 **Steps:**
 
 - [ ] **Step 1: Create marketing homepage (index.vue)**
 
 ```vue
-<!-- frontend/apps/riagri-website/pages/index.vue -->
+<!-- frontend/apps/website/pages/index.vue -->
 <template>
   <div class="homepage">
     <!-- Hero Section -->
@@ -1114,7 +1114,7 @@ useHead({
 - [ ] **Step 2: Create features.vue**
 
 ```vue
-<!-- frontend/apps/riagri-website/pages/features.vue -->
+<!-- frontend/apps/website/pages/features.vue -->
 <template>
   <div class="features-page">
     <h1 class="text-4xl font-bold text-center py-12">Features</h1>
@@ -1174,7 +1174,7 @@ useMetadata({
 - [ ] **Step 3: Create pricing.vue**
 
 ```vue
-<!-- frontend/apps/riagri-website/pages/pricing.vue -->
+<!-- frontend/apps/website/pages/pricing.vue -->
 <template>
   <div class="pricing-page">
     <div class="text-center py-12">
@@ -1239,7 +1239,7 @@ useMetadata({
 - [ ] **Step 4: Update app.vue with navigation**
 
 ```vue
-<!-- frontend/apps/riagri-website/app.vue (add header) -->
+<!-- frontend/apps/website/app.vue (add header) -->
 <template>
   <div>
     <header class="bg-white shadow">
@@ -1270,7 +1270,7 @@ useMetadata({
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/apps/riagri-website/pages/
+git add frontend/apps/website/pages/
 git commit -m "feat: create marketing website pages
 
 - Marketing homepage with hero, features, CTA
@@ -1287,17 +1287,17 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 #### Task 7: Create Blog Infrastructure & SEO Content
 
 **Files:**
-- Create: `frontend/apps/riagri-website/pages/blog/index.vue`
-- Create: `frontend/apps/riagri-website/pages/blog/[slug].vue`
-- Create: `frontend/apps/riagri-website/content/blog/*.md` (13+ blog posts)
-- Create: `frontend/apps/riagri-website/composables/useBlogMetadata.ts`
+- Create: `frontend/apps/website/pages/blog/index.vue`
+- Create: `frontend/apps/website/pages/blog/[slug].vue`
+- Create: `frontend/apps/website/content/blog/*.md` (13+ blog posts)
+- Create: `frontend/apps/website/composables/useBlogMetadata.ts`
 
 **Steps:**
 
 - [ ] **Step 1: Create blog list page (index.vue)**
 
 ```vue
-<!-- frontend/apps/riagri-website/pages/blog/index.vue -->
+<!-- frontend/apps/website/pages/blog/index.vue -->
 <template>
   <div class="blog-page">
     <div class="text-center py-12">
@@ -1340,7 +1340,7 @@ useMetadata({
 - [ ] **Step 2: Create blog post template ([slug].vue)**
 
 ```vue
-<!-- frontend/apps/riagri-website/pages/blog/[slug].vue -->
+<!-- frontend/apps/website/pages/blog/[slug].vue -->
 <template>
   <article class="blog-post">
     <div class="max-w-3xl mx-auto py-12 px-4">
@@ -1432,7 +1432,7 @@ Create 13+ posts from the SEO strategy:
 - [ ] **Step 4: Setup blog content metadata composable**
 
 ```typescript
-// frontend/apps/riagri-website/composables/useBlogMetadata.ts
+// frontend/apps/website/composables/useBlogMetadata.ts
 export interface BlogPost {
   title: string
   excerpt: string
@@ -1456,7 +1456,7 @@ export const useBlogMetadata = (post: BlogPost) => {
 - [ ] **Step 5: Commit blog infrastructure**
 
 ```bash
-git add frontend/apps/riagri-website/pages/blog/ frontend/apps/riagri-website/content/blog/
+git add frontend/apps/website/pages/blog/ frontend/apps/website/content/blog/
 
 git commit -m "feat: create blog infrastructure and publish 13+ SEO content posts
 
@@ -1482,7 +1482,7 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 #### Task 8: Configure Analytics, Monitoring, & Infrastructure
 
 **Files:**
-- Create: `backend/src/core/observability/analytics.ts`
+- Create: `legacy/express/src/core/observability/analytics.ts`
 - Modify: `backend/main.ts` (add analytics middleware)
 - Create: `.env.production` (infrastructure configuration)
 - Create: `docs/deployment/INFRASTRUCTURE_SETUP.md` (deployment guide)
@@ -1492,7 +1492,7 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 - [ ] **Step 1: Add Plausible Analytics**
 
 ```typescript
-// frontend/apps/riagri-website/nuxt.config.ts
+// frontend/apps/website/nuxt.config.ts
 export default defineNuxtConfig({
   modules: [
     '@nuxtjs/plausible' // or similar privacy-friendly analytics
@@ -1559,7 +1559,7 @@ Infrastructure checklist:
 - [ ] **Step 5: Commit infrastructure configuration**
 
 ```bash
-git add backend/main.ts frontend/apps/riagri-website/nuxt.config.ts .env.production docs/deployment/INFRASTRUCTURE_SETUP.md
+git add backend/main.ts frontend/apps/website/nuxt.config.ts .env.production docs/deployment/INFRASTRUCTURE_SETUP.md
 
 git commit -m "feat: configure analytics, monitoring, and production infrastructure
 
@@ -1581,7 +1581,7 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 **Files:**
 - Create: `docs/LAUNCH_CHECKLIST.md`
 - Create: `docs/MARKETING_MATERIALS.md`
-- Create: `backend/src/emails/templates/` (email templates for launch)
+- Create: `legacy/express/src/emails/templates/` (email templates for launch)
 - Create: `.well-known/github-for-marketing.txt` (GitHub metadata)
 
 **Steps:**
@@ -1706,7 +1706,7 @@ Email templates ready for different audiences:
 - [ ] **Step 4: Commit launch materials**
 
 ```bash
-git add docs/LAUNCH_CHECKLIST.md docs/MARKETING_MATERIALS.md backend/src/emails/templates/ .well-known/
+git add docs/LAUNCH_CHECKLIST.md docs/MARKETING_MATERIALS.md legacy/express/src/emails/templates/ .well-known/
 
 git commit -m "docs: create launch checklist and marketing materials templates
 
@@ -1731,7 +1731,7 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 **Files:**
 - Create: `docs/PERFORMANCE_REPORT.md`
 - Create: `docs/SECURITY_AUDIT_RESULTS.md`
-- Create: `backend/tests/load-test.js`
+- Create: `legacy/express/tests/load-test.js`
 
 **Steps:**
 
@@ -1750,7 +1750,7 @@ Document results in `PERFORMANCE_REPORT.md`
 Test capacity: 10,000 concurrent visitors (launch day spike)
 
 ```javascript
-// backend/tests/load-test.js
+// legacy/express/tests/load-test.js
 import autocannon from 'autocannon'
 
 const result = await autocannon({
@@ -1802,7 +1802,7 @@ Verify all 100+ endpoints:
 - [ ] **Step 5: Commit test results**
 
 ```bash
-git add docs/PERFORMANCE_REPORT.md docs/SECURITY_AUDIT_RESULTS.md backend/tests/load-test.js
+git add docs/PERFORMANCE_REPORT.md docs/SECURITY_AUDIT_RESULTS.md legacy/express/tests/load-test.js
 
 git commit -m "docs: publish performance and security audit results
 
@@ -1937,7 +1937,7 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 - Thank you to all community members and contributors
 
 ## Upgrade Guide
-See [MIGRATION_GUIDE.md](docs/MIGRATION_GUIDE.md) for upgrade instructions.
+See [MIGRATION_GUIDE.md](../../MIGRATION_GUIDE.md) for upgrade instructions.
 ```
 
 - [ ] **Step 2: Version bump and tag**

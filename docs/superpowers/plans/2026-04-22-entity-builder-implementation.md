@@ -14,7 +14,7 @@
 
 ### Backend Services
 ```
-backend/src/core/services/
+legacy/express/src/core/services/
 ├── record.service.js              (NEW - Dynamic record CRUD)
 ├── view-renderer.service.js       (NEW - Render view configs)
 ├── filter.service.js              (NEW - Parse/apply filters)
@@ -25,7 +25,7 @@ backend/src/core/services/
 
 ### Backend Routes
 ```
-backend/src/modules/base/api/
+legacy/express/src/modules/base/api/
 ├── entity-records.routes.js       (NEW - Record CRUD endpoints)
 ├── entity-views.routes.js         (MODIFY - Add view render endpoint)
 └── entity.routes.js               (EXISTING - No changes)
@@ -33,7 +33,7 @@ backend/src/modules/base/api/
 
 ### Database
 ```
-backend/prisma/
+legacy/express/prisma/
 ├── schema.prisma                  (MODIFY - Add 3 new models, extend EntityRecord)
 └── migrations/
     └── [timestamp]_add_relationships.sql (NEW)
@@ -41,7 +41,7 @@ backend/prisma/
 
 ### Frontend Components
 ```
-apps/web-lume/src/modules/entity-builder/
+apps/admin/src/modules/entity-builder/
 ├── views/
 │   ├── EntityListView.vue         (NEW)
 │   ├── EntityGridView.vue         (NEW)
@@ -57,7 +57,7 @@ apps/web-lume/src/modules/entity-builder/
 
 ### Tests
 ```
-backend/tests/
+legacy/express/tests/
 ├── unit/services/
 │   ├── record.service.test.js
 │   ├── filter.service.test.js
@@ -66,7 +66,7 @@ backend/tests/
 └── integration/
     └── entity-builder-records.test.js
 
-apps/web-lume/src/modules/entity-builder/__tests__/
+apps/admin/src/modules/entity-builder/__tests__/
 ├── EntityListView.test.ts
 ├── EntityGridView.test.ts
 ├── EntityFormView.test.ts
@@ -80,7 +80,7 @@ apps/web-lume/src/modules/entity-builder/__tests__/
 ## Task 1: Update Prisma Schema with New Models
 
 **Files:**
-- Modify: `backend/prisma/schema.prisma`
+- Modify: `legacy/express/prisma/schema.prisma`
 
 - [ ] **Step 1: Add EntityRelationship model**
 
@@ -205,7 +205,7 @@ Expected: Migration created, database updated
 - [ ] **Step 10: Commit schema changes**
 
 ```bash
-cd /opt/Lume && git add backend/prisma/schema.prisma && git commit -m "schema: add entity relationships and field permissions
+cd /opt/Lume && git add legacy/express/prisma/schema.prisma && git commit -m "schema: add entity relationships and field permissions
 
 - EntityRelationship model for one-to-many and many-to-many
 - EntityRelationshipRecord for junction records
@@ -223,12 +223,12 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ## Task 2: Create AccessControlService
 
 **Files:**
-- Create: `backend/src/core/services/access-control.service.js`
-- Test: `backend/tests/unit/services/access-control.service.test.js`
+- Create: `legacy/express/src/core/services/access-control.service.js`
+- Test: `legacy/express/tests/unit/services/access-control.service.test.js`
 
 - [ ] **Step 1: Write failing test for company scoping**
 
-Create `backend/tests/unit/services/access-control.service.test.js`:
+Create `legacy/express/tests/unit/services/access-control.service.test.js`:
 
 ```javascript
 import { describe, it, expect, beforeEach } from '@jest/globals';
@@ -300,7 +300,7 @@ Expected: FAIL - "Cannot find module"
 
 - [ ] **Step 3: Create AccessControlService implementation**
 
-Create `backend/src/core/services/access-control.service.js`:
+Create `legacy/express/src/core/services/access-control.service.js`:
 
 ```javascript
 /**
@@ -419,7 +419,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/core/services/access-control.service.js backend/tests/unit/services/access-control.service.test.js && git commit -m "feat: add AccessControlService for company scoping and field permissions
+cd /opt/Lume && git add legacy/express/src/core/services/access-control.service.js legacy/express/tests/unit/services/access-control.service.test.js && git commit -m "feat: add AccessControlService for company scoping and field permissions
 
 - scopeQuery: Add company filter to queries
 - enforceFieldPermissions: Filter fields by permission
@@ -436,12 +436,12 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ## Task 3: Create FilterService
 
 **Files:**
-- Create: `backend/src/core/services/filter.service.js`
-- Test: `backend/tests/unit/services/filter.service.test.js`
+- Create: `legacy/express/src/core/services/filter.service.js`
+- Test: `legacy/express/tests/unit/services/filter.service.test.js`
 
 - [ ] **Step 1: Write failing test for filter parsing**
 
-Create `backend/tests/unit/services/filter.service.test.js`:
+Create `legacy/express/tests/unit/services/filter.service.test.js`:
 
 ```javascript
 import { describe, it, expect, beforeEach } from '@jest/globals';
@@ -509,7 +509,7 @@ Expected: FAIL
 
 - [ ] **Step 3: Create FilterService implementation**
 
-Create `backend/src/core/services/filter.service.js`:
+Create `legacy/express/src/core/services/filter.service.js`:
 
 ```javascript
 /**
@@ -637,7 +637,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/core/services/filter.service.js backend/tests/unit/services/filter.service.test.js && git commit -m "feat: add FilterService for query filtering and sorting
+cd /opt/Lume && git add legacy/express/src/core/services/filter.service.js legacy/express/tests/unit/services/filter.service.test.js && git commit -m "feat: add FilterService for query filtering and sorting
 
 - buildWhereCondition: Parse filters into Prisma where conditions
 - Operators: eq, neq, gt, gte, lt, lte, in, contains, startsWith, endsWith, between, exists
@@ -655,12 +655,12 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ## Task 4: Create ViewRendererService
 
 **Files:**
-- Create: `backend/src/core/services/view-renderer.service.js`
-- Test: `backend/tests/unit/services/view-renderer.service.test.js`
+- Create: `legacy/express/src/core/services/view-renderer.service.js`
+- Test: `legacy/express/tests/unit/services/view-renderer.service.test.js`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/tests/unit/services/view-renderer.service.test.js`:
+Create `legacy/express/tests/unit/services/view-renderer.service.test.js`:
 
 ```javascript
 import { describe, it, expect, beforeEach } from '@jest/globals';
@@ -747,7 +747,7 @@ Expected: FAIL
 
 - [ ] **Step 3: Create ViewRendererService implementation**
 
-Create `backend/src/core/services/view-renderer.service.js`:
+Create `legacy/express/src/core/services/view-renderer.service.js`:
 
 ```javascript
 /**
@@ -878,7 +878,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/core/services/view-renderer.service.js backend/tests/unit/services/view-renderer.service.test.js && git commit -m "feat: add ViewRendererService for rendering view configurations
+cd /opt/Lume && git add legacy/express/src/core/services/view-renderer.service.js legacy/express/tests/unit/services/view-renderer.service.test.js && git commit -m "feat: add ViewRendererService for rendering view configurations
 
 - renderView: Render view by ID with parsed config
 - getViewMetadata: Get columns/fields for list/grid/form views
@@ -896,12 +896,12 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ## Task 5: Create RelationshipService
 
 **Files:**
-- Create: `backend/src/core/services/relationship.service.js`
-- Test: `backend/tests/unit/services/relationship.service.test.js`
+- Create: `legacy/express/src/core/services/relationship.service.js`
+- Test: `legacy/express/tests/unit/services/relationship.service.test.js`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/tests/unit/services/relationship.service.test.js`:
+Create `legacy/express/tests/unit/services/relationship.service.test.js`:
 
 ```javascript
 import { describe, it, expect, beforeEach } from '@jest/globals';
@@ -965,7 +965,7 @@ Expected: FAIL
 
 - [ ] **Step 3: Create RelationshipService implementation**
 
-Create `backend/src/core/services/relationship.service.js`:
+Create `legacy/express/src/core/services/relationship.service.js`:
 
 ```javascript
 /**
@@ -1115,7 +1115,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/core/services/relationship.service.js backend/tests/unit/services/relationship.service.test.js && git commit -m "feat: add RelationshipService for entity-to-entity links
+cd /opt/Lume && git add legacy/express/src/core/services/relationship.service.js legacy/express/tests/unit/services/relationship.service.test.js && git commit -m "feat: add RelationshipService for entity-to-entity links
 
 - linkRecords: Create relationship between two records
 - unlinkRecords: Remove relationship link
@@ -1134,12 +1134,12 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ## Task 6: Create RecordService
 
 **Files:**
-- Create: `backend/src/core/services/record.service.js`
-- Test: `backend/tests/unit/services/record.service.test.js`
+- Create: `legacy/express/src/core/services/record.service.js`
+- Test: `legacy/express/tests/unit/services/record.service.test.js`
 
 - [ ] **Step 1: Write failing test**
 
-Create `backend/tests/unit/services/record.service.test.js`:
+Create `legacy/express/tests/unit/services/record.service.test.js`:
 
 ```javascript
 import { describe, it, expect, beforeEach } from '@jest/globals';
@@ -1236,7 +1236,7 @@ Expected: FAIL
 
 - [ ] **Step 3: Create RecordService implementation**
 
-Create `backend/src/core/services/record.service.js`:
+Create `legacy/express/src/core/services/record.service.js`:
 
 ```javascript
 /**
@@ -1514,7 +1514,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/core/services/record.service.js backend/tests/unit/services/record.service.test.js && git commit -m "feat: add RecordService for dynamic entity CRUD
+cd /opt/Lume && git add legacy/express/src/core/services/record.service.js legacy/express/tests/unit/services/record.service.test.js && git commit -m "feat: add RecordService for dynamic entity CRUD
 
 - createRecord: Create record with validation
 - getRecord: Get single record with company scoping
@@ -1536,11 +1536,11 @@ Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ## Task 7: Create Record CRUD Routes
 
 **Files:**
-- Create: `backend/src/modules/base/api/entity-records.routes.js`
+- Create: `legacy/express/src/modules/base/api/entity-records.routes.js`
 
 - [ ] **Step 1: Create routes file**
 
-Create `backend/src/modules/base/api/entity-records.routes.js`:
+Create `legacy/express/src/modules/base/api/entity-records.routes.js`:
 
 ```javascript
 /**
@@ -1723,7 +1723,7 @@ Expected: No syntax errors
 
 - [ ] **Step 3: Register routes in base module manifest**
 
-Read the base module manifest and add the routes to registration. This would be in `backend/src/modules/base/__manifest__.js`. In the `setupRoutes` function, add:
+Read the base module manifest and add the routes to registration. This would be in `legacy/express/src/modules/base/__manifest__.js`. In the `setupRoutes` function, add:
 
 ```javascript
 // In setupRoutes(app, prisma)
@@ -1739,7 +1739,7 @@ import { createEntityRecordsRoutes } from './api/entity-records.routes.js';
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base/api/entity-records.routes.js && git commit -m "feat: add entity record CRUD REST API routes
+cd /opt/Lume && git add legacy/express/src/modules/base/api/entity-records.routes.js && git commit -m "feat: add entity record CRUD REST API routes
 
 - POST /entities/:id/records - Create record with validation
 - GET /entities/:id/records - List with pagination, filters, sorting

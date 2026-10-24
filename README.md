@@ -4,8 +4,8 @@ Lume is a modular application platform with a NestJS API, Vue 3 administration
 client, and Nuxt 3 public website. Prisma and Drizzle share a MySQL database.
 
 **Migration status — 2026-10-24:** NestJS is deployed locally, but the complete
-standalone Express replacement is still in progress. The latest frontend contract
-and cleanup changes have not been deployed. Do not interpret historical completion
+standalone Express replacement is still in progress. The local API has restarted successfully from its canonical path; the built
+frontend assets have not been deployed. Do not interpret historical completion
 reports as release certification. Email, push and AI integrations remain disabled.
 
 ## Start here
@@ -20,31 +20,34 @@ reports as release certification. Email, push and AI integrations remain disable
 ## Repository ownership
 
 ```text
-apps/web-lume/                    Vue administration client
-apps/riagri-website/              Nuxt public website
-packages/@lume/module-ui/         Shared views, widgets, styles and browser adapters
-backend/lume-nestjs/              Active NestJS application, schema, migrations, tests
-backend/package.json             Workspace task gateway to NestJS
-backend/src/                     Legacy Express source retained during migration
-docs/                            Architecture, operations, evidence and open tasks
+apps/
+  api/                           NestJS API, schema, migrations and tests
+  admin/                         Vue administration client
+  website/                       Nuxt public website
+packages/@lume/                   Shared UI and tooling configuration
+scripts/                         Workspace validation and source audits
+docker/                          Observability configuration
+docs/                            Architecture, operations and migration evidence
+legacy/                          Inactive Express, old frontend and obsolete tooling
 ```
 
-The final API directory is planned as `backend/api/`. It has **not** moved yet:
-the running service and deployment scripts still use `backend/lume-nestjs`.
+All active applications use the root pnpm workspace and lockfile. Legacy sources
+are excluded from workspace installation, builds, CI and container images.
 Temporary legacy static-directory symlinks resolve into the shared UI package.
+NestJS still uses its supported Express HTTP adapter; the old standalone Express
+application is not an active workspace application.
 
 ## Development commands
 
-Use Node.js 20.12+ and the repository-pinned pnpm 10.28.2. NestJS maintains its own
-npm lockfile; the client workspace uses the root pnpm lockfile.
+Use Node.js 22.12+ and the repository-pinned pnpm 10.28.2. Install once at the root.
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm --filter lume-backend setup
-# Configure backend/lume-nestjs/.env using its .env.example before running.
+pnpm --filter @lume/api db:generate
+# Configure apps/api/.env using its .env.example before running.
 pnpm run dev:admin
 # In another terminal:
-pnpm --filter @lume/riagri-website dev
+pnpm --filter @lume/website dev
 ```
 
 Admin development uses port 3001; the website development command uses 3100.
@@ -57,7 +60,7 @@ Recent work covers authentication/session contracts, users/RBAC, settings,
 module catalog, workflow/flow definition CRUD, approval definitions and inbox,
 shared JSON persistence, and transactional sequence allocation. It does not certify
 all automation execution or module features. The current review inventory flags
-74 frontend calls and 100 Nest implementation markers; these are review candidates,
+79 frontend calls and 100 Nest implementation markers; these are review candidates,
 not counts of proven defects. See the task list for data migration, feature parity,
 CI/deployment and legacy retirement gates.
 

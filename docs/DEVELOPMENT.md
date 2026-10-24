@@ -9,24 +9,26 @@ Updated 2026-10-24. Start with [installation](INSTALLATION.md) and
 Run from the repository root:
 
 ```bash
-pnpm --filter lume-backend setup          # npm ci in backend/lume-nestjs
+pnpm install --frozen-lockfile
+pnpm --filter @lume/api db:generate
 pnpm run dev:admin                       # NestJS + Vue admin
-pnpm --filter @lume/riagri-website dev
-pnpm --filter lume-backend build
-pnpm --filter @lume/web-lume build
-pnpm --filter @lume/riagri-website build
-pnpm --filter lume-backend typecheck
-pnpm --filter @lume/web-lume typecheck
-pnpm --filter @lume/riagri-website typecheck
+pnpm --filter @lume/website dev
+pnpm --filter @lume/api build
+pnpm --filter @lume/admin build
+pnpm --filter @lume/website build
+pnpm --filter @lume/api typecheck
+pnpm --filter @lume/admin typecheck
+pnpm --filter @lume/website typecheck
 ```
 
-`backend/package.json` is the task gateway. Normal commands target NestJS;
-old commands are named `legacy:*`. NestJS lint is read-only; `lint:fix` modifies
-files. Do not use legacy database refresh/setup commands on the active database.
+The three active packages are `@lume/api`, `@lume/admin`, and `@lume/website`.
+The root scripts and `lume.sh` use these packages. Legacy applications and tooling
+are under `legacy/` and excluded from the workspace. Lint is read-only; `lint:fix`
+modifies files. Do not run legacy database setup commands on the active database.
 
 ## Implementing a backend feature
 
-1. Add or extend `backend/lume-nestjs/src/modules/<feature>` with a module,
+1. Add or extend `apps/api/src/modules/<feature>` with a module,
    controller, DTOs and service. Register it in the application/module graph.
 2. Validate inputs and apply explicit authentication/authorization. Propagate the
    authenticated actor and tenant; never trust caller-supplied identity fields.
@@ -40,7 +42,8 @@ files. Do not use legacy database refresh/setup commands on the active database.
 
 NestJS TypeScript compiles to CommonJS with decorators. Frontend packages use
 ES modules. Do not apply legacy Express module conventions to the Nest application.
-The old create-lume-app generator still targets legacy modules and requires migration.
+The generator in `legacy/packages/create-lume-app` still targets legacy modules
+and requires migration before reuse.
 
 ## Shared UI
 
@@ -48,11 +51,11 @@ Put browser code in `packages/@lume/module-ui/src/modules/<feature>/static`.
 The admin's `@modules` alias and website's `@widgets` alias resolve there.
 Application configs supply frontend dependencies explicitly. Preserve relative
 imports and verify both consumers when changing shared widgets. Temporary symlinks
-under `backend/src/modules` are compatibility paths; do not create a second copy.
+under `legacy/express/src/modules` are compatibility paths; do not create a second copy.
 
 ## Database changes
 
-Use the active Prisma schema and ordered SQL migrations under `backend/lume-nestjs`.
+Use the active Prisma schema and ordered SQL migrations under `apps/api`.
 Review the schema and migration ledger, back up existing data, test changes on a
 disposable database, and verify restore before production changes. The migration
 runner supports `--status` and explicit `--apply <filenames...>`; review the migration README before applying changes.

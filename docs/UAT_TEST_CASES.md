@@ -22,6 +22,7 @@ Updated 2026-10-24. Run on isolated data. Automated evidence is described in
 | CMS-01 | Published/private/unknown pages and sitemap | Published page renders; private data hidden; unknown page is 404 | Earlier isolated website/browser checks |
 | OPS-01 | Provider-disabled startup | HTTP health and GraphQL work with deliveries disabled | Complete AppModule startup checked |
 | OPS-02 | Fresh install, backup restore, deployment and rollback | Reproducible Nest-only release with preserved data | Final cutover pending |
+| STRUCT-01 | Canonical app roots and one lockfile | Only apps/api, apps/admin and apps/website are active; legacy excluded | scripts/check_layout.py; API image dependency smoke passed |
 | GAP-01 | State-machine execution, delegation/escalation, data/import/export and remaining modules | Required Express behavior implemented and verified in NestJS | Pending; do not sign off |
 
 A release sign-off must include configuration, commit, database isolation, executed

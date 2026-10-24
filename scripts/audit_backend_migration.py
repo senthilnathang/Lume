@@ -10,8 +10,8 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-legacy = ROOT / 'backend/src'
-nest = ROOT / 'backend/lume-nestjs/src'
+legacy = ROOT / 'legacy/express/src'
+nest = ROOT / 'apps/api/src'
 routes = []
 markers = []
 route_pattern = re.compile(r'\b(?:router|app)\.(get|post|put|patch|delete|use)\s*\(\s*([\'"`])([^\n]*?)\2')

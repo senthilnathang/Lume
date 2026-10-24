@@ -1,4 +1,3 @@
 packages:
-  - 'packages/@lume/*'
-  - 'backend'
   - 'apps/*'
+  - 'packages/@lume/*'

@@ -59,8 +59,8 @@ uploads/
 *.sqlite3
 
 # FastVue leftovers (not used by Lume)
-frontend/fastvue/
-frontend/fastvue-backend/
+legacy/frontend/fastvue/
+legacy/frontend/fastvue-backend/
 internal/
 
 # packages/@lume/* hosts shared workspace configs (eslint, tsconfig,
@@ -71,10 +71,10 @@ internal/
 
 # Development artifacts
 *.png
-!frontend/apps/web-lume/public/**
-!frontend/apps/web-lume/src/assets/**
-!frontend/apps/riagri-website/public/**
-!frontend/apps/riagri-website/assets/**
+!apps/admin/public/**
+!apps/admin/src/assets/**
+!apps/website/public/**
+!apps/website/assets/**
 
 # Debug/test HTML files (keep only index.html)
 *SUCCESS*.html

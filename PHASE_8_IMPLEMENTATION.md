@@ -32,7 +32,7 @@ Automatic state transitions with audit trail
 
 #### New Components to Create
 
-1. **WorkflowDesigner.vue** (main page - `backend/src/modules/base_automation/static/views/workflow-designer.vue`)
+1. **WorkflowDesigner.vue** (main page - `legacy/express/src/modules/base_automation/static/views/workflow-designer.vue`)
    - 3-panel layout: left (metadata/stats), center (canvas), right (properties)
    - VueFlow canvas with states + transitions
    - Top toolbar: Save, Run, AutoLayout buttons
@@ -231,7 +231,7 @@ All under `/api/base_automation/workflows/`:
 ## File Structure
 
 ```
-backend/src/modules/base_automation/
+legacy/express/src/modules/base_automation/
 ├── static/views/
 │   ├── workflow-designer.vue (COMPLETE)
 │   ├── workflow-execution.vue (NEW)
@@ -246,7 +246,7 @@ backend/src/modules/base_automation/
 └── api/
     └── workflow.routes.js (ENHANCE)
 
-frontend/lume-admin/src/
+legacy/frontend/lume-admin/src/
 ├── components/
 │   └── module/
 │       ├── WorkflowStateNode.vue (NEW)

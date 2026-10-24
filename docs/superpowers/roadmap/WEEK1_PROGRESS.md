@@ -1,12 +1,12 @@
 # Week 1 Progress: GitHub Launch Readiness
-**Target:** README rewrite + GitHub SEO + Live demo  
+**Target:** README rewrite + GitHub SEO + Live demo
 **Status:** Week 1 Task 1 Complete ✅
 
 ---
 
 ## ✅ Week 1 Task 1: README Rewrite
-**Status:** COMPLETE  
-**Commit:** `f75af36e`  
+**Status:** COMPLETE
+**Commit:** `f75af36e`
 **What was done:**
 - Repositioned from generic "enterprise-grade framework" to "Full-stack application platform. Enterprise software. 10x faster."
 - Added Problem/Solution framing (what developers hate about building enterprise apps)
@@ -18,8 +18,8 @@
 ---
 
 ## 📋 Week 1 Task 2: GitHub SEO & Topics
-**Status:** READY FOR EXECUTION  
-**Estimated time:** 5 minutes  
+**Status:** READY FOR EXECUTION
+**Estimated time:** 5 minutes
 **Manual steps required:** Yes (GitHub Web UI or CLI)
 
 ### Step 1: Update Repository Description
@@ -72,7 +72,7 @@ real-time
 ---
 
 ## 📺 Week 1 Task 3: Deploy Live Demo
-**Status:** NOT STARTED  
+**Status:** NOT STARTED
 **Estimated time:** 30-45 minutes
 
 ### Objective
@@ -80,20 +80,20 @@ Deploy Lume to a public URL so GitHub visitors can see a live demo without cloni
 
 ### Approach
 1. **Platform choice:** DigitalOcean App Platform, Railway, or Render (free tier suitable for demo)
-2. **What to deploy:** 
+2. **What to deploy:**
    - Backend (`backend/`) with MySQL database
-   - Frontend (`frontend/apps/web-lume/`) SPA at `/` 
-   - Nuxt site (`frontend/apps/riagri-website/`) optional (nice-to-have)
-3. **Demo credentials:** 
+   - Frontend (`frontend/apps/admin/`) SPA at `/`
+   - Nuxt site (`frontend/apps/website/`) optional (nice-to-have)
+3. **Demo credentials:**
    - Email: `demo@lume.dev`
    - Password: `Demo1234!`
-4. **Pre-populate:** 
+4. **Pre-populate:**
    - Sample entities (Products, Orders, Customers)
    - Sample entity records (10 products, 25 orders, 5 customers with relationships)
    - Sample workflows, automation rules
 5. **GitHub README link:** Add banner at top:
    ```markdown
-   🚀 **[Try Live Demo →](https://lume-demo.example.com)** 
+   🚀 **[Try Live Demo →](https://lume-demo.example.com)**
    (admin credentials: demo@lume.dev / Demo1234!)
    ```
 

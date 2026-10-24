@@ -1,37 +1,14 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/backend"
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+      interval: weekly
     groups:
-      backend-minor-patch:
-        update-types: ["minor", "patch"]
-    labels: ["dependencies", "backend"]
-
-  - package-ecosystem: "npm"
-    directory: "/apps/web-lume"
-    schedule:
-      interval: "weekly"
+      workspace-minor-patch:
+        update-types: [minor, patch]
     open-pull-requests-limit: 5
-    groups:
-      admin-minor-patch:
-        update-types: ["minor", "patch"]
-    labels: ["dependencies", "admin"]
-
-  - package-ecosystem: "npm"
-    directory: "/apps/riagri-website"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    groups:
-      website-minor-patch:
-        update-types: ["minor", "patch"]
-    labels: ["dependencies", "website"]
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    labels: ["dependencies", "ci"]
+      interval: weekly

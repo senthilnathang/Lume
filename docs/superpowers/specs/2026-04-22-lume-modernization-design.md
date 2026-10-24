@@ -167,16 +167,16 @@ lume/
 
 ### Test Structure
 ```
-backend/tests/
+legacy/express/tests/
 ├── unit/
 ├── integration/
 └── e2e/
 
-frontend/apps/web-lume/tests/
+frontend/apps/admin/tests/
 ├── unit/
 └── e2e/
 
-frontend/apps/riagri-website/tests/
+frontend/apps/website/tests/
 ├── unit/
 └── e2e/
 ```

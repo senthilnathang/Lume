@@ -129,7 +129,7 @@ export default {
 
 ### Module Static Views
 
-Location: `/backend/src/modules/{name}/static/views/{viewName}.vue`
+Location: `/legacy/express/src/modules/{name}/static/views/{viewName}.vue`
 
 Views are served as-is via Express static middleware:
 ```javascript
@@ -319,7 +319,7 @@ cd /opt/Lume/backend
 npm run dev
 
 # Terminal 2: Frontend (port 5173)
-cd /opt/Lume/frontend/lume-admin
+cd /opt/Lume/legacy/frontend/lume-admin
 npm run dev
 ```
 
@@ -464,7 +464,7 @@ onMounted(() => fetchUsers())
 - `/opt/Lume/docs/ARCHITECTURE.md` - System architecture
 - `/opt/Lume/docs/DEVELOPMENT.md` - Development guide
 - `/opt/Lume/backend/README.md` - Backend setup
-- `/opt/Lume/frontend/lume-admin/README.md` - Frontend setup
+- `/opt/Lume/legacy/frontend/lume-admin/README.md` - Frontend setup
 
 ---
 

@@ -1,70 +1,69 @@
-version: '3.8'
-
+# Configure .env using .env.example. Apply the reviewed schema/migrations before API startup.
 services:
-  mariadb:
+  db:
     image: mariadb:10.11
-    container_name: ${COMPOSE_PROJECT_NAME:-lume}-mariadb
     restart: unless-stopped
-    # mariadb:10.11 accepts both MARIADB_* and MYSQL_* env vars; keeping
-    # MYSQL_* for parity with cPanel hosting and the Prisma `mysql://`
-    # URL scheme. Migrate to MARIADB_* if you ever drop MYSQL_* support.
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${DB_NAME:-lume}
-      MYSQL_CHARSET: utf8mb4
-      MYSQL_COLLATION: utf8mb4_unicode_ci
-    ports:
-      - "${DB_PORT:-3306}:3306"
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME:-lume}
+      MARIADB_USER: ${DB_USER:-lume}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
     volumes:
-      - mariadb_data:/var/lib/mysql
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - database:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
       interval: 10s
       timeout: 5s
-      retries: 5
-
-  backend:
+      retries: 10
+  api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME:-lume}-backend
+      context: .
+      dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     environment:
       NODE_ENV: production
+      HOST: 0.0.0.0
       PORT: 3000
-      DB_HOST: mariadb
-      DB_PORT: 3306
-      DB_NAME: ${DB_NAME:-lume}
-      DB_USER: ${DB_USER:-root}
-      DB_PASSWORD: ${DB_PASSWORD:-rootpassword}
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key}
-      JWT_EXPIRES_IN: 7d
-    ports:
-      - "3000:3000"
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL using the db hostname}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://localhost:3100}
+      AUTOMATION_WORKER_ENABLED: 'false'
+      AUTOMATION_DURABLE_EVENTS: 'false'
+      AI_API_KEY: ''
+      AI_MODEL: ''
+      EMAIL_GATEWAY_URL: ''
+      PUSH_GATEWAY_URL: ''
+    ports: ['127.0.0.1:${API_PORT:-3000}:3000']
     depends_on:
-      mariadb:
+      db:
         condition: service_healthy
     volumes:
       - uploads:/app/uploads
-      - logs:/app/logs
-
-  frontend:
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/v2/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+  admin:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME:-lume}-frontend
-    restart: unless-stopped
-    ports:
-      - "80:80"
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    ports: ['127.0.0.1:${ADMIN_PORT:-8080}:80']
     depends_on:
-      - backend
-
+      api:
+        condition: service_healthy
+  website:
+    build:
+      context: .
+      dockerfile: apps/website/Dockerfile
+    environment:
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:?Set a public API URL reachable by browsers and containers}
+      NUXT_PUBLIC_SITE_URL: ${NUXT_PUBLIC_SITE_URL:-http://localhost:3100}
+    ports: ['127.0.0.1:${WEBSITE_PORT:-3100}:3100']
+    depends_on:
+      api:
+        condition: service_healthy
 volumes:
-  mariadb_data:
+  database:
   uploads:
-  logs:
-
-networks:
-  default:
-    name: ${COMPOSE_PROJECT_NAME:-lume}-network

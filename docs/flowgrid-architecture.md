@@ -236,7 +236,7 @@ Together, they form **Lume's intelligent automation backbone** — comparable to
 ### IWorkflowNode Interface (Core)
 
 ```typescript
-// backend/src/core/flowgrid/types/node.ts
+// legacy/express/src/core/flowgrid/types/node.ts
 
 export interface IWorkflowNode {
   // ═══════════════════════════════════════════════════════
@@ -576,7 +576,7 @@ Node-1 (LLM) streaming tokens → Node-2 (aggregator) accumulating → Node-3
 ### Execution Algorithm
 
 ```typescript
-// backend/src/core/flowgrid/engine/graph-executor.ts
+// legacy/express/src/core/flowgrid/engine/graph-executor.ts
 
 export class GraphExecutor {
   /**
@@ -969,7 +969,7 @@ export class GraphExecutor {
 ### Agent Orchestration Engine
 
 ```typescript
-// backend/src/core/flowgrid/orchestration/agent-orchestrator.ts
+// legacy/express/src/core/flowgrid/orchestration/agent-orchestrator.ts
 
 export class AgentOrchestrator {
   async orchestrateMultiAgent(
@@ -1099,7 +1099,7 @@ export interface AgentMemory {
 ### Node Registry & Hot-Reload
 
 ```typescript
-// backend/src/core/flowgrid/plugins/node-registry.ts
+// legacy/express/src/core/flowgrid/plugins/node-registry.ts
 
 export class NodeRegistry {
   private nodes = new Map<string, NodeConstructor>();
@@ -1231,7 +1231,7 @@ Custom plugins follow @org/flowgrid-* naming
 ### 1. Natural Language → Workflow Auto-Generation
 
 ```typescript
-// backend/src/core/flowgrid/ai/workflow-generator.ts
+// legacy/express/src/core/flowgrid/ai/workflow-generator.ts
 
 export class WorkflowGenerator {
   /**
@@ -1300,7 +1300,7 @@ export class WorkflowGenerator {
 ### 2. Self-Evolving Agents (Learning Loops)
 
 ```typescript
-// backend/src/core/flowgrid/learning/self-improving-agent.ts
+// legacy/express/src/core/flowgrid/learning/self-improving-agent.ts
 
 export class SelfImprovingAgent extends Agent {
   private feedbackStore: FeedbackStore;
@@ -1357,7 +1357,7 @@ export class SelfImprovingAgent extends Agent {
 ### 3. Cross-Grid Automation (DataGrid + AgentGrid + FlowGrid)
 
 ```typescript
-// backend/src/core/flowgrid/integration/cross-grid-automation.ts
+// legacy/express/src/core/flowgrid/integration/cross-grid-automation.ts
 
 /**
  * Trigger workflows based on DataGrid changes

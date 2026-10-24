@@ -57,7 +57,7 @@ This creates:
 
 **Purpose:** Measures system performance under constant, sustainable load
 
-**File:** `backend/tests/load/steady-state.js`
+**File:** `legacy/express/tests/load/steady-state.js`
 
 **Load Profile:**
 - Ramp up to 1000 concurrent users over 2 minutes
@@ -100,7 +100,7 @@ k6 run tests/load/steady-state.js
 
 **Purpose:** Tests system's ability to handle sudden traffic spikes and recovery
 
-**File:** `backend/tests/load/spike-test.js`
+**File:** `legacy/express/tests/load/spike-test.js`
 
 **Load Profile:**
 - Normal load: 100 concurrent users for 5 minutes
@@ -144,7 +144,7 @@ k6 run tests/load/spike-test.js --vus 500 --duration 10m
 
 **Purpose:** Identifies the system's capacity limits and breakdown point
 
-**File:** `backend/tests/load/ramp-up.js`
+**File:** `legacy/express/tests/load/ramp-up.js`
 
 **Load Profile:**
 - Start: 10 concurrent users
@@ -191,7 +191,7 @@ k6 run tests/load/ramp-up.js --out json=results.json
 
 **Purpose:** Validates long-term stability, detects memory leaks and resource degradation
 
-**File:** `backend/tests/load/sustained-load.js`
+**File:** `legacy/express/tests/load/sustained-load.js`
 
 **Load Profile:**
 - Ramp up to 200 concurrent users over 2 minutes
@@ -242,7 +242,7 @@ k6 run tests/load/sustained-load.js --out json=sustained-results.json
 
 ```dockerfile
 FROM grafana/k6:latest
-COPY backend/tests/load/ /scripts/
+COPY legacy/express/tests/load/ /scripts/
 WORKDIR /scripts
 ```
 
@@ -328,7 +328,7 @@ If test results show performance degradation:
 
 2. **Connection Pool**
    ```javascript
-   // backend/src/core/db/prisma.js
+   // legacy/express/src/core/db/prisma.js
    const prisma = new PrismaClient({
      log: ['info'],
    });
@@ -338,7 +338,7 @@ If test results show performance degradation:
 
 1. **Enable Response Caching**
    ```javascript
-   // backend/src/core/middleware/cacheControl.js
+   // legacy/express/src/core/middleware/cacheControl.js
    res.setHeader('Cache-Control', 'public, max-age=300');
    ```
 
@@ -436,7 +436,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: grafana/k6-action@v0.3.0
         with:
-          filename: backend/tests/load/steady-state.js
+          filename: legacy/express/tests/load/steady-state.js
           cloud: true
           
       - name: Upload Results
@@ -454,7 +454,7 @@ load_test:
   image: grafana/k6:latest
   stage: test
   script:
-    - k6 run backend/tests/load/steady-state.js --out json=results.json
+    - k6 run legacy/express/tests/load/steady-state.js --out json=results.json
   artifacts:
     paths:
       - results.json

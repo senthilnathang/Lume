@@ -5,9 +5,9 @@
 **Target**: May 31, 2026 Public Release
 
 > ⚠️ **Accuracy note (2026-05-29).** Code snippets below targeting
-> `backend/lume-nestjs/.../sitemap.controller.ts` describe a **NestJS** backend
+> `apps/api/.../sitemap.controller.ts` describe a **NestJS** backend
 > that does not exist in this repo — the live backend is **Express** at
-> `backend/src/modules/website/` (sitemap/robots in `website.routes.js`, page
+> `legacy/express/src/modules/website/` (sitemap/robots in `website.routes.js`, page
 > data in `services/page.service.js`). Treat the NestJS snippets as reference
 > intent, not file paths. For the **current implemented vs. outstanding** state,
 > see [`SEO_AUDIT.md`](./SEO_AUDIT.md). As of 2026-05-29 the backend sitemap now
@@ -39,7 +39,7 @@
 
 ### 1.1 Meta Tags Configuration
 
-**File**: `frontend/apps/riagri-website/nuxt.config.ts`
+**File**: `frontend/apps/website/nuxt.config.ts`
 
 ```typescript
 export default defineNuxtConfig({
@@ -150,7 +150,7 @@ export default defineNuxtConfig({
 
 ### 1.2 robots.txt
 
-**File**: `frontend/apps/riagri-website/public/robots.txt`
+**File**: `frontend/apps/website/public/robots.txt`
 
 ```
 # Allow all bots
@@ -176,7 +176,7 @@ Sitemap: https://lume.dev/sitemap.xml
 
 ### 1.3 Dynamic Sitemap Endpoint
 
-**File**: `backend/lume-nestjs/src/modules/website/controllers/sitemap.controller.ts`
+**File**: `apps/api/src/modules/website/controllers/sitemap.controller.ts`
 
 ```typescript
 import { Controller, Get, Res } from '@nestjs/common';
@@ -296,7 +296,7 @@ export class SitemapController {
 
 ### 1.4 JSON-LD Schema Markup
 
-**File**: `frontend/apps/riagri-website/layouts/default.vue`
+**File**: `frontend/apps/website/layouts/default.vue`
 
 Add to `<Head>`:
 
@@ -413,7 +413,7 @@ export default defineNuxtConfig({
 
 ### 2.3 Structured Data for Pages
 
-**File**: `frontend/apps/riagri-website/pages/[...slug].vue`
+**File**: `frontend/apps/website/pages/[...slug].vue`
 
 ```typescript
 const schemaArticle = computed(() => ({

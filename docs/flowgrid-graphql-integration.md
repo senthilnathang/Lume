@@ -28,7 +28,7 @@
 ### Workflow & Graph Types
 
 ```graphql
-# backend/src/core/flowgrid/schema/flowgrid.schema.graphql
+# legacy/express/src/core/flowgrid/schema/flowgrid.schema.graphql
 
 """Workflow definition (graph of nodes)"""
 type Workflow {
@@ -620,7 +620,7 @@ type AgentExecutionUpdate {
 ### Workflow Resolver
 
 ```typescript
-// backend/src/core/flowgrid/resolvers/workflow.resolver.ts
+// legacy/express/src/core/flowgrid/resolvers/workflow.resolver.ts
 
 import {
   Resolver,
@@ -857,7 +857,7 @@ export class WorkflowResolver {
 ### Workflow Execution Resolver
 
 ```typescript
-// backend/src/core/flowgrid/resolvers/execution.resolver.ts
+// legacy/express/src/core/flowgrid/resolvers/execution.resolver.ts
 
 @Resolver('WorkflowExecution')
 @UseGuards(AuthGuard)
@@ -926,7 +926,7 @@ export class ExecutionResolver {
 ## Subscriptions (Real-Time)
 
 ```typescript
-// backend/src/core/flowgrid/subscriptions/execution.subscription.ts
+// legacy/express/src/core/flowgrid/subscriptions/execution.subscription.ts
 
 import { Subscription, Args, Context } from '@nestjs/graphql';
 

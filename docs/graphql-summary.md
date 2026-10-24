@@ -360,7 +360,7 @@ Developer-friendly reference:
 ## Files Created
 
 ```
-backend/src/core/graphql/
+legacy/express/src/core/graphql/
 ├── graphql.module.ts              (95 lines)
 ├── graphql.service.ts             (195 lines)
 ├── schema/

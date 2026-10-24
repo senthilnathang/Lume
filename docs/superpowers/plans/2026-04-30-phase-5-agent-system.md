@@ -13,37 +13,37 @@
 ## File Structure
 
 **New files created:**
-- `backend/src/core/agents/types.ts` — 13 type definitions (AgentDef, AgentCapability, AgentSubscription, AgentRequest, AgentResponse, AgentJob, ExecutionContext, RequestResult, IAgentRegistry, AgentEvent)
-- `backend/src/core/agents/registry.ts` — Agent registry with registration, lookup, lifecycle management
-- `backend/src/core/agents/subscription-manager.ts` — Event subscription and routing to agents
-- `backend/src/core/agents/executor.ts` — Agent execution with retry, timeout, circuit breaker, error handling
-- `backend/src/core/agents/request-handler.ts` — Request/response tracking and correlation
-- `backend/src/core/agents/agent-manager.ts` — High-level agent coordination
-- `backend/src/core/agents/index.ts` — Module exports
+- `legacy/express/src/core/agents/types.ts` — 13 type definitions (AgentDef, AgentCapability, AgentSubscription, AgentRequest, AgentResponse, AgentJob, ExecutionContext, RequestResult, IAgentRegistry, AgentEvent)
+- `legacy/express/src/core/agents/registry.ts` — Agent registry with registration, lookup, lifecycle management
+- `legacy/express/src/core/agents/subscription-manager.ts` — Event subscription and routing to agents
+- `legacy/express/src/core/agents/executor.ts` — Agent execution with retry, timeout, circuit breaker, error handling
+- `legacy/express/src/core/agents/request-handler.ts` — Request/response tracking and correlation
+- `legacy/express/src/core/agents/agent-manager.ts` — High-level agent coordination
+- `legacy/express/src/core/agents/index.ts` — Module exports
 
 **Test files:**
-- `backend/tests/unit/agent-types.test.ts`
-- `backend/tests/unit/agent-registry.test.ts`
-- `backend/tests/unit/subscription-manager.test.ts`
-- `backend/tests/unit/agent-executor.test.ts`
-- `backend/tests/unit/request-handler.test.ts`
-- `backend/tests/unit/agent-manager.test.ts`
+- `legacy/express/tests/unit/agent-types.test.ts`
+- `legacy/express/tests/unit/agent-registry.test.ts`
+- `legacy/express/tests/unit/subscription-manager.test.ts`
+- `legacy/express/tests/unit/agent-executor.test.ts`
+- `legacy/express/tests/unit/request-handler.test.ts`
+- `legacy/express/tests/unit/agent-manager.test.ts`
 
 **Integration test:**
-- `backend/tests/integration/agent-system.test.ts` — Full agent lifecycle (register → subscribe → execute → respond)
+- `legacy/express/tests/integration/agent-system.test.ts` — Full agent lifecycle (register → subscribe → execute → respond)
 
 ---
 
 ### Task 1: Agent Types & Interfaces
 
 **Files:**
-- Create: `backend/src/core/agents/types.ts`
-- Test: `backend/tests/unit/agent-types.test.ts`
+- Create: `legacy/express/src/core/agents/types.ts`
+- Test: `legacy/express/tests/unit/agent-types.test.ts`
 
 - [ ] **Step 1: Write the failing test for agent types**
 
 ```typescript
-// backend/tests/unit/agent-types.test.ts
+// legacy/express/tests/unit/agent-types.test.ts
 import { jest } from '@jest/globals';
 
 describe('Agent Types', () => {
@@ -161,7 +161,7 @@ describe('Agent Types', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/agent-types.test.ts
+npm test -- legacy/express/tests/unit/agent-types.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/agents/types'"
@@ -169,7 +169,7 @@ Expected: FAIL with "Cannot find module '@/core/agents/types'"
 - [ ] **Step 3: Write agent types**
 
 ```typescript
-// backend/src/core/agents/types.ts
+// legacy/express/src/core/agents/types.ts
 
 export type AgentStatus = 'registered' | 'active' | 'paused' | 'failed' | 'removed';
 export type ResponseStatus = 'pending' | 'processing' | 'success' | 'failed' | 'timeout';
@@ -297,7 +297,7 @@ export interface IAgentRegistry {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/agent-types.test.ts
+npm test -- legacy/express/tests/unit/agent-types.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -305,7 +305,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/agents/types.ts backend/tests/unit/agent-types.test.ts
+git add legacy/express/src/core/agents/types.ts legacy/express/tests/unit/agent-types.test.ts
 git commit -m "feat: add agent types and interfaces (capabilities, subscriptions, requests, responses)"
 ```
 
@@ -314,13 +314,13 @@ git commit -m "feat: add agent types and interfaces (capabilities, subscriptions
 ### Task 2: Agent Registry
 
 **Files:**
-- Create: `backend/src/core/agents/registry.ts`
-- Test: `backend/tests/unit/agent-registry.test.ts`
+- Create: `legacy/express/src/core/agents/registry.ts`
+- Test: `legacy/express/tests/unit/agent-registry.test.ts`
 
 - [ ] **Step 1: Write the failing test for agent registry**
 
 ```typescript
-// backend/tests/unit/agent-registry.test.ts
+// legacy/express/tests/unit/agent-registry.test.ts
 import { jest } from '@jest/globals';
 import { AgentRegistry } from '@/core/agents/registry';
 import type { AgentDef, AgentSubscription } from '@/core/agents/types';
@@ -582,7 +582,7 @@ describe('AgentRegistry', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/agent-registry.test.ts
+npm test -- legacy/express/tests/unit/agent-registry.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/agents/registry'"
@@ -590,7 +590,7 @@ Expected: FAIL with "Cannot find module '@/core/agents/registry'"
 - [ ] **Step 3: Write agent registry**
 
 ```typescript
-// backend/src/core/agents/registry.ts
+// legacy/express/src/core/agents/registry.ts
 import type { AgentDef, AgentSubscription, AgentResponse, IAgentRegistry, RequestResult } from './types';
 
 interface SubscriberInfo {
@@ -778,7 +778,7 @@ export class AgentRegistry implements IAgentRegistry {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/agent-registry.test.ts
+npm test -- legacy/express/tests/unit/agent-registry.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -786,7 +786,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/agents/registry.ts backend/tests/unit/agent-registry.test.ts
+git add legacy/express/src/core/agents/registry.ts legacy/express/tests/unit/agent-registry.test.ts
 git commit -m "feat: add agent registry with subscriptions and event indexing"
 ```
 
@@ -795,15 +795,15 @@ git commit -m "feat: add agent registry with subscriptions and event indexing"
 ### Task 3: Subscription Manager & Executor
 
 **Files:**
-- Create: `backend/src/core/agents/subscription-manager.ts`
-- Create: `backend/src/core/agents/executor.ts`
-- Test: `backend/tests/unit/subscription-manager.test.ts`
-- Test: `backend/tests/unit/agent-executor.test.ts`
+- Create: `legacy/express/src/core/agents/subscription-manager.ts`
+- Create: `legacy/express/src/core/agents/executor.ts`
+- Test: `legacy/express/tests/unit/subscription-manager.test.ts`
+- Test: `legacy/express/tests/unit/agent-executor.test.ts`
 
 - [ ] **Step 1: Write failing tests for subscription manager and executor**
 
 ```typescript
-// backend/tests/unit/subscription-manager.test.ts
+// legacy/express/tests/unit/subscription-manager.test.ts
 import { jest } from '@jest/globals';
 import { SubscriptionManager } from '@/core/agents/subscription-manager';
 import { AgentRegistry } from '@/core/agents/registry';
@@ -901,7 +901,7 @@ describe('SubscriptionManager', () => {
   });
 });
 
-// backend/tests/unit/agent-executor.test.ts
+// legacy/express/tests/unit/agent-executor.test.ts
 import { jest } from '@jest/globals';
 import { AgentExecutor } from '@/core/agents/executor';
 import type { ExecutionContext } from '@/core/agents/types';
@@ -988,7 +988,7 @@ describe('AgentExecutor', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
-npm test -- backend/tests/unit/subscription-manager.test.ts backend/tests/unit/agent-executor.test.ts
+npm test -- legacy/express/tests/unit/subscription-manager.test.ts legacy/express/tests/unit/agent-executor.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/agents/subscription-manager'" and similar
@@ -996,7 +996,7 @@ Expected: FAIL with "Cannot find module '@/core/agents/subscription-manager'" an
 - [ ] **Step 3: Write subscription manager and executor**
 
 ```typescript
-// backend/src/core/agents/subscription-manager.ts
+// legacy/express/src/core/agents/subscription-manager.ts
 import { EventEmitter } from 'events';
 import { AgentRegistry } from './registry';
 import type { SubscriptionCondition } from './types';
@@ -1099,7 +1099,7 @@ export class SubscriptionManager extends EventEmitter {
 ```
 
 ```typescript
-// backend/src/core/agents/executor.ts
+// legacy/express/src/core/agents/executor.ts
 import type { ExecutionContext, RequestResult } from './types';
 
 /**
@@ -1160,7 +1160,7 @@ export class AgentExecutor {
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
-npm test -- backend/tests/unit/subscription-manager.test.ts backend/tests/unit/agent-executor.test.ts
+npm test -- legacy/express/tests/unit/subscription-manager.test.ts legacy/express/tests/unit/agent-executor.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -1168,7 +1168,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/agents/subscription-manager.ts backend/src/core/agents/executor.ts backend/tests/unit/subscription-manager.test.ts backend/tests/unit/agent-executor.test.ts
+git add legacy/express/src/core/agents/subscription-manager.ts legacy/express/src/core/agents/executor.ts legacy/express/tests/unit/subscription-manager.test.ts legacy/express/tests/unit/agent-executor.test.ts
 git commit -m "feat: add subscription manager and agent executor with timeout handling"
 ```
 
@@ -1177,16 +1177,16 @@ git commit -m "feat: add subscription manager and agent executor with timeout ha
 ### Task 4: Request Handler & Agent Manager
 
 **Files:**
-- Create: `backend/src/core/agents/request-handler.ts`
-- Create: `backend/src/core/agents/agent-manager.ts`
-- Create: `backend/src/core/agents/index.ts` (module exports)
-- Test: `backend/tests/unit/request-handler.test.ts`
-- Test: `backend/tests/unit/agent-manager.test.ts`
+- Create: `legacy/express/src/core/agents/request-handler.ts`
+- Create: `legacy/express/src/core/agents/agent-manager.ts`
+- Create: `legacy/express/src/core/agents/index.ts` (module exports)
+- Test: `legacy/express/tests/unit/request-handler.test.ts`
+- Test: `legacy/express/tests/unit/agent-manager.test.ts`
 
 - [ ] **Step 1: Write failing tests for request handler and agent manager**
 
 ```typescript
-// backend/tests/unit/request-handler.test.ts
+// legacy/express/tests/unit/request-handler.test.ts
 import { jest } from '@jest/globals';
 import { RequestHandler } from '@/core/agents/request-handler';
 import type { AgentRequest } from '@/core/agents/types';
@@ -1300,7 +1300,7 @@ describe('RequestHandler', () => {
   });
 });
 
-// backend/tests/unit/agent-manager.test.ts
+// legacy/express/tests/unit/agent-manager.test.ts
 import { jest } from '@jest/globals';
 import { AgentManager } from '@/core/agents/agent-manager';
 import type { AgentDef } from '@/core/agents/types';
@@ -1381,7 +1381,7 @@ describe('AgentManager', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
-npm test -- backend/tests/unit/request-handler.test.ts backend/tests/unit/agent-manager.test.ts
+npm test -- legacy/express/tests/unit/request-handler.test.ts legacy/express/tests/unit/agent-manager.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/agents/request-handler'" and similar
@@ -1389,7 +1389,7 @@ Expected: FAIL with "Cannot find module '@/core/agents/request-handler'" and sim
 - [ ] **Step 3: Write request handler and agent manager**
 
 ```typescript
-// backend/src/core/agents/request-handler.ts
+// legacy/express/src/core/agents/request-handler.ts
 import type { AgentRequest, AgentResponse, ResponseStatus } from './types';
 
 interface PendingResponse {
@@ -1517,7 +1517,7 @@ export class RequestHandler {
 ```
 
 ```typescript
-// backend/src/core/agents/agent-manager.ts
+// legacy/express/src/core/agents/agent-manager.ts
 import { AgentRegistry } from './registry';
 import { SubscriptionManager } from './subscription-manager';
 import { RequestHandler } from './request-handler';
@@ -1609,7 +1609,7 @@ export class AgentManager {
 ```
 
 ```typescript
-// backend/src/core/agents/index.ts
+// legacy/express/src/core/agents/index.ts
 export { AgentRegistry } from './registry';
 export { SubscriptionManager } from './subscription-manager';
 export { AgentExecutor } from './executor';
@@ -1636,7 +1636,7 @@ export type {
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
-npm test -- backend/tests/unit/request-handler.test.ts backend/tests/unit/agent-manager.test.ts
+npm test -- legacy/express/tests/unit/request-handler.test.ts legacy/express/tests/unit/agent-manager.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -1644,7 +1644,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/agents/request-handler.ts backend/src/core/agents/agent-manager.ts backend/src/core/agents/index.ts backend/tests/unit/request-handler.test.ts backend/tests/unit/agent-manager.test.ts
+git add legacy/express/src/core/agents/request-handler.ts legacy/express/src/core/agents/agent-manager.ts legacy/express/src/core/agents/index.ts legacy/express/tests/unit/request-handler.test.ts legacy/express/tests/unit/agent-manager.test.ts
 git commit -m "feat: add request handler, agent manager, and module exports"
 ```
 
@@ -1655,7 +1655,7 @@ git commit -m "feat: add request handler, agent manager, and module exports"
 After all 4 tasks complete:
 
 ```bash
-npm test backend/tests/unit/agent-* -- --testPathPattern="agent"
+npm test legacy/express/tests/unit/agent-* -- --testPathPattern="agent"
 ```
 
 Expected: 35+ test cases across all agent modules with 100% pass rate.
@@ -1663,7 +1663,7 @@ Expected: 35+ test cases across all agent modules with 100% pass rate.
 Run full system integration:
 
 ```bash
-npm test backend/tests/integration/agent-system.test.ts
+npm test legacy/express/tests/integration/agent-system.test.ts
 ```
 
 ---

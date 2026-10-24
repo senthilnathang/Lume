@@ -211,7 +211,7 @@ cd lume
 cd backend && npm install
 
 # Frontend dependencies  
-cd ../apps/web-lume && npm install
+cd ../apps/admin && npm install
 ```
 
 ### 2. Environment
@@ -236,7 +236,7 @@ cd backend && npm run dev
 # → http://localhost:3000/api
 
 # Terminal 2: Frontend  
-cd apps/web-lume && npm run dev
+cd apps/admin && npm run dev
 # → http://localhost:5173
 
 # Login: admin@lume.dev / admin123
@@ -275,7 +275,7 @@ That's it. Admin UI, authentication, and 23 modules are ready to use.
 - **Module load time:** <50ms on startup (optimized module discovery)
 - **Admin UI:** Responsive on 4G networks, sub-2s page load
 
-**Benchmarks:** See [docs/PERFORMANCE.md](docs/PERFORMANCE.md)
+**Benchmarks:** See [docs/PERFORMANCE.md](PERFORMANCE.md)
 
 ## 🔐 Security
 
@@ -300,7 +300,7 @@ docker-compose up -d
 ```
 
 ### Cloud (AWS, GCP, DigitalOcean)
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — includes:
+See [docs/DEPLOYMENT.md](DEPLOYMENT.md) — includes:
 - Terraform configs
 - GitHub Actions CI/CD
 - Environment variable setup
@@ -310,18 +310,18 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — includes:
 
 | Doc | Purpose |
 |-----|---------|
-| [Architecture](docs/ARCHITECTURE.md) | System design, module system, data flow |
-| [Installation](docs/INSTALLATION.md) | Setup guide for all environments |
-| [Module System](backend/docs/MODULE_SYSTEM.md) | Creating custom modules |
-| [API Reference](backend/docs/API.md) | All endpoints, request/response formats |
+| [Architecture](ARCHITECTURE.md) | System design, module system, data flow |
+| [Installation](INSTALLATION.md) | Setup guide for all environments |
+| [Module System](../legacy/express/docs/MODULE_SYSTEM.md) | Creating custom modules |
+| [API Reference](API_REFERENCE.md) | All endpoints, request/response formats |
 | [Security](backend/docs/SECURITY.md) | Auth, RBAC, audit, compliance |
-| [Deployment](backend/docs/DEPLOYMENT.md) | Docker, Kubernetes, cloud platforms |
+| [Deployment](DEPLOYMENT.md) | Docker, Kubernetes, cloud platforms |
 
 ## 🤝 Contributing
 
 We welcome contributions! 
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for:
 - Development setup
 - Code style guide
 - Testing requirements

@@ -3,7 +3,7 @@
 > current migration certification. Use the [active task list](nestjs-migration-tasks.txt) and
 > [developer guide](DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
 > remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
 
 # Single-Command Application Setup
 
@@ -32,10 +32,10 @@ cp backend/.env.example backend/.env
 # Edit backend/.env with your database credentials
 
 # Admin panel
-cp apps/web-lume/.env.example apps/web-lume/.env
+cp apps/admin/.env.example apps/admin/.env
 
 # Public website
-cp apps/riagri-website/.env.example apps/riagri-website/.env
+cp apps/website/.env.example apps/website/.env
 ```
 
 ### 3. Database setup (one command)
@@ -61,7 +61,7 @@ cd backend
 npm run dev
 
 # Start admin panel (port 5173)
-cd ../apps/web-lume
+cd ../apps/admin
 npm run dev
 
 # Start public website (port 3100)
@@ -111,7 +111,7 @@ See `docs/DEVELOPMENT.md` for creating a new module from scratch. The process in
 cd /opt/Lume && grep -r "TODO\|FIXME\|TODO|OPTIMODULES
 5. Create routes using `createCrudRouter()`
 6. Register in bootstrap
-7. Create frontend views in `backend/src/modules/{name}/static/views/`
+7. Create frontend views in `legacy/express/src/modules/{name}/static/views/`
 8. Register in admin router
 
 ### npm Audit
@@ -124,11 +124,11 @@ cd backend
 npm audit
 
 # Admin panel
-cd apps/web-lume
+cd apps/admin
 npm audit
 
 # Public website
-cd apps/riagri-website
+cd apps/website
 npm audit
 ```
 

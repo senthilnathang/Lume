@@ -13,37 +13,37 @@
 ## File Structure
 
 **New files created:**
-- `backend/src/core/workflows/types.ts` — 12 type definitions (WorkflowDef, WorkflowTrigger, WorkflowAction, WorkflowState, WorkflowInstance, TriggerCondition, TriggerResult, WorkflowEvent, IWorkflowEngine, JobQueue)
-- `backend/src/core/workflows/trigger-evaluator.ts` — Evaluates workflow triggers (event-based, time-based, manual, conditional)
-- `backend/src/core/workflows/action-executor.ts` — Executes workflow actions (sync/async, side effects, state transitions)
-- `backend/src/core/workflows/state-machine.ts` — State machine for workflow progression (pending → running → success/failed)
-- `backend/src/core/workflows/workflow-engine.ts` — WorkflowEngine class coordinating triggers, actions, state, persistence
-- `backend/src/core/workflows/job-queue.ts` — Async job queue for delayed workflow execution
-- `backend/src/core/workflows/index.ts` — Module exports
+- `legacy/express/src/core/workflows/types.ts` — 12 type definitions (WorkflowDef, WorkflowTrigger, WorkflowAction, WorkflowState, WorkflowInstance, TriggerCondition, TriggerResult, WorkflowEvent, IWorkflowEngine, JobQueue)
+- `legacy/express/src/core/workflows/trigger-evaluator.ts` — Evaluates workflow triggers (event-based, time-based, manual, conditional)
+- `legacy/express/src/core/workflows/action-executor.ts` — Executes workflow actions (sync/async, side effects, state transitions)
+- `legacy/express/src/core/workflows/state-machine.ts` — State machine for workflow progression (pending → running → success/failed)
+- `legacy/express/src/core/workflows/workflow-engine.ts` — WorkflowEngine class coordinating triggers, actions, state, persistence
+- `legacy/express/src/core/workflows/job-queue.ts` — Async job queue for delayed workflow execution
+- `legacy/express/src/core/workflows/index.ts` — Module exports
 
 **Test files:**
-- `backend/tests/unit/workflow-types.test.ts`
-- `backend/tests/unit/trigger-evaluator.test.ts`
-- `backend/tests/unit/action-executor.test.ts`
-- `backend/tests/unit/state-machine.test.ts`
-- `backend/tests/unit/workflow-engine.test.ts`
-- `backend/tests/unit/job-queue.test.ts`
+- `legacy/express/tests/unit/workflow-types.test.ts`
+- `legacy/express/tests/unit/trigger-evaluator.test.ts`
+- `legacy/express/tests/unit/action-executor.test.ts`
+- `legacy/express/tests/unit/state-machine.test.ts`
+- `legacy/express/tests/unit/workflow-engine.test.ts`
+- `legacy/express/tests/unit/job-queue.test.ts`
 
 **Integration test:**
-- `backend/tests/integration/workflow-system.test.ts` — Full workflow lifecycle (register → trigger → execute → complete)
+- `legacy/express/tests/integration/workflow-system.test.ts` — Full workflow lifecycle (register → trigger → execute → complete)
 
 ---
 
 ### Task 1: Workflow Types & Interfaces
 
 **Files:**
-- Create: `backend/src/core/workflows/types.ts`
-- Test: `backend/tests/unit/workflow-types.test.ts`
+- Create: `legacy/express/src/core/workflows/types.ts`
+- Test: `legacy/express/tests/unit/workflow-types.test.ts`
 
 - [ ] **Step 1: Write the failing test for workflow types**
 
 ```typescript
-// backend/tests/unit/workflow-types.test.ts
+// legacy/express/tests/unit/workflow-types.test.ts
 import { jest } from '@jest/globals';
 
 describe('Workflow Types', () => {
@@ -158,7 +158,7 @@ describe('Workflow Types', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/workflow-types.test.ts
+npm test -- legacy/express/tests/unit/workflow-types.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/workflows/types'"
@@ -166,7 +166,7 @@ Expected: FAIL with "Cannot find module '@/core/workflows/types'"
 - [ ] **Step 3: Write workflow types**
 
 ```typescript
-// backend/src/core/workflows/types.ts
+// legacy/express/src/core/workflows/types.ts
 
 export type TriggerType = 'event' | 'time' | 'manual' | 'conditional';
 export type WorkflowStatus = 'pending' | 'running' | 'success' | 'failed' | 'paused' | 'cancelled';
@@ -301,7 +301,7 @@ export interface IWorkflowEngine {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/workflow-types.test.ts
+npm test -- legacy/express/tests/unit/workflow-types.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -309,7 +309,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/workflows/types.ts backend/tests/unit/workflow-types.test.ts
+git add legacy/express/src/core/workflows/types.ts legacy/express/tests/unit/workflow-types.test.ts
 git commit -m "feat: add workflow types and interfaces (event, time, manual, conditional triggers)"
 ```
 
@@ -318,13 +318,13 @@ git commit -m "feat: add workflow types and interfaces (event, time, manual, con
 ### Task 2: Trigger Evaluator
 
 **Files:**
-- Create: `backend/src/core/workflows/trigger-evaluator.ts`
-- Test: `backend/tests/unit/trigger-evaluator.test.ts`
+- Create: `legacy/express/src/core/workflows/trigger-evaluator.ts`
+- Test: `legacy/express/tests/unit/trigger-evaluator.test.ts`
 
 - [ ] **Step 1: Write the failing test for trigger evaluator**
 
 ```typescript
-// backend/tests/unit/trigger-evaluator.test.ts
+// legacy/express/tests/unit/trigger-evaluator.test.ts
 import { jest } from '@jest/globals';
 import { TriggerEvaluator } from '@/core/workflows/trigger-evaluator';
 import type { WorkflowTrigger } from '@/core/workflows/types';
@@ -493,7 +493,7 @@ describe('TriggerEvaluator', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/trigger-evaluator.test.ts
+npm test -- legacy/express/tests/unit/trigger-evaluator.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/workflows/trigger-evaluator'"
@@ -501,7 +501,7 @@ Expected: FAIL with "Cannot find module '@/core/workflows/trigger-evaluator'"
 - [ ] **Step 3: Write trigger evaluator**
 
 ```typescript
-// backend/src/core/workflows/trigger-evaluator.ts
+// legacy/express/src/core/workflows/trigger-evaluator.ts
 import type { WorkflowTrigger, TriggerResult, TriggerCondition } from './types';
 
 /**
@@ -668,7 +668,7 @@ export class TriggerEvaluator {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/trigger-evaluator.test.ts
+npm test -- legacy/express/tests/unit/trigger-evaluator.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -676,7 +676,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/workflows/trigger-evaluator.ts backend/tests/unit/trigger-evaluator.test.ts
+git add legacy/express/src/core/workflows/trigger-evaluator.ts legacy/express/tests/unit/trigger-evaluator.test.ts
 git commit -m "feat: add trigger evaluator for event, time, manual, and conditional triggers"
 ```
 
@@ -685,13 +685,13 @@ git commit -m "feat: add trigger evaluator for event, time, manual, and conditio
 ### Task 3: Action Executor
 
 **Files:**
-- Create: `backend/src/core/workflows/action-executor.ts`
-- Test: `backend/tests/unit/action-executor.test.ts`
+- Create: `legacy/express/src/core/workflows/action-executor.ts`
+- Test: `legacy/express/tests/unit/action-executor.test.ts`
 
 - [ ] **Step 1: Write the failing test for action executor**
 
 ```typescript
-// backend/tests/unit/action-executor.test.ts
+// legacy/express/tests/unit/action-executor.test.ts
 import { jest } from '@jest/globals';
 import { ActionExecutor } from '@/core/workflows/action-executor';
 import type { WorkflowAction, WorkflowInstance } from '@/core/workflows/types';
@@ -889,7 +889,7 @@ describe('ActionExecutor', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/action-executor.test.ts
+npm test -- legacy/express/tests/unit/action-executor.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/workflows/action-executor'"
@@ -897,7 +897,7 @@ Expected: FAIL with "Cannot find module '@/core/workflows/action-executor'"
 - [ ] **Step 3: Write action executor**
 
 ```typescript
-// backend/src/core/workflows/action-executor.ts
+// legacy/express/src/core/workflows/action-executor.ts
 import type { WorkflowAction, WorkflowInstance } from './types';
 
 export interface ActionResult {
@@ -1047,7 +1047,7 @@ export class ActionExecutor {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/action-executor.test.ts
+npm test -- legacy/express/tests/unit/action-executor.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -1055,7 +1055,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/workflows/action-executor.ts backend/tests/unit/action-executor.test.ts
+git add legacy/express/src/core/workflows/action-executor.ts legacy/express/tests/unit/action-executor.test.ts
 git commit -m "feat: add action executor with retry, timeout, and dependency handling"
 ```
 
@@ -1064,13 +1064,13 @@ git commit -m "feat: add action executor with retry, timeout, and dependency han
 ### Task 4: State Machine
 
 **Files:**
-- Create: `backend/src/core/workflows/state-machine.ts`
-- Test: `backend/tests/unit/state-machine.test.ts`
+- Create: `legacy/express/src/core/workflows/state-machine.ts`
+- Test: `legacy/express/tests/unit/state-machine.test.ts`
 
 - [ ] **Step 1: Write the failing test for state machine**
 
 ```typescript
-// backend/tests/unit/state-machine.test.ts
+// legacy/express/tests/unit/state-machine.test.ts
 import { jest } from '@jest/globals';
 import { WorkflowStateMachine } from '@/core/workflows/state-machine';
 import type { WorkflowStatus } from '@/core/workflows/types';
@@ -1170,7 +1170,7 @@ describe('WorkflowStateMachine', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/state-machine.test.ts
+npm test -- legacy/express/tests/unit/state-machine.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/workflows/state-machine'"
@@ -1178,7 +1178,7 @@ Expected: FAIL with "Cannot find module '@/core/workflows/state-machine'"
 - [ ] **Step 3: Write state machine**
 
 ```typescript
-// backend/src/core/workflows/state-machine.ts
+// legacy/express/src/core/workflows/state-machine.ts
 import type { WorkflowStatus } from './types';
 
 type Transition = 'start' | 'complete' | 'fail' | 'pause' | 'resume' | 'cancel';
@@ -1255,7 +1255,7 @@ export class WorkflowStateMachine {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/state-machine.test.ts
+npm test -- legacy/express/tests/unit/state-machine.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -1263,7 +1263,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/workflows/state-machine.ts backend/tests/unit/state-machine.test.ts
+git add legacy/express/src/core/workflows/state-machine.ts legacy/express/tests/unit/state-machine.test.ts
 git commit -m "feat: add workflow state machine (pending → running → success/failed/paused)"
 ```
 
@@ -1272,13 +1272,13 @@ git commit -m "feat: add workflow state machine (pending → running → success
 ### Task 5: Job Queue for Async Execution
 
 **Files:**
-- Create: `backend/src/core/workflows/job-queue.ts`
-- Test: `backend/tests/unit/job-queue.test.ts`
+- Create: `legacy/express/src/core/workflows/job-queue.ts`
+- Test: `legacy/express/tests/unit/job-queue.test.ts`
 
 - [ ] **Step 1: Write the failing test for job queue**
 
 ```typescript
-// backend/tests/unit/job-queue.test.ts
+// legacy/express/tests/unit/job-queue.test.ts
 import { jest } from '@jest/globals';
 import { WorkflowJobQueue } from '@/core/workflows/job-queue';
 import type { WorkflowJob } from '@/core/workflows/types';
@@ -1406,7 +1406,7 @@ function createJob(id: string): WorkflowJob {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/job-queue.test.ts
+npm test -- legacy/express/tests/unit/job-queue.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/workflows/job-queue'"
@@ -1414,7 +1414,7 @@ Expected: FAIL with "Cannot find module '@/core/workflows/job-queue'"
 - [ ] **Step 3: Write job queue**
 
 ```typescript
-// backend/src/core/workflows/job-queue.ts
+// legacy/express/src/core/workflows/job-queue.ts
 import type { WorkflowJob } from './types';
 
 export interface QueueStats {
@@ -1537,7 +1537,7 @@ export class WorkflowJobQueue {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/job-queue.test.ts
+npm test -- legacy/express/tests/unit/job-queue.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -1545,7 +1545,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/workflows/job-queue.ts backend/tests/unit/job-queue.test.ts
+git add legacy/express/src/core/workflows/job-queue.ts legacy/express/tests/unit/job-queue.test.ts
 git commit -m "feat: add workflow job queue with retry support"
 ```
 
@@ -1554,14 +1554,14 @@ git commit -m "feat: add workflow job queue with retry support"
 ### Task 6: Workflow Engine & Module Exports
 
 **Files:**
-- Create: `backend/src/core/workflows/workflow-engine.ts`
-- Create: `backend/src/core/workflows/index.ts` (module exports)
-- Test: `backend/tests/unit/workflow-engine.test.ts`
+- Create: `legacy/express/src/core/workflows/workflow-engine.ts`
+- Create: `legacy/express/src/core/workflows/index.ts` (module exports)
+- Test: `legacy/express/tests/unit/workflow-engine.test.ts`
 
 - [ ] **Step 1: Write the failing test for workflow engine**
 
 ```typescript
-// backend/tests/unit/workflow-engine.test.ts
+// legacy/express/tests/unit/workflow-engine.test.ts
 import { jest } from '@jest/globals';
 import { WorkflowEngine } from '@/core/workflows/workflow-engine';
 import type { WorkflowDef } from '@/core/workflows/types';
@@ -1736,7 +1736,7 @@ describe('WorkflowEngine', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/workflow-engine.test.ts
+npm test -- legacy/express/tests/unit/workflow-engine.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/workflows/workflow-engine'"
@@ -1744,7 +1744,7 @@ Expected: FAIL with "Cannot find module '@/core/workflows/workflow-engine'"
 - [ ] **Step 3: Write workflow engine**
 
 ```typescript
-// backend/src/core/workflows/workflow-engine.ts
+// legacy/express/src/core/workflows/workflow-engine.ts
 import { TriggerEvaluator } from './trigger-evaluator';
 import { ActionExecutor } from './action-executor';
 import { WorkflowStateMachine } from './state-machine';
@@ -1893,7 +1893,7 @@ export class WorkflowEngine implements IWorkflowEngine {
 ```
 
 ```typescript
-// backend/src/core/workflows/index.ts
+// legacy/express/src/core/workflows/index.ts
 export { TriggerEvaluator } from './trigger-evaluator';
 export { ActionExecutor } from './action-executor';
 export { WorkflowStateMachine } from './state-machine';
@@ -1923,7 +1923,7 @@ export type {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/workflow-engine.test.ts
+npm test -- legacy/express/tests/unit/workflow-engine.test.ts
 ```
 
 Expected: PASS (all test cases passing)
@@ -1931,7 +1931,7 @@ Expected: PASS (all test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/workflows/workflow-engine.ts backend/src/core/workflows/index.ts backend/tests/unit/workflow-engine.test.ts
+git add legacy/express/src/core/workflows/workflow-engine.ts legacy/express/src/core/workflows/index.ts legacy/express/tests/unit/workflow-engine.test.ts
 git commit -m "feat: add workflow engine orchestrating lifecycle and module exports"
 ```
 
@@ -1942,7 +1942,7 @@ git commit -m "feat: add workflow engine orchestrating lifecycle and module expo
 After all 6 tasks complete:
 
 ```bash
-npm test backend/tests/unit/workflow-* -- --testPathPattern="workflow"
+npm test legacy/express/tests/unit/workflow-* -- --testPathPattern="workflow"
 ```
 
 Expected: 40+ test cases across all workflow modules with 100% pass rate.

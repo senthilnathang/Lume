@@ -30,8 +30,8 @@ body:
       label: Affected area
       options:
         - Backend (API / module)
-        - Admin panel (apps/web-lume)
-        - Public site (apps/riagri-website)
+        - Admin panel (apps/admin)
+        - Public site (apps/website)
         - Database / ORM (Prisma/Drizzle)
         - Build / CI / deployment
         - Docs

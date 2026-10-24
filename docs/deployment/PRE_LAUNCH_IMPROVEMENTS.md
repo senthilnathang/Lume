@@ -39,20 +39,20 @@ This is what landed against the P0/P1 list since the roadmap was written:
 | Item | Status | Commit / Notes |
 |------|--------|----------------|
 | P0-2 — Rewrite `prisma/seed.js` | ✅ Done | File now delegates to `createAdmin.js` + `seedData.js`; `npm run db:seed` works |
-| P0-3 — Audit orphan `apps/` | ✅ Done — **finding was inverted** | `apps/` (top-level) is the **canonical** workspace (declared in `pnpm-workspace.yaml`); `frontend/apps/` is the orphan. All docs updated to use the correct path. CI workflow + Docker still reference `frontend/apps/web-lume` — see new P0-4 |
-| P0-1 — Drizzle schema parity | ✅ Done | `backend/src/scripts/setupDrizzle.js` creates the 33 missing tables. Bypasses drizzle-kit's TTY requirement by importing each schema and using `getTableConfig()` to read column definitions, then issuing `CREATE TABLE IF NOT EXISTS` directly. Idempotent. Wired into `npm run db:setup` (refreshDb → prisma push → **setupDrizzle** → createAdmin → seedData). Parity check now reports `✅ Table parity OK (18 modules, 96 tables checked)` |
+| P0-3 — Audit orphan `apps/` | ✅ Done — **finding was inverted** | `apps/` (top-level) is the **canonical** workspace (declared in `pnpm-workspace.yaml`); `frontend/apps/` is the orphan. All docs updated to use the correct path. CI workflow + Docker still reference `frontend/apps/admin` — see new P0-4 |
+| P0-1 — Drizzle schema parity | ✅ Done | `legacy/express/src/scripts/setupDrizzle.js` creates the 33 missing tables. Bypasses drizzle-kit's TTY requirement by importing each schema and using `getTableConfig()` to read column definitions, then issuing `CREATE TABLE IF NOT EXISTS` directly. Idempotent. Wired into `npm run db:setup` (refreshDb → prisma push → **setupDrizzle** → createAdmin → seedData). Parity check now reports `✅ Table parity OK (18 modules, 96 tables checked)` |
 | P1-1 — Wire `compression` | ✅ Done | `app.use(compression({ threshold: 1024 }))` in `src/index.js`; measured: `/api/modules` 15272b → 3131b over the wire (80% reduction) |
 | P1-3 — JWT field-name deprecation alias | ✅ Done | `/api/users/login` now returns both `data.token` and `data.accessToken` (same value); setup-smoke test updated to assert both |
 | Setup helper | ✅ New | `npm run db:setup` now runs the full canonical 4-step bring-up (refreshDb → prisma push → createAdmin → seedData) |
-| P0-4 — Fix CI/Docker `frontend/apps/` references | ✅ Done | `.github/workflows/deploy.yml` and `docker-compose.staging.yml` now use canonical `apps/web-lume` paths. Dockerfile reference updated to `frontend/Dockerfile` with root build context (where the Dockerfile actually expects to find `apps/web-lume`). Live docs updated too (TESTING.md, ARCHITECTURE.md, etc.) |
-| P1-2 — Startup table parity check | ✅ Done | `backend/src/core/db/check-table-parity.js` runs after Drizzle init; scrapes table names from all 18 `*/models/schema.js` files via regex (no Drizzle import — cheap pre-flight) and compares against `INFORMATION_SCHEMA.TABLES`. On clean install: **34 missing tables across 7 modules** surface as ONE grouped boot warning, no longer N opaque 500s. `LUME_STRICT_TABLE_PARITY=true` promotes the warning to a startup failure (use in CI/prod). |
+| P0-4 — Fix CI/Docker `frontend/apps/` references | ✅ Done | `.github/workflows/deploy.yml` and `docker-compose.staging.yml` now use canonical `apps/admin` paths. Dockerfile reference updated to `frontend/Dockerfile` with root build context (where the Dockerfile actually expects to find `apps/admin`). Live docs updated too (TESTING.md, ARCHITECTURE.md, etc.) |
+| P1-2 — Startup table parity check | ✅ Done | `legacy/express/src/core/db/check-table-parity.js` runs after Drizzle init; scrapes table names from all 18 `*/models/schema.js` files via regex (no Drizzle import — cheap pre-flight) and compares against `INFORMATION_SCHEMA.TABLES`. On clean install: **34 missing tables across 7 modules** surface as ONE grouped boot warning, no longer N opaque 500s. `LUME_STRICT_TABLE_PARITY=true` promotes the warning to a startup failure (use in CI/prod). |
 | P1-4 — CI smoke gate | ✅ Done | New `.github/workflows/setup-smoke.yml` spins up MySQL 8 service, runs canonical install sequence (refreshDb → prisma push → createAdmin → seedData), then runs `tests/integration/setup-smoke.test.js`. Triggers on `push` to main + every PR. ~3-5 sec gate. |
 | P2-4 — HTTP caching headers | ✅ Done | `/health` now returns `Cache-Control: public, max-age=5`. Health monitors poll every 10-30s; the 5s window cuts uptime/metric-serialization cost without delaying real failure detection. `/api/modules` deliberately left as `no-cache` — module install/uninstall must be immediately visible. |
 | P1-5 — `tsx watch` instead of nodemon | ✅ Done | `npm run dev` now uses `tsx watch --clear-screen=false` (~2s cold restart vs ~7s with nodemon). Legacy nodemon kept as `npm run dev:nodemon`. |
 | P2-5 — Production process supervisor | ✅ Done | `ecosystem.config.cjs` at repo root: pm2 cluster across all CPUs, 2 GB heap per worker, `--enable-source-maps`, `max_memory_restart: 1500M`, `max_restarts: 10`, `min_uptime: 15s`. Defaults: `LUME_STRICT_TABLE_PARITY=true` so a deploy with missing module tables crash-loops instead of silently 500-ing. `npm run pm2:start \| pm2:reload \| pm2:stop \| pm2:logs \| pm2:status`. |
 | Smoke test coverage | ✅ Expanded | 14 cases (was 11): adds `setupDrizzle.js` presence, `ecosystem.config.cjs` presence, `/health` Cache-Control assertion. |
 | P2-1 — WebSocket per-record permission check | ✅ Done | `WebSocketManager.subscribe()` now accepts `{ companyId, roles, filter }`. New `canSubscriberReceive()` method enforces: super_admin sees everything; non-admin subscribers see only records whose `company_id`/`tenant_id` matches their own. Wired into `broadcast()` — replaces the `TODO: Permission check` that was the only real `TODO` in the source. Backwards-compat shim accepts the legacy `(entity, userId, filter)` positional signature. New unit suite `tests/unit/websocket-permission.test.js` covers 14 cases including the THE security check (mismatched tenant → denied). |
-| P2-2 — OpenAPI / Swagger | ✅ Done | `swagger-jsdoc` + `swagger-ui-express`. Spec at `GET /api/openapi.json` (with `Cache-Control: public, max-age=60`), interactive UI at `GET /api/docs/`. Hand-curated baseline in `backend/src/core/openapi/openapi-spec.js` documents `/health`, `/api/modules`, `/api/users/login` + reusable schemas; module authors extend via `@swagger` JSDoc on route files. On in dev by default; gated by `OPENAPI_ENABLED=true` in production. Smoke test adds 4 cases. |
+| P2-2 — OpenAPI / Swagger | ✅ Done | `swagger-jsdoc` + `swagger-ui-express`. Spec at `GET /api/openapi.json` (with `Cache-Control: public, max-age=60`), interactive UI at `GET /api/docs/`. Hand-curated baseline in `legacy/express/src/core/openapi/openapi-spec.js` documents `/health`, `/api/modules`, `/api/users/login` + reusable schemas; module authors extend via `@swagger` JSDoc on route files. On in dev by default; gated by `OPENAPI_ENABLED=true` in production. Smoke test adds 4 cases. |
 | P2-3 — Module enable/disable | ✅ Backend done; UI deferred to v2.1 | The backend already has POST `/api/modules/:name/install`, `/uninstall`, `/upgrade` (with dependency validation). Added `actions` + `deps_resolved` fields to GET `/api/modules` so a future admin UI can drive its button row directly off the response. The state-transition matrix (`computeModuleActions()` in `src/index.js`) is intentionally simple — install/uninstall is the toggle mechanism; a separate "disabled" state would require a schema change and module-loader changes that don't belong in v2.0. Smoke test adds 2 cases pinning the shape. Building the admin Vue view itself is 3-5 days and explicitly v2.1 scope. |
 
 ---
@@ -91,7 +91,7 @@ Items deliberately scoped *out* of the v2.0 tag but flagged here so the next spr
 
 Backend is done (the `actions` + `deps_resolved` fields on `GET /api/modules`). The frontend view is ~3-5 days of work:
 
-- New page at `/admin/modules` in `apps/web-lume`
+- New page at `/admin/modules` in `apps/admin`
 - List from `GET /api/modules`, render each module's `actions` as a button row
 - Confirmation modal for `uninstall` (destructive)
 - Dependency-cycle warning when `deps_resolved=false` (the API already tells the UI which deps are missing — read from `depends[]`)
@@ -106,7 +106,7 @@ See [CODE_QUALITY.md](../CODE_QUALITY.md).
 
 The OpenAPI baseline documents only platform routes (`/health`, `/api/modules`, `/api/users/login`). The 25 module routers will surface in the spec as their authors add `@swagger` JSDoc — no central work needed, but a coordinated pass would make the public docs site noticeably more useful.
 
-### P0-1 detail (DONE — see `backend/src/scripts/setupDrizzle.js`)
+### P0-1 detail (DONE — see `legacy/express/src/scripts/setupDrizzle.js`)
 
 The drizzle-kit TTY blocker was bypassed by going one layer deeper: import each schema directly, read column definitions via `getTableConfig()`, and emit `CREATE TABLE IF NOT EXISTS` SQL through plain mysql2. The full implementation is ~220 lines, idempotent, and produces 0 failures on the current schema (33 tables created on a fresh DB; 0 conflicts on a re-run).
 
@@ -121,8 +121,8 @@ The escape hatch for missing parity is now `npm run db:setup:drizzle` — runs t
 
 Surfaced during P0-3. The migration to top-level `apps/` is incomplete:
 
-- `.github/workflows/deploy.yml` — 7 references to `frontend/apps/web-lume`
-- `docker-compose.staging.yml` — 2 references to `frontend/apps/web-lume`
+- `.github/workflows/deploy.yml` — 7 references to `frontend/apps/admin`
+- `docker-compose.staging.yml` — 2 references to `frontend/apps/admin`
 - `frontend/Dockerfile` exists but is now orphaned
 - Several docs (`docs/CODE_EXAMPLES_VERIFICATION.md`, `docs/TESTING.md`, `docs/ARCHITECTURE.md` line 696) still reference the old path
 
@@ -141,7 +141,7 @@ These are **done**, listed so the next reviewer doesn't redo them:
 - **`docs/ARCHITECTURE.md`** — Runtime Performance Settings sub-section + MySQL FK-auto-index note
 - **`README.md`** — accurate Quick Start, fixed admin creds, perf summary table
 - **`CLAUDE.md`** — Database Setup + Performance Settings sections, `prisma/seed.js` outdated warning
-- **`backend/tests/integration/setup-smoke.test.js`** — 11-case contract test for health URL, login endpoint, JWT field name, setup-script presence, perf env defaults. **All passing.**
+- **`legacy/express/tests/integration/setup-smoke.test.js`** — 11-case contract test for health URL, login endpoint, JWT field name, setup-script presence, perf env defaults. **All passing.**
 
 Commit: `fd1e4b31` on `main`.
 
@@ -158,7 +158,7 @@ These are blocking. A pre-release that ships with any of these is a foot-gun.
 **Why it matters:** New installers run the documented install steps and end up with a working app *plus a wall of warnings*. Some module features silently 404 because their tables don't exist.
 
 **Action:**
-- Audit every Drizzle schema file (`backend/src/modules/*/models/schema.js`) and confirm a matching MySQL table exists post-`prisma db push`.
+- Audit every Drizzle schema file (`legacy/express/src/modules/*/models/schema.js`) and confirm a matching MySQL table exists post-`prisma db push`.
 - Add a `db:push:all` script that runs Prisma + every module's Drizzle migration in topological order.
 - Document the script in `INSTALLATION.md` and add a smoke check to `setup-smoke.test.js` ("no missing-table errors in startup logs").
 

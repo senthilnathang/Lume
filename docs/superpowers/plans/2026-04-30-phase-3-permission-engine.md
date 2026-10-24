@@ -13,38 +13,38 @@
 ## File Structure
 
 **New files created:**
-- `backend/src/core/permissions/types.ts` — 11 type definitions (PermissionContext, PermissionCondition, PermissionRule, PermissionPolicy, PermissionResult, FieldPermission, QueryFilter, PermissionDecision, IPermissionEngine, ConditionType, EvaluationResult)
-- `backend/src/core/permissions/safe-evaluator.ts` — Safe expression evaluator with whitelisted operations (no new Function), restricts context access
-- `backend/src/core/permissions/condition-evaluator.ts` — ABAC condition evaluator (role, ownership, time, attribute, expression conditions)
-- `backend/src/core/permissions/policy-engine.ts` — PermissionEngine class with "deny wins" principle, wildcard resource matching, rule aggregation
-- `backend/src/core/permissions/cache.ts` — LRU permission cache with TTL expiration and hit/miss stats
-- `backend/src/core/permissions/query-filter.ts` — Query filter builder (Prisma/Drizzle conversion)
-- `backend/src/core/permissions/decorators.ts` — NestJS decorators (@CheckPermission, @RequirePermission, @SkipPermissionCheck), middleware, guards
+- `legacy/express/src/core/permissions/types.ts` — 11 type definitions (PermissionContext, PermissionCondition, PermissionRule, PermissionPolicy, PermissionResult, FieldPermission, QueryFilter, PermissionDecision, IPermissionEngine, ConditionType, EvaluationResult)
+- `legacy/express/src/core/permissions/safe-evaluator.ts` — Safe expression evaluator with whitelisted operations (no new Function), restricts context access
+- `legacy/express/src/core/permissions/condition-evaluator.ts` — ABAC condition evaluator (role, ownership, time, attribute, expression conditions)
+- `legacy/express/src/core/permissions/policy-engine.ts` — PermissionEngine class with "deny wins" principle, wildcard resource matching, rule aggregation
+- `legacy/express/src/core/permissions/cache.ts` — LRU permission cache with TTL expiration and hit/miss stats
+- `legacy/express/src/core/permissions/query-filter.ts` — Query filter builder (Prisma/Drizzle conversion)
+- `legacy/express/src/core/permissions/decorators.ts` — NestJS decorators (@CheckPermission, @RequirePermission, @SkipPermissionCheck), middleware, guards
 
 **Test files:**
-- `backend/tests/unit/permission-types.test.ts`
-- `backend/tests/unit/safe-evaluator.test.ts`
-- `backend/tests/unit/condition-evaluator.test.ts`
-- `backend/tests/unit/policy-engine.test.ts`
-- `backend/tests/unit/permission-cache.test.ts`
-- `backend/tests/unit/query-filter.test.ts`
-- `backend/tests/unit/permission-decorators.test.ts`
+- `legacy/express/tests/unit/permission-types.test.ts`
+- `legacy/express/tests/unit/safe-evaluator.test.ts`
+- `legacy/express/tests/unit/condition-evaluator.test.ts`
+- `legacy/express/tests/unit/policy-engine.test.ts`
+- `legacy/express/tests/unit/permission-cache.test.ts`
+- `legacy/express/tests/unit/query-filter.test.ts`
+- `legacy/express/tests/unit/permission-decorators.test.ts`
 
 **Integration test:**
-- `backend/tests/integration/permission-system.test.ts` — Full RBAC + ABAC + caching workflow
+- `legacy/express/tests/integration/permission-system.test.ts` — Full RBAC + ABAC + caching workflow
 
 ---
 
 ### Task 1: Permission Types & Interfaces
 
 **Files:**
-- Create: `backend/src/core/permissions/types.ts`
-- Test: `backend/tests/unit/permission-types.test.ts`
+- Create: `legacy/express/src/core/permissions/types.ts`
+- Test: `legacy/express/tests/unit/permission-types.test.ts`
 
 - [ ] **Step 1: Write the failing test for types**
 
 ```typescript
-// backend/tests/unit/permission-types.test.ts
+// legacy/express/tests/unit/permission-types.test.ts
 import { jest } from '@jest/globals';
 
 describe('Permission Types', () => {
@@ -180,7 +180,7 @@ describe('Permission Types', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/permission-types.test.ts
+npm test -- legacy/express/tests/unit/permission-types.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/permissions/types'"
@@ -188,7 +188,7 @@ Expected: FAIL with "Cannot find module '@/core/permissions/types'"
 - [ ] **Step 3: Write permission types**
 
 ```typescript
-// backend/src/core/permissions/types.ts
+// legacy/express/src/core/permissions/types.ts
 
 export type ConditionType = 'role' | 'ownership' | 'time' | 'attribute' | 'expression';
 export type PermissionEffect = 'allow' | 'deny';
@@ -325,7 +325,7 @@ export interface IPermissionEngine {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/permission-types.test.ts
+npm test -- legacy/express/tests/unit/permission-types.test.ts
 ```
 
 Expected: PASS (all 6 test cases passing)
@@ -333,7 +333,7 @@ Expected: PASS (all 6 test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/permissions/types.ts backend/tests/unit/permission-types.test.ts
+git add legacy/express/src/core/permissions/types.ts legacy/express/tests/unit/permission-types.test.ts
 git commit -m "feat: add permission types and interfaces (role, ownership, time, attribute, expression conditions)"
 ```
 
@@ -342,13 +342,13 @@ git commit -m "feat: add permission types and interfaces (role, ownership, time,
 ### Task 2: Safe Expression Evaluator
 
 **Files:**
-- Create: `backend/src/core/permissions/safe-evaluator.ts`
-- Test: `backend/tests/unit/safe-evaluator.test.ts`
+- Create: `legacy/express/src/core/permissions/safe-evaluator.ts`
+- Test: `legacy/express/tests/unit/safe-evaluator.test.ts`
 
 - [ ] **Step 1: Write the failing test for safe evaluator**
 
 ```typescript
-// backend/tests/unit/safe-evaluator.test.ts
+// legacy/express/tests/unit/safe-evaluator.test.ts
 import { jest } from '@jest/globals';
 import { SafeExpressionEvaluator } from '@/core/permissions/safe-evaluator';
 
@@ -449,7 +449,7 @@ describe('SafeExpressionEvaluator', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/safe-evaluator.test.ts
+npm test -- legacy/express/tests/unit/safe-evaluator.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/permissions/safe-evaluator'"
@@ -457,7 +457,7 @@ Expected: FAIL with "Cannot find module '@/core/permissions/safe-evaluator'"
 - [ ] **Step 3: Write safe evaluator**
 
 ```typescript
-// backend/src/core/permissions/safe-evaluator.ts
+// legacy/express/src/core/permissions/safe-evaluator.ts
 
 /**
  * SafeExpressionEvaluator provides secure expression evaluation for ABAC conditions.
@@ -553,7 +553,7 @@ export class SafeExpressionEvaluator {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/safe-evaluator.test.ts
+npm test -- legacy/express/tests/unit/safe-evaluator.test.ts
 ```
 
 Expected: PASS (all 13 test cases passing)
@@ -561,7 +561,7 @@ Expected: PASS (all 13 test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/permissions/safe-evaluator.ts backend/tests/unit/safe-evaluator.test.ts
+git add legacy/express/src/core/permissions/safe-evaluator.ts legacy/express/tests/unit/safe-evaluator.test.ts
 git commit -m "feat: add safe expression evaluator with whitelist-based validation (prevents code injection)"
 ```
 
@@ -570,13 +570,13 @@ git commit -m "feat: add safe expression evaluator with whitelist-based validati
 ### Task 3: Condition Evaluator (ABAC)
 
 **Files:**
-- Create: `backend/src/core/permissions/condition-evaluator.ts`
-- Test: `backend/tests/unit/condition-evaluator.test.ts`
+- Create: `legacy/express/src/core/permissions/condition-evaluator.ts`
+- Test: `legacy/express/tests/unit/condition-evaluator.test.ts`
 
 - [ ] **Step 1: Write the failing test for condition evaluator**
 
 ```typescript
-// backend/tests/unit/condition-evaluator.test.ts
+// legacy/express/tests/unit/condition-evaluator.test.ts
 import { jest } from '@jest/globals';
 import { ConditionEvaluator } from '@/core/permissions/condition-evaluator';
 import type { PermissionContext, PermissionCondition } from '@/core/permissions/types';
@@ -830,7 +830,7 @@ describe('ConditionEvaluator', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/condition-evaluator.test.ts
+npm test -- legacy/express/tests/unit/condition-evaluator.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/permissions/condition-evaluator'"
@@ -838,7 +838,7 @@ Expected: FAIL with "Cannot find module '@/core/permissions/condition-evaluator'
 - [ ] **Step 3: Write condition evaluator**
 
 ```typescript
-// backend/src/core/permissions/condition-evaluator.ts
+// legacy/express/src/core/permissions/condition-evaluator.ts
 import { SafeExpressionEvaluator } from './safe-evaluator';
 import type {
   PermissionContext,
@@ -1036,7 +1036,7 @@ export class ConditionEvaluator {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/condition-evaluator.test.ts
+npm test -- legacy/express/tests/unit/condition-evaluator.test.ts
 ```
 
 Expected: PASS (all 16 test cases passing)
@@ -1044,7 +1044,7 @@ Expected: PASS (all 16 test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/permissions/condition-evaluator.ts backend/tests/unit/condition-evaluator.test.ts
+git add legacy/express/src/core/permissions/condition-evaluator.ts legacy/express/tests/unit/condition-evaluator.test.ts
 git commit -m "feat: add condition evaluator for ABAC (role, ownership, time, attribute, expression)"
 ```
 
@@ -1053,13 +1053,13 @@ git commit -m "feat: add condition evaluator for ABAC (role, ownership, time, at
 ### Task 4: Permission Policy Engine
 
 **Files:**
-- Create: `backend/src/core/permissions/policy-engine.ts`
-- Test: `backend/tests/unit/policy-engine.test.ts`
+- Create: `legacy/express/src/core/permissions/policy-engine.ts`
+- Test: `legacy/express/tests/unit/policy-engine.test.ts`
 
 - [ ] **Step 1: Write the failing test for policy engine**
 
 ```typescript
-// backend/tests/unit/policy-engine.test.ts
+// legacy/express/tests/unit/policy-engine.test.ts
 import { jest } from '@jest/globals';
 import { PermissionEngine } from '@/core/permissions/policy-engine';
 import type { PermissionContext, PermissionPolicy, PermissionRule } from '@/core/permissions/types';
@@ -1343,7 +1343,7 @@ describe('PermissionEngine', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/policy-engine.test.ts
+npm test -- legacy/express/tests/unit/policy-engine.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/permissions/policy-engine'"
@@ -1351,7 +1351,7 @@ Expected: FAIL with "Cannot find module '@/core/permissions/policy-engine'"
 - [ ] **Step 3: Write permission policy engine**
 
 ```typescript
-// backend/src/core/permissions/policy-engine.ts
+// legacy/express/src/core/permissions/policy-engine.ts
 import { ConditionEvaluator } from './condition-evaluator';
 import type {
   PermissionContext,
@@ -1513,7 +1513,7 @@ export class PermissionEngine implements IPermissionEngine {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/policy-engine.test.ts
+npm test -- legacy/express/tests/unit/policy-engine.test.ts
 ```
 
 Expected: PASS (all 11 test cases passing)
@@ -1521,7 +1521,7 @@ Expected: PASS (all 11 test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/permissions/policy-engine.ts backend/tests/unit/policy-engine.test.ts
+git add legacy/express/src/core/permissions/policy-engine.ts legacy/express/tests/unit/policy-engine.test.ts
 git commit -m "feat: add permission policy engine with deny-wins principle and wildcard matching"
 ```
 
@@ -1530,13 +1530,13 @@ git commit -m "feat: add permission policy engine with deny-wins principle and w
 ### Task 5: Permission Cache with LRU Eviction
 
 **Files:**
-- Create: `backend/src/core/permissions/cache.ts`
-- Test: `backend/tests/unit/permission-cache.test.ts`
+- Create: `legacy/express/src/core/permissions/cache.ts`
+- Test: `legacy/express/tests/unit/permission-cache.test.ts`
 
 - [ ] **Step 1: Write the failing test for permission cache**
 
 ```typescript
-// backend/tests/unit/permission-cache.test.ts
+// legacy/express/tests/unit/permission-cache.test.ts
 import { jest } from '@jest/globals';
 import { PermissionCache } from '@/core/permissions/cache';
 import type { PermissionResult } from '@/core/permissions/types';
@@ -1702,7 +1702,7 @@ describe('PermissionCache', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-npm test -- backend/tests/unit/permission-cache.test.ts
+npm test -- legacy/express/tests/unit/permission-cache.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/permissions/cache'"
@@ -1710,7 +1710,7 @@ Expected: FAIL with "Cannot find module '@/core/permissions/cache'"
 - [ ] **Step 3: Write permission cache**
 
 ```typescript
-// backend/src/core/permissions/cache.ts
+// legacy/express/src/core/permissions/cache.ts
 import type { PermissionResult } from './types';
 
 interface CacheEntry {
@@ -1838,7 +1838,7 @@ export class PermissionCache {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-npm test -- backend/tests/unit/permission-cache.test.ts
+npm test -- legacy/express/tests/unit/permission-cache.test.ts
 ```
 
 Expected: PASS (all 10 test cases passing)
@@ -1846,7 +1846,7 @@ Expected: PASS (all 10 test cases passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/permissions/cache.ts backend/tests/unit/permission-cache.test.ts
+git add legacy/express/src/core/permissions/cache.ts legacy/express/tests/unit/permission-cache.test.ts
 git commit -m "feat: add permission cache with LRU eviction and TTL expiration"
 ```
 
@@ -1855,16 +1855,16 @@ git commit -m "feat: add permission cache with LRU eviction and TTL expiration"
 ### Task 6: Query Filter Builder & NestJS Integration
 
 **Files:**
-- Create: `backend/src/core/permissions/query-filter.ts`
-- Create: `backend/src/core/permissions/decorators.ts`
-- Create: `backend/src/core/permissions/index.ts` (module exports)
-- Test: `backend/tests/unit/query-filter.test.ts`
-- Test: `backend/tests/unit/permission-decorators.test.ts`
+- Create: `legacy/express/src/core/permissions/query-filter.ts`
+- Create: `legacy/express/src/core/permissions/decorators.ts`
+- Create: `legacy/express/src/core/permissions/index.ts` (module exports)
+- Test: `legacy/express/tests/unit/query-filter.test.ts`
+- Test: `legacy/express/tests/unit/permission-decorators.test.ts`
 
 - [ ] **Step 1: Write failing tests for query filter and decorators**
 
 ```typescript
-// backend/tests/unit/query-filter.test.ts
+// legacy/express/tests/unit/query-filter.test.ts
 import { jest } from '@jest/globals';
 import { QueryFilterBuilder } from '@/core/permissions/query-filter';
 import type { QueryFilter } from '@/core/permissions/types';
@@ -1928,7 +1928,7 @@ describe('QueryFilterBuilder', () => {
   });
 });
 
-// backend/tests/unit/permission-decorators.test.ts
+// legacy/express/tests/unit/permission-decorators.test.ts
 import { jest } from '@jest/globals';
 import { CheckPermission, RequirePermission, SkipPermissionCheck } from '@/core/permissions/decorators';
 
@@ -1980,7 +1980,7 @@ describe('Permission Decorators', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
-npm test -- backend/tests/unit/query-filter.test.ts backend/tests/unit/permission-decorators.test.ts
+npm test -- legacy/express/tests/unit/query-filter.test.ts legacy/express/tests/unit/permission-decorators.test.ts
 ```
 
 Expected: FAIL with "Cannot find module '@/core/permissions/query-filter'" and similar
@@ -1988,7 +1988,7 @@ Expected: FAIL with "Cannot find module '@/core/permissions/query-filter'" and s
 - [ ] **Step 3: Write query filter builder and decorators**
 
 ```typescript
-// backend/src/core/permissions/query-filter.ts
+// legacy/express/src/core/permissions/query-filter.ts
 import type { QueryFilter } from './types';
 
 export class QueryFilterBuilder {
@@ -2088,7 +2088,7 @@ export class QueryFilterBuilder {
 ```
 
 ```typescript
-// backend/src/core/permissions/decorators.ts
+// legacy/express/src/core/permissions/decorators.ts
 import 'reflect-metadata';
 
 /**
@@ -2126,7 +2126,7 @@ export function SkipPermissionCheck() {
 ```
 
 ```typescript
-// backend/src/core/permissions/index.ts
+// legacy/express/src/core/permissions/index.ts
 export { ConditionEvaluator } from './condition-evaluator';
 export { PermissionEngine } from './policy-engine';
 export { PermissionCache } from './cache';
@@ -2159,7 +2159,7 @@ export type {
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
-npm test -- backend/tests/unit/query-filter.test.ts backend/tests/unit/permission-decorators.test.ts
+npm test -- legacy/express/tests/unit/query-filter.test.ts legacy/express/tests/unit/permission-decorators.test.ts
 ```
 
 Expected: PASS (all tests passing)
@@ -2167,7 +2167,7 @@ Expected: PASS (all tests passing)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/core/permissions/query-filter.ts backend/src/core/permissions/decorators.ts backend/src/core/permissions/index.ts backend/tests/unit/query-filter.test.ts backend/tests/unit/permission-decorators.test.ts
+git add legacy/express/src/core/permissions/query-filter.ts legacy/express/src/core/permissions/decorators.ts legacy/express/src/core/permissions/index.ts legacy/express/tests/unit/query-filter.test.ts legacy/express/tests/unit/permission-decorators.test.ts
 git commit -m "feat: add query filter builder and NestJS permission decorators"
 ```
 
@@ -2178,7 +2178,7 @@ git commit -m "feat: add query filter builder and NestJS permission decorators"
 After all 6 tasks complete, run the full test suite:
 
 ```bash
-npm test backend/tests/unit/permission-* -- --testPathPattern="permission"
+npm test legacy/express/tests/unit/permission-* -- --testPathPattern="permission"
 ```
 
 Expected: 50+ test cases across all permission modules with 100% pass rate.
@@ -2186,7 +2186,7 @@ Expected: 50+ test cases across all permission modules with 100% pass rate.
 Verify permission engine integration with runtime:
 
 ```bash
-npm test backend/tests/integration/permission-system.test.ts
+npm test legacy/express/tests/integration/permission-system.test.ts
 ```
 
 ---

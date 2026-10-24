@@ -10,7 +10,7 @@ External integrations remain disabled. Existing uncommitted work is preserved.
 NestJS's @nestjs/platform-express HTTP adapter is not the legacy application.
 
 Target ownership and folder structure
-  backend/api/                 NestJS application (move at final deployment cutover)
+  apps/api/                    NestJS application (canonical active path)
     src/core/                  shared infrastructure and cross-cutting services
     src/modules/<feature>/     module, controllers, DTOs, services, persistence
     src/graphql/               GraphQL transport adapters
@@ -20,17 +20,17 @@ Target ownership and folder structure
     scripts/                   backend maintenance and verification
     deploy/                    deployment templates
   packages/@lume/module-ui/    shared frontend modules; no backend runtime code
-  apps/web-lume/               Vue administration client
-  apps/riagri-website/         Nuxt public website
+  apps/admin/               Vue administration client
+  apps/website/         Nuxt public website
   docs/                       architecture, migration evidence and operations
 
-The running service currently uses backend/lume-nestjs. Keep this location until
-deployment references and rollback are prepared. Legacy source is retained until
+The service definition uses apps/api; all active applications now live in apps/.
+Legacy code/tooling lives under legacy/ outside the workspace and images, until
 required behavior, scaffolding and data-import paths have replacements.
 
 Tasks and acceptance criteria
 [x] M01 Inspect current workspace, old plans, runtime references and frontend imports.
-[x] M02 Separate shared UI from backend/src/modules; update aliases, compilation,
+[x] M02 Separate shared UI from legacy/express/src/modules; update aliases, compilation,
         audit tooling and workspace metadata. Build both clients afterward.
 [x] M03 Make root dev/build/test commands target NestJS; retain explicit legacy
         commands only for migration comparison. Check lockfile/install behavior.
@@ -51,7 +51,7 @@ Tasks and acceptance criteria
         with dry-run verification and backup/restore checks where schemas differ.
 [ ] M13 Consolidate backend configuration, database ownership, imports, tests and
         documentation. Remove dead code only after references are accounted for.
-[ ] M14 Update CI, Docker, process manager, bootstrap scripts and root docs to use
+[x] M14 Update CI, Docker, process manager, bootstrap scripts and root docs to use
         the canonical NestJS application; remove accidental Express startup paths.
 [ ] M15 Run one complete backend suite plus both frontend suites/builds/types;
         verify critical browser workflows and provider-disabled startup.
@@ -105,3 +105,26 @@ not yet deployed. Consult Git history for the published revision.
 - Final backend full run including sequence follow-up: 79 suites / 809 tests passed.
 - Current documentation, developer guidance, acceptance cases and roadmap reconciled.
 - Git publication does not deploy these changes or complete the outstanding migration.
+
+2026-10-24 canonical workspace alignment
+[x] S01 Move NestJS, Vue admin and Nuxt website into apps/api, apps/admin, apps/website.
+[x] S02 Use one root pnpm lockfile; declare inherited API dependencies explicitly.
+[x] S03 Move inactive Express/frontend/server/tooling into legacy/; exclude from builds.
+[x] S04 Remove remaining Vue source from API; shared module UI belongs in packages/.
+[x] S05 Align root commands, CI, Docker, PM2 and installed systemd working directory.
+[x] S06 Update architecture, setup, developer guides, roadmap and acceptance cases.
+[x] S07 Enforce the structure with scripts/check_layout.py.
+- API suite at canonical path: 79 suites / 809 tests passed. Isolated full AppModule
+  startup, HTTP health and GraphQL passed. External providers remain disabled.
+- Structural alignment does not close M04–M13 feature/data gaps or certify M16–M17
+  full release acceptance/legacy retirement. Keep required legacy code for comparison.
+- Final structural verification: all three builds and frontend type checks passed;
+  895 tests passed (API 809, admin 80, website 6). All lint commands have zero errors;
+  existing warning debt is documented. Root frozen-lockfile installation passed.
+- API, admin and website Docker images built cleanly. Production API dependency/
+  upload-permission checks and frontend startup/HTTP asset checks passed.
+- Service restarted from /opt/Lume/apps/api; HTTP health and GraphQL passed.
+  Frontend artifacts remain undeployed. External providers remain disabled.
+- Current guides: 57 local links checked; 37 stale historical links repaired.
+- Frontend audit now includes extracted API UI files: 79 calls need review (previously
+  74). These are inventory candidates; no feature-parity closure is implied.

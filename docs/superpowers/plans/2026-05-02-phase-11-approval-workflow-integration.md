@@ -13,14 +13,14 @@
 ## File Structure
 
 ### New Files
-- `backend/src/modules/base_automation/services/workflow-approval-action.js` — Approval action handler for workflows
+- `legacy/express/src/modules/base_automation/services/workflow-approval-action.js` — Approval action handler for workflows
 - `tests/unit/base-automation-approval-workflow.test.js` — E2E tests for approval-workflow integration
 
 ### Modified Files
-- `backend/src/modules/base_automation/services/index.js` — Add approval action execution logic
-- `backend/src/modules/base_automation/api/index.js` — Add approval callback endpoints
-- `backend/src/modules/base_automation/models/schema.js` — Add workflow-approval link table (optional, for tracking)
-- `backend/src/modules/base_automation/__init__.js` — Register WorkflowApprovalActionService
+- `legacy/express/src/modules/base_automation/services/index.js` — Add approval action execution logic
+- `legacy/express/src/modules/base_automation/api/index.js` — Add approval callback endpoints
+- `legacy/express/src/modules/base_automation/models/schema.js` — Add workflow-approval link table (optional, for tracking)
+- `legacy/express/src/modules/base_automation/__init__.js` — Register WorkflowApprovalActionService
 
 ---
 
@@ -29,7 +29,7 @@
 ### Task 1: Create WorkflowApprovalActionService
 
 **Files:**
-- Create: `backend/src/modules/base_automation/services/workflow-approval-action.js`
+- Create: `legacy/express/src/modules/base_automation/services/workflow-approval-action.js`
 
 **Context:** This service handles executing approval actions within workflow transitions. It bridges the ApprovalRuntimeService and AutomationService.
 
@@ -94,7 +94,7 @@ Expected output: `FAIL — WorkflowApprovalActionService is not defined`
 - [ ] **Step 3: Create the WorkflowApprovalActionService class**
 
 ```javascript
-// backend/src/modules/base_automation/services/workflow-approval-action.js
+// legacy/express/src/modules/base_automation/services/workflow-approval-action.js
 export class WorkflowApprovalActionService {
   constructor(models, approvalRuntimeService) {
     this.models = models;
@@ -135,7 +135,7 @@ Expected: `PASS`
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /opt/Lume && git add tests/unit/base-automation-approval-workflow.test.js backend/src/modules/base_automation/services/workflow-approval-action.js && git commit -m "feat: Create WorkflowApprovalActionService for workflow approval requests"
+cd /opt/Lume && git add tests/unit/base-automation-approval-workflow.test.js legacy/express/src/modules/base_automation/services/workflow-approval-action.js && git commit -m "feat: Create WorkflowApprovalActionService for workflow approval requests"
 ```
 
 ---
@@ -143,7 +143,7 @@ cd /opt/Lume && git add tests/unit/base-automation-approval-workflow.test.js bac
 ### Task 2: Add Approval Action Execution to AutomationService
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/services/index.js` (lines 356-425, the transitionWorkflowState method)
+- Modify: `legacy/express/src/modules/base_automation/services/index.js` (lines 356-425, the transitionWorkflowState method)
 - Modify: `tests/unit/base-automation-approval-workflow.test.js`
 
 **Context:** The transitionWorkflowState method needs to be extended to handle approval actions. When a transition has an approval action, it should execute the action and update the execution status to "awaiting_approval" instead of immediately transitioning.
@@ -252,13 +252,13 @@ Expected: Test fails because transitionWorkflowState doesn't handle approval act
 Read the current implementation first to understand the exact signature:
 
 ```bash
-grep -A 70 "async transitionWorkflowState" /opt/Lume/backend/src/modules/base_automation/services/index.js | head -80
+grep -A 70 "async transitionWorkflowState" /opt/Lume/legacy/express/src/modules/base_automation/services/index.js | head -80
 ```
 
 Now update the method:
 
 ```javascript
-// In backend/src/modules/base_automation/services/index.js, replace transitionWorkflowState method (lines ~356-425)
+// In legacy/express/src/modules/base_automation/services/index.js, replace transitionWorkflowState method (lines ~356-425)
 
 async transitionWorkflowState(executionId, toState, transitionName, userId, hasApprovalAction = false) {
   // Get execution
@@ -365,7 +365,7 @@ async transitionWorkflowState(executionId, toState, transitionName, userId, hasA
 - [ ] **Step 4: Initialize WorkflowApprovalActionService in AutomationService constructor**
 
 ```javascript
-// In backend/src/modules/base_automation/services/index.js, update the constructor (around line 7-12)
+// In legacy/express/src/modules/base_automation/services/index.js, update the constructor (around line 7-12)
 
 // Add import at top
 import { WorkflowApprovalActionService } from './workflow-approval-action.js';
@@ -395,7 +395,7 @@ Expected: `PASS`
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/services/index.js && git commit -m "feat: Add approval action execution to workflow state transitions"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/services/index.js && git commit -m "feat: Add approval action execution to workflow state transitions"
 ```
 
 ---
@@ -403,7 +403,7 @@ cd /opt/Lume && git add backend/src/modules/base_automation/services/index.js &&
 ### Task 3: Add Approval Callback Endpoints
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/api/index.js`
+- Modify: `legacy/express/src/modules/base_automation/api/index.js`
 - Modify: `tests/unit/base-automation-approval-workflow.test.js`
 
 **Context:** When an approval is approved/rejected, a callback endpoint should advance the workflow to the appropriate next state.
@@ -446,7 +446,7 @@ describe('Approval Callbacks API', () => {
 - [ ] **Step 2: Add approval callback method to AutomationService**
 
 ```javascript
-// Add to backend/src/modules/base_automation/services/index.js, after the transitionWorkflowState method
+// Add to legacy/express/src/modules/base_automation/services/index.js, after the transitionWorkflowState method
 
 async handleApprovalCallback(approvalInstanceId, decision, userId) {
   // Get approval instance
@@ -538,7 +538,7 @@ async handleApprovalCallback(approvalInstanceId, decision, userId) {
 - [ ] **Step 3: Add API endpoint for approval callback**
 
 ```javascript
-// In backend/src/modules/base_automation/api/index.js, add new route after the workflows routes
+// In legacy/express/src/modules/base_automation/api/index.js, add new route after the workflows routes
 
 router.post('/workflows/approvals/:instanceId/callback', async (req, res) => {
   try {
@@ -576,7 +576,7 @@ Expected: Test passes (or update test as needed)
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/services/index.js backend/src/modules/base_automation/api/index.js && git commit -m "feat: Add approval callback handling for workflow state transitions"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/services/index.js legacy/express/src/modules/base_automation/api/index.js && git commit -m "feat: Add approval callback handling for workflow state transitions"
 ```
 
 ---
@@ -584,7 +584,7 @@ cd /opt/Lume && git add backend/src/modules/base_automation/services/index.js ba
 ### Task 4: Update Module Initialization
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/__init__.js` (lines 33-75)
+- Modify: `legacy/express/src/modules/base_automation/__init__.js` (lines 33-75)
 - Modify: `tests/unit/base-automation-approval-workflow.test.js`
 
 **Context:** The ApprovalRuntimeService needs to be passed to AutomationService so it can execute approval actions.
@@ -604,7 +604,7 @@ describe('Module Initialization', () => {
 - [ ] **Step 2: Update module initialization to inject ApprovalRuntimeService**
 
 ```javascript
-// In backend/src/modules/base_automation/__init__.js, around lines 60-75, update the service instantiation:
+// In legacy/express/src/modules/base_automation/__init__.js, around lines 60-75, update the service instantiation:
 
 const automationService = new AutomationService(
   adapters,
@@ -630,7 +630,7 @@ Expected: All tests passing
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/__init__.js && git commit -m "feat: Inject ApprovalRuntimeService into AutomationService"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/__init__.js && git commit -m "feat: Inject ApprovalRuntimeService into AutomationService"
 ```
 
 ---
@@ -638,15 +638,15 @@ cd /opt/Lume && git add backend/src/modules/base_automation/__init__.js && git c
 ### Task 5: Add Workflow Approval Schema Table
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/models/schema.js` (add new table)
-- Modify: `backend/src/modules/base_automation/models/index.js` (register adapter)
+- Modify: `legacy/express/src/modules/base_automation/models/schema.js` (add new table)
+- Modify: `legacy/express/src/modules/base_automation/models/index.js` (register adapter)
 
 **Context:** Optional but useful for tracking which approvals are linked to which workflow executions.
 
 - [ ] **Step 1: Add workflow approval links table to schema**
 
 ```javascript
-// In backend/src/modules/base_automation/models/schema.js, add at the end before export
+// In legacy/express/src/modules/base_automation/models/schema.js, add at the end before export
 
 export const automationWorkflowApprovalLinks = table('automation_workflow_approval_links', {
   ...baseColumns(),
@@ -663,7 +663,7 @@ export const automationWorkflowApprovalLinks = table('automation_workflow_approv
 - [ ] **Step 2: Register adapter in models/index.js**
 
 ```javascript
-// In backend/src/modules/base_automation/models/index.js, add to the export
+// In legacy/express/src/modules/base_automation/models/index.js, add to the export
 
 import { automationWorkflowApprovalLinks } from './schema.js';
 
@@ -676,7 +676,7 @@ export const models = {
 - [ ] **Step 3: Update module init to register the adapter**
 
 ```javascript
-// In backend/src/modules/base_automation/__init__.js, add to adapters object (around line 38-54)
+// In legacy/express/src/modules/base_automation/__init__.js, add to adapters object (around line 38-54)
 
 adapters.WorkflowApprovalLink = new DrizzleAdapter(automationWorkflowApprovalLinks);
 ```
@@ -684,7 +684,7 @@ adapters.WorkflowApprovalLink = new DrizzleAdapter(automationWorkflowApprovalLin
 - [ ] **Step 4: Update service to use new table when creating approval action**
 
 ```javascript
-// In backend/src/modules/base_automation/services/workflow-approval-action.js, add tracking:
+// In legacy/express/src/modules/base_automation/services/workflow-approval-action.js, add tracking:
 
 async executeApprovalAction(execution, action, userId) {
   // ... existing code ...
@@ -715,7 +715,7 @@ Expected: Migration created or DB updated successfully
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/models/schema.js backend/src/modules/base_automation/models/index.js backend/src/modules/base_automation/__init__.js backend/src/modules/base_automation/services/workflow-approval-action.js && git commit -m "feat: Add workflow approval link tracking table"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/models/schema.js legacy/express/src/modules/base_automation/models/index.js legacy/express/src/modules/base_automation/__init__.js legacy/express/src/modules/base_automation/services/workflow-approval-action.js && git commit -m "feat: Add workflow approval link tracking table"
 ```
 
 ---
@@ -889,14 +889,14 @@ cd /opt/Lume && git add tests/unit/base-automation-approval-workflow.test.js && 
 ### Task 7: Add Frontend API Client for Approval Callbacks
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/static/api/index.ts` (if exists) or create new
+- Modify: `legacy/express/src/modules/base_automation/static/api/index.ts` (if exists) or create new
 
 **Context:** Frontend needs a way to call the approval callback endpoints when users approve/reject.
 
 - [ ] **Step 1: Check if frontend API file exists**
 
 ```bash
-ls -la /opt/Lume/backend/src/modules/base_automation/static/api/ 2>/dev/null || echo "Directory does not exist"
+ls -la /opt/Lume/legacy/express/src/modules/base_automation/static/api/ 2>/dev/null || echo "Directory does not exist"
 ```
 
 - [ ] **Step 2: Create or update API client**
@@ -904,7 +904,7 @@ ls -la /opt/Lume/backend/src/modules/base_automation/static/api/ 2>/dev/null || 
 If file doesn't exist, create it:
 
 ```typescript
-// backend/src/modules/base_automation/static/api/index.ts
+// legacy/express/src/modules/base_automation/static/api/index.ts
 import { get, post, put, del } from '@/api/request';
 
 // Existing APIs...
@@ -929,7 +929,7 @@ export async function rejectWorkflowApprovalApi(instanceId: number, userId: stri
 - [ ] **Step 3: Verify API client exports**
 
 ```bash
-grep -n "export async function" /opt/Lume/backend/src/modules/base_automation/static/api/index.ts | tail -5
+grep -n "export async function" /opt/Lume/legacy/express/src/modules/base_automation/static/api/index.ts | tail -5
 ```
 
 Expected: New functions listed
@@ -937,7 +937,7 @@ Expected: New functions listed
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/static/api/index.ts && git commit -m "feat: Add frontend API client for workflow approval callbacks"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/static/api/index.ts && git commit -m "feat: Add frontend API client for workflow approval callbacks"
 ```
 
 ---

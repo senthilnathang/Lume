@@ -17,33 +17,33 @@
 ## File Structure
 
 ### New Files
-- `frontend/apps/web-lume/src/modules/approvals/ApprovalDashboard.vue` — Main dashboard component
-- `frontend/apps/web-lume/src/modules/approvals/components/MetricsCard.vue` — Metrics display
-- `frontend/apps/web-lume/src/modules/approvals/components/BottlenecksList.vue` — Bottleneck tasks
-- `frontend/apps/web-lume/src/modules/approvals/components/EscalationChart.vue` — Escalation metrics chart
-- `backend/src/modules/base_automation/services/advanced-routing.js` — Conditional chain selection
-- `backend/src/modules/base_automation/models/schema.js` (routing rules table) — Routing configuration
-- `backend/src/modules/base_automation/services/notification-enhanced.js` — Notification templates & scheduling
-- `backend/src/modules/base_automation/models/schema.js` (notification templates table) — Template storage
-- `backend/src/modules/base_automation/jobs/notification-scheduler.js` — BullMQ job for scheduled notifications
+- `frontend/apps/admin/src/modules/approvals/ApprovalDashboard.vue` — Main dashboard component
+- `frontend/apps/admin/src/modules/approvals/components/MetricsCard.vue` — Metrics display
+- `frontend/apps/admin/src/modules/approvals/components/BottlenecksList.vue` — Bottleneck tasks
+- `frontend/apps/admin/src/modules/approvals/components/EscalationChart.vue` — Escalation metrics chart
+- `legacy/express/src/modules/base_automation/services/advanced-routing.js` — Conditional chain selection
+- `legacy/express/src/modules/base_automation/models/schema.js` (routing rules table) — Routing configuration
+- `legacy/express/src/modules/base_automation/services/notification-enhanced.js` — Notification templates & scheduling
+- `legacy/express/src/modules/base_automation/models/schema.js` (notification templates table) — Template storage
+- `legacy/express/src/modules/base_automation/jobs/notification-scheduler.js` — BullMQ job for scheduled notifications
 - `tests/unit/base-automation-wave4.test.js` — Complete test suite
 
 ### Modified Files
-- `backend/src/modules/base_automation/__init__.js` — Register new services and tables
-- `backend/src/modules/base_automation/api/index.js` — Add routing & notification endpoints
-- `backend/src/modules/base_automation/models/index.js` — Register routing and template adapters
-- `frontend/apps/web-lume/src/router/index.ts` — Add dashboard route
+- `legacy/express/src/modules/base_automation/__init__.js` — Register new services and tables
+- `legacy/express/src/modules/base_automation/api/index.js` — Add routing & notification endpoints
+- `legacy/express/src/modules/base_automation/models/index.js` — Register routing and template adapters
+- `frontend/apps/admin/src/router/index.ts` — Add dashboard route
 
 ---
 
 ## Task 1: Approval Analytics Dashboard
 
 **Files:**
-- Create: `frontend/apps/web-lume/src/modules/approvals/ApprovalDashboard.vue`
-- Create: `frontend/apps/web-lume/src/modules/approvals/components/MetricsCard.vue`
-- Create: `frontend/apps/web-lume/src/modules/approvals/components/BottlenecksList.vue`
-- Create: `frontend/apps/web-lume/src/modules/approvals/components/EscalationChart.vue`
-- Modify: `frontend/apps/web-lume/src/router/index.ts`
+- Create: `frontend/apps/admin/src/modules/approvals/ApprovalDashboard.vue`
+- Create: `frontend/apps/admin/src/modules/approvals/components/MetricsCard.vue`
+- Create: `frontend/apps/admin/src/modules/approvals/components/BottlenecksList.vue`
+- Create: `frontend/apps/admin/src/modules/approvals/components/EscalationChart.vue`
+- Modify: `frontend/apps/admin/src/router/index.ts`
 - Test: `tests/unit/base-automation-wave4.test.js`
 
 **Context:** Create a Vue 3 dashboard displaying approval analytics. Uses components from Ant Design Vue (a-card, a-statistic, a-table, a-chart). Calls backend analytics API endpoints to fetch metrics.
@@ -114,7 +114,7 @@ Expected: `ApprovalDashboard is not defined`
 - [ ] **Step 3: Create dashboard component**
 
 ```vue
-<!-- frontend/apps/web-lume/src/modules/approvals/ApprovalDashboard.vue -->
+<!-- frontend/apps/admin/src/modules/approvals/ApprovalDashboard.vue -->
 <template>
   <div class="approval-dashboard">
     <div class="dashboard-header">
@@ -218,7 +218,7 @@ onMounted(() => loadMetrics());
 - [ ] **Step 4: Create MetricsCard component**
 
 ```vue
-<!-- frontend/apps/web-lume/src/modules/approvals/components/MetricsCard.vue -->
+<!-- frontend/apps/admin/src/modules/approvals/components/MetricsCard.vue -->
 <template>
   <a-card class="metrics-card">
     <div class="card-content">
@@ -269,7 +269,7 @@ defineProps({
 - [ ] **Step 5: Create BottlenecksList component**
 
 ```vue
-<!-- frontend/apps/web-lume/src/modules/approvals/components/BottlenecksList.vue -->
+<!-- frontend/apps/admin/src/modules/approvals/components/BottlenecksList.vue -->
 <template>
   <a-card title="Bottleneck Tasks" class="bottlenecks-card">
     <a-table 
@@ -316,7 +316,7 @@ defineProps({
 - [ ] **Step 6: Create EscalationChart component**
 
 ```vue
-<!-- frontend/apps/web-lume/src/modules/approvals/components/EscalationChart.vue -->
+<!-- frontend/apps/admin/src/modules/approvals/components/EscalationChart.vue -->
 <template>
   <a-card title="Escalation Metrics" class="chart-card">
     <div class="chart-container">
@@ -388,7 +388,7 @@ h4 {
 
 - [ ] **Step 7: Add dashboard route**
 
-In `frontend/apps/web-lume/src/router/index.ts`, add:
+In `frontend/apps/admin/src/router/index.ts`, add:
 
 ```typescript
 import ApprovalDashboard from '@modules/base_automation/static/views/approval-dashboard.vue';
@@ -413,7 +413,7 @@ Expected: Dashboard tests PASS
 - [ ] **Step 9: Commit**
 
 ```bash
-cd /opt/Lume && git add frontend/apps/web-lume/src/modules/approvals/ frontend/apps/web-lume/src/router/index.ts tests/unit/base-automation-wave4.test.js && git commit -m "feat: Add approval analytics dashboard with metrics, bottlenecks, and escalation charts"
+cd /opt/Lume && git add frontend/apps/admin/src/modules/approvals/ frontend/apps/admin/src/router/index.ts tests/unit/base-automation-wave4.test.js && git commit -m "feat: Add approval analytics dashboard with metrics, bottlenecks, and escalation charts"
 ```
 
 ---
@@ -421,17 +421,17 @@ cd /opt/Lume && git add frontend/apps/web-lume/src/modules/approvals/ frontend/a
 ## Task 2: Advanced Routing Service
 
 **Files:**
-- Create: `backend/src/modules/base_automation/services/advanced-routing.js`
-- Modify: `backend/src/modules/base_automation/models/schema.js` (add routing rules table)
-- Modify: `backend/src/modules/base_automation/models/index.js`
-- Modify: `backend/src/modules/base_automation/__init__.js`
+- Create: `legacy/express/src/modules/base_automation/services/advanced-routing.js`
+- Modify: `legacy/express/src/modules/base_automation/models/schema.js` (add routing rules table)
+- Modify: `legacy/express/src/modules/base_automation/models/index.js`
+- Modify: `legacy/express/src/modules/base_automation/__init__.js`
 - Test: `tests/unit/base-automation-wave4.test.js`
 
 **Context:** Create a service for conditional escalation routing. Routing rules can select escalation chains based on conditions (task priority, approval domain, custom rules).
 
 - [ ] **Step 1: Add routing rules table to schema**
 
-In `backend/src/modules/base_automation/models/schema.js`:
+In `legacy/express/src/modules/base_automation/models/schema.js`:
 
 ```javascript
 export const automationRoutingRules = table('automation_routing_rules', {
@@ -447,13 +447,13 @@ export const automationRoutingRules = table('automation_routing_rules', {
 
 - [ ] **Step 2: Register adapter**
 
-In `backend/src/modules/base_automation/models/index.js`:
+In `legacy/express/src/modules/base_automation/models/index.js`:
 
 ```javascript
 RoutingRule: new DrizzleAdapter(automationRoutingRules)
 ```
 
-In `backend/src/modules/base_automation/__init__.js`:
+In `legacy/express/src/modules/base_automation/__init__.js`:
 
 ```javascript
 adapters.RoutingRule = new DrizzleAdapter(automationRoutingRules);
@@ -519,7 +519,7 @@ describe('Advanced Routing Service', () => {
 
 - [ ] **Step 4: Create AdvancedRoutingService**
 
-Create `backend/src/modules/base_automation/services/advanced-routing.js`:
+Create `legacy/express/src/modules/base_automation/services/advanced-routing.js`:
 
 ```javascript
 export class AdvancedRoutingService {
@@ -580,7 +580,7 @@ export class AdvancedRoutingService {
 
 - [ ] **Step 5: Register service in __init__.js**
 
-In `backend/src/modules/base_automation/__init__.js`:
+In `legacy/express/src/modules/base_automation/__init__.js`:
 
 ```javascript
 import { AdvancedRoutingService } from './services/advanced-routing.js';
@@ -600,7 +600,7 @@ Expected: PASS
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/services/advanced-routing.js backend/src/modules/base_automation/models/schema.js backend/src/modules/base_automation/models/index.js backend/src/modules/base_automation/__init__.js tests/unit/base-automation-wave4.test.js && git commit -m "feat: Add AdvancedRoutingService for conditional escalation chain selection"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/services/advanced-routing.js legacy/express/src/modules/base_automation/models/schema.js legacy/express/src/modules/base_automation/models/index.js legacy/express/src/modules/base_automation/__init__.js tests/unit/base-automation-wave4.test.js && git commit -m "feat: Add AdvancedRoutingService for conditional escalation chain selection"
 ```
 
 ---
@@ -608,17 +608,17 @@ cd /opt/Lume && git add backend/src/modules/base_automation/services/advanced-ro
 ## Task 3: Notification Enhancements
 
 **Files:**
-- Create: `backend/src/modules/base_automation/services/notification-enhanced.js`
-- Modify: `backend/src/modules/base_automation/models/schema.js` (add notification templates table)
-- Create: `backend/src/modules/base_automation/jobs/notification-scheduler.js`
-- Modify: `backend/src/modules/base_automation/api/index.js`
+- Create: `legacy/express/src/modules/base_automation/services/notification-enhanced.js`
+- Modify: `legacy/express/src/modules/base_automation/models/schema.js` (add notification templates table)
+- Create: `legacy/express/src/modules/base_automation/jobs/notification-scheduler.js`
+- Modify: `legacy/express/src/modules/base_automation/api/index.js`
 - Test: `tests/unit/base-automation-wave4.test.js`
 
 **Context:** Enhance notifications with templates, scheduling, delivery tracking, and multi-channel support.
 
 - [ ] **Step 1: Add notification templates table**
 
-In `backend/src/modules/base_automation/models/schema.js`:
+In `legacy/express/src/modules/base_automation/models/schema.js`:
 
 ```javascript
 export const automationNotificationTemplates = table('automation_notification_templates', {
@@ -646,7 +646,7 @@ export const automationNotificationDelivery = table('automation_notification_del
 
 - [ ] **Step 2: Register adapters**
 
-In `backend/src/modules/base_automation/models/index.js`:
+In `legacy/express/src/modules/base_automation/models/index.js`:
 
 ```javascript
 NotificationTemplate: new DrizzleAdapter(automationNotificationTemplates),
@@ -711,7 +711,7 @@ describe('Notification Enhancements', () => {
 
 - [ ] **Step 4: Create EnhancedNotificationService**
 
-Create `backend/src/modules/base_automation/services/notification-enhanced.js`:
+Create `legacy/express/src/modules/base_automation/services/notification-enhanced.js`:
 
 ```javascript
 export class EnhancedNotificationService {
@@ -806,7 +806,7 @@ export class EnhancedNotificationService {
 
 - [ ] **Step 5: Create notification scheduler job**
 
-Create `backend/src/modules/base_automation/jobs/notification-scheduler.js`:
+Create `legacy/express/src/modules/base_automation/jobs/notification-scheduler.js`:
 
 ```javascript
 export class NotificationSchedulerJob {
@@ -847,7 +847,7 @@ Expected: PASS
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/services/notification-enhanced.js backend/src/modules/base_automation/jobs/notification-scheduler.js backend/src/modules/base_automation/models/schema.js backend/src/modules/base_automation/models/index.js tests/unit/base-automation-wave4.test.js && git commit -m "feat: Add enhanced notification system with templates, scheduling, and delivery tracking"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/services/notification-enhanced.js legacy/express/src/modules/base_automation/jobs/notification-scheduler.js legacy/express/src/modules/base_automation/models/schema.js legacy/express/src/modules/base_automation/models/index.js tests/unit/base-automation-wave4.test.js && git commit -m "feat: Add enhanced notification system with templates, scheduling, and delivery tracking"
 ```
 
 ---
@@ -855,17 +855,17 @@ cd /opt/Lume && git add backend/src/modules/base_automation/services/notificatio
 ## Task 4: Performance Optimization
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/models/schema.js` (add database indexes)
-- Modify: `backend/src/modules/base_automation/services/approval-analytics.js` (optimize queries)
-- Create: `backend/src/modules/base_automation/cache/analytics-cache.js` (caching layer)
-- Modify: `backend/src/modules/base_automation/__init__.js` (register cache)
+- Modify: `legacy/express/src/modules/base_automation/models/schema.js` (add database indexes)
+- Modify: `legacy/express/src/modules/base_automation/services/approval-analytics.js` (optimize queries)
+- Create: `legacy/express/src/modules/base_automation/cache/analytics-cache.js` (caching layer)
+- Modify: `legacy/express/src/modules/base_automation/__init__.js` (register cache)
 - Test: `tests/unit/base-automation-wave4.test.js`
 
 **Context:** Optimize database queries, add caching for analytics, implement N+1 query fixes, and add batch operations.
 
 - [ ] **Step 1: Add database indexes to schema**
 
-In `backend/src/modules/base_automation/models/schema.js`, add indexes to critical tables:
+In `legacy/express/src/modules/base_automation/models/schema.js`, add indexes to critical tables:
 
 ```javascript
 // In table definitions, add indexes:
@@ -927,7 +927,7 @@ describe('Analytics Cache', () => {
 
 - [ ] **Step 3: Create analytics cache**
 
-Create `backend/src/modules/base_automation/cache/analytics-cache.js`:
+Create `legacy/express/src/modules/base_automation/cache/analytics-cache.js`:
 
 ```javascript
 export class AnalyticsCache {
@@ -978,7 +978,7 @@ export class AnalyticsCache {
 
 - [ ] **Step 4: Optimize ApprovalAnalyticsService to use cache**
 
-In `backend/src/modules/base_automation/services/approval-analytics.js`:
+In `legacy/express/src/modules/base_automation/services/approval-analytics.js`:
 
 ```javascript
 export class ApprovalAnalyticsService {
@@ -1019,7 +1019,7 @@ export class ApprovalAnalyticsService {
 
 - [ ] **Step 5: Register cache in __init__.js**
 
-In `backend/src/modules/base_automation/__init__.js`:
+In `legacy/express/src/modules/base_automation/__init__.js`:
 
 ```javascript
 import { AnalyticsCache } from './cache/analytics-cache.js';
@@ -1040,7 +1040,7 @@ Expected: All tests PASS
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/models/schema.js backend/src/modules/base_automation/services/approval-analytics.js backend/src/modules/base_automation/cache/analytics-cache.js backend/src/modules/base_automation/__init__.js tests/unit/base-automation-wave4.test.js && git commit -m "perf: Add database indexes, query optimization, and response caching for analytics"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/models/schema.js legacy/express/src/modules/base_automation/services/approval-analytics.js legacy/express/src/modules/base_automation/cache/analytics-cache.js legacy/express/src/modules/base_automation/__init__.js tests/unit/base-automation-wave4.test.js && git commit -m "perf: Add database indexes, query optimization, and response caching for analytics"
 ```
 
 ---

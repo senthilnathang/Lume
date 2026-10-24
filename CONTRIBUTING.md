@@ -11,7 +11,7 @@ Follow the [Code of Conduct](CODE_OF_CONDUCT.md) and [security reporting policy]
 ## Workflow
 
 1. Make focused changes with explicit behavior and acceptance criteria.
-2. Put backend changes in `backend/lume-nestjs`, and shared browser assets in
+2. Put backend changes in `apps/api`, and shared browser assets in
    `packages/@lume/module-ui`. Do not create new legacy Express modules.
 3. Apply authentication, role/permission checks, tenant boundaries and input
    validation. Use transactions and database regressions for critical writes.
@@ -20,6 +20,6 @@ Follow the [Code of Conduct](CODE_OF_CONDUCT.md) and [security reporting policy]
 6. Submit a change description explaining the behavior, validation and remaining risks.
 
 Never commit secrets, private logs, database backups or browser authentication state.
-Do not reset production data for tests. Existing `legacy:*` commands are migration
-comparison tools, not the recommended setup path. The old generator and historical
+Do not reset production data for tests. Applications under `legacy/` are migration comparison references, not workspace
+packages or setup entry points. The old generator and historical
 Express examples are not current NestJS module templates.

@@ -5,7 +5,7 @@ database; these instructions do not authorize resetting an existing installation
 
 ## Requirements
 
-- Node.js 20.12 or newer; the repository pins pnpm 10.28.2.
+- Node.js 22.12 or newer; the repository pins pnpm 10.28.2.
 - MySQL compatible with the active Prisma schema and SQL migrations.
 - Redis only where required by enabled queue/cache features.
 - Git and the platform build tools required by dependencies.
@@ -14,21 +14,22 @@ database; these instructions do not authorize resetting an existing installation
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm --filter lume-backend setup
+pnpm --filter @lume/api db:generate
 ```
 
-The second command runs npm ci using `backend/lume-nestjs/package-lock.json`.
-Do not replace it with the legacy backend's npm install workflow.
+There is one active lockfile: `pnpm-lock.yaml`. The second command generates the
+Prisma client. If installing with `--ignore-scripts`, also run
+`pnpm --filter @lume/website exec nuxt prepare`.
 
 ## Configure the API
 
-Copy `backend/lume-nestjs/.env.example` to `backend/lume-nestjs/.env` if that file
+Copy `apps/api/.env.example` to `apps/api/.env` if that file
 is absent. Set private database credentials and a strong JWT secret outside Git.
 Keep external email/push/AI provider values empty. The template disables durable
 workers/events for local setup; enable internal workers only after required schema
 verification. The deployed local service has its own worker settings.
 
-Inspect the active schema, ledger and [migration instructions](../backend/lume-nestjs/migrations/README.md)
+Inspect the active schema, ledger and [migration instructions](../apps/api/migrations/README.md)
 before applying migrations. Existing production databases require backup/restore
 verification. Do not run legacy `db:setup`, refresh scripts or destructive schema
 push commands as a migration shortcut.
@@ -37,7 +38,7 @@ push commands as a migration shortcut.
 
 ```bash
 pnpm run dev:admin
-pnpm --filter @lume/riagri-website dev
+pnpm --filter @lume/website dev
 ```
 
 Defaults: API 3000, admin 3001, website 3100. Admin Vite proxies `/api` to the API.

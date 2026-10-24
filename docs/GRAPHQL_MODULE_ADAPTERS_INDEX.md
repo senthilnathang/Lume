@@ -72,9 +72,9 @@ This document provides a master index and reference guide for GraphQL module ada
 **Purpose**: Manage document creation, editing, publishing, and organization
 
 **Files**:
-- Adapter: `backend/src/core/graphql/adapters/documents.adapter.ts`
-- Resolver: `backend/src/core/graphql/resolvers/documents.resolver.ts`
-- Schema: `backend/src/core/graphql/schema/documents.schema.graphql`
+- Adapter: `legacy/express/src/core/graphql/adapters/documents.adapter.ts`
+- Resolver: `legacy/express/src/core/graphql/resolvers/documents.resolver.ts`
+- Schema: `legacy/express/src/core/graphql/schema/documents.schema.graphql`
 
 **Key Features**:
 - CRUD operations (Create, Read, Update, Delete)
@@ -119,9 +119,9 @@ mutation {
 **Purpose**: Handle contact form messages, inquiries, and support requests
 
 **Files**:
-- Adapter: `backend/src/core/graphql/adapters/messages.adapter.ts`
-- Resolver: `backend/src/core/graphql/resolvers/messages.resolver.ts`
-- Schema: `backend/src/core/graphql/schema/messages.schema.graphql`
+- Adapter: `legacy/express/src/core/graphql/adapters/messages.adapter.ts`
+- Resolver: `legacy/express/src/core/graphql/resolvers/messages.resolver.ts`
+- Schema: `legacy/express/src/core/graphql/schema/messages.schema.graphql`
 
 **Key Features**:
 - Public message creation (no auth)
@@ -167,9 +167,9 @@ mutation {
 **Purpose**: Manage team members, roles, and organizational structure
 
 **Files**:
-- Adapter: `backend/src/core/graphql/adapters/team.adapter.ts`
-- Resolver: `backend/src/core/graphql/resolvers/team.resolver.ts`
-- Schema: `backend/src/core/graphql/schema/team.schema.graphql`
+- Adapter: `legacy/express/src/core/graphql/adapters/team.adapter.ts`
+- Resolver: `legacy/express/src/core/graphql/resolvers/team.resolver.ts`
+- Schema: `legacy/express/src/core/graphql/schema/team.schema.graphql`
 
 **Key Features**:
 - Team member profiles (name, email, role, status)
@@ -412,11 +412,11 @@ resolver/
 
 ```bash
 # 1. Copy files
-cp backend/src/core/graphql/adapters/documents.adapter.ts \
-   backend/src/core/graphql/adapters/
+cp legacy/express/src/core/graphql/adapters/documents.adapter.ts \
+   legacy/express/src/core/graphql/adapters/
 
 # 2. Register in module
-# Edit backend/src/core/graphql/graphql.module.ts
+# Edit legacy/express/src/core/graphql/graphql.module.ts
 # Add: DocumentsAdapter to providers
 # Add: DocumentsResolver to providers
 

@@ -67,7 +67,7 @@ mode at http://127.0.0.1:3000 using the current Node 24 executable and the backe
 The queue was empty before activation. Live HTTP health and GraphQL checks pass.
 The service handles SIGTERM through Nest shutdown hooks; systemd provides restart
 supervision. The unit template, renderer and operating instructions are stored
-under backend/lume-nestjs/deploy and backend/lume-nestjs/scripts.
+under apps/api/deploy and apps/api/scripts.
 
 Backend changes and verification reports are committed separately from the
 unrelated staged frontend edits. No remote push or public reverse-proxy/domain

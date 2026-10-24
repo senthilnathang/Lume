@@ -1,8 +1,8 @@
 # Lume v2.0 — SEO Audit
 
 **Date**: 2026-05-29
-**Scope**: Live SEO output of the public Nuxt 3 site (`apps/riagri-website/`) and the
-backend `website` module that feeds it (`backend/src/modules/website/`).
+**Scope**: Live SEO output of the public Nuxt 3 site (`apps/website/`) and the
+backend `website` module that feeds it (`legacy/express/src/modules/website/`).
 **Method**: Code-grounded audit of the SEO-generating code, cross-checked against
 `SEO_IMPLEMENTATION_GUIDE.md`. Runtime HTTP capture pending a live boot (see §Live
 verification).
@@ -55,11 +55,11 @@ verification).
 | M3 | No `titleTemplate`; homepage uses non-reactive `useHead` | `nuxt.config.ts`, `index.vue:200` |
 | M4 | No `Product` schema (product catalog) / `CollectionPage` (archives); archives lack og/canonical/pagination | `products.vue`, `category|tag/[slug].vue` |
 | M5 | Redundant + divergent robots/sitemap handling (routeRules vs server routes, different env vars/fallbacks) | `nuxt.config.ts:11-15`, `server/routes/*` |
-| M6 | `public/` has only `favicon.svg` — no `og-image.png`, `apple-touch-icon`, web manifest | `apps/riagri-website/public/` |
+| M6 | `public/` has only `favicon.svg` — no `og-image.png`, `apple-touch-icon`, web manifest | `apps/website/public/` |
 | M7 | List endpoint `getPublishedPages()` drops OG/canonical/noindex fields | `page.service.js:200-216` |
 
 ### 📄 Doc accuracy
-- `SEO_IMPLEMENTATION_GUIDE.md` references `backend/lume-nestjs/.../sitemap.controller.ts` — **does not exist**; real impl is Express (`backend/src/modules/website/`).
+- `SEO_IMPLEMENTATION_GUIDE.md` references `apps/api/.../sitemap.controller.ts` — **does not exist**; real impl is Express (`legacy/express/src/modules/website/`).
 - `CLAUDE.md` lists SEO as production-ready; several Priority-1 guide items (lang, canonical, Twitter, JSON-LD breadth, og-image assets) are unimplemented.
 
 ## Remediation checklist
@@ -112,4 +112,4 @@ Allow: /
 
 **`GET /api/website/public/settings`** → `{}` (confirms H5: no SEO defaults seeded).
 
-_Frontend `<head>`/JSON-LD live capture deferred — `apps/riagri-website/node_modules` not installed; those findings (C1–C4, H1–H2, M1–M6) are code-verified with file:line above and will be re-confirmed once Nuxt deps are installed._ (Test page removed after capture; DB restored to 0 published pages.)
+_Frontend `<head>`/JSON-LD live capture deferred — `apps/website/node_modules` not installed; those findings (C1–C4, H1–H2, M1–M6) are code-verified with file:line above and will be re-confirmed once Nuxt deps are installed._ (Test page removed after capture; DB restored to 0 published pages.)

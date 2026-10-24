@@ -3,7 +3,7 @@
 > current migration certification. Use the [active task list](nestjs-migration-tasks.txt) and
 > [developer guide](DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
 > remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
 
 # GraphQL Module Adapters — Implementation Checklist
 
@@ -27,15 +27,15 @@ This checklist covers the integration of three high-priority modules into the Gr
 ## Phase 3A: Documents Module Integration
 
 ### Adapter & Resolver Setup
-- [ ] Copy `documents.adapter.ts` to `backend/src/core/graphql/adapters/`
-- [ ] Copy `documents.resolver.ts` to `backend/src/core/graphql/resolvers/`
-- [ ] Copy `documents.schema.graphql` to `backend/src/core/graphql/schema/`
+- [ ] Copy `documents.adapter.ts` to `legacy/express/src/core/graphql/adapters/`
+- [ ] Copy `documents.resolver.ts` to `legacy/express/src/core/graphql/resolvers/`
+- [ ] Copy `documents.schema.graphql` to `legacy/express/src/core/graphql/schema/`
 - [ ] Register DocumentsAdapter in `graphql.module.ts` providers
 - [ ] Register DocumentsResolver in `graphql.module.ts` providers
 - [ ] Add documents schema to Apollo Server schema definition
 
 ### Service Integration
-- [ ] Verify DocumentService exists at `backend/src/core/services/document.service.js`
+- [ ] Verify DocumentService exists at `legacy/express/src/core/services/document.service.js`
 - [ ] Ensure DocumentService has all required methods:
   - [ ] `findById(id, options)`
   - [ ] `find(options)`
@@ -46,7 +46,7 @@ This checklist covers the integration of three high-priority modules into the Gr
 - [ ] Verify Drizzle schema includes `documents` table
 
 ### Testing
-- [ ] Copy test suite to `backend/src/core/graphql/adapters/__tests__/documents.adapter.spec.ts`
+- [ ] Copy test suite to `legacy/express/src/core/graphql/adapters/__tests__/documents.adapter.spec.ts`
 - [ ] Run unit tests: `npm test -- documents.adapter.spec.ts`
 - [ ] Achieve 90%+ coverage for adapter
 - [ ] Write integration tests with mock DocumentService
@@ -87,15 +87,15 @@ This checklist covers the integration of three high-priority modules into the Gr
 ## Phase 3B: Messages Module Integration
 
 ### Adapter & Resolver Setup
-- [ ] Copy `messages.adapter.ts` to `backend/src/core/graphql/adapters/`
-- [ ] Copy `messages.resolver.ts` to `backend/src/core/graphql/resolvers/`
-- [ ] Copy `messages.schema.graphql` to `backend/src/core/graphql/schema/`
+- [ ] Copy `messages.adapter.ts` to `legacy/express/src/core/graphql/adapters/`
+- [ ] Copy `messages.resolver.ts` to `legacy/express/src/core/graphql/resolvers/`
+- [ ] Copy `messages.schema.graphql` to `legacy/express/src/core/graphql/schema/`
 - [ ] Register MessagesAdapter in `graphql.module.ts` providers
 - [ ] Register MessagesResolver in `graphql.module.ts` providers
 - [ ] Add messages schema to Apollo Server schema definition
 
 ### Service Integration
-- [ ] Verify MessageService exists at `backend/src/core/services/message.service.js`
+- [ ] Verify MessageService exists at `legacy/express/src/core/services/message.service.js`
 - [ ] Ensure MessageService has all required methods:
   - [ ] `findById(id, options)`
   - [ ] `find(options)`
@@ -106,7 +106,7 @@ This checklist covers the integration of three high-priority modules into the Gr
 - [ ] Verify Drizzle schema includes `messages` table
 
 ### Testing
-- [ ] Copy test suite to `backend/src/core/graphql/adapters/__tests__/messages.adapter.spec.ts`
+- [ ] Copy test suite to `legacy/express/src/core/graphql/adapters/__tests__/messages.adapter.spec.ts`
 - [ ] Run unit tests: `npm test -- messages.adapter.spec.ts`
 - [ ] Achieve 90%+ coverage for adapter
 - [ ] Test email validation:
@@ -150,15 +150,15 @@ This checklist covers the integration of three high-priority modules into the Gr
 ## Phase 3C: Team Module Integration
 
 ### Adapter & Resolver Setup
-- [ ] Copy `team.adapter.ts` to `backend/src/core/graphql/adapters/`
-- [ ] Copy `team.resolver.ts` to `backend/src/core/graphql/resolvers/`
-- [ ] Copy `team.schema.graphql` to `backend/src/core/graphql/schema/`
+- [ ] Copy `team.adapter.ts` to `legacy/express/src/core/graphql/adapters/`
+- [ ] Copy `team.resolver.ts` to `legacy/express/src/core/graphql/resolvers/`
+- [ ] Copy `team.schema.graphql` to `legacy/express/src/core/graphql/schema/`
 - [ ] Register TeamAdapter in `graphql.module.ts` providers
 - [ ] Register TeamResolver in `graphql.module.ts` providers
 - [ ] Add team schema to Apollo Server schema definition
 
 ### Service Integration
-- [ ] Verify TeamService exists at `backend/src/core/services/team.service.js`
+- [ ] Verify TeamService exists at `legacy/express/src/core/services/team.service.js`
 - [ ] Ensure TeamService has all required methods:
   - [ ] `findById(id, options)`
   - [ ] `find(options)`
@@ -169,7 +169,7 @@ This checklist covers the integration of three high-priority modules into the Gr
 - [ ] Verify Drizzle schema includes `team_members` table
 
 ### Testing
-- [ ] Copy test suite to `backend/src/core/graphql/adapters/__tests__/team.adapter.spec.ts`
+- [ ] Copy test suite to `legacy/express/src/core/graphql/adapters/__tests__/team.adapter.spec.ts`
 - [ ] Run unit tests: `npm test -- team.adapter.spec.ts`
 - [ ] Achieve 90%+ coverage for adapter
 - [ ] Test role validation:

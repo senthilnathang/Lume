@@ -85,7 +85,7 @@ This document summarizes all updates to the Lume framework documentation, archit
 
 ## Test Infrastructure Updates
 
-### 1. New File: backend/tests/integration/metadata-framework.test.js
+### 1. New File: legacy/express/tests/integration/metadata-framework.test.js
 
 **Purpose:** Comprehensive integration tests for the metadata-driven framework core services
 
@@ -197,7 +197,7 @@ node scripts/seed-demo-data.js --clear      # Clear first
 **Changes:** 1 file, 1,115 insertions
 **Content:** OWASP Top 10, auth/authz, data security, compliance, incident response
 
-### Commit 2: docs/ARCHITECTURE, docs/DEVELOPMENT, backend/scripts/seed-demo-data.js, backend/tests/integration/metadata-framework.test.js, docs/METADATA_FRAMEWORK_TESTING.md
+### Commit 2: docs/ARCHITECTURE, docs/DEVELOPMENT, backend/scripts/seed-demo-data.js, legacy/express/tests/integration/metadata-framework.test.js, docs/METADATA_FRAMEWORK_TESTING.md
 **Message:** "docs: update architecture, development, testing guides + seed demo data"
 **Changes:** 5 files, 1,916 insertions, 14 deletions
 **Content:**
@@ -255,7 +255,7 @@ tests/
 | Unit Tests | 577+ | tests/unit/ |
 | Integration Tests | 23 | tests/integration/metadata-framework.test.js |
 | E2E Tests | 3 suites | test/e2e/ |
-| Frontend Tests | 26 | apps/web-lume/src/__tests__/ |
+| Frontend Tests | 26 | apps/admin/src/__tests__/ |
 
 ---
 
@@ -396,7 +396,7 @@ See `docs/SECURITY_HARDENING.md` for comprehensive security hardening covering:
 - docs/METADATA_FRAMEWORK_TESTING.md - NEW comprehensive testing guide
 
 ### Testing (1 file)
-- backend/tests/integration/metadata-framework.test.js - NEW with 23 tests
+- legacy/express/tests/integration/metadata-framework.test.js - NEW with 23 tests
 
 ### Scripts (1 file)
 - backend/scripts/seed-demo-data.js - NEW demo data seeder
@@ -440,7 +440,7 @@ See `docs/SECURITY_HARDENING.md` for comprehensive security hardening covering:
 - ContactNotificationWorkflow - `docs/DEVELOPMENT.md` (line ~150)
 - ContactsModule - `docs/DEVELOPMENT.md` (line ~200)
 - Demo Data - `backend/scripts/seed-demo-data.js`
-- Integration Tests - `backend/tests/integration/metadata-framework.test.js`
+- Integration Tests - `legacy/express/tests/integration/metadata-framework.test.js`
 
 ---
 

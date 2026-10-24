@@ -13,18 +13,18 @@
 ## File Structure
 
 ### New Files
-- `backend/src/modules/base_automation/services/approval-escalation.js` — SLA enforcement and escalation handler
-- `backend/src/modules/base_automation/jobs/escalation-processor.js` — BullMQ job processor for overdue approvals
+- `legacy/express/src/modules/base_automation/services/approval-escalation.js` — SLA enforcement and escalation handler
+- `legacy/express/src/modules/base_automation/jobs/escalation-processor.js` — BullMQ job processor for overdue approvals
 - `tests/unit/base-automation-approval-escalation.test.js` — SLA and escalation tests
 
 ### Modified Files
-- `backend/src/modules/base_automation/models/schema.js` — Add escalation tracking table
-- `backend/src/modules/base_automation/models/index.js` — Register escalation adapter
-- `backend/src/modules/base_automation/services/approval-runtime.js` — Add SLA calculation
-- `backend/src/modules/base_automation/services/index.js` — Add escalation service integration
-- `backend/src/modules/base_automation/__init__.js` — Register job queue
-- `backend/src/modules/base_automation/api/index.js` — Add escalation endpoints
-- `backend/src/modules/base_automation/static/api/index.ts` — Add frontend client functions
+- `legacy/express/src/modules/base_automation/models/schema.js` — Add escalation tracking table
+- `legacy/express/src/modules/base_automation/models/index.js` — Register escalation adapter
+- `legacy/express/src/modules/base_automation/services/approval-runtime.js` — Add SLA calculation
+- `legacy/express/src/modules/base_automation/services/index.js` — Add escalation service integration
+- `legacy/express/src/modules/base_automation/__init__.js` — Register job queue
+- `legacy/express/src/modules/base_automation/api/index.js` — Add escalation endpoints
+- `legacy/express/src/modules/base_automation/static/api/index.ts` — Add frontend client functions
 
 ---
 
@@ -33,9 +33,9 @@
 ### Task 1: Add SLA Escalation Tracking Table
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/models/schema.js`
-- Modify: `backend/src/modules/base_automation/models/index.js`
-- Modify: `backend/src/modules/base_automation/__init__.js`
+- Modify: `legacy/express/src/modules/base_automation/models/schema.js`
+- Modify: `legacy/express/src/modules/base_automation/models/index.js`
+- Modify: `legacy/express/src/modules/base_automation/__init__.js`
 - Test: `tests/unit/base-automation-approval-escalation.test.js`
 
 **Context:** Approval tasks can have SLAs (e.g., "approve within 2 hours"). When SLA is breached, we need to track escalations: who escalated it, when, to whom, and what action was taken.
@@ -99,7 +99,7 @@ Expected: Test fails because ApprovalEscalation table doesn't exist
 - [ ] **Step 3: Add escalation table to schema**
 
 ```javascript
-// In backend/src/modules/base_automation/models/schema.js, add at end:
+// In legacy/express/src/modules/base_automation/models/schema.js, add at end:
 
 export const automationApprovalEscalations = table('automation_approval_escalations', {
   ...baseColumns(),
@@ -143,7 +143,7 @@ Expected: PASS
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/models/schema.js backend/src/modules/base_automation/models/index.js backend/src/modules/base_automation/__init__.js tests/unit/base-automation-approval-escalation.test.js && git commit -m "feat: Add approval escalation tracking table"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/models/schema.js legacy/express/src/modules/base_automation/models/index.js legacy/express/src/modules/base_automation/__init__.js tests/unit/base-automation-approval-escalation.test.js && git commit -m "feat: Add approval escalation tracking table"
 ```
 
 ---
@@ -151,9 +151,9 @@ cd /opt/Lume && git add backend/src/modules/base_automation/models/schema.js bac
 ### Task 2: Create ApprovalEscalationService
 
 **Files:**
-- Create: `backend/src/modules/base_automation/services/approval-escalation.js`
+- Create: `legacy/express/src/modules/base_automation/services/approval-escalation.js`
 - Modify: `tests/unit/base-automation-approval-escalation.test.js`
-- Modify: `backend/src/modules/base_automation/__init__.js`
+- Modify: `legacy/express/src/modules/base_automation/__init__.js`
 
 **Context:** This service detects overdue approvals and creates escalations. It handles SLA calculation, escalation assignment, and notification triggers.
 
@@ -233,7 +233,7 @@ Expected: Test fails because ApprovalEscalationService doesn't exist
 - [ ] **Step 3: Create ApprovalEscalationService**
 
 ```javascript
-// backend/src/modules/base_automation/services/approval-escalation.js
+// legacy/express/src/modules/base_automation/services/approval-escalation.js
 
 export class ApprovalEscalationService {
   constructor(models, notificationService = null) {
@@ -346,7 +346,7 @@ serviceRegistry.register('approvalEscalationService', approvalEscalationService)
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/services/approval-escalation.js backend/src/modules/base_automation/__init__.js tests/unit/base-automation-approval-escalation.test.js && git commit -m "feat: Create ApprovalEscalationService for SLA enforcement"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/services/approval-escalation.js legacy/express/src/modules/base_automation/__init__.js tests/unit/base-automation-approval-escalation.test.js && git commit -m "feat: Create ApprovalEscalationService for SLA enforcement"
 ```
 
 ---
@@ -354,8 +354,8 @@ cd /opt/Lume && git add backend/src/modules/base_automation/services/approval-es
 ### Task 3: Add Escalation Job Queue Processor
 
 **Files:**
-- Create: `backend/src/modules/base_automation/jobs/escalation-processor.js`
-- Modify: `backend/src/modules/base_automation/__init__.js`
+- Create: `legacy/express/src/modules/base_automation/jobs/escalation-processor.js`
+- Modify: `legacy/express/src/modules/base_automation/__init__.js`
 - Modify: `tests/unit/base-automation-approval-escalation.test.js`
 
 **Context:** A background job (via BullMQ) periodically checks for overdue tasks and processes escalations. This runs every 5 minutes.
@@ -363,7 +363,7 @@ cd /opt/Lume && git add backend/src/modules/base_automation/services/approval-es
 - [ ] **Step 1: Create escalation job processor**
 
 ```javascript
-// backend/src/modules/base_automation/jobs/escalation-processor.js
+// legacy/express/src/modules/base_automation/jobs/escalation-processor.js
 
 export class EscalationProcessor {
   constructor(approvalEscalationService) {
@@ -449,7 +449,7 @@ Expected: All tests passing
 - [ ] **Step 5: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/jobs/escalation-processor.js backend/src/modules/base_automation/__init__.js tests/unit/base-automation-approval-escalation.test.js && git commit -m "feat: Add approval escalation job processor (every 5 minutes)"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/jobs/escalation-processor.js legacy/express/src/modules/base_automation/__init__.js tests/unit/base-automation-approval-escalation.test.js && git commit -m "feat: Add approval escalation job processor (every 5 minutes)"
 ```
 
 ---
@@ -457,8 +457,8 @@ cd /opt/Lume && git add backend/src/modules/base_automation/jobs/escalation-proc
 ### Task 4: Add Escalation API & Frontend Client
 
 **Files:**
-- Modify: `backend/src/modules/base_automation/api/index.js`
-- Modify: `backend/src/modules/base_automation/static/api/index.ts`
+- Modify: `legacy/express/src/modules/base_automation/api/index.js`
+- Modify: `legacy/express/src/modules/base_automation/static/api/index.ts`
 - Modify: `tests/unit/base-automation-approval-escalation.test.js`
 
 **Context:** Add endpoints to fetch escalation history and update escalation status. Add frontend client functions to display escalation data in the UI.
@@ -486,7 +486,7 @@ describe('Escalation API Endpoints', () => {
 - [ ] **Step 2: Add escalation endpoints to api/index.js**
 
 ```javascript
-// In backend/src/modules/base_automation/api/index.js, add:
+// In legacy/express/src/modules/base_automation/api/index.js, add:
 
 router.get('/approvals/escalations/:instanceId', async (req, res) => {
   try {
@@ -518,7 +518,7 @@ router.get('/approvals/escalations/task/:taskId', async (req, res) => {
 - [ ] **Step 3: Add frontend API client functions**
 
 ```typescript
-// In backend/src/modules/base_automation/static/api/index.ts, add:
+// In legacy/express/src/modules/base_automation/static/api/index.ts, add:
 
 export async function getEscalationHistoryApi(instanceId: number) {
   return get(`/approvals/escalations/${instanceId}`);
@@ -546,7 +546,7 @@ cd /opt/Lume && npx tsc --noEmit 2>&1 | grep -i "escalation\|approval" || echo "
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /opt/Lume && git add backend/src/modules/base_automation/api/index.js backend/src/modules/base_automation/static/api/index.ts tests/unit/base-automation-approval-escalation.test.js && git commit -m "feat: Add approval escalation endpoints and frontend client"
+cd /opt/Lume && git add legacy/express/src/modules/base_automation/api/index.js legacy/express/src/modules/base_automation/static/api/index.ts tests/unit/base-automation-approval-escalation.test.js && git commit -m "feat: Add approval escalation endpoints and frontend client"
 ```
 
 ---

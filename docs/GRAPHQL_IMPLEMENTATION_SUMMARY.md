@@ -3,13 +3,13 @@
 > current migration certification. Use the [active task list](nestjs-migration-tasks.txt) and
 > [developer guide](DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
 > remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
 
 # GraphQL Implementation Summary
 
-**Completion Date:** May 1, 2026  
-**Status:** Production-Ready (v1.0.0)  
-**Total Implementation Effort:** 9 phases, 130+ files, 6,000+ lines of code  
+**Completion Date:** May 1, 2026
+**Status:** Production-Ready (v1.0.0)
+**Total Implementation Effort:** 9 phases, 130+ files, 6,000+ lines of code
 **Total Commits:** 5 (phases 1-9)
 
 This document summarizes the complete GraphQL API implementation for Lume NestJS and provides navigation to all related documentation.
@@ -98,7 +98,7 @@ Sensitive fields (SSN, salary, etc.) automatically excluded from responses:
 ```typescript
 // Post-fetch masking in EntityRecordResolver
 const maskedData = await this.fieldPermissionService.filterRecordForRole(
-  entityId, 
+  entityId,
   record.data,    // { firstName, lastName, ssn, salary, email, ... }
   user.role_id
 );
@@ -155,7 +155,7 @@ loaders.entityFieldsByEntityId.load(entityId)
 ## File Structure
 
 ```
-backend/lume-nestjs/src/graphql/
+apps/api/src/graphql/
 ├── graphql.module.ts                          # Root module
 ├── graphql.config.ts                          # Apollo config factory
 ├── graphql.context.ts                         # Per-request context
@@ -221,23 +221,23 @@ test/graphql/                                 # Mirror of src
 ## Documentation Map
 
 ### For Architects & Decision-Makers
-→ **[ARCHITECTURE.md](ARCHITECTURE.md)** — See section "GraphQL API Layer"  
+→ **[ARCHITECTURE.md](ARCHITECTURE.md)** — See section "GraphQL API Layer"
 High-level overview, 4 Grid abstractions, security model, performance strategy
 
 ### For Detailed Architecture Understanding
-→ **[GRAPHQL_ARCHITECTURE.md](GRAPHQL_ARCHITECTURE.md)** (this file)  
+→ **[GRAPHQL_ARCHITECTURE.md](GRAPHQL_ARCHITECTURE.md)** (this file)
 9 implementation phases, all type definitions, resolver patterns, integration points, DataLoader details, security guards, subscription patterns
 
 ### For Developers Building With GraphQL
-→ **[GRAPHQL_API_GUIDE.md](GRAPHQL_API_GUIDE.md)**  
+→ **[GRAPHQL_API_GUIDE.md](GRAPHQL_API_GUIDE.md)**
 Practical examples: authentication, queries, mutations, subscriptions, error handling, best practices, client setup (Apollo)
 
 ### For Implementation Details
-→ **Code in `/backend/lume-nestjs/src/graphql/`**  
+→ **Code in `/apps/api/src/graphql/`**
 All source code with TypeScript types and JSDoc comments
 
 ### For Testing Examples
-→ **Tests in `/backend/lume-nestjs/test/graphql/`**  
+→ **Tests in `/apps/api/test/graphql/`**
 Unit tests (mock services) + integration tests (real queries)
 
 ---
@@ -325,9 +325,9 @@ npm run test:k6 graphql
 ## Roadmap & Next Steps
 
 ### Q2 2026 (Current)
-✅ Core GraphQL layer complete  
-✅ 4 Grid abstractions exposed  
-✅ Multi-tenant isolation working  
+✅ Core GraphQL layer complete
+✅ 4 Grid abstractions exposed
+✅ Multi-tenant isolation working
 ✅ Real-time subscriptions functional
 
 ### Q3 2026 (Planned)
@@ -386,5 +386,5 @@ View commits: `git log --grep="graphql" --oneline`
 
 ---
 
-**Last Updated:** May 1, 2026  
+**Last Updated:** May 1, 2026
 **Next Review:** Q3 2026 (after service wiring)

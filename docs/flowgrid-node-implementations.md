@@ -30,7 +30,7 @@
 ### AbstractWorkflowNode (Base Implementation)
 
 ```typescript
-// backend/src/core/flowgrid/nodes/abstract-node.ts
+// legacy/express/src/core/flowgrid/nodes/abstract-node.ts
 
 import { OpenTelemetrySpan } from '@opentelemetry/api';
 import {
@@ -236,7 +236,7 @@ class JSONSchemaValidator {
 ### OpenAI LLM Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/llm/openai-node.ts
+// legacy/express/src/core/flowgrid/nodes/llm/openai-node.ts
 
 import { AbstractWorkflowNode } from '../abstract-node.js';
 import { OpenAI } from 'openai';
@@ -416,7 +416,7 @@ export class OpenAINode extends AbstractWorkflowNode {
 ### Anthropic Claude Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/llm/anthropic-node.ts
+// legacy/express/src/core/flowgrid/nodes/llm/anthropic-node.ts
 
 import { AbstractWorkflowNode } from '../abstract-node.js';
 import Anthropic from '@anthropic-ai/sdk';
@@ -521,7 +521,7 @@ export class AnthropicNode extends AbstractWorkflowNode {
 ### Supervisor Agent Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/agent/supervisor-agent-node.ts
+// legacy/express/src/core/flowgrid/nodes/agent/supervisor-agent-node.ts
 
 import { AbstractWorkflowNode } from '../abstract-node.js';
 
@@ -661,7 +661,7 @@ export class SupervisorAgentNode extends AbstractWorkflowNode {
 ### Worker Agent Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/agent/worker-agent-node.ts
+// legacy/express/src/core/flowgrid/nodes/agent/worker-agent-node.ts
 
 export class WorkerAgentNode extends AbstractWorkflowNode {
   type = NodeType.AGENT;
@@ -815,7 +815,7 @@ export class WorkerAgentNode extends AbstractWorkflowNode {
 ### REST API Tool Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/tool/rest-api-node.ts
+// legacy/express/src/core/flowgrid/nodes/tool/rest-api-node.ts
 
 import axios, { AxiosInstance } from 'axios';
 
@@ -949,7 +949,7 @@ export class RESTAPIToolNode extends AbstractWorkflowNode {
 ### Vector Memory Node (Long-Term)
 
 ```typescript
-// backend/src/core/flowgrid/nodes/memory/vector-memory-node.ts
+// legacy/express/src/core/flowgrid/nodes/memory/vector-memory-node.ts
 
 import { OpenAI } from 'openai';
 
@@ -1126,7 +1126,7 @@ export class VectorMemoryNode extends AbstractWorkflowNode {
 ### DataGrid Read Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/data/datagrid-read-node.ts
+// legacy/express/src/core/flowgrid/nodes/data/datagrid-read-node.ts
 
 export class DataGridReadNode extends AbstractWorkflowNode {
   type = NodeType.DATA;
@@ -1233,7 +1233,7 @@ export class DataGridReadNode extends AbstractWorkflowNode {
 ### DataGrid Write Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/data/datagrid-write-node.ts
+// legacy/express/src/core/flowgrid/nodes/data/datagrid-write-node.ts
 
 export class DataGridWriteNode extends AbstractWorkflowNode {
   type = NodeType.DATA;
@@ -1350,7 +1350,7 @@ export class DataGridWriteNode extends AbstractWorkflowNode {
 ### Policy Check Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/policy/policy-check-node.ts
+// legacy/express/src/core/flowgrid/nodes/policy/policy-check-node.ts
 
 export class PolicyCheckNode extends AbstractWorkflowNode {
   type = NodeType.POLICY;
@@ -1411,7 +1411,7 @@ export class PolicyCheckNode extends AbstractWorkflowNode {
 ### Condition Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/control/condition-node.ts
+// legacy/express/src/core/flowgrid/nodes/control/condition-node.ts
 
 export class ConditionNode extends AbstractWorkflowNode {
   type = NodeType.FLOW_CONTROL;
@@ -1484,7 +1484,7 @@ export class ConditionNode extends AbstractWorkflowNode {
 ### Loop Node
 
 ```typescript
-// backend/src/core/flowgrid/nodes/control/loop-node.ts
+// legacy/express/src/core/flowgrid/nodes/control/loop-node.ts
 
 export class LoopNode extends AbstractWorkflowNode {
   type = NodeType.FLOW_CONTROL;
