@@ -45,7 +45,8 @@ standalone Express application being retired.
 Prisma and Drizzle operate on the same MySQL database. Shared Drizzle JSON columns
 decode both text-backed JSON and driver-decoded JSON at the persistence boundary.
 Use the SQL migration ledger; do not substitute legacy schema refresh scripts.
-The local ledger was verified through migration 016. New environments must inspect
+The local ledger was verified through migration 017, including document soft-delete
+alignment. New environments must inspect
 and apply applicable migrations rather than replaying an existing database blindly.
 
 Sequence allocation locks its row and advances atomically. Counter edits cannot

@@ -1,3 +1,5 @@
+import { SearchController } from './controllers/search.controller';
+import { SearchService } from './services/search.service';
 import { Module, OnModuleInit } from '@nestjs/common';
 import { SharedModule } from '@core/modules/shared.module';
 import { EntityRegistryService } from '@core/entity/entity-registry.service';
@@ -45,6 +47,7 @@ import { LeadAssignmentWorkflow, LeadScoringSendNotification } from './workflows
 @Module({
   imports: [SharedModule],
   controllers: [
+    SearchController,
     EntityController,
     EntityRecordsController,
     EntityViewsController,
@@ -60,6 +63,7 @@ import { LeadAssignmentWorkflow, LeadScoringSendNotification } from './workflows
     AdminPluginsController,
   ],
   providers: [
+    SearchService,
     AdminSettingsService,
     RecordRuleManagementService,
     EntityService,

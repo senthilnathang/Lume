@@ -44,6 +44,14 @@ pnpm --filter @lume/admin test:e2e
 
 ## Latest recorded evidence
 
+- Global search migration: full backend 80 suites / 826 tests passed; final focused
+  search/migration rerun passed 24 tests after the document-rule follow-up.
+- Migration 017 preserves documents with or without a preexisting deleted_at column.
+  Backup checksum and restore verified (141 tables, 16 previous migrations).
+- Full isolated startup/health/GraphQL passed. Local migration 017 applied and API
+  restarted; health passed and anonymous search returns 401.
+
+
 - Canonical workspace: API 809 tests, admin 80 tests, website 6 tests passed.
 - All three images build from the frozen lockfile. API AppModule, Prisma, Sharp and
   upload-directory permissions pass; admin and website startup/HTTP asset checks pass.

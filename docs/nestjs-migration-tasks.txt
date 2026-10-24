@@ -67,7 +67,7 @@ NestJS runtime, auth/session/RBAC, users, module catalog, menu/group/record-rule
 sequence contracts, automation definition CRUD and approval definitions/inbox have
 been implemented in earlier batches. Detailed evidence and remaining limitations:
 docs/frontend-nestjs-migration-2026-10-23.txt.
-The source audit currently flags 74 calls; this is not a count of confirmed bugs.
+The source audit currently flags 76 calls; this is not a count of confirmed bugs.
 Latest frontend/backend migration edits are prepared for Git publication but are
 not yet deployed. Consult Git history for the published revision.
 
@@ -128,3 +128,20 @@ not yet deployed. Consult Git history for the published revision.
 - Current guides: 57 local links checked; 37 stale historical links repaired.
 - Frontend audit now includes extracted API UI files: 79 calls need review (previously
   74). These are inventory candidates; no feature-parity closure is implied.
+
+2026-10-24 global search migration
+- M04/M08: both routed command palettes now have a NestJS GET /search contract.
+  Permission and tenant checks precede results; private ownership, record rules,
+  hidden fields and soft deletes are covered by real HTTP/JWT/MySQL regressions.
+- Results expose only title/description/model/group/id, with bounded limits and
+  exact-title ranking. Document rules evaluate the full persisted row.
+- Migration 017 aligns Prisma documents.deleted_at with existing Drizzle metadata.
+  It preserves rows and existing deletion timestamps; it does not reset documents.
+- Shared document grants, search indexing, other M08 consumers and full feature
+  parity remain open. This closes the basic search contract, not the whole task.
+- Verification: full API 80 suites / 826 tests passed; final focused search/migration
+  checks 24 passed. Build, lint (zero errors), layout and isolated startup passed.
+- Fresh private backup restored successfully (141 tables, 16 prior migrations).
+  Migration 017 applied locally; API restarted and health/search authentication passed.
+- Frontend source audit now has 76 unmatched calls, down from 79. Remaining call
+  classification and required module parity stay open. External providers stay disabled.

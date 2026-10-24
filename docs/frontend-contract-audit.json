@@ -1,13 +1,7 @@
 {
   "scope": "Literal calls in admin and shared static views; declarations only, not runtime or payload validation",
-  "controller_route_variants": 1023,
+  "controller_route_variants": 1024,
   "unmatched_calls": [
-    {
-      "file": "apps/admin/src/components/CommandPalette.vue",
-      "line": 108,
-      "method": "GET",
-      "path": "/search"
-    },
     {
       "file": "apps/admin/src/modules/dashboard/views/DashboardView.vue",
       "line": 141,
@@ -70,7 +64,7 @@
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base/static/views/admin/WorkflowsManagement.vue",
-      "line": 202,
+      "line": 197,
       "method": "POST",
       "path": "/admin/workflows/test/_parameter_"
     },
@@ -291,12 +285,6 @@
       "path": "/model-access/_parameter_"
     },
     {
-      "file": "packages/@lume/module-ui/src/modules/common/static/components/CommandPalette.vue",
-      "line": 125,
-      "method": "GET",
-      "path": "/search"
-    },
-    {
       "file": "packages/@lume/module-ui/src/modules/common/static/components/DynamicForm.js",
       "line": 34,
       "method": "GET",
@@ -313,12 +301,6 @@
       "line": 152,
       "method": "GET",
       "path": "/search/recent"
-    },
-    {
-      "file": "packages/@lume/module-ui/src/modules/common/static/components/GlobalSearch.js",
-      "line": 176,
-      "method": "GET",
-      "path": "/search"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",

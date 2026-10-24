@@ -13,6 +13,7 @@ This is a guide to implemented migration contracts, not a claim of complete pari
 | Sequences | `/admin/settings/sequences`; POST `/:code/next` allocates |
 | Automation definitions | `/automation/workflows`, `/automation/flows`, `/automation/approvals` |
 | Approval requests | GET/POST `/automation/approval-requests`, GET `/:id`, POST `/:id/approve`, POST `/:id/reject` |
+| Global search | GET `/search?q=...&limit=20` (authenticated; signed tenant required) |
 | Public website | `/website/public` |
 
 Approval list parameters are `view=pending|history`, optional `before` cursor and
@@ -31,3 +32,18 @@ Do not treat similarly named workflow-definition and durable-job APIs as equival
 Use DTOs/controllers and isolated integration tests to verify exact payload/response
 contracts. [Inventories](frontend-contract-audit.json) identify candidates for review;
 matching a route declaration alone is not compatibility certification.
+
+## Global search
+
+Search returns `{success: true, data: {results, total, query}}`. Each result has
+`id`, `title`, `description`, `model`, and `group`. Query length is at most 200;
+limit is an integer from 1 to 50. `total` is the returned result count, not an
+unfiltered count that could reveal inaccessible records. Exact titles rank first.
+
+Entity records require `base.records.read`, tenant scope, private ownership (or
+administrator role), record rules and field permissions. Field filtering precedes
+matching. Documents require `documents.read`, record rules, and public visibility
+or upload ownership. Deleted documents/records/entities are excluded. Documents
+lack a tenant column; unrelated private uploads are not exposed even to admins.
+Shared document grants and larger-scale indexed search remain outside this contract.
+Migration 017 aligns the Prisma document soft-delete field with Drizzle.

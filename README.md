@@ -60,13 +60,13 @@ Recent work covers authentication/session contracts, users/RBAC, settings,
 module catalog, workflow/flow definition CRUD, approval definitions and inbox,
 shared JSON persistence, and transactional sequence allocation. It does not certify
 all automation execution or module features. The current review inventory flags
-79 frontend calls and 100 Nest implementation markers; these are review candidates,
+76 frontend calls and 100 Nest implementation markers; these are review candidates,
 not counts of proven defects. See the task list for data migration, feature parity,
 CI/deployment and legacy retirement gates.
 
-The final pre-commit backend run passed 79 suites / 809 tests, including the sequence
-follow-up. Admin tests passed 80 tests and website tests passed 6; both builds and
-type checks passed. Updated release evidence is recorded in the testing guide.
+The latest backend run passed 80 suites / 826 tests, including authenticated global
+search. The prior structural verification passed 80 admin tests and 6 website
+tests, with both client builds and type checks passing. Updated release evidence is recorded in the testing guide.
 
 ## License
 

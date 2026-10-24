@@ -79,6 +79,19 @@ describe('SQL migration runner (disposable MySQL database)', () => {
     const second = await createConnection(target);
     try { await applyMigrations(second,['002_next.sql'],directory); } finally { await second.end(); }
   });
+  it.each([false, true])('migration 017 preserves documents and existing soft-delete values (column exists: %s)', async exists => {
+    await db.query(`CREATE TABLE documents(id INT PRIMARY KEY, title VARCHAR(255)${exists ? ', deleted_at DATETIME NULL' : ''})`);
+    await db.query("INSERT INTO documents(id,title) VALUES(1,'Keep document')");
+    if (exists) await db.query("UPDATE documents SET deleted_at='2026-01-01' WHERE id=1");
+    const filename = '017_align_document_soft_delete.sql';
+    file(filename, readFileSync(join('migrations', filename), 'utf8'));
+    await applyMigrations(db, [filename], directory);
+    await applyMigrations(db, [filename], directory);
+    const [rows]: any = await db.query('SELECT id,title,deleted_at FROM documents');
+    expect(rows[0].title).toBe('Keep document');
+    expect(rows[0].deleted_at == null).toBe(!exists);
+    if (exists) expect(rows[0].deleted_at.getFullYear()).toBe(2026);
+  });
   it('validates the entire selection before any changes', async () => {
     file('001_first.sql', 'CREATE TABLE example(id INT);');
     file('002_broken.sql', "SELECT 'unterminated");

@@ -20,7 +20,7 @@ and sequence allocation now use persisted, guarded contracts.
 
 ## Review inventories
 
-- [Frontend contract inventory](frontend-contract-audit.json): 79 unmatched literal calls.
+- [Frontend contract inventory](frontend-contract-audit.json): 76 unmatched literal calls.
 - [Backend inventory](backend-migration-inventory.json): 652 legacy route/mount
   declarations and 100 Nest implementation markers.
 

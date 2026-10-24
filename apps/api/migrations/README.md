@@ -1,3 +1,11 @@
+## Migration 017: document soft-delete alignment
+
+`017_align_document_soft_delete.sql` adds nullable `documents.deleted_at` only if
+absent, preserving existing rows and any existing deletion timestamps. Prisma now
+maps the same field as Drizzle. Apply this migration before deploying global search.
+Verified against disposable databases both with and without the column and with
+existing rows. Back up and restore-test the application database before applying.
+
 # Database Migrations
 
 This directory contains all database migrations for the Lume metadata-driven framework.
