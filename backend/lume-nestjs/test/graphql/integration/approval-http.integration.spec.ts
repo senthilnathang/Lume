@@ -31,6 +31,36 @@ describe('Approval request HTTP API (real Nest, JWT and MySQL)', () => {
   };
   const saved = (id: number) => h.prisma.automation_approval_requests.findUnique({where:{id}});
 
+  it('lists only assigned pending requests and participant history within the tenant', async () => {
+    const id = await start();
+    expect((await http('get')).body.data.items.map(row => row.id)).toEqual([id]);
+    expect((await http('get', '', h.token())).body.data.items).toEqual([]);
+    expect((await http('get', '', h.token('member', 2))).body.data.items).toEqual([]);
+    expect((await http('get', '', null)).status).toBe(401);
+    const permission = await h.prisma.permission.findUnique({where:{name:'base_automation.approvals'}});
+    await h.prisma.rolePermission.create({data:{roleId:3,permissionId:permission.id}});
+    expect((await http('get', '', h.token('none'))).body.data.items).toEqual([]);
+    await http('post', '/' + id + '/reject').send({stepIndex:0,reason:'Needs revision'});
+    expect((await http('get')).body.data.items).toEqual([]);
+    expect((await http('get', '?view=history')).body.data.items.map(row => row.id)).toEqual([id]);
+    expect((await http('get', '?view=history', h.token())).body.data.items.map(row => row.id)).toEqual([id]);
+    expect((await http('get', '?view=history', h.token('none'))).body.data.items).toEqual([]);
+  });
+
+  it('filters unreadable or unwritable records and advances the cursor through hidden rows', async () => {
+    const id = await start();
+    await h.prisma.recordRule.create({data:{name:'Deny list',modelName:'entity_1',action:'write',groups:'[2]',domain:'{"name":"Denied"}'}});
+    const response = await http('get', '?limit=1');
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual({items:[],nextCursor:id});
+    expect((await http('get', `?limit=1&before=${id}`)).body.data).toEqual({items:[],nextCursor:null});
+    for (const query of ['?limit=0','?limit=101','?before=-1','?before=abc','?view=all']) {
+      expect((await http('get', query)).status).toBe(400);
+    }
+    await h.prisma.rolePermission.deleteMany({where:{roleId:2}});
+    expect((await http('get')).status).toBe(403);
+  });
+
   it('creates, reads and completes a request with assigned actors', async () => {
     const id = await start();
     const read = await http('get','/' + id);

@@ -2,9 +2,10 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import compression from 'vite-plugin-compression';
 
-const frontendRoot = __dirname;
+const frontendRoot = path.dirname(fileURLToPath(import.meta.url));
 const nm = (pkg: string) => path.resolve(frontendRoot, 'node_modules', pkg);
 
 export default defineConfig({
@@ -16,7 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(frontendRoot, 'src'),
-      '@modules': path.resolve(frontendRoot, '../../backend/src/modules'),
+      '@modules': path.resolve(frontendRoot, '../../packages/@lume/module-ui/src/modules'),
       // Explicit aliases so backend module views (via @modules) resolve
       // third-party packages from the frontend's node_modules
       '@ant-design/icons-vue': nm('@ant-design/icons-vue'),
@@ -28,6 +29,8 @@ export default defineConfig({
       'vue-echarts': nm('vue-echarts'),
       'lucide-vue-next': nm('lucide-vue-next'),
       'dayjs': nm('dayjs'),
+      'axios': nm('axios'),
+      'lottie-web': nm('lottie-web'),
       // TipTap editor packages (used by editor module)
       '@tiptap/vue-3': nm('@tiptap/vue-3'),
       '@tiptap/pm': nm('@tiptap/pm'),
@@ -60,7 +63,7 @@ export default defineConfig({
     fs: {
       allow: [
         path.resolve(frontendRoot, '..'),
-        path.resolve(frontendRoot, '../../backend/src/modules'),
+        path.resolve(frontendRoot, '../../packages/@lume/module-ui/src/modules'),
       ],
     },
     proxy: {
@@ -80,10 +83,10 @@ export default defineConfig({
         chunkFileNames: 'js/[name]-[hash].js',
         entryFileNames: 'js/[name]-[hash].js',
         assetFileNames: '[ext]/[name]-[hash].[ext]',
-        manualChunks: {
-          vue: ['vue', 'vue-router', 'pinia'],
-          antdv: ['ant-design-vue', '@ant-design/icons-vue'],
-          utils: ['axios', 'dayjs', 'date-fns'],
+        manualChunks(id) {
+          if (/\/node_modules\/(?:@vue\/|vue\/|vue-router\/|pinia\/)/.test(id)) return 'vue';
+          if (/\/node_modules\/(?:ant-design-vue\/|@ant-design\/icons-vue\/)/.test(id)) return 'antdv';
+          if (/\/node_modules\/(?:axios\/|dayjs\/|date-fns\/)/.test(id)) return 'utils';
         },
       },
     },

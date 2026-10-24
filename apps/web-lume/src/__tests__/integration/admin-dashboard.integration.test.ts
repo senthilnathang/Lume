@@ -39,7 +39,7 @@ describe('Admin Dashboard Integration', () => {
 
       await adminStore.fetchModules();
 
-      expect(mockApi.get).toHaveBeenCalledWith('/api/admin/modules');
+      expect(mockApi.get).toHaveBeenCalledWith('/admin/modules');
       expect(adminStore.modules).toEqual(mockModules);
     });
 
@@ -60,7 +60,7 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.getModule('crm');
 
-      expect(mockApi.get).toHaveBeenCalledWith('/api/admin/modules/crm');
+      expect(mockApi.get).toHaveBeenCalledWith('/admin/modules/crm');
       expect(adminStore.selectedModule).toEqual(mockModule);
       expect(result).toEqual(mockModule);
     });
@@ -76,20 +76,20 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.installModule('custom-plugin');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/admin/modules/custom-plugin/install', {});
+      expect(mockApi.post).toHaveBeenCalledWith('/admin/modules/custom-plugin/install', {});
       expect(result).toEqual({ status: 'installed' });
     });
 
     it('should uninstall a module', async () => {
       const adminStore = useAdminStore();
-      const mockModules = [];
+      const mockModules: unknown[] = [];
 
       mockApi.delete.mockResolvedValueOnce(undefined);
       mockApi.get.mockResolvedValueOnce(mockModules);
 
       await adminStore.uninstallModule('custom-plugin');
 
-      expect(mockApi.delete).toHaveBeenCalledWith('/api/admin/modules/custom-plugin');
+      expect(mockApi.delete).toHaveBeenCalledWith('/admin/modules/custom-plugin');
     });
 
     it('should reload all modules', async () => {
@@ -102,7 +102,7 @@ describe('Admin Dashboard Integration', () => {
 
       await adminStore.reloadModules();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/admin/modules/reload', {});
+      expect(mockApi.post).toHaveBeenCalledWith('/admin/modules/reload', {});
       expect(adminStore.modules).toEqual(mockModules);
     });
   });
@@ -137,7 +137,7 @@ describe('Admin Dashboard Integration', () => {
 
       await adminStore.fetchWorkflows();
 
-      expect(mockApi.get).toHaveBeenCalledWith('/api/admin/workflows');
+      expect(mockApi.get).toHaveBeenCalledWith('/admin/workflows');
       expect(adminStore.workflows).toEqual(mockWorkflows);
     });
 
@@ -150,7 +150,7 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.executeWorkflow('lead-assignment', { recordId: 1 });
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/admin/workflows/lead-assignment/execute', { recordId: 1 });
+      expect(mockApi.post).toHaveBeenCalledWith('/admin/workflows/lead-assignment/execute', { recordId: 1 });
       expect(result).toEqual({ status: 'completed' });
     });
 
@@ -162,7 +162,7 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.testWorkflow('lead-scoring', sampleData);
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/admin/workflows/lead-scoring/test', { sampleData });
+      expect(mockApi.post).toHaveBeenCalledWith('/admin/workflows/lead-scoring/test', { sampleData });
       expect(result).toEqual({ success: true, output: { leadScore: 75 } });
     });
 
@@ -189,7 +189,7 @@ describe('Admin Dashboard Integration', () => {
 
       await adminStore.fetchWorkflowRuns('lead-assignment');
 
-      expect(mockApi.get).toHaveBeenCalledWith('/api/admin/workflows/lead-assignment/runs');
+      expect(mockApi.get).toHaveBeenCalledWith('/admin/workflows/lead-assignment/runs');
       expect(adminStore.workflowRuns).toEqual(mockRuns);
     });
   });
@@ -222,7 +222,7 @@ describe('Admin Dashboard Integration', () => {
 
       await adminStore.fetchPolicies();
 
-      expect(mockApi.get).toHaveBeenCalledWith('/api/admin/policies');
+      expect(mockApi.get).toHaveBeenCalledWith('/admin/policies');
       expect(adminStore.policies).toEqual(mockPolicies);
     });
 
@@ -241,7 +241,7 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.createPolicy(newPolicy);
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/admin/policies', newPolicy);
+      expect(mockApi.post).toHaveBeenCalledWith('/admin/policies', newPolicy);
       expect(result).toHaveProperty('id');
     });
 
@@ -256,7 +256,7 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.updatePolicy(1, updatedPolicy);
 
-      expect(mockApi.put).toHaveBeenCalledWith('/api/admin/policies/1', updatedPolicy);
+      expect(mockApi.put).toHaveBeenCalledWith('/admin/policies/1', updatedPolicy);
       expect(result).toHaveProperty('actions');
     });
 
@@ -268,7 +268,7 @@ describe('Admin Dashboard Integration', () => {
 
       await adminStore.deletePolicy(1);
 
-      expect(mockApi.delete).toHaveBeenCalledWith('/api/admin/policies/1');
+      expect(mockApi.delete).toHaveBeenCalledWith('/admin/policies/1');
     });
 
     it('should test policy evaluation with context', async () => {
@@ -283,7 +283,7 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.testPolicy('lead-viewer-policy', testContext);
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/admin/policies/lead-viewer-policy/test', { context: testContext });
+      expect(mockApi.post).toHaveBeenCalledWith('/admin/policies/lead-viewer-policy/test', { context: testContext });
       expect(result).toEqual({ allowed: true, reason: 'User is owner' });
     });
   });
@@ -300,7 +300,7 @@ describe('Admin Dashboard Integration', () => {
 
       await adminStore.fetchPlugins();
 
-      expect(mockApi.get).toHaveBeenCalledWith('/api/admin/plugins');
+      expect(mockApi.get).toHaveBeenCalledWith('/admin/plugins');
       expect(adminStore.plugins).toEqual(mockPlugins);
     });
 
@@ -313,7 +313,7 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.installPlugin('/path/to/plugin-manifest.json');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/admin/plugins/install', { manifestPath: '/path/to/plugin-manifest.json' });
+      expect(mockApi.post).toHaveBeenCalledWith('/admin/plugins/install', { manifestPath: '/path/to/plugin-manifest.json' });
       expect(result).toEqual({ status: 'installed' });
     });
 
@@ -326,7 +326,7 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.enablePlugin('plugin-analytics');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/admin/plugins/plugin-analytics/enable', {});
+      expect(mockApi.post).toHaveBeenCalledWith('/admin/plugins/plugin-analytics/enable', {});
       expect(result).toEqual({ status: 'enabled' });
     });
 
@@ -339,20 +339,20 @@ describe('Admin Dashboard Integration', () => {
 
       const result = await adminStore.disablePlugin('plugin-analytics');
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/admin/plugins/plugin-analytics/disable', {});
+      expect(mockApi.post).toHaveBeenCalledWith('/admin/plugins/plugin-analytics/disable', {});
       expect(result).toEqual({ status: 'disabled' });
     });
 
     it('should uninstall a plugin', async () => {
       const adminStore = useAdminStore();
-      const mockPlugins = [];
+      const mockPlugins: unknown[] = [];
 
       mockApi.delete.mockResolvedValueOnce(undefined);
       mockApi.get.mockResolvedValueOnce(mockPlugins);
 
       await adminStore.uninstallPlugin('plugin-analytics');
 
-      expect(mockApi.delete).toHaveBeenCalledWith('/api/admin/plugins/plugin-analytics');
+      expect(mockApi.delete).toHaveBeenCalledWith('/admin/plugins/plugin-analytics');
     });
   });
 

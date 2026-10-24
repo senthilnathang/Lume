@@ -68,13 +68,14 @@
 </template>
 
 <script setup lang="ts">
+import type { PageContent } from '~/composables/useWebsiteData';
 const route = useRoute();
 const slug = route.params.slug as string;
 
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBase;
 
-const { data: tagData, pending, error } = await useFetch<any>(`${apiBase}/tags/${slug}`);
+const { data: tagData, pending, error } = await useFetch<{ data: { name: string; description?: string } }>(`${apiBase}/tags/${slug}`);
 const tag = computed(() => tagData.value?.data || null);
 
 // SEO: real HTTP 404 for unknown tag (not a soft-404).
@@ -83,7 +84,7 @@ if (import.meta.server && (error.value || !tag.value)) {
   if (event) setResponseStatus(event, 404);
 }
 
-const { data: pagesData } = await useFetch<any>(`${apiBase}/tags/${slug}/pages`);
+const { data: pagesData } = await useFetch<{ data: PageContent[] }>(`${apiBase}/tags/${slug}/pages`);
 const pages = computed(() => pagesData.value?.data || []);
 
 useHead({

@@ -5,7 +5,7 @@ import { SettingsService } from '../services/settings.service';
 import { CreateSettingDto, UpdateSettingDto } from '../dtos';
 import { Public, Permissions } from '@core/decorators';
 
-@Controller('api/settings')
+@Controller(['settings', 'api/settings'])
 export class SettingsController {
   constructor(private settingsService: SettingsService) {}
 

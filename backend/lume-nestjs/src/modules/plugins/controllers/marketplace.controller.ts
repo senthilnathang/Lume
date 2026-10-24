@@ -15,7 +15,7 @@ import { MarketplaceService } from '../services/marketplace.service';
 import { CatalogSeederService } from '../services/catalog-seeder.service';
 import { PolicyGuard, RequireRoles, Authenticated } from '@core/permission/policy.guard';
 
-@Controller('api/marketplace')
+@Controller(['marketplace', 'api/marketplace'])
 export class MarketplaceController implements OnModuleInit {
   constructor(
     private readonly marketplaceService: MarketplaceService,

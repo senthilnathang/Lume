@@ -4,6 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dtos/login.dto';
 import { RefreshTokenDto } from '../dtos/refresh-token.dto';
 import { JwtAuthGuard } from '../guards/jwt.guard';
+import { ConfirmPasswordDto } from '../dtos/confirm-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -26,9 +27,17 @@ export class AuthController {
     return this.authService.getProfile(req.user.id);
   }
 
-  @Get('logout')
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
   async logout(@Request() req: any) {
-    return { message: 'Logout successful' };
+    return this.authService.logout(req.user);
+  }
+
+  @Post('confirm-password')
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async confirmPassword(@Request() req: any, @Body() dto: ConfirmPasswordDto) {
+    return this.authService.confirmPassword(req.user.id, dto.password);
   }
 
   @Get('verify')

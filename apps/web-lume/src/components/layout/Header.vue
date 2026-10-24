@@ -59,7 +59,7 @@
       </div>
 
       <div class="lume-user-dropdown" ref="userDropdownRef">
-        <button class="lume-user-btn" @click="toggleUserDropdown">
+        <button class="lume-user-btn" :aria-label="`Account: ${userName}`" :aria-expanded="showUserDropdown" @click="toggleUserDropdown">
           <div class="lume-user-avatar">
             <img v-if="userAvatar" :src="userAvatar" :alt="userName" />
             <span v-else class="avatar-fallback">{{ userInitials }}</span>
@@ -121,8 +121,8 @@ import { lock as lockScreen } from '@/composables/useLockScreen';
 interface UserInfo {
   id: number;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   role: string | { name: string };
   role_id?: number;
   avatar?: string;
@@ -149,8 +149,8 @@ const commandPaletteRef = ref<InstanceType<typeof CommandPalette> | null>(null);
 const notificationCenterRef = ref<InstanceType<typeof NotificationCenter> | null>(null);
 
 const userName = computed(() => {
-  if (props.user?.first_name || props.user?.last_name) {
-    return `${props.user.first_name} ${props.user.last_name}`.trim();
+  if (props.user?.firstName || props.user?.lastName) {
+    return `${props.user.firstName} ${props.user.lastName}`.trim();
   }
   return props.user?.email?.split('@')[0] || 'User';
 });
@@ -164,8 +164,8 @@ const userRole = computed(() => {
 const userAvatar = computed(() => props.user?.avatar);
 
 const userInitials = computed(() => {
-  const first = props.user?.first_name?.charAt(0) || '';
-  const last = props.user?.last_name?.charAt(0) || '';
+  const first = props.user?.firstName?.charAt(0) || '';
+  const last = props.user?.lastName?.charAt(0) || '';
   return (first + last).toUpperCase() || props.user?.email?.charAt(0)?.toUpperCase() || 'U';
 });
 

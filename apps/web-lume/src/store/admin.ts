@@ -86,7 +86,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingModules.value = true;
       error.value = null;
-      const data = await api.get('/api/admin/modules');
+      const data = await api.get<Module[], Module[]>('/admin/modules');
       modules.value = data;
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch modules';
@@ -100,7 +100,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingModules.value = true;
       error.value = null;
-      const data = await api.get(`/api/admin/modules/${name}`);
+      const data = await api.get(`/admin/modules/${name}`);
       Object.assign(selectedModule, data);
       return data;
     } catch (err: any) {
@@ -115,7 +115,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingModules.value = true;
       error.value = null;
-      const data = await api.post(`/api/admin/modules/${name}/install`, {});
+      const data = await api.post(`/admin/modules/${name}/install`, {});
       await fetchModules();
       return data;
     } catch (err: any) {
@@ -130,7 +130,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingModules.value = true;
       error.value = null;
-      await api.delete(`/api/admin/modules/${name}`);
+      await api.delete(`/admin/modules/${name}`);
       await fetchModules();
     } catch (err: any) {
       error.value = err.message || 'Failed to uninstall module';
@@ -144,7 +144,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingModules.value = true;
       error.value = null;
-      const data = await api.post('/api/admin/modules/reload', {});
+      const data = await api.post<Module[], Module[]>('/admin/modules/reload', {});
       modules.value = data;
       return data;
     } catch (err: any) {
@@ -160,7 +160,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingWorkflows.value = true;
       error.value = null;
-      const data = await api.get('/api/admin/workflows');
+      const data = await api.get<Workflow[], Workflow[]>('/admin/workflows');
       workflows.value = data;
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch workflows';
@@ -174,7 +174,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingWorkflows.value = true;
       error.value = null;
-      const data = await api.get(`/api/admin/workflows/${name}`);
+      const data = await api.get(`/admin/workflows/${name}`);
       Object.assign(selectedWorkflow, data);
       return data;
     } catch (err: any) {
@@ -189,7 +189,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingWorkflows.value = true;
       error.value = null;
-      const data = await api.post(`/api/admin/workflows/${name}/execute`, payload);
+      const data = await api.post(`/admin/workflows/${name}/execute`, payload);
       await fetchWorkflows();
       return data;
     } catch (err: any) {
@@ -204,7 +204,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingWorkflows.value = true;
       error.value = null;
-      const data = await api.post(`/api/admin/workflows/${name}/test`, { sampleData });
+      const data = await api.post(`/admin/workflows/${name}/test`, { sampleData });
       return data;
     } catch (err: any) {
       error.value = err.message || 'Failed to test workflow';
@@ -219,9 +219,9 @@ export const useAdminStore = defineStore('admin', () => {
       loadingWorkflows.value = true;
       error.value = null;
       const url = workflowName
-        ? `/api/admin/workflows/${workflowName}/runs`
-        : '/api/admin/workflows/runs';
-      const data = await api.get(url);
+        ? `/admin/workflows/${workflowName}/runs`
+        : '/admin/workflows/runs';
+      const data = await api.get<WorkflowRun[], WorkflowRun[]>(url);
       workflowRuns.value = data;
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch workflow runs';
@@ -236,7 +236,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPolicies.value = true;
       error.value = null;
-      const data = await api.get('/api/admin/policies');
+      const data = await api.get<Policy[], Policy[]>('/admin/policies');
       policies.value = data;
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch policies';
@@ -250,7 +250,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPolicies.value = true;
       error.value = null;
-      const data = await api.get(`/api/admin/policies/${name}`);
+      const data = await api.get(`/admin/policies/${name}`);
       Object.assign(selectedPolicy, data);
       return data;
     } catch (err: any) {
@@ -265,7 +265,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPolicies.value = true;
       error.value = null;
-      const data = await api.post('/api/admin/policies', policy);
+      const data = await api.post('/admin/policies', policy);
       await fetchPolicies();
       return data;
     } catch (err: any) {
@@ -280,7 +280,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPolicies.value = true;
       error.value = null;
-      const data = await api.put(`/api/admin/policies/${id}`, policy);
+      const data = await api.put(`/admin/policies/${id}`, policy);
       await fetchPolicies();
       return data;
     } catch (err: any) {
@@ -295,7 +295,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPolicies.value = true;
       error.value = null;
-      await api.delete(`/api/admin/policies/${id}`);
+      await api.delete(`/admin/policies/${id}`);
       await fetchPolicies();
     } catch (err: any) {
       error.value = err.message || 'Failed to delete policy';
@@ -309,7 +309,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPolicies.value = true;
       error.value = null;
-      const data = await api.post(`/api/admin/policies/${policyName}/test`, { context });
+      const data = await api.post(`/admin/policies/${policyName}/test`, { context });
       return data;
     } catch (err: any) {
       error.value = err.message || 'Failed to test policy';
@@ -324,7 +324,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPlugins.value = true;
       error.value = null;
-      const data = await api.get('/api/admin/plugins');
+      const data = await api.get<Plugin[], Plugin[]>('/admin/plugins');
       plugins.value = data;
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch plugins';
@@ -338,7 +338,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPlugins.value = true;
       error.value = null;
-      const data = await api.post('/api/admin/plugins/install', { manifestPath });
+      const data = await api.post('/admin/plugins/install', { manifestPath });
       await fetchPlugins();
       return data;
     } catch (err: any) {
@@ -353,7 +353,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPlugins.value = true;
       error.value = null;
-      const data = await api.post(`/api/admin/plugins/${name}/enable`, {});
+      const data = await api.post(`/admin/plugins/${name}/enable`, {});
       await fetchPlugins();
       return data;
     } catch (err: any) {
@@ -368,7 +368,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPlugins.value = true;
       error.value = null;
-      const data = await api.post(`/api/admin/plugins/${name}/disable`, {});
+      const data = await api.post(`/admin/plugins/${name}/disable`, {});
       await fetchPlugins();
       return data;
     } catch (err: any) {
@@ -383,7 +383,7 @@ export const useAdminStore = defineStore('admin', () => {
     try {
       loadingPlugins.value = true;
       error.value = null;
-      await api.delete(`/api/admin/plugins/${name}`);
+      await api.delete(`/admin/plugins/${name}`);
       await fetchPlugins();
     } catch (err: any) {
       error.value = err.message || 'Failed to uninstall plugin';

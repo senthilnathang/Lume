@@ -5,7 +5,7 @@ import { PlatformConfigService } from '../services/platform-config.service';
 import { Permissions } from '@core/decorators';
 import { CreatePlatformConfigDto, UpdatePlatformConfigDto } from '../dtos';
 
-@Controller('api/platform/config')
+@Controller(['platform/config', 'api/platform/config'])
 export class PlatformConfigController {
   constructor(private service: PlatformConfigService) {}
 

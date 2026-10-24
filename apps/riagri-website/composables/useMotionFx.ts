@@ -42,7 +42,7 @@ interface MotionFxConfig {
 }
 
 export function useMotionFx() {
-  const elements = ref<{ el: HTMLElement; config: MotionFxConfig }[]>([])
+  const elements = shallowRef<{ el: HTMLElement; config: MotionFxConfig }[]>([])
   let rafId: number | null = null
   let mouseRafId: number | null = null
   let mouseX = 0

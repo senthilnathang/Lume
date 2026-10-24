@@ -15,7 +15,7 @@ import { Permissions } from '@core/decorators';
 import { PopupService } from '../services/popup.service';
 import { CreatePopupDto, UpdatePopupDto } from '../dtos';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class PopupController {
   constructor(private popupService: PopupService) {}
 

@@ -1,3 +1,10 @@
+> **Historical/reference document — status updated 2026-10-24.**
+> Earlier architecture, commands, estimates and completion claims below are not
+> current migration certification. Use the [active task list](../../nestjs-migration-tasks.txt) and
+> [developer guide](../../DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
+> remaining feature parity and final deployment are still pending. Shared UI is
+> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+
 # Lume v2.0: NestJS Migration + Public Release — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

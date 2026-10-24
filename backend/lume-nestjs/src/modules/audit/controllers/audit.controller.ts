@@ -14,7 +14,7 @@ import { Permissions } from '@core/decorators';
 import { AuditService } from '../services/audit.service';
 import { QueryAuditLogsDto, CleanupAuditLogsDto } from '../dtos';
 
-@Controller('api/audit')
+@Controller(['audit', 'api/audit'])
 export class AuditController {
   constructor(private auditService: AuditService) {}
 

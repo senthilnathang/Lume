@@ -161,7 +161,7 @@ import { widgetRegistry, type WidgetDef, type AttrSchema } from '@widgets/regist
 
 const props = defineProps<{
   visible: boolean
-  block: any
+  block: { attrs?: Record<string, string | number | boolean | null> } | null
   blockType: string
 }>()
 
@@ -200,7 +200,7 @@ const activeSectionAttrs = computed<AttrSchema[]>(() => {
   return widgetDef.value.attributes.filter(a => a.section === activeSection.value)
 })
 
-function emitUpdate(key: string, value: any) {
+function emitUpdate(key: string, value: unknown) {
   emit('update:attr', key, value)
 }
 

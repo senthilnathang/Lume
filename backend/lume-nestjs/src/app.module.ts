@@ -63,7 +63,7 @@ import { GraphQLCoreModule } from './graphql/graphql.module';
     ThrottlerModule.forRoot([
       {
         ttl: 60000, // 1 minute
-        limit: 5, // 5 requests per minute
+        limit: 120, // Normal authenticated UI traffic; login has a stricter route limit.
       },
     ]),
     EventEmitterModule.forRoot(),

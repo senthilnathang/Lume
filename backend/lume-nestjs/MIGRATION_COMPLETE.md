@@ -1,3 +1,13 @@
+# Historical report — not current completion status
+
+The completion claims below are superseded by
+[the active migration task list](../../docs/nestjs-migration-tasks.txt).
+The standalone Express replacement is still in progress. Remaining REST/GraphQL
+contracts, data reconciliation, cleanup and deployment must pass their recorded
+acceptance criteria before the migration is complete.
+
+---
+
 # NestJS Migration - COMPLETE ✅
 
 **Date**: April 29, 2026  

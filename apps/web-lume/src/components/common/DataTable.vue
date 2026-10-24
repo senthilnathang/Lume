@@ -66,7 +66,7 @@
           </tr>
           <tr
             v-for="(record, index) in dataSource"
-            :key="record.key || record.id || index"
+            :key="rowKey(record, index)"
             :class="{ selected: isRowSelected(record), hoverable: hoverable }"
             @click="handleRowClick(record, index)"
           >
@@ -171,6 +171,17 @@ const emit = defineEmits<{
   'show-size-change': [current: number, size: number];
 }>();
 
+function rowKey(record: TableRecord, index = props.dataSource.indexOf(record)): string | number {
+  const key = record.key ?? record.id;
+  return typeof key === 'string' || typeof key === 'number' ? key : index;
+}
+
+const paginationState = computed<TablePagination>(() => ({
+  current: 1, pageSize: 10, total: props.dataSource.length,
+  showSizeChanger: false, showQuickJumper: false, pageSizeOptions: ['10', '20', '50'],
+  ...props.pagination,
+}));
+
 const sortField = computed(() => props.pagination?.sortField || null);
 const sortOrder = computed(() => props.pagination?.sortOrder || null);
 
@@ -184,21 +195,21 @@ const allRowsSelected = computed(() => {
   if (!props.rowSelection) return false;
   return props.dataSource.length > 0 && 
     props.dataSource.every(record => 
-      props.rowSelection!.selectedRowKeys.includes(record.id || record.key)
+      props.rowSelection!.selectedRowKeys.includes(rowKey(record))
     );
 });
 
 const someRowsSelected = computed(() => {
   if (!props.rowSelection) return false;
   const selectedCount = props.dataSource.filter(record =>
-    props.rowSelection!.selectedRowKeys.includes(record.id || record.key)
+    props.rowSelection!.selectedRowKeys.includes(rowKey(record))
   ).length;
   return selectedCount > 0 && selectedCount < props.dataSource.length;
 });
 
 const isRowSelected = (record: TableRecord): boolean => {
   if (!props.rowSelection) return false;
-  const key = record.id || record.key;
+  const key = rowKey(record);
   return props.rowSelection.selectedRowKeys.includes(key);
 };
 
@@ -231,7 +242,7 @@ const handleSort = (column: TableColumn) => {
     order = null;
   }
   
-  emit('change', { ...props.pagination, sortField: column.key, sortOrder: order }, {}, { field: column.key, order });
+  emit('change', { ...paginationState.value, sortField: column.key, sortOrder: order }, {}, { field: column.key, order });
 };
 
 const handleRowClick = (record: TableRecord, index: number) => {
@@ -239,7 +250,7 @@ const handleRowClick = (record: TableRecord, index: number) => {
 };
 
 const handleSelect = (record: TableRecord) => {
-  const key = record.id || record.key;
+  const key = rowKey(record);
   const selected = !isRowSelected(record);
   
   let selectedKeys = [...props.rowSelection!.selectedRowKeys];
@@ -259,7 +270,7 @@ const handleSelect = (record: TableRecord) => {
 const handleSelectAll = () => {
   const selected = !allRowsSelected.value;
   if (selected) {
-    const allKeys = props.dataSource.map(record => record.id || record.key);
+    const allKeys = props.dataSource.map(record => rowKey(record));
     props.rowSelection!.onChange(allKeys);
     emit('select-all', true, [...props.dataSource]);
   } else {
@@ -270,12 +281,12 @@ const handleSelectAll = () => {
 
 const handlePageChange = (page: number, pageSize: number) => {
   emit('page-change', page, pageSize);
-  emit('change', { ...props.pagination, current: page, pageSize }, {}, {});
+  emit('change', { ...paginationState.value, current: page, pageSize }, {}, {});
 };
 
 const handleShowSizeChange = (current: number, size: number) => {
   emit('show-size-change', current, size);
-  emit('change', { ...props.pagination, current, pageSize: size }, {}, {});
+  emit('change', { ...paginationState.value, current, pageSize: size }, {}, {});
 };
 </script>
 

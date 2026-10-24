@@ -1,0 +1,159 @@
+Frontend to NestJS migration — core contracts verified; release not complete
+
+Scope: apps/web-lume and apps/riagri-website. External integrations remain
+disabled. The production NestJS process has not been restarted with these changes.
+
+Implemented:
+- Versioned /api/v2 frontend defaults and shared native-fetch URL handling.
+- NestJS login/profile/refresh/logout contracts, durable revocable sessions,
+  current persisted role checks, and password confirmation without extra sessions.
+- Account permissions, filtered navigation, dashboard counts, and user-scoped
+  notification reads. Notifications poll over HTTP every 30 seconds.
+- Canonical NestJS module paths, retaining existing api-prefixed aliases.
+- Public website taxonomy routes, preview authentication, and page-password query.
+- Public content queries exclude private/deleted pages and omit password hashes.
+- User statistics, pagination/search, safe responses, and migrated user-form
+  names, role IDs, active status, and password-update payloads.
+- DTO validation no longer rejects optional primitive/query parameters.
+- Published CMS routes await their data before selecting HTTP status. Password
+  gate state is initialized before metadata evaluation, fixing blank client
+  rendering during hydration.
+- Shared variable-based save URLs now use the versioned native-fetch client.
+- Mobile account buttons expose a stable accessible name.
+- Module-management clients now use /admin/modules. The catalog discovers
+  instantiated NestJS feature modules (24 in the isolated runtime), distinguishes
+  deployment-managed builtins from runtime definitions, and supplies action
+  capabilities to both shared module views. Builtin lifecycle changes return
+  HTTP 409; runtime upgrade is explicitly unavailable rather than mapped to reload.
+- Group management now uses guarded /admin/groups CRUD with trimmed, validated
+  names, duplicate-name conflict responses, and missing-record 404s. Removed the
+  unsupported membership count from the group screen.
+- The router's separate RBAC group adapter is also migrated to /admin/groups,
+  including single-group reads, snake/camel status and timestamp conversion,
+  and partial active-status updates. Explicit false is preserved.
+- Base role and permission views now use /rbac endpoints and map Prisma permission
+  links/names. Role create/update now writes permission links atomically with the
+  role: omitted permissions are preserved, an empty list clears them, and unknown
+  permission names fail without modifying the role.
+- Routed workflow and flow forms now translate model, initial-state, trigger,
+  status, and numeric-ID contracts to /automation endpoints. Identifiers are
+  assigned on save; unsupported editable codes/state-field names were removed.
+  Flow activation/deactivation uses PUT; cloning copies the graph into a draft.
+- Automation DTOs now have validation metadata. Invalid IDs return 400, create
+  responses use generated MySQL IDs, and list queries combine model/status filters.
+
+Validation environment:
+Isolated database lume_nest_frontend_20261023 restored from the verified backup,
+with migration 016 applied. Temporary API port 3012 and admin port 3001.
+The fixture disables throttling only for browser tests; production login and
+password confirmation retain five attempts per minute. Provider and worker
+integrations are disabled in the fixture.
+
+Verified results:
+- Chromium: 16 passed.
+- Firefox: 16 passed on rerun after host-load timeouts.
+- WebKit: 16 passed.
+- Mobile Chrome and Mobile Safari: 32 passed together after correcting the
+  account assertion to target its accessible button rather than hidden text.
+- 80 baseline browser cases passed across the per-project runs. Two additional
+  Chromium HTTP contract tests passed for user CRUD and password confirmation.
+- Website unit tests: 6 passed; production build passed.
+- NestJS type check and build passed.
+- Auth/account/user contract and GraphQL batching regressions: 20 passed.
+- Administrator unit tests: 59 passed with one worker; final build passed.
+- Backend: 69 of 74 suites passed in the initial full run. All five initially
+  failing suites passed targeted reruns after correcting old fixtures and
+  assertions. This is not a second uninterrupted all-green full run.
+- Both frontend type checks passed. Lint: 144 admin and 25 website warnings,
+  zero errors. git diff --check passed.
+- Built website and published CMS page render against NestJS with zero browser
+  console errors/warnings. Published page HTTP 200, unknown page HTTP 404,
+  sitemap and robots HTTP 200. Private CMS page is not returned publicly.
+- Desktop/mobile CMS evidence: output/playwright/lume-nest-cms-desktop.png and
+  output/playwright/lume-nest-cms-mobile.png.
+- Follow-up module/group checks: 14 focused tests passed; live isolated API
+  returned 24 catalog entries and rejected builtin install/delete/reload with
+  409. Disposable group create/list/update/delete and duplicate-name 409 passed.
+  NestJS build, frontend type check, frontend production build, and diff check
+  passed for these changes. The earlier full-suite totals precede this follow-up.
+- Role/automation follow-up: 18 focused backend tests and seven frontend adapter
+  tests passed. The full admin unit suite passed 64 tests before adding the two
+  final group-adapter cases, which passed in the targeted run. Existing approval HTTP, approval-trigger, and validation-rule
+  integration suites passed (78 tests). Live isolated CRUD checks verified role
+  permission assignment/rejection/clearing and workflow/flow validation, generated
+  IDs, create/read/update/delete, combined model/status filters, and group detail
+  and partial-status updates. Disposable fixtures and sessions were removed.
+  Final backend/frontend builds and frontend type checking passed; frontend lint
+  retained 144 warnings, zero errors before the final group-adapter additions.
+
+- Settings follow-up: menus, record-rule management, and sequence listing now use
+  registered NestJS REST controllers. Menu writes reject cycles and permit explicit
+  parent clearing; sequence allocation uses POST and a transactional MySQL row lock.
+  Record-rule create/edit/deactivate UI calls the existing audited service with
+  per-action permissions. Sequences retain the existing read-only listing UI.
+  Seventeen focused backend tests, 21 existing rule-security integration tests,
+  and 69 frontend unit tests passed. Backend build and frontend type check passed.
+  Live isolated HTTP checks verified menu cycle/reference rejection, parent clearing,
+  twelve concurrent unique sequence allocations, rule validation, pagination,
+  soft-deactivation and actor audit entries. Disposable records and sessions were
+  cleaned up. Browser interaction with the new rule editor is still unverified.
+
+Remaining release gates:
+- Approval inbox follow-up: /admin/approval-requests now provides a cursor-paginated
+  pending inbox and completed/rejected history, linked from approval settings.
+  Listing requires route permission, tenant context, an active actor/role,
+  participation and record access; pending items also require write access and
+  assignment to the current step. Hidden rows advance pagination without exposing
+  their contents. Decisions send the displayed step index to the existing engine.
+  The obsolete inbox delegates to this screen; unsupported delegation and approval
+  comments are no longer offered there. History covers terminal requests, not an
+  actor's earlier decisions on requests that remain pending.
+  Validation: 24 real Nest/JWT/MySQL approval HTTP tests and 11 frontend adapter
+  tests passed; backend/frontend builds, frontend type check and diff check passed.
+  Chromium browser checks verified approve, reject with reason, and terminal history
+  with actor/timestamp against two isolated fixtures. Missing tenant context returned
+  403 as intended. Evidence: output/playwright/lume-approval-history.png.
+  Fixtures were removed, test metadata restored, browser signed out, and temporary
+  servers stopped. Production remains unchanged. Firefox CLI/browser versions were
+  incompatible, so this follow-up browser check covers Chromium only.
+- Approval-definition follow-up: the active automation editor now maps persisted
+  model/status and ordered user/role steps to NestJS. It decodes MySQL JSON text,
+  preserves partial deactivation, resets the model on create, and copies steps on
+  edit. Only sequential required user/role steps are offered; unsupported parallel,
+  group, optional-step and escalation payloads are rejected before writes.
+  Live isolated create/read/update/delete verified model, status and step order;
+  the disposable chain and session were removed. Existing approval authorization
+  and lifecycle suites passed 45 tests. Frontend type checking passed.
+  Approval delegation/escalation APIs remain unmigrated. Browser
+  interaction with this editor still requires verification. The initial live check
+  exposed string-valued JSON steps; the adapter now explicitly decodes them.
+- Triage docs/frontend-contract-audit.json, generated by
+  python3 scripts/audit_frontend_contracts.py. It identifies 74 literal calls
+  lacking matching controller declarations, especially automation, base settings,
+  and data features. Documentation comments are now excluded, but possibly unused
+  views remain; this does not establish that all 74 are live failures. Computed URLs, DTOs, controller
+  registration, authorization, and response shapes require separate verification.
+- Flowgrid/Agentgrid still have no NestJS module. Builtin module installation,
+  removal, and upgrade are deployment operations; runtime package lifecycle is
+  not implemented by this catalog migration.
+- Verify end-to-end feature workflows after their individual payload/response
+  migrations; passing authentication checks does not certify every shared view.
+- Workflow execution/transition endpoints, business-rule and approval designer
+  payloads, and the scheduled-action UI still require migration. Definition CRUD
+  validation does not certify execution. No legacy Express definition-data import
+  or production database mutation has been performed.
+- Active base-settings routes now use REST; sequence and menu GraphQL resolvers
+  remain placeholders and must not be treated as usable equivalents. Use the
+  router's customViews registry when prioritizing; similarly named legacy screens
+  are not necessarily the active implementation.
+- Update deployment configuration only after these gates pass. No Express
+  fallback is authorized by the selected migration approach.
+
+Cleanup: temporary CMS fixture rows were removed after verification. Test database
+lume_nest_frontend_20261023 is retained for reproducible follow-up. Temporary API,
+admin dev server, website server, and the lume-nest-site browser session were
+stopped. Production service and database remain unchanged by this migration.
+
+The earlier frontend-verification-2026-10-23.txt records Express-based checks;
+those results must not be taken as full NestJS compatibility certification.
+Do not publish raw test logs or credentials.

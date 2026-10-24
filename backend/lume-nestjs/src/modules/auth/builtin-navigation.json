@@ -1,0 +1,889 @@
+[
+  {
+    "name": "Settings",
+    "path": "/settings",
+    "icon": "lucide:settings",
+    "sequence": 100,
+    "children": [
+      {
+        "name": "Modules",
+        "path": "/settings/modules",
+        "icon": "lucide:package",
+        "sequence": 1,
+        "permission": "base.modules.manage",
+        "viewName": "modules",
+        "module": "base",
+        "title": "Modules",
+        "children": []
+      },
+      {
+        "name": "Menus",
+        "path": "/settings/menus",
+        "icon": "lucide:menu",
+        "sequence": 2,
+        "permission": "base.menus.manage",
+        "viewName": "menus",
+        "module": "base",
+        "title": "Menus",
+        "children": []
+      },
+      {
+        "name": "Users",
+        "path": "/settings/users",
+        "icon": "lucide:users",
+        "sequence": 3,
+        "permission": "base.users.manage",
+        "viewName": "users",
+        "module": "base",
+        "title": "Users",
+        "children": []
+      },
+      {
+        "name": "Groups",
+        "path": "/settings/groups",
+        "icon": "lucide:users-round",
+        "sequence": 4,
+        "permission": "base.groups.manage",
+        "viewName": "groups",
+        "module": "base",
+        "title": "Groups",
+        "children": []
+      },
+      {
+        "name": "Roles",
+        "path": "/settings/roles",
+        "icon": "lucide:shield",
+        "sequence": 5,
+        "permission": "base.roles.manage",
+        "viewName": "roles",
+        "module": "base",
+        "title": "Roles",
+        "children": []
+      },
+      {
+        "name": "Permissions",
+        "path": "/settings/permissions",
+        "icon": "lucide:key",
+        "sequence": 6,
+        "permission": "base.permissions.manage",
+        "viewName": "permissions",
+        "module": "base",
+        "title": "Permissions",
+        "children": []
+      },
+      {
+        "name": "Record Rules",
+        "path": "/settings/record-rules",
+        "icon": "lucide:shield-check",
+        "sequence": 7,
+        "permission": "base.record_rules.manage",
+        "viewName": "record-rules",
+        "module": "base",
+        "title": "Record Rules",
+        "children": []
+      },
+      {
+        "name": "Sequences",
+        "path": "/settings/sequences",
+        "icon": "lucide:list-ordered",
+        "sequence": 8,
+        "permission": "base.sequences.manage",
+        "viewName": "sequences",
+        "module": "base",
+        "title": "Sequences",
+        "children": []
+      },
+      {
+        "name": "System",
+        "path": "/settings/system",
+        "icon": "lucide:server",
+        "sequence": 9,
+        "permission": "base.system.manage",
+        "viewName": "system",
+        "module": "base",
+        "title": "System",
+        "children": []
+      }
+    ],
+    "module": "base",
+    "title": "Settings"
+  },
+  {
+    "name": "Access Control",
+    "path": "/settings/rbac",
+    "icon": "lucide:shield",
+    "sequence": 15,
+    "permission": "rbac.access",
+    "children": [
+      {
+        "name": "Roles",
+        "path": "/settings/rbac/roles",
+        "icon": "lucide:users",
+        "sequence": 1,
+        "permission": "rbac.roles.read",
+        "viewName": "roles",
+        "module": "rbac",
+        "title": "Roles",
+        "children": []
+      },
+      {
+        "name": "Permissions",
+        "path": "/settings/rbac/permissions",
+        "icon": "lucide:key",
+        "sequence": 2,
+        "permission": "rbac.permissions.read",
+        "viewName": "permissions",
+        "module": "rbac",
+        "title": "Permissions",
+        "children": []
+      },
+      {
+        "name": "Access Rules",
+        "path": "/settings/rbac/access-rules",
+        "icon": "lucide:file-lock",
+        "sequence": 3,
+        "permission": "rbac.rules.read",
+        "viewName": "access-rules",
+        "module": "rbac",
+        "title": "Access Rules",
+        "children": []
+      },
+      {
+        "name": "Audit",
+        "path": "/settings/rbac/audit",
+        "icon": "lucide:history",
+        "sequence": 4,
+        "permission": "rbac.audit.read",
+        "viewName": "rbac-index",
+        "module": "rbac",
+        "title": "Audit",
+        "children": []
+      }
+    ],
+    "module": "rbac",
+    "title": "Access Control"
+  },
+  {
+    "name": "Security",
+    "path": "/settings/security",
+    "icon": "lucide:shield-check",
+    "sequence": 4,
+    "permission": "base_security.access",
+    "children": [
+      {
+        "name": "Access Control",
+        "path": "/settings/security/access",
+        "icon": "lucide:lock",
+        "sequence": 1,
+        "permission": "base_security.access.manage",
+        "viewName": "acl-builder",
+        "module": "base_security",
+        "title": "Access Control",
+        "children": []
+      },
+      {
+        "name": "2FA",
+        "path": "/settings/security/2fa",
+        "icon": "lucide:smartphone",
+        "sequence": 2,
+        "permission": "base_security.2fa.manage",
+        "viewName": "security",
+        "module": "base_security",
+        "title": "2FA",
+        "children": []
+      },
+      {
+        "name": "Sessions",
+        "path": "/settings/security/sessions",
+        "icon": "lucide:clock",
+        "sequence": 3,
+        "permission": "base_security.sessions.manage",
+        "viewName": "user-security-settings",
+        "module": "base_security",
+        "title": "Sessions",
+        "children": []
+      },
+      {
+        "name": "API Keys",
+        "path": "/settings/security/api-keys",
+        "icon": "lucide:key",
+        "sequence": 4,
+        "permission": "base_security.api_keys.manage",
+        "viewName": "permission-sets",
+        "module": "base_security",
+        "title": "API Keys",
+        "children": []
+      }
+    ],
+    "module": "base_security",
+    "title": "Security"
+  },
+  {
+    "name": "Customization",
+    "path": "/settings/customization",
+    "icon": "lucide:palette",
+    "sequence": 7,
+    "permission": "base_customization.access",
+    "children": [
+      {
+        "name": "Custom Fields",
+        "path": "/settings/customization/fields",
+        "icon": "lucide:columns",
+        "sequence": 1,
+        "permission": "base_customization.fields.manage",
+        "viewName": "custom-fields",
+        "module": "base_customization",
+        "title": "Custom Fields",
+        "children": []
+      },
+      {
+        "name": "Custom Views",
+        "path": "/settings/customization/views",
+        "icon": "lucide:layout-dashboard",
+        "sequence": 2,
+        "permission": "base_customization.views.manage",
+        "viewName": "custom-views",
+        "module": "base_customization",
+        "title": "Custom Views",
+        "children": []
+      },
+      {
+        "name": "Form Layouts",
+        "path": "/settings/customization/forms",
+        "icon": "lucide:layout",
+        "sequence": 3,
+        "permission": "base_customization.forms.manage",
+        "viewName": "form-builder",
+        "module": "base_customization",
+        "title": "Form Layouts",
+        "children": []
+      },
+      {
+        "name": "List Config",
+        "path": "/settings/customization/lists",
+        "icon": "lucide:list",
+        "sequence": 4,
+        "permission": "base_customization.lists.manage",
+        "viewName": "list-configs",
+        "module": "base_customization",
+        "title": "List Config",
+        "children": []
+      },
+      {
+        "name": "Dashboard Widgets",
+        "path": "/settings/customization/widgets",
+        "icon": "lucide:layout-grid",
+        "sequence": 5,
+        "permission": "base_customization.widgets.manage",
+        "viewName": "dashboard-widgets",
+        "module": "base_customization",
+        "title": "Dashboard Widgets",
+        "children": []
+      },
+      {
+        "name": "Schema ERD",
+        "path": "/settings/customization/schema",
+        "icon": "lucide:network",
+        "sequence": 6,
+        "permission": "base_customization.views.manage",
+        "viewName": "schema-erd",
+        "module": "base_customization",
+        "title": "Schema ERD",
+        "children": []
+      },
+      {
+        "name": "Record Pages",
+        "path": "/settings/customization/record-pages",
+        "icon": "lucide:layout-template",
+        "sequence": 7,
+        "permission": "base_customization.views.manage",
+        "viewName": "record-page-builder",
+        "module": "base_customization",
+        "title": "Record Pages",
+        "children": []
+      }
+    ],
+    "module": "base_customization",
+    "title": "Customization"
+  },
+  {
+    "name": "Automation",
+    "path": "/settings/automation",
+    "icon": "lucide:zap",
+    "sequence": 6,
+    "permission": "base_automation.access",
+    "children": [
+      {
+        "name": "Workflows",
+        "path": "/settings/automation/workflows",
+        "icon": "lucide:git-merge",
+        "sequence": 1,
+        "permission": "base_automation.workflows.manage",
+        "viewName": "workflows",
+        "module": "base_automation",
+        "title": "Workflows",
+        "children": []
+      },
+      {
+        "name": "Flows",
+        "path": "/settings/automation/flows",
+        "icon": "lucide:git-branch",
+        "sequence": 2,
+        "permission": "base_automation.flows.manage",
+        "viewName": "flows-list",
+        "module": "base_automation",
+        "title": "Flows",
+        "children": []
+      },
+      {
+        "name": "Business Rules",
+        "path": "/settings/automation/business-rules",
+        "icon": "lucide:book-open",
+        "sequence": 3,
+        "permission": "base_automation.rules.manage",
+        "viewName": "business-rules",
+        "module": "base_automation",
+        "title": "Business Rules",
+        "children": []
+      },
+      {
+        "name": "Approval Chains",
+        "path": "/settings/automation/approvals",
+        "icon": "lucide:check-circle",
+        "sequence": 4,
+        "permission": "base_automation.approvals.manage",
+        "viewName": "approval-chains",
+        "module": "base_automation",
+        "title": "Approval Chains",
+        "children": []
+      },
+      {
+        "name": "Scheduled Actions",
+        "path": "/settings/automation/scheduled",
+        "icon": "lucide:clock",
+        "sequence": 5,
+        "permission": "base_automation.scheduled.manage",
+        "viewName": "automation",
+        "module": "base_automation",
+        "title": "Scheduled Actions",
+        "children": []
+      }
+    ],
+    "module": "base_automation",
+    "title": "Automation"
+  },
+  {
+    "name": "Data Management",
+    "path": "/base-features-data/data",
+    "icon": "lucide:database",
+    "sequence": 3,
+    "children": [
+      {
+        "name": "Data Import",
+        "path": "/base-features-data/data-import",
+        "icon": "lucide:upload",
+        "sequence": 1,
+        "viewName": "data-import",
+        "module": "base_features_data",
+        "title": "Data Import",
+        "children": []
+      },
+      {
+        "name": "Data Export",
+        "path": "/base-features-data/data-export",
+        "icon": "lucide:download",
+        "sequence": 2,
+        "viewName": "data-export",
+        "module": "base_features_data",
+        "title": "Data Export",
+        "children": []
+      }
+    ],
+    "module": "base_features_data",
+    "title": "Data Management"
+  },
+  {
+    "name": "Activities",
+    "path": "/activities",
+    "icon": "lucide:calendar",
+    "sequence": 10,
+    "children": [
+      {
+        "name": "All Activities",
+        "path": "/activities",
+        "icon": "lucide:list",
+        "sequence": 1,
+        "viewName": "list",
+        "module": "activities",
+        "title": "All Activities",
+        "children": []
+      },
+      {
+        "name": "Upcoming",
+        "path": "/activities/upcoming",
+        "icon": "lucide:clock",
+        "sequence": 2,
+        "viewName": "upcoming",
+        "module": "activities",
+        "title": "Upcoming",
+        "children": []
+      },
+      {
+        "name": "Calendar",
+        "path": "/activities/calendar",
+        "icon": "lucide:calendar-days",
+        "sequence": 3,
+        "viewName": "calendar",
+        "module": "activities",
+        "title": "Calendar",
+        "children": []
+      }
+    ],
+    "module": "activities",
+    "title": "Activities"
+  },
+  {
+    "name": "Documents",
+    "path": "/documents",
+    "icon": "lucide:folder",
+    "sequence": 30,
+    "children": [
+      {
+        "name": "All Documents",
+        "path": "/documents",
+        "icon": "lucide:files",
+        "sequence": 1,
+        "viewName": "list",
+        "module": "documents",
+        "title": "All Documents",
+        "children": []
+      },
+      {
+        "name": "Images",
+        "path": "/documents/images",
+        "icon": "lucide:image",
+        "sequence": 2,
+        "viewName": "list",
+        "module": "documents",
+        "title": "Images",
+        "children": []
+      },
+      {
+        "name": "Videos",
+        "path": "/documents/videos",
+        "icon": "lucide:video",
+        "sequence": 3,
+        "viewName": "list",
+        "module": "documents",
+        "title": "Videos",
+        "children": []
+      }
+    ],
+    "module": "documents",
+    "title": "Documents"
+  },
+  {
+    "name": "Donations",
+    "path": "/donations",
+    "icon": "lucide:heart",
+    "sequence": 20,
+    "children": [
+      {
+        "name": "All Donations",
+        "path": "/donations",
+        "icon": "lucide:list",
+        "sequence": 1,
+        "viewName": "list",
+        "module": "donations",
+        "title": "All Donations",
+        "children": []
+      },
+      {
+        "name": "Donors",
+        "path": "/donations/donors",
+        "icon": "lucide:users",
+        "sequence": 2,
+        "viewName": "donors",
+        "module": "donations",
+        "title": "Donors",
+        "children": []
+      },
+      {
+        "name": "Campaigns",
+        "path": "/donations/campaigns",
+        "icon": "lucide:megaphone",
+        "sequence": 3,
+        "viewName": "campaigns",
+        "module": "donations",
+        "title": "Campaigns",
+        "children": []
+      },
+      {
+        "name": "Reports",
+        "path": "/donations/reports",
+        "icon": "lucide:bar-chart",
+        "sequence": 4,
+        "viewName": "reports",
+        "module": "donations",
+        "title": "Reports",
+        "children": []
+      }
+    ],
+    "module": "donations",
+    "title": "Donations"
+  },
+  {
+    "name": "Messages",
+    "path": "/messages",
+    "icon": "lucide:message-square",
+    "sequence": 25,
+    "children": [
+      {
+        "name": "Inbox",
+        "path": "/messages",
+        "icon": "lucide:inbox",
+        "sequence": 1,
+        "viewName": "list",
+        "module": "messages",
+        "title": "Inbox",
+        "children": []
+      },
+      {
+        "name": "Sent",
+        "path": "/messages/sent",
+        "icon": "lucide:send",
+        "sequence": 2,
+        "viewName": "sent",
+        "module": "messages",
+        "title": "Sent",
+        "children": []
+      }
+    ],
+    "module": "messages",
+    "title": "Messages"
+  },
+  {
+    "name": "Team",
+    "path": "/team",
+    "icon": "lucide:users",
+    "sequence": 15,
+    "children": [
+      {
+        "name": "All Team",
+        "path": "/team",
+        "icon": "lucide:users",
+        "sequence": 1,
+        "viewName": "list",
+        "module": "team",
+        "title": "All Team",
+        "children": []
+      },
+      {
+        "name": "Leadership",
+        "path": "/team/leadership",
+        "icon": "lucide:crown",
+        "sequence": 2,
+        "viewName": "leadership",
+        "module": "team",
+        "title": "Leadership",
+        "children": []
+      },
+      {
+        "name": "Departments",
+        "path": "/team/departments",
+        "icon": "lucide:building",
+        "sequence": 3,
+        "viewName": "departments",
+        "module": "team",
+        "title": "Departments",
+        "children": []
+      }
+    ],
+    "module": "team",
+    "title": "Team"
+  },
+  {
+    "name": "Media",
+    "path": "/media",
+    "icon": "lucide:image",
+    "sequence": 35,
+    "children": [
+      {
+        "name": "Library",
+        "path": "/media",
+        "icon": "lucide:library",
+        "sequence": 1,
+        "viewName": "list",
+        "module": "media",
+        "title": "Library",
+        "children": []
+      },
+      {
+        "name": "Upload",
+        "path": "/media/upload",
+        "icon": "lucide:upload",
+        "sequence": 2,
+        "viewName": "list",
+        "module": "media",
+        "title": "Upload",
+        "children": []
+      },
+      {
+        "name": "Featured",
+        "path": "/media/featured",
+        "icon": "lucide:star",
+        "sequence": 3,
+        "viewName": "list",
+        "module": "media",
+        "title": "Featured",
+        "children": []
+      }
+    ],
+    "module": "media",
+    "title": "Media"
+  },
+  {
+    "name": "Settings",
+    "path": "/settings",
+    "icon": "lucide:settings",
+    "sequence": 100,
+    "children": [
+      {
+        "name": "General",
+        "path": "/settings/general",
+        "icon": "lucide:sliders",
+        "sequence": 1,
+        "viewName": "app-settings",
+        "module": "settings",
+        "title": "General",
+        "children": []
+      },
+      {
+        "name": "Contact",
+        "path": "/settings/contact",
+        "icon": "lucide:mail",
+        "sequence": 2,
+        "viewName": "settings",
+        "module": "settings",
+        "title": "Contact",
+        "children": []
+      },
+      {
+        "name": "Localization",
+        "path": "/settings/localization",
+        "icon": "lucide:globe",
+        "sequence": 3,
+        "viewName": "settings",
+        "module": "settings",
+        "title": "Localization",
+        "children": []
+      },
+      {
+        "name": "Social",
+        "path": "/settings/social",
+        "icon": "lucide:share-2",
+        "sequence": 4,
+        "viewName": "settings",
+        "module": "settings",
+        "title": "Social",
+        "children": []
+      }
+    ],
+    "module": "settings",
+    "title": "Settings"
+  },
+  {
+    "name": "Website",
+    "path": "/website",
+    "icon": "lucide:globe",
+    "sequence": 25,
+    "children": [
+      {
+        "name": "Pages",
+        "path": "/website/pages",
+        "icon": "lucide:file-text",
+        "sequence": 1,
+        "viewName": "pages",
+        "module": "website",
+        "title": "Pages",
+        "children": []
+      },
+      {
+        "name": "Menus",
+        "path": "/website/menus",
+        "icon": "lucide:menu",
+        "sequence": 2,
+        "viewName": "menus",
+        "module": "website",
+        "title": "Menus",
+        "children": []
+      },
+      {
+        "name": "Media",
+        "path": "/website/media",
+        "icon": "lucide:image",
+        "sequence": 3,
+        "viewName": "media",
+        "module": "website",
+        "title": "Media",
+        "children": []
+      },
+      {
+        "name": "Forms",
+        "path": "/website/forms",
+        "icon": "lucide:file-input",
+        "sequence": 4,
+        "viewName": "forms",
+        "module": "website",
+        "title": "Forms",
+        "children": []
+      },
+      {
+        "name": "Theme Builder",
+        "path": "/website/theme-builder",
+        "icon": "lucide:layout",
+        "sequence": 5,
+        "viewName": "theme-builder",
+        "module": "website",
+        "title": "Theme Builder",
+        "children": []
+      },
+      {
+        "name": "Popups",
+        "path": "/website/popups",
+        "icon": "lucide:maximize-2",
+        "sequence": 6,
+        "viewName": "popups",
+        "module": "website",
+        "title": "Popups",
+        "children": []
+      },
+      {
+        "name": "Settings",
+        "path": "/website/settings",
+        "icon": "lucide:settings",
+        "sequence": 7,
+        "viewName": "settings",
+        "module": "website",
+        "title": "Settings",
+        "children": []
+      },
+      {
+        "name": "Redirects",
+        "path": "/website/redirects",
+        "icon": "ArrowLeftRight",
+        "sequence": 8,
+        "viewName": "redirects",
+        "module": "website",
+        "title": "Redirects",
+        "children": []
+      },
+      {
+        "name": "Categories",
+        "path": "/website/categories",
+        "icon": "lucide:tag",
+        "sequence": 9,
+        "viewName": "categories",
+        "module": "website",
+        "title": "Categories",
+        "children": []
+      },
+      {
+        "name": "Tags",
+        "path": "/website/tags",
+        "icon": "lucide:hash",
+        "sequence": 10,
+        "viewName": "tags",
+        "module": "website",
+        "title": "Tags",
+        "children": []
+      }
+    ],
+    "module": "website",
+    "title": "Website"
+  },
+  {
+    "name": "Editor",
+    "icon": "lucide:layout",
+    "sequence": 90,
+    "children": [
+      {
+        "name": "Templates",
+        "path": "/settings/editor/templates",
+        "icon": "lucide:file-text",
+        "sequence": 1,
+        "viewName": "templates",
+        "module": "editor",
+        "title": "Templates",
+        "children": []
+      },
+      {
+        "name": "Widget Manager",
+        "path": "/editor/widget-manager",
+        "icon": "lucide:puzzle",
+        "sequence": 2,
+        "viewName": "widget-manager",
+        "module": "editor",
+        "title": "Widget Manager",
+        "children": []
+      }
+    ],
+    "module": "editor",
+    "title": "Editor"
+  },
+  {
+    "name": "Advanced",
+    "path": "/settings/advanced",
+    "icon": "lucide:puzzle",
+    "sequence": 8,
+    "permission": "advanced_features.access",
+    "children": [
+      {
+        "name": "Webhooks",
+        "path": "/settings/advanced/webhooks",
+        "icon": "lucide:webhook",
+        "sequence": 1,
+        "permission": "advanced_features.webhooks.manage",
+        "viewName": "webhooks",
+        "module": "advanced_features",
+        "title": "Webhooks",
+        "children": []
+      },
+      {
+        "name": "Notifications",
+        "path": "/settings/advanced/notifications",
+        "icon": "lucide:bell",
+        "sequence": 2,
+        "permission": "advanced_features.notifications.manage",
+        "viewName": "notifications",
+        "module": "advanced_features",
+        "title": "Notifications",
+        "children": []
+      },
+      {
+        "name": "Tags",
+        "path": "/settings/advanced/tags",
+        "icon": "lucide:tag",
+        "sequence": 3,
+        "permission": "advanced_features.tags.manage",
+        "viewName": "tags",
+        "module": "advanced_features",
+        "title": "Tags",
+        "children": []
+      },
+      {
+        "name": "Reports",
+        "path": "/settings/advanced/reports",
+        "icon": "lucide:bar-chart-3",
+        "sequence": 4,
+        "permission": "advanced_features.reports.manage",
+        "viewName": "reports",
+        "module": "advanced_features",
+        "title": "Reports",
+        "children": []
+      }
+    ],
+    "module": "advanced_features",
+    "title": "Advanced"
+  }
+]

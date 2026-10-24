@@ -36,15 +36,12 @@ const MAX_MESSAGES = 200;
 
 function getWsUrl(): string {
   const token = localStorage.getItem('token');
-  const isDev = import.meta.env.DEV;
-
-  if (isDev) {
-    return `ws://localhost:3000/ws?token=${token || ''}`;
-  }
-
-  const loc = window.location;
-  const protocol = loc.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${protocol}//${loc.host}/ws?token=${token || ''}`;
+  const apiBase = import.meta.env.VITE_API_URL ||
+    (import.meta.env.DEV ? 'http://localhost:3000/api/v2' : window.location.origin);
+  const url = new URL(import.meta.env.VITE_WS_URL || '/ws', new URL(apiBase, window.location.origin));
+  url.protocol = url.protocol === 'https:' || url.protocol === 'wss:' ? 'wss:' : 'ws:';
+  url.searchParams.set('token', token || '');
+  return url.toString();
 }
 
 function dispatchWsEvent(type: string, detail: any) {

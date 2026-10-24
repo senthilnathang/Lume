@@ -1,0 +1,7 @@
+{
+  "name": "@lume/module-ui",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared Vue module views and widgets consumed by the Lume admin and public website"
+}

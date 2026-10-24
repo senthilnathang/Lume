@@ -15,14 +15,19 @@
         <form @submit.prevent="handleSubmit" class="modal-body">
           <div class="form-row">
             <div class="form-group">
-              <label for="name">Full Name *</label>
+              <label for="firstName">First Name *</label>
               <input
-                id="name"
-                v-model="form.name"
+                id="firstName"
+                v-model="form.firstName"
+                minlength="2"
                 type="text"
                 :disabled="mode === 'view'"
                 required
               />
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name *</label>
+              <input id="lastName" v-model="form.lastName" type="text" minlength="2" :disabled="mode === 'view'" required />
             </div>
           </div>
 
@@ -86,18 +91,10 @@
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="pending">Pending</option>
-                <option value="locked">Locked</option>
               </select>
             </div>
           </div>
 
-          <div class="form-group" v-if="mode !== 'view'">
-            <label class="checkbox-label">
-              <input type="checkbox" v-model="form.send_welcome_email" />
-              Send welcome email with login credentials
-            </label>
-          </div>
 
           <div class="modal-footer" v-if="mode !== 'view'">
             <button type="button" class="btn-secondary" @click="$emit('close')">
@@ -123,7 +120,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import { get } from '@/api/request';
+import { useAuthStore } from '@/store/auth';
 
 const props = defineProps({
   user: { type: Object, default: null },
@@ -133,22 +132,19 @@ const props = defineProps({
 const emit = defineEmits(['close', 'save', 'edit']);
 
 const form = ref({
-  name: '',
+  firstName: '',
+  lastName: '',
   email: '',
   password: '',
   phone: '',
   role_id: '',
   status: 'active',
-  send_welcome_email: true
 });
 
 const saving = ref(false);
-const roles = ref([
-  { id: 1, name: 'Admin' },
-  { id: 2, name: 'Manager' },
-  { id: 3, name: 'User' },
-  { id: 4, name: 'Viewer' }
-]);
+const roles = ref([]);
+const auth = useAuthStore();
+onMounted(async () => { roles.value = await get('/rbac/roles'); });
 
 const title = computed(() => {
   if (props.mode === 'view') return `View User: ${props.user?.name || ''}`;
@@ -157,18 +153,18 @@ const title = computed(() => {
 });
 
 const isEdit = computed(() => props.mode === 'edit');
-const isCurrentUser = computed(() => props.user?.id === 1);
+const isCurrentUser = computed(() => props.user?.id === auth.userInfo?.id);
 
 watch(() => props.user, (newUser) => {
   if (newUser) {
     form.value = {
-      name: newUser.name || '',
+      firstName: newUser.firstName || '',
+      lastName: newUser.lastName || '',
       email: newUser.email || '',
       password: '',
       phone: newUser.phone || '',
       role_id: newUser.role_id || '',
       status: newUser.status || 'active',
-      send_welcome_email: false
     };
   }
 }, { immediate: true });
@@ -176,7 +172,9 @@ watch(() => props.user, (newUser) => {
 const handleSubmit = async () => {
   saving.value = true;
   try {
-    emit('save', { ...form.value });
+    const { status, password, ...fields } = form.value;
+    emit('save', { ...fields, id: props.user?.id, role_id: Number(fields.role_id),
+      isActive: status === 'active', ...(password ? { password } : {}) });
   } finally {
     saving.value = false;
   }

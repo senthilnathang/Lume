@@ -9,6 +9,9 @@ export class SequenceType implements Node, Auditable {
   @Field(() => String)
   name: string;
 
+  @Field(() => String)
+  code: string;
+
   @Field(() => String, { nullable: true })
   prefix?: string;
 

@@ -1,13 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 describe('useWebsiteData Composable', () => {
+  afterEach(() => vi.unstubAllGlobals())
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('fetches menu data', async () => {
     // Mock fetch
-    global.fetch = vi.fn(() =>
+    vi.stubGlobal('fetch', vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () =>
@@ -21,7 +22,7 @@ describe('useWebsiteData Composable', () => {
             },
           }),
       })
-    )
+    ))
 
     // Simulate composable behavior
     const response = await fetch('/api/website/public/menus/header')
@@ -33,7 +34,7 @@ describe('useWebsiteData Composable', () => {
   })
 
   it('fetches website settings', async () => {
-    global.fetch = vi.fn(() =>
+    vi.stubGlobal('fetch', vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () =>
@@ -45,7 +46,7 @@ describe('useWebsiteData Composable', () => {
             },
           }),
       })
-    )
+    ))
 
     const response = await fetch('/api/website/public/settings')
     const data = await response.json()
@@ -54,7 +55,7 @@ describe('useWebsiteData Composable', () => {
   })
 
   it('handles fetch errors gracefully', async () => {
-    global.fetch = vi.fn(() => Promise.reject(new Error('Network error')))
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('Network error'))))
 
     await expect(fetch('/api/website/public/menus/header')).rejects.toThrow(
       'Network error'

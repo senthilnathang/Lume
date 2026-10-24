@@ -224,6 +224,35 @@ export class ApprovalChainEngineService {
     });
   }
 
+  async listApprovalRequests(context: ApprovalContext, view: 'pending' | 'history', before = 0, limit = 25) {
+    if (!['pending', 'history'].includes(view) || !Number.isSafeInteger(before) || before < 0 ||
+      !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new BadRequestException('Invalid approval list query');
+    return this.prisma.$transaction(async tx => {
+      const actor = await this.actor(tx, context);
+      const rows = await tx.automation_approval_requests.findMany({
+        where: { companyId: context.companyId, status: view === 'pending' ? 'pending' : { in: ['completed', 'rejected'] },
+          ...(before ? { id: { lt: before } } : {}) },
+        orderBy: { id: 'desc' }, take: limit,
+      });
+      const items: ApprovalRequest[] = [];
+      for (const row of rows) {
+        const request = this.view(row);
+        const step = request.stepsData[request.currentStep];
+        if (view === 'pending' ? !step || !this.assigned(step, actor)
+          : request.initiatedBy !== actor.userId && !request.stepsData.some(entry => this.assigned(entry, actor))) continue;
+        try {
+          await this.record(tx, request.recordEntityId, request.recordId, context, actor, view === 'pending');
+        } catch (error) {
+          if (error instanceof ForbiddenException || error instanceof NotFoundException) continue;
+          throw error;
+        }
+        items.push(request);
+      }
+      // Advance through scanned rows even when record policy hides the whole page.
+      return { items, nextCursor: rows.length === limit ? rows[rows.length - 1].id : null };
+    });
+  }
+
   async approveStep(requestId: number, stepIndex: number, context: ApprovalContext): Promise<boolean> {
     return this.transition(requestId,stepIndex,context);
   }

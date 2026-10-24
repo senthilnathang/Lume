@@ -12,7 +12,7 @@ import {
 import { SubmissionService } from '../services/submission.service';
 import { PolicyGuard, RequireRoles } from '@core/permission/policy.guard';
 
-@Controller('api/admin/marketplace')
+@Controller(['admin/marketplace', 'api/admin/marketplace'])
 @UseGuards(JwtAuthGuard, PolicyGuard)
 export class AdminMarketplaceController {
   constructor(private readonly submissionService: SubmissionService) {}

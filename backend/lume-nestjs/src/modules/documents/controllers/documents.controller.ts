@@ -16,7 +16,7 @@ import { CreateDocumentDto, UpdateDocumentDto, QueryDocumentsDto } from '../dtos
 import { Public, Permissions, CurrentUser } from '@core/decorators';
 import { ParseIntPipe } from '@nestjs/common';
 
-@Controller('api/documents')
+@Controller(['documents', 'api/documents'])
 export class DocumentsController {
   constructor(private documentsService: DocumentsService) {}
 

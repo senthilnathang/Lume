@@ -5,7 +5,7 @@ import { Permissions } from '@core/decorators';
 import { QueueService } from '../services/queue.service';
 import { AddJobDto, AddRecurringJobDto } from '../dtos';
 
-@Controller('api/queue')
+@Controller(['queue', 'api/queue'])
 export class QueueController {
   constructor(private queueService: QueueService) {}
 

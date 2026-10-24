@@ -43,12 +43,10 @@ export class AutomationService {
   async getWorkflows(filters?: { status?: string; model?: string }) {
     let query = this.db.select().from(automationWorkflows);
 
-    if (filters?.status) {
-      query = query.where(eq(automationWorkflows.status, filters.status));
-    }
-    if (filters?.model) {
-      query = query.where(eq(automationWorkflows.model, filters.model));
-    }
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(automationWorkflows.status, filters.status));
+    if (filters?.model) conditions.push(eq(automationWorkflows.model, filters.model));
+    if (conditions.length) query = query.where(and(...conditions));
 
     const results = await query;
     return { success: true, data: results };
@@ -70,7 +68,7 @@ export class AutomationService {
   async createWorkflow(dto: CreateWorkflowDto) {
     try {
       const result = await this.db.insert(automationWorkflows).values(dto);
-      return { success: true, data: { id: result.insertId, ...dto } };
+      return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
@@ -124,12 +122,10 @@ export class AutomationService {
   async getFlows(filters?: { status?: string; model?: string }) {
     let query = this.db.select().from(automationFlows);
 
-    if (filters?.status) {
-      query = query.where(eq(automationFlows.status, filters.status));
-    }
-    if (filters?.model) {
-      query = query.where(eq(automationFlows.model, filters.model));
-    }
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(automationFlows.status, filters.status));
+    if (filters?.model) conditions.push(eq(automationFlows.model, filters.model));
+    if (conditions.length) query = query.where(and(...conditions));
 
     const results = await query;
     return { success: true, data: results };
@@ -151,7 +147,7 @@ export class AutomationService {
   async createFlow(dto: CreateFlowDto) {
     try {
       const result = await this.db.insert(automationFlows).values(dto);
-      return { success: true, data: { id: result.insertId, ...dto } };
+      return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
@@ -203,12 +199,10 @@ export class AutomationService {
   async getBusinessRules(filters?: { status?: string; model?: string }) {
     let query = this.db.select().from(automationBusinessRules);
 
-    if (filters?.status) {
-      query = query.where(eq(automationBusinessRules.status, filters.status));
-    }
-    if (filters?.model) {
-      query = query.where(eq(automationBusinessRules.model, filters.model));
-    }
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(automationBusinessRules.status, filters.status));
+    if (filters?.model) conditions.push(eq(automationBusinessRules.model, filters.model));
+    if (conditions.length) query = query.where(and(...conditions));
 
     const results = await query;
     return { success: true, data: results };
@@ -230,7 +224,7 @@ export class AutomationService {
   async createBusinessRule(dto: CreateBusinessRuleDto) {
     try {
       const result = await this.db.insert(automationBusinessRules).values(dto);
-      return { success: true, data: { id: result.insertId, ...dto } };
+      return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
@@ -403,7 +397,7 @@ export class AutomationService {
       const result = await this.db
         .insert(automationScheduledActions)
         .values(dto);
-      return { success: true, data: { id: result.insertId, ...dto } };
+      return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
@@ -457,12 +451,10 @@ export class AutomationService {
   async getValidationRules(filters?: { status?: string; model?: string }) {
     let query = this.db.select().from(automationValidationRules);
 
-    if (filters?.status) {
-      query = query.where(eq(automationValidationRules.status, filters.status));
-    }
-    if (filters?.model) {
-      query = query.where(eq(automationValidationRules.model, filters.model));
-    }
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(automationValidationRules.status, filters.status));
+    if (filters?.model) conditions.push(eq(automationValidationRules.model, filters.model));
+    if (conditions.length) query = query.where(and(...conditions));
 
     const results = await query;
     return { success: true, data: results };
@@ -486,7 +478,7 @@ export class AutomationService {
       const result = await this.db
         .insert(automationValidationRules)
         .values(dto);
-      return { success: true, data: { id: result.insertId, ...dto } };
+      return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
@@ -540,12 +532,10 @@ export class AutomationService {
   async getAssignmentRules(filters?: { status?: string; model?: string }) {
     let query = this.db.select().from(automationAssignmentRules);
 
-    if (filters?.status) {
-      query = query.where(eq(automationAssignmentRules.status, filters.status));
-    }
-    if (filters?.model) {
-      query = query.where(eq(automationAssignmentRules.model, filters.model));
-    }
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(automationAssignmentRules.status, filters.status));
+    if (filters?.model) conditions.push(eq(automationAssignmentRules.model, filters.model));
+    if (conditions.length) query = query.where(and(...conditions));
 
     const results = await query;
     return { success: true, data: results };
@@ -569,7 +559,7 @@ export class AutomationService {
       const result = await this.db
         .insert(automationAssignmentRules)
         .values(dto);
-      return { success: true, data: { id: result.insertId, ...dto } };
+      return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
     } catch (error: any) {
       return { success: false, error: error.message };
     }
@@ -655,7 +645,7 @@ export class AutomationService {
   async createRollupField(dto: CreateRollupFieldDto) {
     try {
       const result = await this.db.insert(automationRollupFields).values(dto);
-      return { success: true, data: { id: result.insertId, ...dto } };
+      return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
     } catch (error: any) {
       return { success: false, error: error.message };
     }

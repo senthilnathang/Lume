@@ -8,7 +8,10 @@ import {
   Param,
   Query,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
+import { ParseIntPipe } from '@core/pipes/parse-int.pipe';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import { RbacGuard } from '@core/guards/rbac.guard';
 import { Permissions } from '@core/decorators';
@@ -32,8 +35,9 @@ import {
   UpdateRollupFieldDto,
 } from '../dtos';
 
-@Controller('api/automation')
+@Controller(['automation', 'base_automation', 'api/automation'])
 @UseGuards(JwtAuthGuard, RbacGuard)
+@UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
 export class AutomationController {
   constructor(private automationService: AutomationService) {}
 
@@ -47,8 +51,8 @@ export class AutomationController {
 
   @Get('workflows/:id')
   @Permissions('base_automation.workflows')
-  async getWorkflow(@Param('id') id: string) {
-    return this.automationService.getWorkflow(parseInt(id, 10));
+  async getWorkflow(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.getWorkflow(id);
   }
 
   @Post('workflows')
@@ -59,14 +63,14 @@ export class AutomationController {
 
   @Put('workflows/:id')
   @Permissions('base_automation.workflows.manage')
-  async updateWorkflow(@Param('id') id: string, @Body() dto: UpdateWorkflowDto) {
-    return this.automationService.updateWorkflow(parseInt(id, 10), dto);
+  async updateWorkflow(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateWorkflowDto) {
+    return this.automationService.updateWorkflow(id, dto);
   }
 
   @Delete('workflows/:id')
   @Permissions('base_automation.workflows.manage')
-  async deleteWorkflow(@Param('id') id: string) {
-    return this.automationService.deleteWorkflow(parseInt(id, 10));
+  async deleteWorkflow(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.deleteWorkflow(id);
   }
 
   // ── Flows ─────────────────────────────────────────────────────
@@ -79,8 +83,8 @@ export class AutomationController {
 
   @Get('flows/:id')
   @Permissions('base_automation.flows')
-  async getFlow(@Param('id') id: string) {
-    return this.automationService.getFlow(parseInt(id, 10));
+  async getFlow(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.getFlow(id);
   }
 
   @Post('flows')
@@ -91,14 +95,14 @@ export class AutomationController {
 
   @Put('flows/:id')
   @Permissions('base_automation.flows.manage')
-  async updateFlow(@Param('id') id: string, @Body() dto: UpdateFlowDto) {
-    return this.automationService.updateFlow(parseInt(id, 10), dto);
+  async updateFlow(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateFlowDto) {
+    return this.automationService.updateFlow(id, dto);
   }
 
   @Delete('flows/:id')
   @Permissions('base_automation.flows.manage')
-  async deleteFlow(@Param('id') id: string) {
-    return this.automationService.deleteFlow(parseInt(id, 10));
+  async deleteFlow(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.deleteFlow(id);
   }
 
   // ── Business Rules ────────────────────────────────────────────
@@ -111,8 +115,8 @@ export class AutomationController {
 
   @Get('rules/:id')
   @Permissions('base_automation.rules')
-  async getBusinessRule(@Param('id') id: string) {
-    return this.automationService.getBusinessRule(parseInt(id, 10));
+  async getBusinessRule(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.getBusinessRule(id);
   }
 
   @Post('rules')
@@ -123,14 +127,14 @@ export class AutomationController {
 
   @Put('rules/:id')
   @Permissions('base_automation.rules.manage')
-  async updateBusinessRule(@Param('id') id: string, @Body() dto: UpdateBusinessRuleDto) {
-    return this.automationService.updateBusinessRule(parseInt(id, 10), dto);
+  async updateBusinessRule(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBusinessRuleDto) {
+    return this.automationService.updateBusinessRule(id, dto);
   }
 
   @Delete('rules/:id')
   @Permissions('base_automation.rules.manage')
-  async deleteBusinessRule(@Param('id') id: string) {
-    return this.automationService.deleteBusinessRule(parseInt(id, 10));
+  async deleteBusinessRule(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.deleteBusinessRule(id);
   }
 
   // ── Approval Chains ───────────────────────────────────────────
@@ -143,8 +147,8 @@ export class AutomationController {
 
   @Get('approvals/:id')
   @Permissions('base_automation.approvals')
-  async getApprovalChain(@Param('id') id: string) {
-    return this.automationService.getApprovalChain(parseInt(id, 10));
+  async getApprovalChain(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.getApprovalChain(id);
   }
 
   @Post('approvals')
@@ -155,14 +159,14 @@ export class AutomationController {
 
   @Put('approvals/:id')
   @Permissions('base_automation.approvals.manage')
-  async updateApprovalChain(@Param('id') id: string, @Body() dto: UpdateApprovalChainDto) {
-    return this.automationService.updateApprovalChain(parseInt(id, 10), dto);
+  async updateApprovalChain(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateApprovalChainDto) {
+    return this.automationService.updateApprovalChain(id, dto);
   }
 
   @Delete('approvals/:id')
   @Permissions('base_automation.approvals.manage')
-  async deleteApprovalChain(@Param('id') id: string) {
-    return this.automationService.deleteApprovalChain(parseInt(id, 10));
+  async deleteApprovalChain(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.deleteApprovalChain(id);
   }
 
   // ── Scheduled Actions ─────────────────────────────────────────
@@ -175,8 +179,8 @@ export class AutomationController {
 
   @Get('scheduled/:id')
   @Permissions('base_automation.scheduled')
-  async getScheduledAction(@Param('id') id: string) {
-    return this.automationService.getScheduledAction(parseInt(id, 10));
+  async getScheduledAction(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.getScheduledAction(id);
   }
 
   @Post('scheduled')
@@ -187,14 +191,14 @@ export class AutomationController {
 
   @Put('scheduled/:id')
   @Permissions('base_automation.scheduled.manage')
-  async updateScheduledAction(@Param('id') id: string, @Body() dto: UpdateScheduledActionDto) {
-    return this.automationService.updateScheduledAction(parseInt(id, 10), dto);
+  async updateScheduledAction(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateScheduledActionDto) {
+    return this.automationService.updateScheduledAction(id, dto);
   }
 
   @Delete('scheduled/:id')
   @Permissions('base_automation.scheduled.manage')
-  async deleteScheduledAction(@Param('id') id: string) {
-    return this.automationService.deleteScheduledAction(parseInt(id, 10));
+  async deleteScheduledAction(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.deleteScheduledAction(id);
   }
 
   // ── Validation Rules ──────────────────────────────────────────
@@ -207,8 +211,8 @@ export class AutomationController {
 
   @Get('validation-rules/:id')
   @Permissions('base_automation.rules')
-  async getValidationRule(@Param('id') id: string) {
-    return this.automationService.getValidationRule(parseInt(id, 10));
+  async getValidationRule(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.getValidationRule(id);
   }
 
   @Post('validation-rules')
@@ -219,14 +223,14 @@ export class AutomationController {
 
   @Put('validation-rules/:id')
   @Permissions('base_automation.rules.manage')
-  async updateValidationRule(@Param('id') id: string, @Body() dto: UpdateValidationRuleDto) {
-    return this.automationService.updateValidationRule(parseInt(id, 10), dto);
+  async updateValidationRule(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateValidationRuleDto) {
+    return this.automationService.updateValidationRule(id, dto);
   }
 
   @Delete('validation-rules/:id')
   @Permissions('base_automation.rules.manage')
-  async deleteValidationRule(@Param('id') id: string) {
-    return this.automationService.deleteValidationRule(parseInt(id, 10));
+  async deleteValidationRule(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.deleteValidationRule(id);
   }
 
   // ── Assignment Rules ──────────────────────────────────────────
@@ -239,8 +243,8 @@ export class AutomationController {
 
   @Get('assignment-rules/:id')
   @Permissions('base_automation.rules')
-  async getAssignmentRule(@Param('id') id: string) {
-    return this.automationService.getAssignmentRule(parseInt(id, 10));
+  async getAssignmentRule(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.getAssignmentRule(id);
   }
 
   @Post('assignment-rules')
@@ -251,14 +255,14 @@ export class AutomationController {
 
   @Put('assignment-rules/:id')
   @Permissions('base_automation.rules.manage')
-  async updateAssignmentRule(@Param('id') id: string, @Body() dto: UpdateAssignmentRuleDto) {
-    return this.automationService.updateAssignmentRule(parseInt(id, 10), dto);
+  async updateAssignmentRule(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAssignmentRuleDto) {
+    return this.automationService.updateAssignmentRule(id, dto);
   }
 
   @Delete('assignment-rules/:id')
   @Permissions('base_automation.rules.manage')
-  async deleteAssignmentRule(@Param('id') id: string) {
-    return this.automationService.deleteAssignmentRule(parseInt(id, 10));
+  async deleteAssignmentRule(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.deleteAssignmentRule(id);
   }
 
   // ── Rollup Fields ─────────────────────────────────────────────
@@ -271,8 +275,8 @@ export class AutomationController {
 
   @Get('rollup-fields/:id')
   @Permissions('base_automation.rules')
-  async getRollupField(@Param('id') id: string) {
-    return this.automationService.getRollupField(parseInt(id, 10));
+  async getRollupField(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.getRollupField(id);
   }
 
   @Post('rollup-fields')
@@ -283,13 +287,13 @@ export class AutomationController {
 
   @Put('rollup-fields/:id')
   @Permissions('base_automation.rules.manage')
-  async updateRollupField(@Param('id') id: string, @Body() dto: UpdateRollupFieldDto) {
-    return this.automationService.updateRollupField(parseInt(id, 10), dto);
+  async updateRollupField(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateRollupFieldDto) {
+    return this.automationService.updateRollupField(id, dto);
   }
 
   @Delete('rollup-fields/:id')
   @Permissions('base_automation.rules.manage')
-  async deleteRollupField(@Param('id') id: string) {
-    return this.automationService.deleteRollupField(parseInt(id, 10));
+  async deleteRollupField(@Param('id', ParseIntPipe) id: number) {
+    return this.automationService.deleteRollupField(id);
   }
 }

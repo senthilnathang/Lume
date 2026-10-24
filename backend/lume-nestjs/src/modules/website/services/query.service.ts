@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import { websitePages } from '../models/schema';
-import { eq, and, inArray, notInArray, gte, lte, asc, desc } from 'drizzle-orm';
+import { eq, and, or, isNull, inArray, notInArray, gte, lte, asc, desc } from 'drizzle-orm';
 
 @Injectable()
 export class QueryService {
@@ -9,7 +9,8 @@ export class QueryService {
 
   async execute(queryParams: any) {
     const db = this.drizzle.getDrizzle();
-    const conditions = [eq(websitePages.isPublished, true)];
+    const conditions = [eq(websitePages.isPublished, true), isNull(websitePages.deletedAt),
+      or(isNull(websitePages.visibility), eq(websitePages.visibility, 'public'))];
 
     if (queryParams.source && queryParams.source !== 'all') {
       conditions.push(eq(websitePages.pageType, queryParams.source));
@@ -55,6 +56,6 @@ export class QueryService {
 
     q = q.limit(Number(queryParams.limit) || 10).offset(Number(queryParams.offset) || 0);
 
-    return await q;
+    return (await q).map(({ passwordHash, ...page }) => page);
   }
 }

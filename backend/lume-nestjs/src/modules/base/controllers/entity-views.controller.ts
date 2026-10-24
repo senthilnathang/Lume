@@ -4,7 +4,7 @@ import { RbacGuard } from '@core/guards/rbac.guard';
 import { Permissions } from '@core/decorators';
 import { ViewRendererService } from '../services/view-renderer.service';
 
-@Controller('api/entities/:entityId/views')
+@Controller(['entities/:entityId/views', 'base/entities/:entityId/views', 'api/entities/:entityId/views'])
 export class EntityViewsController {
   constructor(private viewRendererService: ViewRendererService) {}
 

@@ -287,7 +287,8 @@ useRouter();
 
 // Use route params as fallback for moduleName
 const effectiveModuleName = computed(() => {
-  return props.moduleName || route.params.moduleName || route.meta?.module || 'default';
+  const name = props.moduleName || route.params.moduleName || route.meta?.module;
+  return typeof name === 'string' ? name : Array.isArray(name) ? name[0] || 'default' : 'default';
 });
 
 const loading = ref(false);
@@ -383,7 +384,31 @@ const currentConfigKey = computed(() => {
   return getConfigKey(String(effectiveModuleName.value), route.path);
 });
 
-const moduleConfig: Record<string, any> = {
+interface ModuleColumn {
+  key: string;
+  title: string;
+  type?: string;
+  sortable?: boolean;
+}
+
+interface ModuleField extends ModuleColumn {
+  required?: boolean;
+  placeholder?: string;
+  rows?: number;
+  disabled?: boolean;
+  checkboxLabel?: string;
+  options?: { value: string | number; label: string }[];
+}
+
+interface ModuleConfiguration {
+  title: string;
+  description: string;
+  apiEndpoint: string;
+  columns: ModuleColumn[];
+  formFields?: ModuleField[];
+}
+
+const moduleConfig: Record<string, ModuleConfiguration> = {
   // Base module settings
   modules: {
     title: 'Modules',

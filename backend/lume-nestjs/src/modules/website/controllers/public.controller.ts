@@ -16,9 +16,11 @@ import { ThemeTemplateService } from '../services/theme-template.service';
 import { PopupService } from '../services/popup.service';
 import { SubmissionService } from '../services/form.service';
 import { QueryService } from '../services/query.service';
+import { CategoryService } from '../services/category.service';
+import { TagService } from '../services/tag.service';
 import { VerifyPagePasswordDto, SubmitFormDto } from '../dtos';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 @Public()
 export class PublicController {
   constructor(
@@ -29,6 +31,8 @@ export class PublicController {
     private popupService: PopupService,
     private submissionService: SubmissionService,
     private queryService: QueryService,
+    private categoryService: CategoryService,
+    private tagService: TagService,
   ) {}
 
   // Get published pages
@@ -70,6 +74,28 @@ export class PublicController {
   @Get('public/settings')
   async getSettings() {
     return this.settingsService.getAll();
+  }
+
+  @Get('public/categories/:slug')
+  getCategory(@Param('slug') slug: string) {
+    return this.categoryService.findBySlug(slug);
+  }
+
+  @Get('public/categories/:slug/pages')
+  async getCategoryPages(@Param('slug') slug: string) {
+    const category = await this.categoryService.findBySlug(slug);
+    return category.success ? this.categoryService.findPagesByCategory(category.data.id) : category;
+  }
+
+  @Get('public/tags/:slug')
+  getTag(@Param('slug') slug: string) {
+    return this.tagService.findBySlug(slug);
+  }
+
+  @Get('public/tags/:slug/pages')
+  async getTagPages(@Param('slug') slug: string) {
+    const tag = await this.tagService.findBySlug(slug);
+    return tag.success ? this.tagService.findPagesByTag(tag.data.id) : tag;
   }
 
   // Get theme template

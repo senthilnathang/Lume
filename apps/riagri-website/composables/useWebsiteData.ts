@@ -3,7 +3,7 @@
  * All use Nuxt's useFetch for SSR-compatible data fetching.
  */
 
-interface PageContent {
+export interface PageContent {
   id: number
   title: string
   slug: string
@@ -21,6 +21,11 @@ interface PageContent {
   ogImage: string | null
   isPublished: boolean
   publishedAt: string | null
+  updatedAt?: string | null
+  parentId?: number | null
+  noIndex?: boolean
+  customCss?: string | null
+  requiresPassword?: boolean
 }
 
 interface MenuItem {
@@ -61,11 +66,12 @@ export function usePageContent<T = Record<string, any>>(slug: string) {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase as string
 
-  const { data, pending, error } = useFetch<ApiResponse<PageContent>>(`${baseURL}/pages/${slug}`, {
+  const ready = useFetch<ApiResponse<PageContent>>(`${baseURL}/pages/${slug}`, {
     key: `page-${slug}`,
     server: true,
     lazy: false,
   })
+  const { data, pending, error } = ready
 
   const page = computed(() => data.value?.data || null)
 
@@ -87,7 +93,7 @@ export function usePageContent<T = Record<string, any>>(slug: string) {
     ogImage: page.value?.ogImage || page.value?.featuredImage || '',
   }))
 
-  return { page, content, seo, pending, error }
+  return { page, content, seo, pending, error, ready }
 }
 
 /**

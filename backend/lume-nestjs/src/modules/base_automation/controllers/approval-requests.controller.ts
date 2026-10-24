@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, HttpCode, Param, ParseIntPipe, Post, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, ForbiddenException, Get, HttpCode, Param, ParseIntPipe, Post, Query, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Permissions } from '@core/decorators';
 import { RbacGuard } from '@core/guards/rbac.guard';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
@@ -6,7 +6,7 @@ import { resolveTenant } from '../../../graphql/tenant';
 import { ApprovalChainEngineService, ApprovalContext } from '../services/approval-chain-engine.service';
 import { ApproveRequestDto, CreateApprovalRequestDto, RejectApprovalRequestDto } from '../dtos/approval-request.dto';
 
-@Controller('api/automation/approval-requests')
+@Controller(['automation/approval-requests', 'api/automation/approval-requests'])
 @UseGuards(JwtAuthGuard, RbacGuard)
 @Permissions('base_automation.approvals')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }))
@@ -30,6 +30,13 @@ export class ApprovalRequestsController {
   @Get(':id')
   async get(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return { success: true, data: await this.approvals.getApprovalRequest(id, this.context(req)) };
+  }
+
+  @Get()
+  async list(@Req() req: any, @Query('view') view: 'pending' | 'history' = 'pending',
+    @Query('before', new DefaultValuePipe(0), ParseIntPipe) before: string,
+    @Query('limit', new DefaultValuePipe(25), ParseIntPipe) limit: string) {
+    return { success: true, data: await this.approvals.listApprovalRequests(this.context(req), view, Number(before), Number(limit)) };
   }
 
   @Post(':id/approve')

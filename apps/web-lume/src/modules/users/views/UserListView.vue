@@ -24,6 +24,7 @@
 </template>
 
 <script setup>
+import { apiFetch, post, put, del } from '@/api/request';
 import { ref, onMounted } from 'vue';
 import DataTable from '@/components/DataTable.vue';
 import UserModal from './UserModal.vue';
@@ -63,10 +64,13 @@ const fetchUsers = async () => {
       params.search = searchQuery.value;
     }
     
-    const response = await fetch(`/api/users?${new URLSearchParams(params)}`);
+    const response = await apiFetch(`/api/users?${new URLSearchParams(params)}`);
     const data = await response.json();
-    users.value = data.data || [];
-    total.value = data.total || 0;
+    users.value = (data.data?.data || []).map(user => ({ ...user,
+      name: `${user.firstName} ${user.lastName}`.trim(), role: user.role?.name,
+      status: user.isActive ? 'active' : 'inactive', last_login: user.lastLogin, created_at: user.createdAt,
+    }));
+    total.value = data.data?.total || 0;
   } catch (error) {
     console.error('Failed to fetch users:', error);
   } finally {
@@ -119,17 +123,9 @@ const closeModal = () => {
 const handleSave = async (userData) => {
   try {
     if (modalMode.value === 'add') {
-      await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
+      await post('/users', userData);
     } else {
-      await fetch(`/api/users/${userData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
+      await put(`/users/${userData.id}`, userData);
     }
     closeModal();
     fetchUsers();
@@ -142,7 +138,7 @@ const handleDelete = async (user) => {
   if (!confirm(`Are you sure you want to delete ${user.name}?`)) return;
   
   try {
-    await fetch(`/api/users/${user.id}`, { method: 'DELETE' });
+    await del(`/users/${user.id}`);
     fetchUsers();
   } catch (error) {
     console.error('Failed to delete user:', error);

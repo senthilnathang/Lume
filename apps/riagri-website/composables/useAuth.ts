@@ -45,14 +45,14 @@ export function useAuth() {
     }
 
     try {
-      const res = await $fetch<{ success: boolean; data: { authenticated: boolean; user?: AuthUser } }>(
-        `${config.public.apiBase}/auth/check`,
+      const res = await $fetch<{ success: boolean; data: AuthUser }>(
+        `${String(config.public.apiBase).replace(/\/website\/public\/?$/, '')}/auth/me`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
 
-      if (res.success && res.data.authenticated && res.data.user) {
+      if (res.success && res.data && ['admin', 'super_admin'].includes(res.data.role)) {
         authState.isAdmin = true
-        authState.user = res.data.user
+        authState.user = res.data
         authState.token = token
       } else {
         clearAuth()

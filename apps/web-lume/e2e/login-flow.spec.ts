@@ -1,50 +1,25 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Login Flow Tests', () => {
-  
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(60000);
+test('unavailable API keeps the user on login with a recoverable error', async ({ page }) => {
+  await page.route('**/auth/login', route => route.abort('failed'));
+  await page.goto('/login');
+  await page.getByLabel('Email', { exact: true }).fill('test@example.test');
+  await page.getByLabel('Password', { exact: true }).fill('ExamplePassword!');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.locator('.lume-login-error')).toBeVisible();
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled();
+});
+test('HTTP rejection does not trigger recursive refresh or logout requests', async ({ page }) => {
+  let requests = 0;
+  await page.route('**/auth/**', async route => {
+    requests++;
+    await route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ message: 'Invalid credentials' }) });
   });
-
-  test('login form stays on page when backend is down', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
-    
-    // Fill the form
-    await page.locator('input[type="email"]').first().fill('admin@gawdesy.org');
-    await page.locator('input[type="password"]').first().fill('admin123');
-    
-    // Submit the form
-    await page.locator('button[type="submit"]').first().click();
-    
-    // Wait for timeout + error to appear (backend is down, so it will fail after ~10s)
-    await page.waitForTimeout(12000);
-    
-    // Check we're still on login page (not redirected to home)
-    const url = page.url();
-    expect(url).toContain('/login');
-    
-    // Check for error alert
-    const hasErrorAlert = await page.locator('.error-alert').count() > 0;
-    expect(hasErrorAlert).toBe(true);
-  });
-
-  test('login form prevents default form submission', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
-    
-    // Get initial URL
-    const initialUrl = page.url();
-    
-    // Fill and submit
-    await page.locator('input[type="email"]').first().fill('admin@gawdesy.org');
-    await page.locator('input[type="password"]').first().fill('admin123');
-    await page.locator('button[type="submit"]').first().click();
-    
-    await page.waitForTimeout(2000);
-    
-    // Should still be on login page
-    const currentUrl = page.url();
-    expect(currentUrl).toBe(initialUrl);
-  });
+  await page.goto('/login');
+  await page.getByLabel('Email', { exact: true }).fill('test@example.test');
+  await page.getByLabel('Password', { exact: true }).fill('ExamplePassword!');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.locator('.lume-login-error')).toBeVisible();
+  expect(requests).toBe(1);
 });

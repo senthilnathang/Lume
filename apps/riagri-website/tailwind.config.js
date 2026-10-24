@@ -1,4 +1,4 @@
-import baseConfig from '../../../packages/@lume/tailwind-config/index.js'
+import baseConfig from '../../packages/@lume/tailwind-config/index.js'
 
 export default {
   ...baseConfig,
@@ -8,7 +8,7 @@ export default {
     './pages/**/*.vue',
     './composables/**/*.{js,ts}',
     './app.vue',
-    '../../../backend/src/modules/editor/static/widgets/**/*.{vue,js,ts,css}',
+    '../../packages/@lume/module-ui/src/modules/editor/static/widgets/**/*.{vue,js,ts,css}',
   ],
   theme: {
     ...baseConfig.theme,

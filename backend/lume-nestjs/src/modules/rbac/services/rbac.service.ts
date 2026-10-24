@@ -6,6 +6,14 @@ import { CreateRoleDto, UpdateRoleDto, CreatePermissionDto, CreateAccessRuleDto,
 export class RbacService {
   constructor(private prisma: PrismaService) {}
 
+  private async permissionLinks(names?: string[]) {
+    if (names === undefined) return undefined;
+    const unique = [...new Set(names)];
+    const permissions = await this.prisma.permission.findMany({ where: { name: { in: unique } } });
+    if (permissions.length !== unique.length) throw new BadRequestException('Unknown permission');
+    return permissions.map(permission => ({ permissionId: permission.id }));
+  }
+
   // ============ Roles ============
 
   async getAllRoles() {
@@ -58,6 +66,7 @@ export class RbacService {
       throw new BadRequestException('Role with this name already exists');
     }
 
+    const links = await this.permissionLinks(dto.permissions);
     const role = await this.prisma.role.create({
       data: {
         name: dto.name,
@@ -65,6 +74,7 @@ export class RbacService {
         description: dto.description || '',
         is_system: false,
         isActive: dto.isActive !== undefined ? dto.isActive : true,
+        ...(links !== undefined && { role_permissions: { create: links } }),
       },
       include: {
         role_permissions: {
@@ -92,12 +102,14 @@ export class RbacService {
       throw new ForbiddenException('Cannot modify system role');
     }
 
+    const links = await this.permissionLinks(dto.permissions);
     const updatedRole = await this.prisma.role.update({
       where: { id },
       data: {
         ...(dto.name !== undefined && { name: dto.name, display_name: dto.name }),
         ...(dto.description !== undefined && { description: dto.description }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(links !== undefined && { role_permissions: { deleteMany: {}, create: links } }),
       },
       include: {
         role_permissions: {

@@ -26,7 +26,7 @@ import { Inbox, Plus } from 'lucide-vue-next';
 
 defineOptions({ name: 'EmptyState' });
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   title?: string;
   description?: string;
   showAction?: boolean;

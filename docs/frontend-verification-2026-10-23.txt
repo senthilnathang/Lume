@@ -1,0 +1,71 @@
+Frontend release-blocker repairs — 2026-10-23
+
+Scope: active apps/web-lume admin and apps/riagri-website public website,
+including their shared Vue views/widgets under backend/src/modules.
+
+VERIFIED
+- Admin production build, strict Vue typecheck, and lint pass.
+  Lint retains 144 warnings, zero errors.
+- Website production build, Nuxt typecheck, and lint pass.
+  Lint retains 25 warnings, zero errors.
+- Admin Vitest: 11 suites, 59 assertions passed with --maxWorkers=1.
+- Website Vitest: 2 suites, 6 assertions passed with --maxWorkers=1.
+- Playwright discovery: 110 cases across 7 existing files and 5 browser/device
+  projects. Discovery was repaired; this is not a claim that all cases ran.
+- Browser: seeded-account login reaches /dashboard. After final fixes, dashboard
+  console reports zero errors and zero warnings; WebSocket connects.
+- Production website: home renders with zero console errors/warnings; HTTP home,
+  robots.txt, and sitemap.xml return 200. Runtime API stylesheet resolves correctly.
+- Mobile website at 390x844: document width is 390, with no horizontal overflow.
+  Mobile navigation opens and exposes the expected page links.
+- Existing NestJS deployment remains healthy at /api/v2/health.
+- git diff --check passes. Existing staged composable changes were preserved.
+
+REPAIRS
+- Removed duplicate theme-builder filter declaration and corrected its bindings.
+- Updated Vite 8 chunk configuration, shared dependency resolution, and removed
+  ambient declarations that shadowed real Vue/icon library types.
+- Added missing website build/test dependencies; repaired Tailwind 4 PostCSS,
+  shared widget paths, and the authenticated shared-widget request adapter.
+- Used Nitro 2's supported legacyExternals tracer to avoid a circular Vue and
+  server-renderer symlink chain that made production builds fail with ELOOP.
+- Fixed editor API/type mismatches, props, form normalization, recursive node
+  typing, table row identity/default pagination, and request response types.
+- Fixed user deletion's never-resolving promise, workflow Back handling, duplicated
+  admin API prefixes, missing password-gate state, and theme submenu registration.
+- WebSocket URLs now follow VITE_API_URL, with optional VITE_WS_URL override,
+  including secure WebSockets for HTTPS and encoded authentication query values.
+- Stylesheet, robots, and sitemap URLs use Nuxt runtime configuration.
+- Lint ignores generated output and recognizes Nuxt-generated auto-imports.
+- Repaired Playwright directory/port configuration and a malformed duplicated
+  block in an existing test. Narrowed TS aliases to preserve package exports.
+- Added focused regression tests for table IDs/sorting, widget API requests,
+  and WebSocket endpoint configuration.
+
+RUNTIME TEST ISOLATION
+API: temporary Express instance on port 3012, retained MySQL database
+lume_verify_20261021, separate temporary Redis on port 6399.
+Admin dev server: port 3001. Built website: port 3112.
+External provider settings were not provisioned or enabled.
+The NestJS service and its application database were not changed by this work.
+
+LIMITS AND FOLLOW-UP
+This closes the identified build/type/lint/discovery blockers for the two active
+frontends. It does not certify every feature or a production frontend deployment.
+The old frontend/lume-admin application is outside this scope.
+The full legacy browser suite still needs updated fixture assumptions and a
+dedicated cross-browser run; several specs reference the old GAWDESY account/UI.
+The temporary Express API still reports the pre-existing QueueScheduler constructor
+failure. It serves the tested HTTP/UI flows, but its queues were not verified.
+These frontends currently use Express /api contracts; the deployed NestJS /api/v2
+service is not a drop-in frontend API. Deployment needs a compatible API endpoint.
+Optional external provider tests remain deferred at the user's request.
+Builds retain non-fatal bundle-size/dependency deprecation warnings.
+
+EVIDENCE
+output/playwright/lume-release-dashboard.png
+output/playwright/lume-release-website.png
+output/playwright/lume-release-website-mobile.png
+Raw gate logs: /tmp/lume-{admin,website}-{build,typecheck,lint,tests}.log
+Discovery: /tmp/lume-playwright-discovery.log
+Do not publish raw API/browser logs: they may contain disposable test tokens.

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, h } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Layout, Menu, Avatar, Dropdown, Button } from 'ant-design-vue';
 
@@ -98,18 +98,18 @@ const menuItems = computed(() => {
   }));
 });
 
-const userMenuItems: { key?: string; icon?: unknown; label?: string; type?: 'divider' }[] = [
-  { key: 'profile', icon: UserOutlined, label: 'Profile' },
+const userMenuItems = [
+  { key: 'profile', icon: () => h(UserOutlined), label: 'Profile' },
   { type: 'divider' as const },
-  { key: 'logout', icon: LogoutOutlined, label: 'Logout' }
+  { key: 'logout', icon: () => h(LogoutOutlined), label: 'Logout' }
 ];
 
-const handleMenuClick = ({ key }: { key?: string }) => {
+const handleMenuClick = ({ key }: { key: string | number }) => {
   if (key === 'logout') {
     authStore.logout();
     router.push('/login');
   } else {
-    router.push(key);
+    router.push(String(key));
   }
 };
 

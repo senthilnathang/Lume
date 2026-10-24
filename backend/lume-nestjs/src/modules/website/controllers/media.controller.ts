@@ -18,7 +18,7 @@ import { RbacGuard } from '@core/guards/rbac.guard';
 import { CurrentUser, Permissions } from '@core/decorators';
 import { MediaService } from '../services/media.service';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class MediaController {
   constructor(private mediaService: MediaService) {}
 

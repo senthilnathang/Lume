@@ -29,7 +29,7 @@
     </template>
 
     <!-- Inject page custom CSS if present -->
-    <component v-if="page?.customCss" :is="'style'" v-text="page.customCss" />
+    <component v-if="page?.customCss" :is="'style'">{{ page.customCss }}</component>
   </div>
 </template>
 
@@ -45,7 +45,7 @@ const props = defineProps<{
     customCss?: string | null;
   } | null;
   editMode?: boolean;
-  editContent?: any;
+  editContent?: object | string | null;
 }>();
 
 defineEmits(['update:content', 'select-block', 'insert-block']);

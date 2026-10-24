@@ -2,6 +2,9 @@ import { InputType, Field, Int } from '@nestjs/graphql';
 
 @InputType()
 export class CreateSequenceInput {
+  @Field(() => String, { nullable: true })
+  code?: string;
+
   @Field(() => String)
   name: string;
 

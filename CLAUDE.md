@@ -1,3 +1,21 @@
+# Current migration guidance — 2026-10-24
+
+These current paths and commands take precedence over the historical Express-specific
+sections below. Active API code is in `backend/lume-nestjs`; its TypeScript compiles
+to CommonJS. Shared Vue UI is in `packages/@lume/module-ui/src/modules`, and active
+clients are `apps/web-lume` and `apps/riagri-website`. Normal backend workspace commands
+now delegate to NestJS; old commands are explicit `legacy:*` commands. Do not run
+legacy database resets as setup for the active API. The old generator remains legacy.
+
+The migration is incomplete. Follow [architecture](docs/ARCHITECTURE.md),
+[development](docs/DEVELOPMENT.md), [testing](docs/TESTING.md), and
+[the active tasks](docs/nestjs-migration-tasks.txt). Keep email/push/AI providers
+disabled. Do not delete legacy code or move the running service directory until the
+recorded feature, data, verification and cutover gates pass. Existing detailed security
+requirements below still apply to their relevant legacy code and equivalent migrations.
+
+---
+
 # Lume Framework — Claude Code Instructions
 
 ## Project Overview

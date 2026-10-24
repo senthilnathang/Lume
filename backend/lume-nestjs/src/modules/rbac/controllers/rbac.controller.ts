@@ -21,7 +21,7 @@ import {
 } from '../dtos';
 import { Permissions } from '@core/decorators';
 
-@Controller('api/rbac')
+@Controller(['rbac', 'api/rbac'])
 export class RbacController {
   constructor(private rbacService: RbacService) {}
 

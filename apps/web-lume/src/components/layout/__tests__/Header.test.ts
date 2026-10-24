@@ -6,7 +6,7 @@ describe('Header Component', () => {
   it('renders header element', () => {
     const wrapper = mount(Header, {
       props: {
-        user: { id: 1, email: 'john@example.com', first_name: 'John', last_name: 'Doe', role: 'Admin' },
+        user: { id: 1, email: 'john@example.com', firstName: 'John', lastName: 'Doe', role: 'Admin' },
         menus: [],
       },
       global: {
@@ -24,7 +24,7 @@ describe('Header Component', () => {
   it('emits toggle-sidebar event', async () => {
     const wrapper = mount(Header, {
       props: {
-        user: { id: 1, email: 'john@example.com', first_name: 'John', last_name: 'Doe', role: 'Admin' },
+        user: { id: 1, email: 'john@example.com', firstName: 'John', lastName: 'Doe', role: 'Admin' },
         menus: [],
       },
       global: {
@@ -45,7 +45,7 @@ describe('Header Component', () => {
   it('displays user information', () => {
     const wrapper = mount(Header, {
       props: {
-        user: { id: 1, email: 'john@example.com', first_name: 'John', last_name: 'Doe', role: 'Admin' },
+        user: { id: 1, email: 'john@example.com', firstName: 'John', lastName: 'Doe', role: 'Admin' },
         menus: [],
       },
       global: {

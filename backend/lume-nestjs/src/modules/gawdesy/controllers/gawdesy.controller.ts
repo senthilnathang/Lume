@@ -5,7 +5,7 @@ import { GawdesyService } from '../services/gawdesy.service';
 import { Permissions } from '@core/decorators';
 import { CreateGawdesySettingDto, UpdateGawdesySettingDto } from '../dtos';
 
-@Controller('api/gawdesy')
+@Controller(['gawdesy', 'api/gawdesy'])
 export class GawdesyController {
   constructor(private service: GawdesyService) {}
 

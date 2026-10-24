@@ -17,7 +17,7 @@ import { CreateActivityDto, UpdateActivityDto, QueryActivitiesDto } from '../dto
 import { Public, Permissions, CurrentUser } from '@core/decorators';
 import { ParseIntPipe } from '@nestjs/common';
 
-@Controller('api/activities')
+@Controller(['activities', 'api/activities'])
 export class ActivitiesController {
   constructor(private activitiesService: ActivitiesService) {}
 

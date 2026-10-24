@@ -10,6 +10,11 @@ import { JwtAuthGuard } from '../../../src/modules/auth/guards/jwt.guard';
 import { PolicyGuard, Policy, RequireRoles, Authenticated } from '../../../src/core/permission/policy.guard';
 import { PolicyEvaluatorService } from '../../../src/core/permission/policy-evaluator.service';
 import { AdminModulesController } from '../../../src/modules/base/controllers/admin-modules.controller';
+import { AdminGroupsController } from '../../../src/modules/base/controllers/admin-groups.controller';
+import { AdminSettingsController } from '../../../src/modules/base/controllers/admin-settings.controller';
+import { AdminSettingsService } from '../../../src/modules/base/services/admin-settings.service';
+import { PrismaService } from '../../../src/core/services/prisma.service';
+import { ValidatePipe } from '../../../src/core/pipes/validation.pipe';
 import { AdminWorkflowsController } from '../../../src/modules/base/controllers/admin-workflows.controller';
 import { AdminPluginsController } from '../../../src/modules/base/controllers/admin-plugins.controller';
 import { BaseRbacController } from '../../../src/modules/base_rbac/controllers/base-rbac.controller';
@@ -32,28 +37,34 @@ describe('Admin authorization over HTTP', () => {
   beforeAll(async () => {
     const previous = process.env.JWT_SECRET;
     let strategy: JwtStrategy;
-    try { process.env.JWT_SECRET = secret; strategy = new JwtStrategy(); }
+    try { process.env.JWT_SECRET = secret; strategy = new JwtStrategy({ user: {
+      findUnique: async ({ where }: any) => ({ id: where.id, isActive: true,
+        role_id: where.id, role: { name: ['admin', 'super_admin', 'member'][where.id - 1], isActive: true } }),
+    } } as any); }
     finally {
       if (previous === undefined) delete process.env.JWT_SECRET;
       else process.env.JWT_SECRET = previous;
     }
     const module = await Test.createTestingModule({
       imports: [PassportModule],
-      controllers: [AdminModulesController, AccessController],
+      controllers: [AdminModulesController, AdminGroupsController, AdminSettingsController, AccessController],
       providers: [
+        { provide: AdminSettingsService, useValue: { menus: async () => [], sequences: async () => [], saveMenu: async (data: any) => data } },
+        { provide: PrismaService, useValue: { group: { findMany: async () => [], create: async ({ data }: any) => ({ id: 1, ...data }) } } },
         { provide: JwtStrategy, useValue: strategy },
         { provide: PolicyEvaluatorService, useValue: {} },
-        { provide: ModuleLoaderService, useValue: { installModule } },
+        { provide: ModuleLoaderService, useValue: { installModule, isLoaded: () => false } },
         { provide: MetadataRegistryService, useValue: {
           listModules: () => [definition], getModule: (name: string) => name === 'test' ? definition : undefined,
         } },
       ],
     }).compile();
     app = module.createNestApplication();
+    app.useGlobalPipes(new ValidatePipe());
     await app.init();
   });
   afterAll(async () => { await app?.close(); });
-  const token = (role: string, expiresIn = 60) => jwt.sign({ sub: 7, role_name: role }, { expiresIn });
+  const token = (role: string, expiresIn = 60) => jwt.sign({ sub: ['admin', 'super_admin', 'member'].indexOf(role) + 1, role_name: role }, { expiresIn });
   it('rejects absent, invalid, and expired credentials', async () => {
     await request(app.getHttpServer()).get('/admin/modules').expect(401);
     for (const bearer of ['invalid', token('admin', -1)]) {
@@ -75,6 +86,21 @@ describe('Admin authorization over HTTP', () => {
     const response = await request(app.getHttpServer()).post('/admin/modules/missing/install').auth(token('admin'), { type: 'bearer' });
     expect(response.body.success).toBe(false);
     expect(installModule).toHaveBeenCalledTimes(1);
+  });
+  it('protects group management and validates administrator input', async () => {
+    await request(app.getHttpServer()).get('/admin/groups').expect(401);
+    await request(app.getHttpServer()).post('/admin/groups').auth(token('member'), { type: 'bearer' }).send({ name: 'Denied' }).expect(403);
+    await request(app.getHttpServer()).get('/admin/groups').auth(token('admin'), { type: 'bearer' }).expect(200);
+    await request(app.getHttpServer()).post('/admin/groups').auth(token('admin'), { type: 'bearer' }).send({ name: '  ' }).expect(400);
+    const response = await request(app.getHttpServer()).post('/admin/groups').auth(token('admin'), { type: 'bearer' }).send({ name: ' Team ', isActive: false }).expect(201);
+    expect(response.body.data.name).toBe('Team');
+    expect(response.body.data.isActive).toBe(false);
+  });
+  it('protects settings APIs and rejects invalid menu paths', async () => {
+    await request(app.getHttpServer()).get('/admin/settings/menus').expect(401);
+    await request(app.getHttpServer()).get('/admin/settings/sequences').auth(token('member'), { type: 'bearer' }).expect(403);
+    await request(app.getHttpServer()).get('/admin/settings/menus').auth(token('admin'), { type: 'bearer' }).expect(200);
+    await request(app.getHttpServer()).post('/admin/settings/menus').auth(token('admin'), { type: 'bearer' }).send({ name: 'Bad', path: 'javascript:alert(1)' }).expect(400);
   });
 });
 

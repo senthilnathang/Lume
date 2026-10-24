@@ -104,7 +104,7 @@ const stats = reactive({
 
 const loadStats = async () => {
   try {
-    const response = await get<{ stats: Record<string, number> }>('/dashboard/stats');
+    const response = await get<{ stats: Record<string, number> }>('/account/dashboard');
     if (response && response.stats) {
       stats.users = response.stats.users || 0;
       stats.donations = response.stats.donations || 0;

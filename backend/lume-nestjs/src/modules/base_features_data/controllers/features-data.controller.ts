@@ -26,7 +26,7 @@ import {
   ExportDownloadDto,
 } from '../dtos';
 
-@Controller('api/features-data')
+@Controller(['features-data', 'base_features_data', 'api/features-data'])
 export class FeaturesDataController {
   constructor(private featuresDataService: FeaturesDataService) {}
 

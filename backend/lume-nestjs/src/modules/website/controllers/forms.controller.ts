@@ -15,7 +15,7 @@ import { Permissions } from '@core/decorators';
 import { FormService, SubmissionService } from '../services/form.service';
 import { CreateFormDto, UpdateFormDto } from '../dtos';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class FormsController {
   constructor(
     private formService: FormService,

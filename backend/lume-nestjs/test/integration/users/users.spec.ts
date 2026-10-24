@@ -103,6 +103,8 @@ describe('UsersModule', () => {
         where: {},
         include: { role: true },
         take: 10,
+        skip: 0,
+        orderBy: { id: 'asc' },
       });
     });
   });

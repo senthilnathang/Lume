@@ -45,8 +45,10 @@ import { GraphQLContextFactory } from '../../../src/graphql/graphql.context';
 import { createGraphQLConfig } from '../../../src/graphql/graphql.config';
 import { ComplexityPlugin } from '../../../src/graphql/plugins/complexity.plugin';
 import { LoggingPlugin } from '../../../src/graphql/plugins/logging.plugin';
+import { SequenceResolver } from '../../../src/graphql/grids/meta-grid/resolvers/sequence.resolver';
+import { AdminSettingsService } from '../../../src/modules/base/services/admin-settings.service';
 
-export async function createHarness(options: { rollups?: boolean; approvals?: boolean } = {}) {
+export async function createHarness(options: { rollups?: boolean; approvals?: boolean; sequences?: boolean } = {}) {
   config({ quiet: true });
   const url = new URL(process.env.GRAPHQL_TEST_DATABASE_URL || process.env.DATABASE_URL!);
   const database = `lume_gql_test_${randomUUID().replaceAll('-', '')}`;
@@ -87,6 +89,7 @@ export async function createHarness(options: { rollups?: boolean; approvals?: bo
     const module = await Test.createTestingModule({
       imports: [...(options.rollups || options.approvals ? [EventEmitterModule.forRoot()] : []), PassportModule, GraphQLModule.forRoot({ ...createGraphQLConfig(context, 'test', [new ComplexityPlugin(), new LoggingPlugin()]), driver: ApolloDriver })],
       providers: [
+        ...(options.sequences ? [SequenceResolver, AdminSettingsService] : []),
         RelationshipService, ApprovalChainEngineService, AdvancedFeaturesService,
         EntityResolver, EntityRecordResolver, RoleResolver, PermissionResolver, FieldPermissionResolver, FlowSubscriptionResolver, RecordRuleResolver, RecordRuleManagementService,
         EntityService, RecordService, FormulaService, FieldPermissionService, RoleManagementService, RbacService, JwtStrategy,

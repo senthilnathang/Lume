@@ -26,7 +26,7 @@ import {
   UpdateDashboardWidgetDto,
 } from '../dtos';
 
-@Controller('api/customization')
+@Controller(['customization', 'base_customization', 'api/customization'])
 @UseGuards(JwtAuthGuard, RbacGuard)
 export class CustomizationController {
   constructor(private customizationService: CustomizationService) {}

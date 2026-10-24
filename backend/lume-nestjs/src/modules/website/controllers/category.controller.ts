@@ -15,7 +15,7 @@ import { Public, Permissions } from '@core/decorators';
 import { CategoryService } from '../services/category.service';
 import { CreateCategoryDto, UpdateCategoryDto, ReorderCategoriesDto } from '../dtos';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class CategoryController {
   constructor(private categoryService: CategoryService) {}
 

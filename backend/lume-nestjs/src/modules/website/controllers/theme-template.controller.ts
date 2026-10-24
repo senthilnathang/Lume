@@ -15,7 +15,7 @@ import { Permissions } from '@core/decorators';
 import { ThemeTemplateService } from '../services/theme-template.service';
 import { CreateThemeTemplateDto, UpdateThemeTemplateDto } from '../dtos';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class ThemeTemplateController {
   constructor(private themeTemplateService: ThemeTemplateService) {}
 

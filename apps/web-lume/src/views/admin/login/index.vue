@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { Alert, Form, Input, Button, Checkbox, Card, Typography } from 'ant-design-vue';
 import { UserOutlined, LockOutlined, SafetyCertificateOutlined } from '@ant-design/icons-vue';
 import { useAuthStore } from '@/store/auth';
+import type { Rule } from 'ant-design-vue/es/form';
 
 const { Item: FormItem } = Form;
 const { Title } = Typography;
@@ -20,7 +21,7 @@ const formState = reactive({
   remember: true
 });
 
-const rules: Record<string, { required?: boolean; message?: string; trigger?: string; type?: string }[]> = {
+const rules: Record<string, Rule[]> = {
   email: [
     { required: true, message: 'Please enter your email', trigger: 'blur' },
     { type: 'email', message: 'Please enter a valid email', trigger: 'blur' }

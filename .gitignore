@@ -101,3 +101,7 @@ lume-deploy.zip
 # Claude Code / IDE
 .claude/
 .superpowers/
+
+# Local browser evidence can contain fixture/session details; keep it off Git.
+.playwright-cli/
+output/playwright/

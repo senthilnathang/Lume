@@ -8,7 +8,7 @@ export interface AskRequest {
   question: string;
 }
 
-@Controller('api/ai')
+@Controller(['ai', 'api/ai'])
 export class AIController {
   constructor(private askQueryService: AskQueryService) {}
 

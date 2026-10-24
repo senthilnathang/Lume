@@ -13,7 +13,7 @@ import {
 import { SubmissionService } from '../services/submission.service';
 import { PolicyGuard, Authenticated } from '@core/permission/policy.guard';
 
-@Controller('api/developer/plugins')
+@Controller(['developer/plugins', 'api/developer/plugins'])
 @UseGuards(JwtAuthGuard, PolicyGuard)
 export class DeveloperController {
   constructor(private readonly submissionService: SubmissionService) {}

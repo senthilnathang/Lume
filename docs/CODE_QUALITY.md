@@ -1,3 +1,9 @@
+> **Migration reference notice — 2026-10-24.** This document contains historical
+> implementation details or plans. Use [current architecture](ARCHITECTURE.md),
+> [development instructions](DEVELOPMENT.md), and the [migration tracker](nestjs-migration-tasks.txt)
+> for current paths, commands and completion status. NestJS parity and final deployment
+> remain incomplete; old Express setup and completion claims are not current guidance.
+
 # Code Quality — Baseline & Cleanup Roadmap
 
 **Captured:** 2026-05-19 (baseline) → **2026-05-21 (debt paid off)**  

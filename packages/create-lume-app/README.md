@@ -1,3 +1,10 @@
+> **Historical/reference document — status updated 2026-10-24.**
+> Earlier architecture, commands, estimates and completion claims below are not
+> current migration certification. Use the [active task list](../../docs/nestjs-migration-tasks.txt) and
+> [developer guide](../../docs/DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
+> remaining feature parity and final deployment are still pending. Shared UI is
+> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+
 # create-lume-app
 
 Scaffold a new Lume entity module: manifest, Drizzle schema, service, authenticated

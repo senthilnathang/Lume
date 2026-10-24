@@ -6,7 +6,7 @@ import { AdvancedFeaturesService } from '../services/advanced-features.service';
 import { Permissions } from '@core/decorators';
 import { CreateWebhookDto, UpdateWebhookDto, CreateNotificationDto, CreateTagDto, CreateCommentDto, CreateAttachmentDto } from '../dtos';
 
-@Controller('api/advanced-features')
+@Controller(['advanced-features', 'advanced_features', 'api/advanced-features'])
 export class AdvancedFeaturesController {
   constructor(private service: AdvancedFeaturesService) {}
 

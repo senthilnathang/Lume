@@ -20,12 +20,18 @@ describe('GraphQL batching, complexity, and subscriptions (real MySQL)', () => {
     expect(h.queries.filter(sql => sql.includes('FROM') && sql.includes('`entity_fields`'))).toHaveLength(1);
   });
   it('batches role resolution for multiple field permissions', async () => {
+    // Authentication now checks the user's current role in the database.
+    // Measure that fixed cost separately from the nested role loader.
+    h.queries.length = 0;
+    const baseline = await h.query('{ fieldPermissions(roleId:2,pagination:{limit:10}) { id } }');
+    expect(baseline.body.errors).toBeUndefined();
+    const authRoleQueries = h.queries.filter(sql => sql.includes('FROM') && sql.includes('`roles`')).length;
     h.queries.length = 0;
     const response = await h.query('{ fieldPermissions(roleId:2,pagination:{limit:10}) { id role { id name } } }');
     expect(response.body.errors).toBeUndefined();
     expect(response.body.data.fieldPermissions).toHaveLength(3);
     expect(response.body.data.fieldPermissions.every((permission: any) => permission.role.name === 'member')).toBe(true);
-    expect(h.queries.filter(sql => sql.includes('FROM') && sql.includes('`roles`'))).toHaveLength(1);
+    expect(h.queries.filter(sql => sql.includes('FROM') && sql.includes('`roles`'))).toHaveLength(authRoleQueries + 1);
   });
   it('executes unrelated entity and role queries separately', async () => {
     h.queries.length = 0;

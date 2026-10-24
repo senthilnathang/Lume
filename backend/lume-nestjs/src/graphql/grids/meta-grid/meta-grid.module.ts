@@ -3,10 +3,11 @@ import { SharedModule } from '@core/modules/shared.module';
 import { ModuleResolver } from './resolvers/module.resolver.js';
 import { SystemSettingResolver } from './resolvers/system-setting.resolver.js';
 import { SequenceResolver } from './resolvers/sequence.resolver.js';
+import { AdminSettingsService } from '../../../modules/base/services/admin-settings.service';
 
 @Module({
   imports: [SharedModule],
-  providers: [ModuleResolver, SystemSettingResolver, SequenceResolver],
+  providers: [ModuleResolver, SystemSettingResolver, SequenceResolver, AdminSettingsService],
   exports: [ModuleResolver, SystemSettingResolver, SequenceResolver],
 })
 export class MetaGridModule {}

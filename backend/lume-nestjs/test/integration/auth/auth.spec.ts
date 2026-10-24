@@ -21,6 +21,11 @@ describe('AuthModule', () => {
         {
           provide: PrismaService,
           useValue: {
+            sessions: {
+              create: jest.fn(async () => ({})),
+              findUnique: jest.fn(async () => ({ user_id: 1, status: 'active', expires_at: new Date(Date.now() + 60000) })),
+              updateMany: jest.fn(async () => ({ count: 1 })),
+            },
             user: {
               findUnique: jest.fn(),
             },
@@ -119,7 +124,7 @@ describe('AuthModule', () => {
   describe('refresh', () => {
     it('should return new access token on valid refresh token', async () => {
       const refreshToken = 'valid-refresh-token';
-      const payload = { sub: 1, email: 'test@lume.dev' };
+      const payload = { sub: 1, email: 'test@lume.dev', sid: 'test-session', token_use: 'refresh' };
       const mockUser = {
         id: 1,
         email: 'test@lume.dev',
@@ -203,9 +208,10 @@ describe('AuthModule', () => {
 
   describe('logout', () => {
     it('should return logout message', async () => {
-      const result = await controller.logout({});
+      const result = await controller.logout({ user: { id: 1, sid: 'test-session' } });
 
-      expect(result.message).toBe('Logout successful');
+      expect(result.data.loggedOut).toBe(true);
+      expect(prismaService.sessions.updateMany).toHaveBeenCalled();
     });
   });
 
@@ -233,7 +239,7 @@ describe('AuthModule', () => {
 
     it('refresh endpoint should call service.refresh', async () => {
       const refreshToken = 'valid-token';
-      const payload = { sub: 1, email: 'test@lume.dev' };
+      const payload = { sub: 1, email: 'test@lume.dev', sid: 'test-session', token_use: 'refresh' };
       const mockUser = {
         id: 1,
         email: 'test@lume.dev',

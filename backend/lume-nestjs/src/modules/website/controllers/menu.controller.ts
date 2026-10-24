@@ -20,7 +20,7 @@ import {
   ReorderMenuItemsDto,
 } from '../dtos';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class MenuController {
   constructor(private menuService: MenuService) {}
 

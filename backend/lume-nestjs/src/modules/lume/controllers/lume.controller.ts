@@ -4,7 +4,7 @@ import { RbacGuard } from '@core/guards/rbac.guard';
 import { LumeService } from '../services/lume.service';
 import { Public, Permissions } from '@core/decorators';
 
-@Controller('api/lume')
+@Controller(['lume', 'api/lume'])
 export class LumeController {
   constructor(private service: LumeService) {}
 

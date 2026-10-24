@@ -2,17 +2,19 @@ import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const widgetsDir = resolve(__dirname, '../../../backend/src/modules/editor/static/widgets')
+const widgetsDir = resolve(__dirname, '../../packages/@lume/module-ui/src/modules/editor/static/widgets')
 
 export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: true,
+  typescript: { tsConfig: { compilerOptions: { paths: {
+    'vue': [resolve(__dirname, 'node_modules/vue')],
+    'lucide-vue-next': [resolve(__dirname, 'node_modules/lucide-vue-next')],
+  } } } },
   plugins: ['~/plugins/analytics.client.ts'],
   nitro: {
-    routeRules: {
-      '/robots.txt': { proxy: `${process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/website/public/robots.txt` },
-      '/sitemap.xml': { proxy: `${process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/website/public/sitemap.xml` },
-    },
+    // Avoid circular Vue/server-renderer links in the Nitro 2 dependency tracer.
+    experimental: { legacyExternals: true },
   },
   css: [
     '~/assets/css/main.css',
@@ -22,16 +24,17 @@ export default defineNuxtConfig({
   ],
   alias: {
     '@widgets': widgetsDir,
+    'lottie-web': resolve(__dirname, 'node_modules/lottie-web'),
   },
   postcss: {
     plugins: {
-      tailwindcss: {},
+      '@tailwindcss/postcss': {},
       autoprefixer: {},
     },
   },
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api/website/public',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api/v2/website/public',
       siteName: process.env.NUXT_PUBLIC_SITE_NAME || 'My Website',
       siteTitle: process.env.NUXT_PUBLIC_SITE_TITLE || process.env.NUXT_PUBLIC_SITE_NAME || 'My Website',
       siteDescription: process.env.NUXT_PUBLIC_SITE_DESCRIPTION || 'Welcome to our website',
@@ -55,7 +58,6 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-        { rel: 'stylesheet', href: `${process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/website/public/styles.css` },
       ],
     },
   },

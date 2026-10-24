@@ -21,7 +21,7 @@ import { CategoryService } from '../services/category.service';
 import { TagService } from '../services/tag.service';
 import { CreatePageDto, UpdatePageDto, VerifyPagePasswordDto, SetPageCategoriesDto, SetPageTagsDto } from '../dtos';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class PageController {
   constructor(
     private pageService: PageService,

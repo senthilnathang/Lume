@@ -118,7 +118,7 @@ export const usePermissionStore = defineStore('permission', () => {
     loading.value = true;
     try {
       // API returns { success: true, data: [...] }
-      const response = await get<string[]>('/permissions');
+      const response = await get<string[]>('/account/permissions');
       if (response && Array.isArray(response)) {
         // Grant all permissions to admin users
         if (isAdmin) {
@@ -155,7 +155,7 @@ export const usePermissionStore = defineStore('permission', () => {
     
     loading.value = true;
     try {
-      const response = await get<BackendMenuItem[]>('/menus');
+      const response = await get<BackendMenuItem[]>('/account/menus');
       if (response && Array.isArray(response)) {
         // Deduplicate menus - keep the one with children if duplicates exist
         const menuMap = new Map<string, BackendMenuItem>();

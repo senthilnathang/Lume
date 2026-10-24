@@ -15,7 +15,7 @@ import { Permissions } from '@core/decorators';
 import { RedirectService } from '../services/redirect.service';
 import { CreateRedirectDto, UpdateRedirectDto } from '../dtos';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class RedirectController {
   constructor(private redirectService: RedirectService) {}
 

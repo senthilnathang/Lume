@@ -26,7 +26,7 @@ import {
 } from '../dtos';
 import { Public, Permissions } from '@core/decorators';
 
-@Controller('api/editor')
+@Controller(['editor', 'api/editor'])
 export class EditorController {
   constructor(private editorService: EditorService) {}
 

@@ -4,13 +4,14 @@
  */
 
 import { ref, computed } from 'vue';
+import { apiUrl } from '@/api/url';
 
 // API Base URL
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 
 // Auth token storage key
-const TOKEN_KEY = 'lume_token';
-const REFRESH_TOKEN_KEY = 'lume_refresh_token';
+const TOKEN_KEY = 'token';
+const REFRESH_TOKEN_KEY = 'refreshToken';
 
 // Reactive state
 const token = ref(localStorage.getItem(TOKEN_KEY) || null);
@@ -41,13 +42,13 @@ const clearAuth = () => {
 /**
  * Get auth headers
  */
-const getAuthHeaders = (): HeadersInit => {
+const getAuthHeaders = (): Record<string, string> => {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
   
-  if (token.value) {
-    headers['Authorization'] = `Bearer ${token.value}`;
+  if (localStorage.getItem(TOKEN_KEY)) {
+    headers['Authorization'] = `Bearer ${localStorage.getItem(TOKEN_KEY)}`;
   }
   
   return headers;
@@ -58,9 +59,9 @@ const getAuthHeaders = (): HeadersInit => {
  */
 const apiRequest = async <T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {}, retried = false
 ): Promise<T> => {
-  const url = `${API_BASE}${endpoint}`;
+  const url = apiUrl(endpoint);
   
   const response = await fetch(url, {
     ...options,
@@ -73,11 +74,11 @@ const apiRequest = async <T>(
   if (!response.ok) {
     if (response.status === 401) {
       // Try to refresh token
-      if (refreshToken.value) {
+      if (refreshToken.value && !retried) {
         const refreshed = await refreshAuthToken();
         if (refreshed) {
           // Retry request with new token
-          return apiRequest<T>(endpoint, options);
+          return apiRequest<T>(endpoint, options, true);
         }
       }
       // Clear auth on failure
@@ -98,16 +99,16 @@ const refreshAuthToken = async (): Promise<boolean> => {
   if (!refreshToken.value) return false;
   
   try {
-    const response = await fetch(`${API_BASE}/api/auth/refresh-token`, {
+    const response = await fetch(apiUrl('/auth/refresh'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken.value }),
+      body: JSON.stringify({ refreshToken: refreshToken.value }),
     });
     
     if (response.ok) {
       const data = await response.json();
       if (data.success && data.data) {
-        setAuth(data.data.token, data.data.refreshToken);
+        setAuth(data.data.accessToken, data.data.refreshToken || refreshToken.value);
         return true;
       }
     }
@@ -150,8 +151,8 @@ export const api = {
   
   // Auth endpoints
   async login(email: string, password: string) {
-    return apiRequest<{ success: boolean; data: { user: any; token: string; refreshToken: string } }>(
-      '/users/login',
+    return apiRequest<{ success: boolean; data: { user: any; accessToken: string; refreshToken: string } }>(
+      '/auth/login',
       {
         method: 'POST',
         body: JSON.stringify({ email, password }),
@@ -167,7 +168,7 @@ export const api = {
   },
   
   async logout() {
-    const result = await apiRequest('/users/logout', { method: 'POST' });
+    const result = await apiRequest('/auth/logout', { method: 'POST' });
     clearAuth();
     return result;
   },
@@ -290,11 +291,11 @@ export const api = {
   
   // Modules
   async getModules() {
-    return apiRequest('/modules');
+    return apiRequest('/admin/modules');
   },
   
   async getModule(name: string) {
-    return apiRequest(`/modules/${name}`);
+    return apiRequest(`/admin/modules/${encodeURIComponent(name)}`);
   },
   
   async getMenus() {

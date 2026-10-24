@@ -1,7 +1,7 @@
 // Proxy /robots.txt → backend CMS endpoint
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
-  const backendUrl = process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api/website/public'
+  const backendUrl = String(config.public.apiBase).replace(/\/$/, '')
 
   try {
     const text = await $fetch<string>(`${backendUrl}/robots.txt`, {

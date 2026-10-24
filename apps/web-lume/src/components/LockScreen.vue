@@ -26,7 +26,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import { post } from '@/api/request';
 import { useAuthStore } from '@/store/auth';
 import { useLockScreen } from '@/composables/useLockScreen';
@@ -39,7 +39,8 @@ const error = ref('');
 const checking = ref(false);
 
 const now = ref(new Date());
-setInterval(() => { now.value = new Date(); }, 10000);
+const clockTimer = setInterval(() => { now.value = new Date(); }, 10000);
+onUnmounted(() => clearInterval(clockTimer));
 
 const hour = computed(() => String(now.value.getHours()).padStart(2, '0'));
 const minute = computed(() => String(now.value.getMinutes()).padStart(2, '0'));
@@ -55,7 +56,7 @@ async function submit() {
   checking.value = true;
   error.value = '';
   try {
-    await post<{ token: string }>('/users/login', { email: email.value, password: password.value });
+    await post('/auth/confirm-password', { password: password.value });
     password.value = '';
     unlock();
   } catch {

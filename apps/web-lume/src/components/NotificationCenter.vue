@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Bell } from 'lucide-vue-next';
-import { get, put } from '@/api/request';
-import { useWebSocket } from '@/composables/useWebSocket';
+import { get, post } from '@/api/request';
 
 interface Notification {
   id: number | string;
@@ -18,7 +17,7 @@ const unreadCount = ref(0);
 const loading = ref(false);
 const popoverVisible = ref(false);
 
-useWebSocket();
+let refreshTimer: ReturnType<typeof setInterval> | undefined;
 
 // Tag color mapping by notification type
 const typeColors: Record<string, string> = {
@@ -53,7 +52,7 @@ function timeAgo(dateStr: string): string {
 async function fetchNotifications() {
   loading.value = true;
   try {
-    const data = await get<Notification[]>('/advanced_features/notifications', { limit: 20 });
+    const data = await get<Notification[]>('/account/notifications', { limit: 20 });
     notifications.value = data || [];
   } catch (err) {
     console.error('Failed to fetch notifications:', err);
@@ -64,7 +63,7 @@ async function fetchNotifications() {
 
 async function fetchUnreadCount() {
   try {
-    const data = await get<{ count: number }>('/advanced_features/notifications/unread-count');
+    const data = await get<{ count: number }>('/account/notifications/unread-count');
     unreadCount.value = data?.count ?? 0;
   } catch (err) {
     console.error('Failed to fetch unread count:', err);
@@ -74,7 +73,7 @@ async function fetchUnreadCount() {
 async function markAsRead(notification: Notification) {
   if (notification.isRead) return;
   try {
-    await put(`/advanced_features/notifications/${notification.id}/read`);
+    await post(`/account/notifications/${notification.id}/read`);
     notification.isRead = true;
     unreadCount.value = Math.max(0, unreadCount.value - 1);
   } catch (err) {
@@ -84,7 +83,7 @@ async function markAsRead(notification: Notification) {
 
 async function markAllAsRead() {
   try {
-    await put('/advanced_features/notifications/read-all');
+    await post('/account/notifications/read-all');
     notifications.value.forEach((n) => (n.isRead = true));
     unreadCount.value = 0;
   } catch (err) {
@@ -124,10 +123,17 @@ function handleWsNotification(event: Event) {
 
 onMounted(() => {
   fetchUnreadCount();
+  refreshTimer = setInterval(() => {
+    if (!document.hidden) {
+      void fetchUnreadCount();
+      if (popoverVisible.value) void fetchNotifications();
+    }
+  }, 30000);
   window.addEventListener('ws:notification', handleWsNotification);
 });
 
 onUnmounted(() => {
+  clearInterval(refreshTimer);
   window.removeEventListener('ws:notification', handleWsNotification);
 });
 

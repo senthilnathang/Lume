@@ -4,7 +4,7 @@ import { RbacGuard } from '@core/guards/rbac.guard';
 import { Permissions } from '@core/decorators';
 import { SettingsService } from '../services/settings.service';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class SettingsController {
   constructor(private settingsService: SettingsService) {}
 

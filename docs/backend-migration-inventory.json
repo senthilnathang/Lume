@@ -1,0 +1,5214 @@
+{
+  "scope": "Static inventory, not proof of runtime reachability or endpoint equivalence",
+  "legacyRouteDeclarations": [
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 55,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 58,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 61,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 64,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 67,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 70,
+      "method": "POST",
+      "localPath": "/bulk",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 73,
+      "method": "POST",
+      "localPath": "/search",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 76,
+      "method": "GET",
+      "localPath": "/views",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 94,
+      "method": "GET",
+      "localPath": "/views/:viewId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 100,
+      "method": "GET",
+      "localPath": "/fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 118,
+      "method": "GET",
+      "localPath": "/:id/:relation",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 124,
+      "method": "POST",
+      "localPath": "/:id/:relation",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/crud.routes.js",
+      "line": 146,
+      "method": "USE",
+      "localPath": "${basePath}/${entity.slug}",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/entity.routes.js",
+      "line": 25,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/entity.routes.js",
+      "line": 42,
+      "method": "GET",
+      "localPath": "/:slug",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/entity.routes.js",
+      "line": 66,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/entity.routes.js",
+      "line": 96,
+      "method": "GET",
+      "localPath": "/:slug/fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/entity.routes.js",
+      "line": 126,
+      "method": "GET",
+      "localPath": "/:slug/views",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/entity.routes.js",
+      "line": 152,
+      "method": "GET",
+      "localPath": "/:slug/permissions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/entity.routes.js",
+      "line": 178,
+      "method": "PUT",
+      "localPath": "/:slug",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/entity.routes.js",
+      "line": 196,
+      "method": "DELETE",
+      "localPath": "/:slug",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/view.routes.js",
+      "line": 22,
+      "method": "GET",
+      "localPath": "/:entity/views",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/view.routes.js",
+      "line": 50,
+      "method": "GET",
+      "localPath": "/:entity/views/:viewId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/view.routes.js",
+      "line": 79,
+      "method": "POST",
+      "localPath": "/:entity/views/:viewId/data",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/view.routes.js",
+      "line": 141,
+      "method": "POST",
+      "localPath": "/:entity/views/:viewId/export",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/view.routes.js",
+      "line": 198,
+      "method": "PUT",
+      "localPath": "/:entity/views/:viewId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/api/view.routes.js",
+      "line": 221,
+      "method": "DELETE",
+      "localPath": "/:entity/views/:viewId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/middleware/entityAccess.js",
+      "line": 12,
+      "method": "GET",
+      "localPath": "/api/entities",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/api/index.js",
+      "line": 12,
+      "method": "USE",
+      "localPath": "/users",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/api/index.js",
+      "line": 15,
+      "method": "USE",
+      "localPath": "/auth",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/api/index.js",
+      "line": 18,
+      "method": "GET",
+      "localPath": "/info",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/gawdesy/routes.js",
+      "line": 12,
+      "method": "GET",
+      "localPath": "/info",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/gawdesy/routes.js",
+      "line": 29,
+      "method": "GET",
+      "localPath": "/statistics",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/gawdesy/routes.js",
+      "line": 70,
+      "method": "GET",
+      "localPath": "/modules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/gawdesy/routes.js",
+      "line": 83,
+      "method": "GET",
+      "localPath": "/menus",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/gawdesy/routes.js",
+      "line": 93,
+      "method": "GET",
+      "localPath": "/permissions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/gawdesy/routes.js",
+      "line": 100,
+      "method": "GET",
+      "localPath": "/settings",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/gawdesy/routes.js",
+      "line": 107,
+      "method": "GET",
+      "localPath": "/health",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/lume/routes.js",
+      "line": 9,
+      "method": "GET",
+      "localPath": "/info",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/lume/routes.js",
+      "line": 27,
+      "method": "GET",
+      "localPath": "/health",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/lume/routes.js",
+      "line": 38,
+      "method": "GET",
+      "localPath": "/statistics",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/lume/routes.js",
+      "line": 79,
+      "method": "GET",
+      "localPath": "/modules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/lume/routes.js",
+      "line": 92,
+      "method": "GET",
+      "localPath": "/menus",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/lume/routes.js",
+      "line": 102,
+      "method": "GET",
+      "localPath": "/permissions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/modules/lume/routes.js",
+      "line": 109,
+      "method": "GET",
+      "localPath": "/settings",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/router/crud-router.js",
+      "line": 30,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/router/crud-router.js",
+      "line": 67,
+      "method": "GET",
+      "localPath": "/fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/router/crud-router.js",
+      "line": 77,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/router/crud-router.js",
+      "line": 90,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/router/crud-router.js",
+      "line": 101,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/router/crud-router.js",
+      "line": 115,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/router/crud-router.js",
+      "line": 129,
+      "method": "POST",
+      "localPath": "/bulk",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/core/router/crud-router.js",
+      "line": 143,
+      "method": "DELETE",
+      "localPath": "/bulk",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 324,
+      "method": "GET",
+      "localPath": "/health",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 340,
+      "method": "GET",
+      "localPath": "/api/search",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 361,
+      "method": "GET",
+      "localPath": "/metrics",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 431,
+      "method": "GET",
+      "localPath": "/api/openapi.json",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 451,
+      "method": "USE",
+      "localPath": "/api/docs",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 463,
+      "method": "GET",
+      "localPath": "/api/public/config",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 493,
+      "method": "USE",
+      "localPath": "/modules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 533,
+      "method": "GET",
+      "localPath": "/api/modules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 591,
+      "method": "GET",
+      "localPath": "/api/modules/:name",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 633,
+      "method": "POST",
+      "localPath": "/api/modules/:name/install",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 686,
+      "method": "POST",
+      "localPath": "/api/modules/:name/uninstall",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 735,
+      "method": "POST",
+      "localPath": "/api/modules/:name/upgrade",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 753,
+      "method": "GET",
+      "localPath": "/api/menus",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 829,
+      "method": "GET",
+      "localPath": "/api/modules/installed/menus",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 874,
+      "method": "GET",
+      "localPath": "/api/permissions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 909,
+      "method": "GET",
+      "localPath": "/api/dashboard/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 972,
+      "method": "USE",
+      "localPath": "/api/users",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 973,
+      "method": "USE",
+      "localPath": "/api/auth",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 996,
+      "method": "USE",
+      "localPath": "/api/settings",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 997,
+      "method": "USE",
+      "localPath": "/api/audit",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 1006,
+      "method": "USE",
+      "localPath": "/api/lume",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 1007,
+      "method": "USE",
+      "localPath": "/api/rbac",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 1008,
+      "method": "USE",
+      "localPath": "/api/search",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/index.js",
+      "line": 1140,
+      "method": "USE",
+      "localPath": "/admin/queues",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 26,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 44,
+      "method": "GET",
+      "localPath": "/upcoming",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 54,
+      "method": "GET",
+      "localPath": "/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 64,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 74,
+      "method": "GET",
+      "localPath": "/slug/:slug",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 84,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 94,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 104,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 114,
+      "method": "POST",
+      "localPath": "/:id/publish",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/activities/activity.routes.js",
+      "line": 124,
+      "method": "POST",
+      "localPath": "/:id/cancel",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/__init__.js",
+      "line": 67,
+      "method": "USE",
+      "localPath": "/api/advanced_features",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 15,
+      "method": "GET",
+      "localPath": "/health",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 21,
+      "method": "GET",
+      "localPath": "/webhooks",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 30,
+      "method": "GET",
+      "localPath": "/webhooks/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 40,
+      "method": "POST",
+      "localPath": "/webhooks",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 53,
+      "method": "PUT",
+      "localPath": "/webhooks/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 63,
+      "method": "DELETE",
+      "localPath": "/webhooks/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 72,
+      "method": "GET",
+      "localPath": "/webhooks/:id/logs",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 81,
+      "method": "POST",
+      "localPath": "/webhooks/:id/test",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 98,
+      "method": "GET",
+      "localPath": "/notifications",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 109,
+      "method": "GET",
+      "localPath": "/notifications/unread-count",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 120,
+      "method": "POST",
+      "localPath": "/notifications/:id/read",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 132,
+      "method": "POST",
+      "localPath": "/notifications/read-all",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 143,
+      "method": "POST",
+      "localPath": "/notifications/:id/dismiss",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 157,
+      "method": "GET",
+      "localPath": "/notification-channels",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 166,
+      "method": "GET",
+      "localPath": "/notification-channels/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 176,
+      "method": "POST",
+      "localPath": "/notification-channels",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 189,
+      "method": "PUT",
+      "localPath": "/notification-channels/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 199,
+      "method": "DELETE",
+      "localPath": "/notification-channels/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 210,
+      "method": "GET",
+      "localPath": "/tags",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 219,
+      "method": "GET",
+      "localPath": "/tags/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 229,
+      "method": "POST",
+      "localPath": "/tags",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 242,
+      "method": "PUT",
+      "localPath": "/tags/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 252,
+      "method": "DELETE",
+      "localPath": "/tags/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 263,
+      "method": "GET",
+      "localPath": "/tags/record/:type/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 272,
+      "method": "POST",
+      "localPath": "/tags/record/:type/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 283,
+      "method": "DELETE",
+      "localPath": "/tags/record/:type/:id/:tagId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 294,
+      "method": "GET",
+      "localPath": "/comments/:type/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 303,
+      "method": "POST",
+      "localPath": "/comments/:type/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 323,
+      "method": "PUT",
+      "localPath": "/comments/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 335,
+      "method": "DELETE",
+      "localPath": "/comments/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 348,
+      "method": "GET",
+      "localPath": "/attachments/:type/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 357,
+      "method": "POST",
+      "localPath": "/attachments/:type/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 379,
+      "method": "DELETE",
+      "localPath": "/attachments/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 390,
+      "method": "GET",
+      "localPath": "/reports",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 399,
+      "method": "GET",
+      "localPath": "/reports/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 411,
+      "method": "POST",
+      "localPath": "/reports",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 420,
+      "method": "PUT",
+      "localPath": "/reports/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 432,
+      "method": "DELETE",
+      "localPath": "/reports/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 441,
+      "method": "POST",
+      "localPath": "/reports/:id/run",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 460,
+      "method": "GET",
+      "localPath": "/dashboard-categories",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 469,
+      "method": "POST",
+      "localPath": "/dashboard-categories",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 478,
+      "method": "GET",
+      "localPath": "/dashboards",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 487,
+      "method": "GET",
+      "localPath": "/dashboards/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 499,
+      "method": "POST",
+      "localPath": "/dashboards",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 508,
+      "method": "PUT",
+      "localPath": "/dashboards/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 520,
+      "method": "DELETE",
+      "localPath": "/dashboards/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 532,
+      "method": "PUT",
+      "localPath": "/dashboards/:id/default",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 544,
+      "method": "GET",
+      "localPath": "/dashboards/:id/data",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/advanced_features/api/index.js",
+      "line": 560,
+      "method": "PUT",
+      "localPath": "/dashboards/:id/widgets",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/__init__.js",
+      "line": 12,
+      "method": "USE",
+      "localPath": "/api/agentgrid",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 22,
+      "method": "GET",
+      "localPath": "/tools",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 39,
+      "method": "POST",
+      "localPath": "/execute",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 58,
+      "method": "GET",
+      "localPath": "/executions/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 68,
+      "method": "DELETE",
+      "localPath": "/executions/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 77,
+      "method": "GET",
+      "localPath": "/executions/:id/logs",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 87,
+      "method": "GET",
+      "localPath": "/memory/:namespace",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 96,
+      "method": "POST",
+      "localPath": "/memory/:namespace",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 106,
+      "method": "DELETE",
+      "localPath": "/memory/:namespace/:key",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 116,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 131,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 145,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 155,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 164,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 174,
+      "method": "GET",
+      "localPath": "/:gridId/agents",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 186,
+      "method": "POST",
+      "localPath": "/:gridId/agents",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 199,
+      "method": "GET",
+      "localPath": "/:gridId/agents/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 211,
+      "method": "PUT",
+      "localPath": "/:gridId/agents/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 220,
+      "method": "DELETE",
+      "localPath": "/:gridId/agents/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 229,
+      "method": "POST",
+      "localPath": "/:gridId/agents/:id/activate",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/agentgrid/api/index.js",
+      "line": 238,
+      "method": "POST",
+      "localPath": "/:gridId/agents/:id/deactivate",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/audit/audit.routes.js",
+      "line": 18,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/audit/audit.routes.js",
+      "line": 36,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/audit/audit.routes.js",
+      "line": 46,
+      "method": "POST",
+      "localPath": "/cleanup",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/auth/auth.routes.js",
+      "line": 38,
+      "method": "POST",
+      "localPath": "/roles",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/auth/auth.routes.js",
+      "line": 48,
+      "method": "GET",
+      "localPath": "/roles",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/auth/auth.routes.js",
+      "line": 58,
+      "method": "GET",
+      "localPath": "/roles/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/auth/auth.routes.js",
+      "line": 68,
+      "method": "PUT",
+      "localPath": "/roles/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/auth/auth.routes.js",
+      "line": 78,
+      "method": "DELETE",
+      "localPath": "/roles/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/auth/auth.routes.js",
+      "line": 88,
+      "method": "POST",
+      "localPath": "/refresh-token",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/auth/auth.routes.js",
+      "line": 102,
+      "method": "GET",
+      "localPath": "/permissions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/__init__.js",
+      "line": 35,
+      "method": "USE",
+      "localPath": "/api/base",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity-records.routes.js",
+      "line": 60,
+      "method": "POST",
+      "localPath": "/:id/records",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity-records.routes.js",
+      "line": 96,
+      "method": "GET",
+      "localPath": "/:id/records",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity-records.routes.js",
+      "line": 146,
+      "method": "GET",
+      "localPath": "/:id/records/:recordId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity-records.routes.js",
+      "line": 173,
+      "method": "PUT",
+      "localPath": "/:id/records/:recordId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity-records.routes.js",
+      "line": 209,
+      "method": "DELETE",
+      "localPath": "/:id/records/:recordId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity-records.routes.js",
+      "line": 237,
+      "method": "POST",
+      "localPath": "/:id/records/:recordId/relationships",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity-records.routes.js",
+      "line": 286,
+      "method": "DELETE",
+      "localPath": "/:id/records/:recordId/relationships",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity-views.routes.js",
+      "line": 18,
+      "method": "GET",
+      "localPath": "/:id/views/:viewId/render",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity-views.routes.js",
+      "line": 106,
+      "method": "GET",
+      "localPath": "/:id/views",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity.routes.js",
+      "line": 31,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity.routes.js",
+      "line": 55,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity.routes.js",
+      "line": 83,
+      "method": "GET",
+      "localPath": "/schema/graph",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity.routes.js",
+      "line": 98,
+      "method": "GET",
+      "localPath": "/schema/duplicates",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity.routes.js",
+      "line": 115,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity.routes.js",
+      "line": 140,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity.routes.js",
+      "line": 165,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity.routes.js",
+      "line": 190,
+      "method": "POST",
+      "localPath": "/:id/publish",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/entity.routes.js",
+      "line": 222,
+      "method": "POST",
+      "localPath": "/:id/unpublish",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/field.routes.js",
+      "line": 28,
+      "method": "POST",
+      "localPath": "/:entityId/fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/field.routes.js",
+      "line": 64,
+      "method": "GET",
+      "localPath": "/:entityId/fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/field.routes.js",
+      "line": 93,
+      "method": "PUT",
+      "localPath": "/:fieldId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/field.routes.js",
+      "line": 120,
+      "method": "DELETE",
+      "localPath": "/:fieldId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 19,
+      "method": "GET",
+      "localPath": "/health",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 28,
+      "method": "GET",
+      "localPath": "/modules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 38,
+      "method": "GET",
+      "localPath": "/modules/installed/menus",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 121,
+      "method": "GET",
+      "localPath": "/modules/:name",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 133,
+      "method": "POST",
+      "localPath": "/modules/:name/install",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 142,
+      "method": "POST",
+      "localPath": "/modules/:name/uninstall",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 153,
+      "method": "USE",
+      "localPath": "/menus",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 154,
+      "method": "USE",
+      "localPath": "/roles",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 155,
+      "method": "USE",
+      "localPath": "/groups",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 156,
+      "method": "USE",
+      "localPath": "/record-rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 157,
+      "method": "USE",
+      "localPath": "/sequences",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 160,
+      "method": "GET",
+      "localPath": "/permissions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 170,
+      "method": "GET",
+      "localPath": "/sequences/:code/next",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 192,
+      "method": "USE",
+      "localPath": "/entities",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 196,
+      "method": "USE",
+      "localPath": "/entities",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 200,
+      "method": "USE",
+      "localPath": "/entities",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 201,
+      "method": "USE",
+      "localPath": "/entities/:entityId/fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 204,
+      "method": "USE",
+      "localPath": "/entity-fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/index.js",
+      "line": 207,
+      "method": "USE",
+      "localPath": "/queue",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/queue.routes.js",
+      "line": 36,
+      "method": "GET",
+      "localPath": "/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/queue.routes.js",
+      "line": 59,
+      "method": "GET",
+      "localPath": "/:queueName",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/queue.routes.js",
+      "line": 84,
+      "method": "GET",
+      "localPath": "/:queueName/:jobId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/queue.routes.js",
+      "line": 125,
+      "method": "POST",
+      "localPath": "/:queueName/clear",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/queue.routes.js",
+      "line": 150,
+      "method": "POST",
+      "localPath": "/:queueName/job",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/queue.routes.js",
+      "line": 183,
+      "method": "POST",
+      "localPath": "/:queueName/recurring",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base/api/queue.routes.js",
+      "line": 223,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/__init__.js",
+      "line": 118,
+      "method": "USE",
+      "localPath": "/api/base_automation",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 38,
+      "method": "GET",
+      "localPath": "/health",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 44,
+      "method": "GET",
+      "localPath": "/workflows",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 53,
+      "method": "GET",
+      "localPath": "/workflows/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 63,
+      "method": "POST",
+      "localPath": "/workflows",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 79,
+      "method": "PUT",
+      "localPath": "/workflows/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 94,
+      "method": "DELETE",
+      "localPath": "/workflows/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 103,
+      "method": "POST",
+      "localPath": "/workflows/validate",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 145,
+      "method": "GET",
+      "localPath": "/flows",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 154,
+      "method": "GET",
+      "localPath": "/flows/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 164,
+      "method": "POST",
+      "localPath": "/flows",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 178,
+      "method": "PUT",
+      "localPath": "/flows/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 193,
+      "method": "DELETE",
+      "localPath": "/flows/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 204,
+      "method": "GET",
+      "localPath": "/rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 213,
+      "method": "GET",
+      "localPath": "/rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 223,
+      "method": "POST",
+      "localPath": "/rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 237,
+      "method": "PUT",
+      "localPath": "/rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 247,
+      "method": "DELETE",
+      "localPath": "/rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 258,
+      "method": "GET",
+      "localPath": "/approvals",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 267,
+      "method": "GET",
+      "localPath": "/approvals/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 277,
+      "method": "POST",
+      "localPath": "/approvals",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 291,
+      "method": "PUT",
+      "localPath": "/approvals/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 306,
+      "method": "DELETE",
+      "localPath": "/approvals/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 317,
+      "method": "GET",
+      "localPath": "/scheduled",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 326,
+      "method": "GET",
+      "localPath": "/scheduled/status",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 335,
+      "method": "GET",
+      "localPath": "/scheduled/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 345,
+      "method": "POST",
+      "localPath": "/scheduled",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 361,
+      "method": "PUT",
+      "localPath": "/scheduled/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 374,
+      "method": "DELETE",
+      "localPath": "/scheduled/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 388,
+      "method": "GET",
+      "localPath": "/validation-rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 397,
+      "method": "GET",
+      "localPath": "/validation-rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 407,
+      "method": "POST",
+      "localPath": "/validation-rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 421,
+      "method": "PUT",
+      "localPath": "/validation-rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 436,
+      "method": "DELETE",
+      "localPath": "/validation-rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 447,
+      "method": "GET",
+      "localPath": "/assignment-rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 456,
+      "method": "GET",
+      "localPath": "/assignment-rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 466,
+      "method": "POST",
+      "localPath": "/assignment-rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 480,
+      "method": "PUT",
+      "localPath": "/assignment-rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 495,
+      "method": "DELETE",
+      "localPath": "/assignment-rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 506,
+      "method": "GET",
+      "localPath": "/rollup-fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 515,
+      "method": "GET",
+      "localPath": "/rollup-fields/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 525,
+      "method": "POST",
+      "localPath": "/rollup-fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 538,
+      "method": "PUT",
+      "localPath": "/rollup-fields/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 548,
+      "method": "DELETE",
+      "localPath": "/rollup-fields/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 559,
+      "method": "POST",
+      "localPath": "/workflows/:id/run/:recordId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 570,
+      "method": "GET",
+      "localPath": "/workflows/:id/executions/:executionId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 582,
+      "method": "POST",
+      "localPath": "/workflows/:id/executions/:executionId/transition",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 595,
+      "method": "POST",
+      "localPath": "/approvals/:instanceId/callback",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 622,
+      "method": "POST",
+      "localPath": "/workflows/:id/executions/:executionId/schedule-transition",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 644,
+      "method": "GET",
+      "localPath": "/auto-transitions/pending",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 653,
+      "method": "POST",
+      "localPath": "/auto-transitions/:id/execute",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 665,
+      "method": "GET",
+      "localPath": "/workflows/:id/webhooks",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 675,
+      "method": "POST",
+      "localPath": "/workflows/:id/webhooks",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 688,
+      "method": "DELETE",
+      "localPath": "/workflows/:id/webhooks/:hookId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 701,
+      "method": "GET",
+      "localPath": "/business-hours",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 711,
+      "method": "PUT",
+      "localPath": "/business-hours",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 723,
+      "method": "GET",
+      "localPath": "/workflows/:id/notification-settings",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 733,
+      "method": "POST",
+      "localPath": "/workflows/:id/notification-settings",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 743,
+      "method": "PUT",
+      "localPath": "/workflows/:id/notification-settings/:settingId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 754,
+      "method": "DELETE",
+      "localPath": "/workflows/:id/notification-settings/:settingId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 766,
+      "method": "POST",
+      "localPath": "/approvals/:chainId/submit",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 777,
+      "method": "GET",
+      "localPath": "/approvals/pending",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 786,
+      "method": "GET",
+      "localPath": "/approvals/history",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 795,
+      "method": "POST",
+      "localPath": "/approvals/tasks/:taskId/approve",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 806,
+      "method": "POST",
+      "localPath": "/approvals/tasks/:taskId/reject",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 817,
+      "method": "POST",
+      "localPath": "/approvals/tasks/:taskId/delegate",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 828,
+      "method": "GET",
+      "localPath": "/approvals/instances/:instanceId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 841,
+      "method": "GET",
+      "localPath": "/approvals/escalations/:instanceId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 854,
+      "method": "GET",
+      "localPath": "/approvals/escalations/task/:taskId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 869,
+      "method": "GET",
+      "localPath": "/approvals/analytics/metrics",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 880,
+      "method": "GET",
+      "localPath": "/approvals/analytics/bottlenecks",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 891,
+      "method": "GET",
+      "localPath": "/approvals/analytics/escalations",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 902,
+      "method": "GET",
+      "localPath": "/approvals/analytics/roles/:role",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/index.js",
+      "line": 915,
+      "method": "USE",
+      "localPath": "/notifications",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 22,
+      "method": "GET",
+      "localPath": "/templates",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 45,
+      "method": "GET",
+      "localPath": "/templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 66,
+      "method": "POST",
+      "localPath": "/templates",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 101,
+      "method": "PUT",
+      "localPath": "/templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 121,
+      "method": "DELETE",
+      "localPath": "/templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 141,
+      "method": "GET",
+      "localPath": "/templates/:id/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 160,
+      "method": "POST",
+      "localPath": "/send",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 197,
+      "method": "POST",
+      "localPath": "/send-bulk",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 264,
+      "method": "GET",
+      "localPath": "/delivery",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 287,
+      "method": "GET",
+      "localPath": "/delivery/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_automation/api/notification.routes.js",
+      "line": 308,
+      "method": "GET",
+      "localPath": "/delivery/template/:templateId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/__init__.js",
+      "line": 36,
+      "method": "USE",
+      "localPath": "/api/base_customization",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 13,
+      "method": "GET",
+      "localPath": "/health",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 19,
+      "method": "GET",
+      "localPath": "/fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 28,
+      "method": "GET",
+      "localPath": "/fields/model/:model",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 37,
+      "method": "GET",
+      "localPath": "/fields/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 47,
+      "method": "POST",
+      "localPath": "/fields",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 60,
+      "method": "PUT",
+      "localPath": "/fields/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 70,
+      "method": "DELETE",
+      "localPath": "/fields/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 81,
+      "method": "GET",
+      "localPath": "/views",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 90,
+      "method": "GET",
+      "localPath": "/views/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 100,
+      "method": "POST",
+      "localPath": "/views",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 113,
+      "method": "PUT",
+      "localPath": "/views/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 123,
+      "method": "DELETE",
+      "localPath": "/views/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 134,
+      "method": "GET",
+      "localPath": "/forms",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 143,
+      "method": "GET",
+      "localPath": "/forms/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 153,
+      "method": "POST",
+      "localPath": "/forms",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 166,
+      "method": "PUT",
+      "localPath": "/forms/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 176,
+      "method": "DELETE",
+      "localPath": "/forms/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 187,
+      "method": "GET",
+      "localPath": "/lists",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 196,
+      "method": "GET",
+      "localPath": "/lists/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 206,
+      "method": "POST",
+      "localPath": "/lists",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 219,
+      "method": "PUT",
+      "localPath": "/lists/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 229,
+      "method": "DELETE",
+      "localPath": "/lists/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 240,
+      "method": "GET",
+      "localPath": "/widgets",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 249,
+      "method": "GET",
+      "localPath": "/widgets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 259,
+      "method": "POST",
+      "localPath": "/widgets",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 272,
+      "method": "PUT",
+      "localPath": "/widgets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 282,
+      "method": "DELETE",
+      "localPath": "/widgets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_customization/api/index.js",
+      "line": 293,
+      "method": "GET",
+      "localPath": "/models",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/__init__.js",
+      "line": 34,
+      "method": "USE",
+      "localPath": "/api/base_features_data",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 14,
+      "method": "GET",
+      "localPath": "/health",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 20,
+      "method": "GET",
+      "localPath": "/import/models",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 31,
+      "method": "POST",
+      "localPath": "/import/preview",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 71,
+      "method": "POST",
+      "localPath": "/import/validate",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 90,
+      "method": "POST",
+      "localPath": "/import/execute",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 113,
+      "method": "GET",
+      "localPath": "/import/jobs",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 122,
+      "method": "GET",
+      "localPath": "/import/jobs/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 136,
+      "method": "GET",
+      "localPath": "/import/template/:model_name",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 149,
+      "method": "GET",
+      "localPath": "/export/models",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 160,
+      "method": "POST",
+      "localPath": "/export/preview",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 188,
+      "method": "POST",
+      "localPath": "/export/download",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 220,
+      "method": "GET",
+      "localPath": "/flags",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 230,
+      "method": "POST",
+      "localPath": "/flags",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 239,
+      "method": "PUT",
+      "localPath": "/flags/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 248,
+      "method": "DELETE",
+      "localPath": "/flags/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_features_data/api/index.js",
+      "line": 257,
+      "method": "POST",
+      "localPath": "/flags/:key/toggle",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/__init__.js",
+      "line": 41,
+      "method": "USE",
+      "localPath": "/api/base_security",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 11,
+      "method": "GET",
+      "localPath": "/health",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 17,
+      "method": "GET",
+      "localPath": "/api-keys",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 27,
+      "method": "POST",
+      "localPath": "/api-keys",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 38,
+      "method": "DELETE",
+      "localPath": "/api-keys/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 49,
+      "method": "GET",
+      "localPath": "/ip-access",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 58,
+      "method": "POST",
+      "localPath": "/ip-access",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 68,
+      "method": "PUT",
+      "localPath": "/ip-access/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 77,
+      "method": "DELETE",
+      "localPath": "/ip-access/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 88,
+      "method": "GET",
+      "localPath": "/sessions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 98,
+      "method": "DELETE",
+      "localPath": "/sessions/all-other",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 109,
+      "method": "DELETE",
+      "localPath": "/sessions/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 120,
+      "method": "GET",
+      "localPath": "/logs",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 131,
+      "method": "POST",
+      "localPath": "/2fa/setup",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 145,
+      "method": "POST",
+      "localPath": "/2fa/verify",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 162,
+      "method": "POST",
+      "localPath": "/2fa/disable",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 179,
+      "method": "GET",
+      "localPath": "/2fa/status",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 189,
+      "method": "GET",
+      "localPath": "/2fa/backup-codes",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/base_security/api/index.js",
+      "line": 202,
+      "method": "POST",
+      "localPath": "/2fa/backup-codes/regenerate",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/__init__.js",
+      "line": 37,
+      "method": "USE",
+      "localPath": "/api/compliance",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 38,
+      "method": "GET",
+      "localPath": "/rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 52,
+      "method": "POST",
+      "localPath": "/rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 66,
+      "method": "GET",
+      "localPath": "/rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 83,
+      "method": "PUT",
+      "localPath": "/rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 98,
+      "method": "DELETE",
+      "localPath": "/rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 114,
+      "method": "GET",
+      "localPath": "/audit",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 141,
+      "method": "POST",
+      "localPath": "/audit",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 164,
+      "method": "GET",
+      "localPath": "/audit/:entityType/:entityId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 180,
+      "method": "GET",
+      "localPath": "/reports",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 194,
+      "method": "POST",
+      "localPath": "/reports",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/compliance/api/index.js",
+      "line": 213,
+      "method": "GET",
+      "localPath": "/reports/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/documents/document.routes.js",
+      "line": 28,
+      "method": "GET",
+      "localPath": "/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/documents/document.routes.js",
+      "line": 38,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/documents/document.routes.js",
+      "line": 55,
+      "method": "GET",
+      "localPath": "/search",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/documents/document.routes.js",
+      "line": 71,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/documents/document.routes.js",
+      "line": 81,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/documents/document.routes.js",
+      "line": 91,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/documents/document.routes.js",
+      "line": 101,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/documents/document.routes.js",
+      "line": 111,
+      "method": "POST",
+      "localPath": "/:id/download",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 24,
+      "method": "GET",
+      "localPath": "/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 34,
+      "method": "GET",
+      "localPath": "/donors",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 48,
+      "method": "GET",
+      "localPath": "/donors/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 58,
+      "method": "GET",
+      "localPath": "/donors/:id/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 68,
+      "method": "POST",
+      "localPath": "/donors",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 78,
+      "method": "GET",
+      "localPath": "/campaigns",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 88,
+      "method": "POST",
+      "localPath": "/campaigns",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 98,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 116,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 126,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 136,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/donations/donation.routes.js",
+      "line": 146,
+      "method": "PATCH",
+      "localPath": "/:id/status",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/__init__.js",
+      "line": 9,
+      "method": "USE",
+      "localPath": "/api/editor",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 17,
+      "method": "GET",
+      "localPath": "/templates",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 32,
+      "method": "GET",
+      "localPath": "/templates/default",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 43,
+      "method": "GET",
+      "localPath": "/templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 54,
+      "method": "POST",
+      "localPath": "/templates",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 66,
+      "method": "PUT",
+      "localPath": "/templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 77,
+      "method": "DELETE",
+      "localPath": "/templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 90,
+      "method": "GET",
+      "localPath": "/snippets",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 105,
+      "method": "GET",
+      "localPath": "/snippets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 116,
+      "method": "POST",
+      "localPath": "/snippets",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 128,
+      "method": "PUT",
+      "localPath": "/snippets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 139,
+      "method": "DELETE",
+      "localPath": "/snippets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 152,
+      "method": "GET",
+      "localPath": "/presets",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 172,
+      "method": "GET",
+      "localPath": "/presets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 183,
+      "method": "POST",
+      "localPath": "/presets",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 196,
+      "method": "PUT",
+      "localPath": "/presets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 207,
+      "method": "DELETE",
+      "localPath": "/presets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 220,
+      "method": "GET",
+      "localPath": "/global-widgets",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 234,
+      "method": "GET",
+      "localPath": "/global-widgets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 245,
+      "method": "POST",
+      "localPath": "/global-widgets",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 258,
+      "method": "PUT",
+      "localPath": "/global-widgets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 269,
+      "method": "DELETE",
+      "localPath": "/global-widgets/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 282,
+      "method": "GET",
+      "localPath": "/notes/:pageId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 292,
+      "method": "POST",
+      "localPath": "/notes",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 306,
+      "method": "POST",
+      "localPath": "/notes/:id/reply",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 321,
+      "method": "PUT",
+      "localPath": "/notes/:id/resolve",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/editor/api/index.js",
+      "line": 332,
+      "method": "DELETE",
+      "localPath": "/notes/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 13,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 26,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 46,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 56,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 65,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 74,
+      "method": "POST",
+      "localPath": "/:id/publish",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 83,
+      "method": "POST",
+      "localPath": "/:id/duplicate",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 92,
+      "method": "POST",
+      "localPath": "/:id/execute",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 118,
+      "method": "GET",
+      "localPath": "/:id/executions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 131,
+      "method": "GET",
+      "localPath": "/executions/:executionId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 141,
+      "method": "DELETE",
+      "localPath": "/executions/:executionId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 150,
+      "method": "GET",
+      "localPath": "/node-types",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/flowgrid/api/index.js",
+      "line": 159,
+      "method": "POST",
+      "localPath": "/validate",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/__init__.js",
+      "line": 7,
+      "method": "USE",
+      "localPath": "/api/mail",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 7,
+      "method": "GET",
+      "localPath": "/servers",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 17,
+      "method": "POST",
+      "localPath": "/servers",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 30,
+      "method": "DELETE",
+      "localPath": "/servers/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 39,
+      "method": "POST",
+      "localPath": "/servers/:id/fetch",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 48,
+      "method": "GET",
+      "localPath": "/rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 56,
+      "method": "POST",
+      "localPath": "/rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 65,
+      "method": "POST",
+      "localPath": "/rules/test",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 79,
+      "method": "GET",
+      "localPath": "/messages",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 92,
+      "method": "GET",
+      "localPath": "/queue",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 105,
+      "method": "POST",
+      "localPath": "/queue",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/mail/api/routes.js",
+      "line": 114,
+      "method": "POST",
+      "localPath": "/queue/process",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/media/media.routes.js",
+      "line": 18,
+      "method": "GET",
+      "localPath": "/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/media/media.routes.js",
+      "line": 28,
+      "method": "GET",
+      "localPath": "/featured",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/media/media.routes.js",
+      "line": 38,
+      "method": "GET",
+      "localPath": "/category/:category",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/media/media.routes.js",
+      "line": 48,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/media/media.routes.js",
+      "line": 66,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/media/media.routes.js",
+      "line": 76,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/media/media.routes.js",
+      "line": 91,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/media/media.routes.js",
+      "line": 101,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/media/media.routes.js",
+      "line": 111,
+      "method": "POST",
+      "localPath": "/:id/download",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/messages/message.routes.js",
+      "line": 18,
+      "method": "GET",
+      "localPath": "/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/messages/message.routes.js",
+      "line": 28,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/messages/message.routes.js",
+      "line": 46,
+      "method": "GET",
+      "localPath": "/email/:email",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/messages/message.routes.js",
+      "line": 56,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/messages/message.routes.js",
+      "line": 69,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/messages/message.routes.js",
+      "line": 79,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/messages/message.routes.js",
+      "line": 89,
+      "method": "POST",
+      "localPath": "/:id/read",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/messages/message.routes.js",
+      "line": 99,
+      "method": "POST",
+      "localPath": "/:id/reply",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/messages/message.routes.js",
+      "line": 109,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 86,
+      "method": "GET",
+      "localPath": "/roles",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 92,
+      "method": "GET",
+      "localPath": "/roles/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 102,
+      "method": "POST",
+      "localPath": "/roles",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 125,
+      "method": "PUT",
+      "localPath": "/roles/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 147,
+      "method": "DELETE",
+      "localPath": "/roles/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 162,
+      "method": "GET",
+      "localPath": "/permissions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 168,
+      "method": "GET",
+      "localPath": "/permissions/grouped",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 179,
+      "method": "GET",
+      "localPath": "/rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 185,
+      "method": "POST",
+      "localPath": "/rules",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 211,
+      "method": "PUT",
+      "localPath": "/rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/rbac/api/index.js",
+      "line": 233,
+      "method": "DELETE",
+      "localPath": "/rules/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/security-audit/__init__.js",
+      "line": 19,
+      "method": "USE",
+      "localPath": "/api/security",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/security-audit/routes.js",
+      "line": 16,
+      "method": "GET",
+      "localPath": "/audit",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/security-audit/routes.js",
+      "line": 36,
+      "method": "GET",
+      "localPath": "/owasp",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/security-audit/routes.js",
+      "line": 62,
+      "method": "GET",
+      "localPath": "/api-scan",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/security-audit/routes.js",
+      "line": 91,
+      "method": "GET",
+      "localPath": "/dependencies",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/security-audit/routes.js",
+      "line": 115,
+      "method": "GET",
+      "localPath": "/risk-score",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/settings/setting.routes.js",
+      "line": 17,
+      "method": "GET",
+      "localPath": "/public",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/settings/setting.routes.js",
+      "line": 27,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/settings/setting.routes.js",
+      "line": 37,
+      "method": "GET",
+      "localPath": "/category/:category",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/settings/setting.routes.js",
+      "line": 47,
+      "method": "GET",
+      "localPath": "/:key",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/settings/setting.routes.js",
+      "line": 61,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/settings/setting.routes.js",
+      "line": 71,
+      "method": "PUT",
+      "localPath": "/:key",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/settings/setting.routes.js",
+      "line": 81,
+      "method": "DELETE",
+      "localPath": "/:key",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/settings/setting.routes.js",
+      "line": 91,
+      "method": "POST",
+      "localPath": "/bulk",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/settings/setting.routes.js",
+      "line": 101,
+      "method": "POST",
+      "localPath": "/initialize",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/__init__.js",
+      "line": 7,
+      "method": "USE",
+      "localPath": "/api/sms",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 7,
+      "method": "GET",
+      "localPath": "/providers",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 16,
+      "method": "POST",
+      "localPath": "/providers",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 25,
+      "method": "DELETE",
+      "localPath": "/providers/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 34,
+      "method": "GET",
+      "localPath": "/templates",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 43,
+      "method": "POST",
+      "localPath": "/templates",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 52,
+      "method": "DELETE",
+      "localPath": "/templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 61,
+      "method": "GET",
+      "localPath": "/logs",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 74,
+      "method": "POST",
+      "localPath": "/send",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 83,
+      "method": "POST",
+      "localPath": "/send-bulk",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/sms/api/routes.js",
+      "line": 92,
+      "method": "POST",
+      "localPath": "/retry/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 19,
+      "method": "GET",
+      "localPath": "/active",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 29,
+      "method": "GET",
+      "localPath": "/leaders",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 39,
+      "method": "GET",
+      "localPath": "/departments",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 49,
+      "method": "GET",
+      "localPath": "/department/:department",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 59,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 76,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 86,
+      "method": "POST",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 96,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 106,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/team/team.routes.js",
+      "line": 116,
+      "method": "POST",
+      "localPath": "/reorder",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 35,
+      "method": "GET",
+      "localPath": "/me",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 68,
+      "method": "POST",
+      "localPath": "/login",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 97,
+      "method": "POST",
+      "localPath": "/login/verify-2fa",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 133,
+      "method": "GET",
+      "localPath": "/2fa/status",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 141,
+      "method": "POST",
+      "localPath": "/2fa/setup",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 150,
+      "method": "POST",
+      "localPath": "/2fa/confirm",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 161,
+      "method": "POST",
+      "localPath": "/2fa/disable",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 174,
+      "method": "GET",
+      "localPath": "/oauth/providers",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 183,
+      "method": "GET",
+      "localPath": "/oauth/:provider",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 197,
+      "method": "GET",
+      "localPath": "/oauth/:provider/callback",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 219,
+      "method": "GET",
+      "localPath": "/sso/metadata",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 228,
+      "method": "GET",
+      "localPath": "/sso/login",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 238,
+      "method": "POST",
+      "localPath": "/sso/acs",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 253,
+      "method": "POST",
+      "localPath": "/register",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 264,
+      "method": "GET",
+      "localPath": "/",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 282,
+      "method": "GET",
+      "localPath": "/stats",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 306,
+      "method": "GET",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 316,
+      "method": "PUT",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 326,
+      "method": "DELETE",
+      "localPath": "/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 336,
+      "method": "GET",
+      "localPath": "/:id/export",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 352,
+      "method": "DELETE",
+      "localPath": "/:id/erasure",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 371,
+      "method": "POST",
+      "localPath": "/:id/change-password",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/user/user.routes.js",
+      "line": 390,
+      "method": "POST",
+      "localPath": "/logout",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/__init__.js",
+      "line": 11,
+      "method": "USE",
+      "localPath": "/api/website",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 57,
+      "method": "GET",
+      "localPath": "/public/pages",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 67,
+      "method": "GET",
+      "localPath": "/public/pages/:slug",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 83,
+      "method": "POST",
+      "localPath": "/public/pages/:slug/verify-password",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 98,
+      "method": "GET",
+      "localPath": "/public/pages/:slug/breadcrumbs",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 109,
+      "method": "GET",
+      "localPath": "/public/menus/:location",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 119,
+      "method": "GET",
+      "localPath": "/public/settings",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 129,
+      "method": "GET",
+      "localPath": "/public/theme/:type",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 152,
+      "method": "GET",
+      "localPath": "/public/theme/single-post",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 165,
+      "method": "GET",
+      "localPath": "/public/theme/archive",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 176,
+      "method": "GET",
+      "localPath": "/public/theme/404",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 183,
+      "method": "GET",
+      "localPath": "/public/theme/search",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 194,
+      "method": "GET",
+      "localPath": "/public/popups",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 203,
+      "method": "GET",
+      "localPath": "/public/sitemap",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 248,
+      "method": "GET",
+      "localPath": "/public/sitemap.xml",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 275,
+      "method": "GET",
+      "localPath": "/public/robots.txt",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 292,
+      "method": "GET",
+      "localPath": "/public/query",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 301,
+      "method": "GET",
+      "localPath": "/public/auth/check",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 311,
+      "method": "POST",
+      "localPath": "/public/contact",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 332,
+      "method": "POST",
+      "localPath": "/public/forms/:id/submit",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 348,
+      "method": "GET",
+      "localPath": "/public/styles.css",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 398,
+      "method": "GET",
+      "localPath": "/pages",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 416,
+      "method": "GET",
+      "localPath": "/pages/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 427,
+      "method": "POST",
+      "localPath": "/pages",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 439,
+      "method": "PUT",
+      "localPath": "/pages/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 449,
+      "method": "DELETE",
+      "localPath": "/pages/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 459,
+      "method": "POST",
+      "localPath": "/pages/:id/publish",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 469,
+      "method": "POST",
+      "localPath": "/pages/:id/unpublish",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 481,
+      "method": "GET",
+      "localPath": "/pages/:id/revisions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 494,
+      "method": "GET",
+      "localPath": "/pages/:id/revisions/:revId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 505,
+      "method": "POST",
+      "localPath": "/pages/:id/revisions/:revId/revert",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 516,
+      "method": "POST",
+      "localPath": "/pages/:id/autosave",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 534,
+      "method": "GET",
+      "localPath": "/menus",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 543,
+      "method": "GET",
+      "localPath": "/menus/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 553,
+      "method": "POST",
+      "localPath": "/menus",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 562,
+      "method": "PUT",
+      "localPath": "/menus/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 571,
+      "method": "DELETE",
+      "localPath": "/menus/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 580,
+      "method": "PUT",
+      "localPath": "/menus/:id/reorder",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 589,
+      "method": "POST",
+      "localPath": "/menus/:id/items",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 598,
+      "method": "PUT",
+      "localPath": "/menu-items/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 607,
+      "method": "DELETE",
+      "localPath": "/menu-items/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 618,
+      "method": "GET",
+      "localPath": "/media",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 633,
+      "method": "POST",
+      "localPath": "/media/upload",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 644,
+      "method": "POST",
+      "localPath": "/media/upload-multiple",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 659,
+      "method": "POST",
+      "localPath": "/media",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 668,
+      "method": "PUT",
+      "localPath": "/media/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 677,
+      "method": "DELETE",
+      "localPath": "/media/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 688,
+      "method": "GET",
+      "localPath": "/forms",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 701,
+      "method": "GET",
+      "localPath": "/forms/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 711,
+      "method": "POST",
+      "localPath": "/forms",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 720,
+      "method": "PUT",
+      "localPath": "/forms/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 729,
+      "method": "DELETE",
+      "localPath": "/forms/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 740,
+      "method": "GET",
+      "localPath": "/forms/:id/submissions",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 752,
+      "method": "POST",
+      "localPath": "/forms/:id/submissions/:subId/read",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 761,
+      "method": "DELETE",
+      "localPath": "/forms/:id/submissions/:subId",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 772,
+      "method": "GET",
+      "localPath": "/theme-templates",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 781,
+      "method": "GET",
+      "localPath": "/theme-templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 791,
+      "method": "POST",
+      "localPath": "/theme-templates",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 800,
+      "method": "PUT",
+      "localPath": "/theme-templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 809,
+      "method": "DELETE",
+      "localPath": "/theme-templates/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 820,
+      "method": "GET",
+      "localPath": "/popups",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 833,
+      "method": "GET",
+      "localPath": "/popups/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 843,
+      "method": "POST",
+      "localPath": "/popups",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 852,
+      "method": "PUT",
+      "localPath": "/popups/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 861,
+      "method": "DELETE",
+      "localPath": "/popups/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 872,
+      "method": "GET",
+      "localPath": "/pages/:id/export",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 903,
+      "method": "POST",
+      "localPath": "/pages/import",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 925,
+      "method": "GET",
+      "localPath": "/settings",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 934,
+      "method": "PUT",
+      "localPath": "/settings",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 945,
+      "method": "GET",
+      "localPath": "/fonts",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 954,
+      "method": "GET",
+      "localPath": "/fonts/google-search",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 963,
+      "method": "GET",
+      "localPath": "/fonts/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 973,
+      "method": "POST",
+      "localPath": "/fonts/upload",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 984,
+      "method": "PUT",
+      "localPath": "/fonts/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 993,
+      "method": "DELETE",
+      "localPath": "/fonts/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1004,
+      "method": "GET",
+      "localPath": "/icons",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1013,
+      "method": "GET",
+      "localPath": "/icons/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1023,
+      "method": "POST",
+      "localPath": "/icons/upload",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1034,
+      "method": "POST",
+      "localPath": "/icons/upload-multiple",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1045,
+      "method": "POST",
+      "localPath": "/icons",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1054,
+      "method": "PUT",
+      "localPath": "/icons/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1063,
+      "method": "DELETE",
+      "localPath": "/icons/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1074,
+      "method": "POST",
+      "localPath": "/ai/generate-text",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1088,
+      "method": "POST",
+      "localPath": "/ai/generate-code",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1104,
+      "method": "GET",
+      "localPath": "/redirects",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1118,
+      "method": "GET",
+      "localPath": "/redirects/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1129,
+      "method": "POST",
+      "localPath": "/redirects",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1142,
+      "method": "PUT",
+      "localPath": "/redirects/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1153,
+      "method": "DELETE",
+      "localPath": "/redirects/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1167,
+      "method": "GET",
+      "localPath": "/public/categories",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1174,
+      "method": "GET",
+      "localPath": "/public/categories/:slug",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1182,
+      "method": "GET",
+      "localPath": "/public/categories/:slug/pages",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1191,
+      "method": "GET",
+      "localPath": "/public/tags",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1198,
+      "method": "GET",
+      "localPath": "/public/tags/:slug",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1206,
+      "method": "GET",
+      "localPath": "/public/tags/:slug/pages",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1217,
+      "method": "PUT",
+      "localPath": "/categories/reorder",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1224,
+      "method": "GET",
+      "localPath": "/categories",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1231,
+      "method": "GET",
+      "localPath": "/categories/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1239,
+      "method": "POST",
+      "localPath": "/categories",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1246,
+      "method": "PUT",
+      "localPath": "/categories/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1253,
+      "method": "DELETE",
+      "localPath": "/categories/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1262,
+      "method": "GET",
+      "localPath": "/tags",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1269,
+      "method": "GET",
+      "localPath": "/tags/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1277,
+      "method": "POST",
+      "localPath": "/tags",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1284,
+      "method": "PUT",
+      "localPath": "/tags/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1291,
+      "method": "DELETE",
+      "localPath": "/tags/:id",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1300,
+      "method": "GET",
+      "localPath": "/pages/:id/lock",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1307,
+      "method": "POST",
+      "localPath": "/pages/:id/lock",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1315,
+      "method": "POST",
+      "localPath": "/pages/:id/unlock",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1325,
+      "method": "GET",
+      "localPath": "/pages/:id/categories",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1332,
+      "method": "PUT",
+      "localPath": "/pages/:id/categories",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1339,
+      "method": "GET",
+      "localPath": "/pages/:id/tags",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/src/modules/website/website.routes.js",
+      "line": 1346,
+      "method": "PUT",
+      "localPath": "/pages/:id/tags",
+      "status": "needs_review"
+    }
+  ],
+  "nestImplementationMarkers": [
+    {
+      "file": "backend/lume-nestjs/src/core/module/module-wiring.ts",
+      "line": 74,
+      "evidence": "// TODO: Implement production module discovery",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/examples/project-management-module.example.ts",
+      "line": 92,
+      "evidence": "status: { name: 'status', type: 'string', required: true }, // todo, in-progress, review, done, blocked",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/dataloader/dataloader.registry.ts",
+      "line": 131,
+      "evidence": "// This is a placeholder - actual import depends on Drizzle schema structure",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/resolvers/agent-query.resolver.ts",
+      "line": 41,
+      "evidence": "// TODO: Return schema context for LLM prompt building",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/resolvers/agent-query.resolver.ts",
+      "line": 60,
+      "evidence": "// TODO: Translate question to GraphQL query",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/resolvers/agent-query.resolver.ts",
+      "line": 90,
+      "evidence": "// TODO: Execute query and apply RBAC masking",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/resolvers/agent-query.resolver.ts",
+      "line": 112,
+      "evidence": "// TODO: Private helper to execute generated GraphQL query",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/resolvers/agent-query.resolver.ts",
+      "line": 122,
+      "evidence": "// TODO: Implement query execution with RBAC masking",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/services/nl-to-graphql.service.ts",
+      "line": 11,
+      "evidence": "// TODO: Inject AIAdapterService for LLM completion calls",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/services/nl-to-graphql.service.ts",
+      "line": 25,
+      "evidence": "// TODO: Build LLM prompt:",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/services/nl-to-graphql.service.ts",
+      "line": 51,
+      "evidence": "// TODO: Use graphql.parse() to validate syntax",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/services/schema-context.service.ts",
+      "line": 12,
+      "evidence": "// TODO: Inject MetadataRegistryService",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/services/schema-context.service.ts",
+      "line": 21,
+      "evidence": "// TODO: Call metadataRegistry.listEntities() to get all EntityDefinition[]",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/services/schema-context.service.ts",
+      "line": 57,
+      "evidence": "// TODO: Call metadataRegistry.getEntity(entityName)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/agent-grid/services/schema-context.service.ts",
+      "line": 69,
+      "evidence": "// TODO: Clear cached schema context",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/media.resolver.ts",
+      "line": 22,
+      "evidence": "// TODO: Implement media service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/media.resolver.ts",
+      "line": 39,
+      "evidence": "// TODO: Implement media service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/media.resolver.ts",
+      "line": 48,
+      "evidence": "// TODO: Implement media service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/media.resolver.ts",
+      "line": 58,
+      "evidence": "// TODO: Implement media service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/media.resolver.ts",
+      "line": 67,
+      "evidence": "// TODO: Implement media service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/menu.resolver.ts",
+      "line": 14,
+      "evidence": "// TODO: Implement menu service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/menu.resolver.ts",
+      "line": 23,
+      "evidence": "// TODO: Implement menu service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/menu.resolver.ts",
+      "line": 32,
+      "evidence": "// TODO: Implement menu service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/menu.resolver.ts",
+      "line": 41,
+      "evidence": "// TODO: Implement menu service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/menu.resolver.ts",
+      "line": 51,
+      "evidence": "// TODO: Implement menu service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/menu.resolver.ts",
+      "line": 61,
+      "evidence": "// TODO: Implement menu service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/menu.resolver.ts",
+      "line": 70,
+      "evidence": "// TODO: Implement menu service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
+      "line": 27,
+      "evidence": "// TODO: Implement page service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
+      "line": 44,
+      "evidence": "// TODO: Implement page service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
+      "line": 53,
+      "evidence": "// TODO: Implement page service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
+      "line": 62,
+      "evidence": "// TODO: Implement page service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
+      "line": 72,
+      "evidence": "// TODO: Implement page service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
+      "line": 81,
+      "evidence": "// TODO: Implement page service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
+      "line": 90,
+      "evidence": "// TODO: Implement page service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
+      "line": 100,
+      "evidence": "// TODO: Implement page service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/settings.resolver.ts",
+      "line": 13,
+      "evidence": "// TODO: Implement settings service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/content-grid/resolvers/settings.resolver.ts",
+      "line": 27,
+      "evidence": "// TODO: Implement settings service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/analytics.resolver.ts",
+      "line": 17,
+      "evidence": "// TODO: Implement analytics engine service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/analytics.resolver.ts",
+      "line": 23,
+      "evidence": "// TODO: Implement analytics engine service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/analytics.resolver.ts",
+      "line": 37,
+      "evidence": "// TODO: Implement analytics engine service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/audit-log.resolver.ts",
+      "line": 27,
+      "evidence": "// TODO: Implement audit log service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/audit-log.resolver.ts",
+      "line": 44,
+      "evidence": "// TODO: Implement audit log service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/audit-log.resolver.ts",
+      "line": 54,
+      "evidence": "// TODO: Implement audit log service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/import-export.resolver.ts",
+      "line": 15,
+      "evidence": "// TODO: Implement import/export service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/import-export.resolver.ts",
+      "line": 24,
+      "evidence": "// TODO: Implement import/export service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/import-export.resolver.ts",
+      "line": 40,
+      "evidence": "// TODO: Implement import/export service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
+      "line": 18,
+      "evidence": "// TODO: Implement tenant manager service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
+      "line": 29,
+      "evidence": "// TODO: Implement tenant manager service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
+      "line": 40,
+      "evidence": "// TODO: Implement tenant manager service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
+      "line": 52,
+      "evidence": "// TODO: Implement tenant manager service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
+      "line": 63,
+      "evidence": "// TODO: Implement tenant manager service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow-subscription.resolver.ts",
+      "line": 38,
+      "evidence": "// TODO: Subscribe to EventBusService.on(BuiltInEvents.WORKFLOW_COMPLETED)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow-subscription.resolver.ts",
+      "line": 53,
+      "evidence": "// TODO: Subscribe to EventBusService.on(BuiltInEvents.WORKFLOW_FAILED)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow-subscription.resolver.ts",
+      "line": 71,
+      "evidence": "// TODO: Subscribe to EventBusService.on(BuiltInEvents.WORKFLOW_STEP_COMPLETED)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow.resolver.ts",
+      "line": 43,
+      "evidence": "// TODO: Delegate to FlowService.listFlows(model, trigger, status, pagination, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow.resolver.ts",
+      "line": 63,
+      "evidence": "// TODO: Delegate to FlowService.getFlow(id)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow.resolver.ts",
+      "line": 78,
+      "evidence": "// TODO: Delegate to FlowService.createFlow(input, userId, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow.resolver.ts",
+      "line": 83,
+      "evidence": "throw new Error('Not implemented');",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow.resolver.ts",
+      "line": 98,
+      "evidence": "// TODO: Delegate to FlowService.updateFlow(id, input, userId, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow.resolver.ts",
+      "line": 102,
+      "evidence": "throw new Error('Not implemented');",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow.resolver.ts",
+      "line": 116,
+      "evidence": "// TODO: Delegate to FlowService.deleteFlow(id, userId, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow.resolver.ts",
+      "line": 133,
+      "evidence": "// TODO: Delegate to FlowService.publishFlow(id, userId, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/flow.resolver.ts",
+      "line": 137,
+      "evidence": "throw new Error('Not implemented');",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 43,
+      "evidence": "// TODO: Delegate to AutomationService.listWorkflows(model, status, pagination, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 63,
+      "evidence": "// TODO: Delegate to AutomationService.getWorkflow(id)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 78,
+      "evidence": "// TODO: Delegate to AutomationService.createWorkflow(input, userId, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 83,
+      "evidence": "throw new Error('Not implemented');",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 98,
+      "evidence": "// TODO: Delegate to AutomationService.updateWorkflow(id, input, userId, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 102,
+      "evidence": "throw new Error('Not implemented');",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 116,
+      "evidence": "// TODO: Delegate to AutomationService.deleteWorkflow(id, userId, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 133,
+      "evidence": "// TODO: Delegate to AutomationService.publishWorkflow(id, userId, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 137,
+      "evidence": "throw new Error('Not implemented');",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/flow-grid/resolvers/workflow.resolver.ts",
+      "line": 151,
+      "evidence": "// TODO: Delegate to AutomationService.executeWorkflow(workflowId, recordId, payload, userId, companyId)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/marketplace-grid/resolvers/marketplace.resolver.ts",
+      "line": 47,
+      "evidence": "// Placeholder - in production, fetch from database",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
+      "line": 17,
+      "evidence": "// TODO: Implement module service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
+      "line": 28,
+      "evidence": "// TODO: Implement module service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
+      "line": 39,
+      "evidence": "// TODO: Implement module service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
+      "line": 50,
+      "evidence": "// TODO: Implement module service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
+      "line": 61,
+      "evidence": "// TODO: Implement module service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/meta-grid/resolvers/system-setting.resolver.ts",
+      "line": 12,
+      "evidence": "// TODO: Implement system settings service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/meta-grid/resolvers/system-setting.resolver.ts",
+      "line": 18,
+      "evidence": "// TODO: Implement system settings service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/meta-grid/resolvers/system-setting.resolver.ts",
+      "line": 24,
+      "evidence": "// TODO: Implement system settings service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/grids/meta-grid/resolvers/system-setting.resolver.ts",
+      "line": 38,
+      "evidence": "// TODO: Implement system settings service call",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/plugins/tracing.plugin.ts",
+      "line": 20,
+      "evidence": "// TODO: Inject @opentelemetry/api tracer via LoggerService or dedicated TraceProvider",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/plugins/tracing.plugin.ts",
+      "line": 25,
+      "evidence": "// TODO: Create root span for operation:",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/plugins/tracing.plugin.ts",
+      "line": 41,
+      "evidence": "// TODO: Create child span for each resolver field:",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/plugins/tracing.plugin.ts",
+      "line": 57,
+      "evidence": "// TODO: End field span with result/error attributes",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/plugins/tracing.plugin.ts",
+      "line": 65,
+      "evidence": "// TODO: Record errors in root operation span:",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/plugins/tracing.plugin.ts",
+      "line": 75,
+      "evidence": "// TODO: End root operation span with operation result attributes:",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/schema/schema-export.service.ts",
+      "line": 31,
+      "evidence": "// TODO: Use schema introspection to generate markdown:",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/schema/schema-export.service.ts",
+      "line": 66,
+      "evidence": "// TODO: Parse SDL and format as markdown sections",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/schema/schema-export.service.ts",
+      "line": 78,
+      "evidence": "// TODO: Generate example queries/mutations for common use cases:",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/graphql/schema/schema.controller.ts",
+      "line": 12,
+      "evidence": "// TODO: Inject GraphQLSchema from NestJS GraphQL module",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/modules/base/controllers/admin-plugins.controller.ts",
+      "line": 137,
+      "evidence": "// TODO: Integrate with plugin marketplace (if implemented)",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/modules/base/controllers/admin-workflows.controller.ts",
+      "line": 145,
+      "evidence": "// Simulate workflow execution with sample data",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/modules/base_customization/dtos/index.ts",
+      "line": 11,
+      "evidence": "placeholder?: string;",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/modules/base_customization/dtos/index.ts",
+      "line": 26,
+      "evidence": "placeholder?: string;",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/modules/base_customization/models/schema.ts",
+      "line": 17,
+      "evidence": "placeholder: varchar('placeholder', { length: 255 }),",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/modules/base_rbac/controllers/base-rbac.controller.ts",
+      "line": 433,
+      "evidence": "// For now, return a placeholder",
+      "status": "needs_review"
+    },
+    {
+      "file": "backend/lume-nestjs/src/modules/base_rbac/controllers/base-rbac.controller.ts",
+      "line": 436,
+      "evidence": "error: 'CurrentUser decorator not implemented',",
+      "status": "needs_review"
+    }
+  ],
+  "legacyRoutesByFeature": {
+    "activities": 10,
+    "advanced_features": 50,
+    "agentgrid": 21,
+    "api": 3,
+    "audit": 3,
+    "auth": 7,
+    "base": 49,
+    "base_automation": 85,
+    "base_customization": 29,
+    "base_features_data": 17,
+    "base_security": 19,
+    "compliance": 12,
+    "core": 60,
+    "documents": 8,
+    "donations": 12,
+    "editor": 27,
+    "flowgrid": 13,
+    "gawdesy": 7,
+    "lume": 7,
+    "mail": 12,
+    "media": 9,
+    "messages": 9,
+    "rbac": 11,
+    "security-audit": 6,
+    "settings": 9,
+    "sms": 11,
+    "team": 10,
+    "user": 23,
+    "website": 113
+  },
+  "nestMarkersByFeature": {
+    "base": 2,
+    "base_customization": 3,
+    "base_rbac": 2,
+    "core": 13,
+    "graphql/agent-grid": 12,
+    "graphql/content-grid": 22,
+    "graphql/enterprise-grid": 14,
+    "graphql/flow-grid": 22,
+    "graphql/marketplace-grid": 1,
+    "graphql/meta-grid": 9
+  }
+}

@@ -15,7 +15,7 @@ import { Public, Permissions } from '@core/decorators';
 import { TagService } from '../services/tag.service';
 import { CreateTagDto, UpdateTagDto } from '../dtos';
 
-@Controller('api/website')
+@Controller(['website', 'api/website'])
 export class TagController {
   constructor(private tagService: TagService) {}
 

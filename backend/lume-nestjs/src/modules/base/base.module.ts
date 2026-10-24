@@ -13,6 +13,11 @@ import { QueueController } from './controllers/queue.controller';
 import { QueryController } from './controllers/query.controller';
 import { AIController } from './controllers/ai.controller';
 import { AdminModulesController } from './controllers/admin-modules.controller';
+import { AdminGroupsController } from './controllers/admin-groups.controller';
+import { AdminSettingsController } from './controllers/admin-settings.controller';
+import { RecordRulesController } from './controllers/record-rules.controller';
+import { AdminSettingsService } from './services/admin-settings.service';
+import { RecordRuleManagementService } from './services/record-rule-management.service';
 import { AdminWorkflowsController } from './controllers/admin-workflows.controller';
 import { AdminPoliciesController } from './controllers/admin-policies.controller';
 import { AdminPluginsController } from './controllers/admin-plugins.controller';
@@ -47,11 +52,16 @@ import { LeadAssignmentWorkflow, LeadScoringSendNotification } from './workflows
     QueryController,
     AIController,
     AdminModulesController,
+    AdminGroupsController,
+    AdminSettingsController,
+    RecordRulesController,
     AdminWorkflowsController,
     AdminPoliciesController,
     AdminPluginsController,
   ],
   providers: [
+    AdminSettingsService,
+    RecordRuleManagementService,
     EntityService,
     RecordService,
     ViewRendererService,

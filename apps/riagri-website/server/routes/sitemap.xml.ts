@@ -1,6 +1,7 @@
 // Proxy /sitemap.xml → backend CMS endpoint
 export default defineEventHandler(async (event) => {
-  const backendUrl = process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api/website/public'
+  const config = useRuntimeConfig(event)
+  const backendUrl = String(config.public.apiBase).replace(/\/$/, '')
 
   try {
     const xml = await $fetch<string>(`${backendUrl}/sitemap.xml`, {

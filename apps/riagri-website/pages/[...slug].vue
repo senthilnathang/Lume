@@ -25,7 +25,7 @@
     </div>
 
     <!-- Password Gate -->
-    <div v-else-if="requiresPassword && !passwordToken" class="max-w-md mx-auto px-4 py-20 text-center">
+    <div v-else-if="requiresPassword" class="max-w-md mx-auto px-4 py-20 text-center">
       <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
         <svg class="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -128,6 +128,7 @@
 import { computed, watch, ref, onMounted, nextTick } from 'vue';
 import { useRuntimeConfig } from '#app';
 import { widgetRegistry } from '@widgets/registry';
+import type { PageContent } from '~/composables/useWebsiteData';
 
 const route = useRoute();
 const slug = computed(() => {
@@ -142,14 +143,17 @@ const isThemePreview = computed(() =>
 );
 const previewTemplateType = computed(() => route.query.preview_template as string || '');
 
-const { page: fetchedPage, seo, pending, error } = usePageContent(slug.value);
-const { isAdmin } = useAuth();
+const { page: fetchedPage, seo, pending, error, ready } = usePageContent(slug.value);
+await ready;
+useAuth();
 
 // Password gate — declared early so `page` computed can reference it
-const unlockedPage = ref<any>(null);
+const unlockedPage = ref<PageContent | null>(null);
 
 // displayPage: prefer unlocked (password-verified) page over initial fetch result
 const page = computed(() => unlockedPage.value || fetchedPage.value);
+// Head metadata evaluates synchronously during client hydration.
+const requiresPassword = computed(() => page.value?.requiresPassword === true && !unlockedPage.value);
 
 // SEO: return a real HTTP 404 for unknown slugs instead of a soft-404 (200).
 if (import.meta.server && (error.value || !fetchedPage.value)) {
@@ -177,7 +181,7 @@ const jsonLdSchemas = computed(() => {
   const siteUrl = config.public.siteUrl || 'http://localhost:3100';
   const siteName = config.public.siteName || 'Lume';
   const pageUrl = `${siteUrl}/${page.value.slug || ''}`;
-  const schemas: any[] = [];
+  const schemas: Record<string, unknown>[] = [];
 
   // WebPage or Article schema
   const isArticle = page.value.pageType === 'post' || page.value.pageType === 'blog';
@@ -205,7 +209,8 @@ const jsonLdSchemas = computed(() => {
         ? JSON.parse(page.value.content)
         : page.value.content;
       const faqItems: { question: string; answer: string }[] = [];
-      function walkFaq(nodes: any[]) {
+      type FaqNode = { type?: string; attrs?: { items?: { question: string; answer: string }[] }; content?: FaqNode[] };
+      const walkFaq = (nodes: FaqNode[]): void => {
         if (!Array.isArray(nodes)) return;
         for (const node of nodes) {
           if (node.type === 'faqBlock' && Array.isArray(node.attrs?.items)) {
@@ -234,7 +239,7 @@ const jsonLdSchemas = computed(() => {
   // BreadcrumbList schema — always injected (at least Home → Page)
   const isHomepage = !page.value.slug || page.value.slug === 'home' || page.value.slug === '/';
   if (!isHomepage) {
-    const breadcrumbItems: any[] = [
+    const breadcrumbItems: Record<string, unknown>[] = [
       { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
     ];
     // If the page has a parentId we'd need the parent's title/slug — we use a best-effort
@@ -330,7 +335,7 @@ function handleEnterEdit() {
   enterEditMode(page.value.id, content);
 }
 
-function handleContentUpdate(newContent: any) {
+function handleContentUpdate(newContent: object | string | null) {
   updateContent(newContent);
 }
 
@@ -338,7 +343,7 @@ function handleBlockSelect(path: number[]) {
   selectBlock(path);
 }
 
-function handleAttrUpdate(key: string, value: any) {
+function handleAttrUpdate(key: string, value: unknown) {
   if (selectedBlockPath.value.length) {
     updateBlockAttrs(selectedBlockPath.value, key, value);
   }
@@ -369,7 +374,7 @@ function handlePickWidget(type: string) {
   if (!def) { closePicker(); return; }
 
   // Build new node with all defaults
-  const newNode: any = { type, attrs: { ...def.defaults } };
+  const newNode = { type, attrs: { ...def.defaults } };
 
   // Compute insertion index
   // position='before' → insert at path[0]
@@ -388,7 +393,6 @@ function handlePickWidget(type: string) {
 }
 
 // Password gate (continued — unlockedPage declared earlier)
-const requiresPassword = computed(() => page.value?.requiresPassword === true && !unlockedPage.value);
 const passwordInput = ref('');
 const passwordError = ref('');
 const passwordLoading = ref(false);
@@ -406,8 +410,8 @@ async function fetchWithToken(token: string) {
   const config = useRuntimeConfig();
   const baseURL = config.public.apiBase as string;
   try {
-    const res = await $fetch<{ success: boolean; data: any }>(`${baseURL}/pages/${slug.value}`, {
-      headers: { 'x-page-password': token },
+    const res = await $fetch<{ success: boolean; data: PageContent }>(`${baseURL}/pages/${slug.value}`, {
+      query: { password_token: token },
     });
     if (res?.data && !res.data.requiresPassword) {
       unlockedPage.value = res.data;

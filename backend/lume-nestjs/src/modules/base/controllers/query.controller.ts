@@ -11,7 +11,7 @@ export interface QueryRequest {
   select?: string[];
 }
 
-@Controller('api/query')
+@Controller(['query', 'api/query'])
 export class QueryController {
   constructor(private queryBuilder: QueryBuilderService) {}
 

@@ -5,7 +5,7 @@ import { Permissions } from '@core/decorators';
 import { EntityService } from '../services/entity.service';
 import { CreateEntityDto, UpdateEntityDto, CreateFieldDto, UpdateFieldDto, CreateViewDto } from '../dtos';
 
-@Controller('api/entities')
+@Controller(['entities', 'base/entities', 'api/entities'])
 export class EntityController {
   constructor(private entityService: EntityService) {}
 

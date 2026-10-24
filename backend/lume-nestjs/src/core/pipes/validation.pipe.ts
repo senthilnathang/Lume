@@ -13,7 +13,11 @@ export class ValidatePipe implements PipeTransform {
       return value;
     }
 
-    const object = plainToInstance(metadata.metatype, value);
+    // Only DTO classes carry validator metadata. Optional primitives and plain
+    // query objects must reach their controller/parameter pipes unchanged.
+    if ([String, Number, Boolean, Array, Object].some(type => metadata.metatype === type)) return value;
+
+    const object = plainToInstance(metadata.metatype, value ?? {});
     const errors = await validate(object);
 
     if (errors.length > 0) {

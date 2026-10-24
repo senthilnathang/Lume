@@ -21,7 +21,7 @@ import {
 import { Public, Permissions } from '@core/decorators';
 import { ParseIntPipe } from '@nestjs/common';
 
-@Controller('api/team')
+@Controller(['team', 'api/team'])
 export class TeamController {
   constructor(private teamService: TeamService) {}
 

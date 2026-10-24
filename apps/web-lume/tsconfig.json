@@ -3,8 +3,13 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "skipLibCheck": true,
+    "allowJs": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -17,11 +22,210 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@modules/*": ["../../backend/src/modules/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@modules/*": [
+        "../../packages/@lume/module-ui/src/modules/*"
+      ],
+      "file-saver": [
+        "./node_modules/@types/file-saver"
+      ],
+      "@ant-design/icons-vue": [
+        "./node_modules/@ant-design/icons-vue"
+      ],
+      "@ant-design/icons-vue/*": [
+        "./node_modules/@ant-design/icons-vue/*"
+      ],
+      "@tiptap/core": [
+        "./node_modules/@tiptap/core"
+      ],
+      "@tiptap/core/*": [
+        "./node_modules/@tiptap/core/*"
+      ],
+      "@tiptap/extension-color": [
+        "./node_modules/@tiptap/extension-color"
+      ],
+      "@tiptap/extension-color/*": [
+        "./node_modules/@tiptap/extension-color/*"
+      ],
+      "@tiptap/extension-dropcursor": [
+        "./node_modules/@tiptap/extension-dropcursor"
+      ],
+      "@tiptap/extension-dropcursor/*": [
+        "./node_modules/@tiptap/extension-dropcursor/*"
+      ],
+      "@tiptap/extension-gapcursor": [
+        "./node_modules/@tiptap/extension-gapcursor"
+      ],
+      "@tiptap/extension-gapcursor/*": [
+        "./node_modules/@tiptap/extension-gapcursor/*"
+      ],
+      "@tiptap/extension-highlight": [
+        "./node_modules/@tiptap/extension-highlight"
+      ],
+      "@tiptap/extension-highlight/*": [
+        "./node_modules/@tiptap/extension-highlight/*"
+      ],
+      "@tiptap/extension-image": [
+        "./node_modules/@tiptap/extension-image"
+      ],
+      "@tiptap/extension-image/*": [
+        "./node_modules/@tiptap/extension-image/*"
+      ],
+      "@tiptap/extension-link": [
+        "./node_modules/@tiptap/extension-link"
+      ],
+      "@tiptap/extension-link/*": [
+        "./node_modules/@tiptap/extension-link/*"
+      ],
+      "@tiptap/extension-placeholder": [
+        "./node_modules/@tiptap/extension-placeholder"
+      ],
+      "@tiptap/extension-placeholder/*": [
+        "./node_modules/@tiptap/extension-placeholder/*"
+      ],
+      "@tiptap/extension-table": [
+        "./node_modules/@tiptap/extension-table"
+      ],
+      "@tiptap/extension-table/*": [
+        "./node_modules/@tiptap/extension-table/*"
+      ],
+      "@tiptap/extension-table-cell": [
+        "./node_modules/@tiptap/extension-table-cell"
+      ],
+      "@tiptap/extension-table-cell/*": [
+        "./node_modules/@tiptap/extension-table-cell/*"
+      ],
+      "@tiptap/extension-table-header": [
+        "./node_modules/@tiptap/extension-table-header"
+      ],
+      "@tiptap/extension-table-header/*": [
+        "./node_modules/@tiptap/extension-table-header/*"
+      ],
+      "@tiptap/extension-table-row": [
+        "./node_modules/@tiptap/extension-table-row"
+      ],
+      "@tiptap/extension-table-row/*": [
+        "./node_modules/@tiptap/extension-table-row/*"
+      ],
+      "@tiptap/extension-text-align": [
+        "./node_modules/@tiptap/extension-text-align"
+      ],
+      "@tiptap/extension-text-align/*": [
+        "./node_modules/@tiptap/extension-text-align/*"
+      ],
+      "@tiptap/extension-text-style": [
+        "./node_modules/@tiptap/extension-text-style"
+      ],
+      "@tiptap/extension-text-style/*": [
+        "./node_modules/@tiptap/extension-text-style/*"
+      ],
+      "@tiptap/extension-underline": [
+        "./node_modules/@tiptap/extension-underline"
+      ],
+      "@tiptap/extension-underline/*": [
+        "./node_modules/@tiptap/extension-underline/*"
+      ],
+      "@tiptap/pm": [
+        "./node_modules/@tiptap/pm"
+      ],
+      "@tiptap/pm/*": [
+        "./node_modules/@tiptap/pm/*"
+      ],
+      "@tiptap/starter-kit": [
+        "./node_modules/@tiptap/starter-kit"
+      ],
+      "@tiptap/starter-kit/*": [
+        "./node_modules/@tiptap/starter-kit/*"
+      ],
+      "@tiptap/suggestion": [
+        "./node_modules/@tiptap/suggestion"
+      ],
+      "@tiptap/suggestion/*": [
+        "./node_modules/@tiptap/suggestion/*"
+      ],
+      "@tiptap/vue-3": [
+        "./node_modules/@tiptap/vue-3"
+      ],
+      "@tiptap/vue-3/*": [
+        "./node_modules/@tiptap/vue-3/*"
+      ],
+      "ant-design-vue": [
+        "./node_modules/ant-design-vue"
+      ],
+      "ant-design-vue/*": [
+        "./node_modules/ant-design-vue/*"
+      ],
+      "axios": [
+        "./node_modules/axios"
+      ],
+      "axios/*": [
+        "./node_modules/axios/*"
+      ],
+      "dayjs": [
+        "./node_modules/dayjs"
+      ],
+      "dayjs/*": [
+        "./node_modules/dayjs/*"
+      ],
+      "echarts": [
+        "./node_modules/echarts"
+      ],
+      "echarts/*": [
+        "./node_modules/echarts/*"
+      ],
+      "lottie-web": [
+        "./node_modules/lottie-web"
+      ],
+      "lottie-web/*": [
+        "./node_modules/lottie-web/*"
+      ],
+      "lucide-vue-next": [
+        "./node_modules/lucide-vue-next"
+      ],
+      "lucide-vue-next/*": [
+        "./node_modules/lucide-vue-next/*"
+      ],
+      "vue": [
+        "./node_modules/vue"
+      ],
+      "vue/*": [
+        "./node_modules/vue/*"
+      ],
+      "vue-echarts": [
+        "./node_modules/vue-echarts"
+      ],
+      "vue-echarts/*": [
+        "./node_modules/vue-echarts/*"
+      ],
+      "vue-router": [
+        "./node_modules/vue-router"
+      ],
+      "vue-router/*": [
+        "./node_modules/vue-router/*"
+      ],
+      "vuedraggable": [
+        "./node_modules/vuedraggable"
+      ],
+      "vuedraggable/*": [
+        "./node_modules/vuedraggable/*"
+      ]
     },
-    "types": ["vite/client", "node"]
+    "types": [
+      "vite/client",
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "../../backend/src/modules/**/static/**/*.vue"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "../../packages/@lume/module-ui/src/modules/**/static/**/*.vue"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

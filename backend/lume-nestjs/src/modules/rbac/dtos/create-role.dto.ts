@@ -10,6 +10,7 @@ export class CreateRoleDto {
   description?: string;
 
   @IsArray()
+  @IsString({ each: true })
   @IsOptional()
   permissions?: string[];
 

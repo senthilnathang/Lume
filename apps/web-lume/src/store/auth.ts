@@ -6,13 +6,14 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { post, get, del } from '@/api/request';
+import { post, get } from '@/api/request';
 
 interface UserInfo {
   id: number;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
+  name?: string;
   role: string | { name: string };
   role_id?: number;
   avatar?: string;
@@ -24,7 +25,7 @@ interface LoginParams {
 }
 
 interface LoginResponse {
-  token: string;
+  accessToken: string;
   refreshToken?: string;
   user: UserInfo;
 }
@@ -42,8 +43,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value);
   
   const userName = computed(() => {
-    if (userInfo.value?.first_name || userInfo.value?.last_name) {
-      return `${userInfo.value.first_name} ${userInfo.value.last_name}`.trim();
+    if (userInfo.value?.firstName || userInfo.value?.lastName) {
+      return `${userInfo.value.firstName} ${userInfo.value.lastName}`.trim();
     }
     return userInfo.value?.email?.split('@')[0] || 'User';
   });
@@ -66,7 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   });
 
-  const tokenRole = computed(() => String(tokenClaims.value.role || tokenClaims.value.roleName || ''));
+  const tokenRole = computed(() => String(tokenClaims.value.role || tokenClaims.value.roleName || tokenClaims.value.role_name || ''));
   const tokenRoleId = computed(() => Number(tokenClaims.value.role_id ?? tokenClaims.value.roleId ?? 0));
 
   const isAdmin = computed(() => {
@@ -79,14 +80,15 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(params: LoginParams): Promise<boolean> {
     loading.value = true;
     try {
-      const response = await post<LoginResponse>('/users/login', params);
+      const response = await post<LoginResponse>('/auth/login', params);
       
       if (response) {
-        token.value = response.token;
+        token.value = response.accessToken;
         refreshToken.value = response.refreshToken || null;
         userInfo.value = response.user;
         
-        localStorage.setItem('token', response.token);
+        localStorage.setItem('token', response.accessToken);
+        localStorage.setItem('userInfo', JSON.stringify(response.user));
         if (response.refreshToken) {
           localStorage.setItem('refreshToken', response.refreshToken);
         }
@@ -102,18 +104,22 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function logout(): Promise<void> {
-    try {
-      await del('/users/logout');
-    } catch {
-      // Ignore logout errors
-    } finally {
+  function clearSession() {
       token.value = null;
       refreshToken.value = null;
       userInfo.value = null;
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('userInfo');
+  }
+
+  async function logout(): Promise<void> {
+    try {
+      await post('/auth/logout');
+    } catch {
+      // Ignore logout errors
+    } finally {
+      clearSession();
       router.push('/login');
     }
   }
@@ -122,10 +128,10 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return false;
     
     try {
-      const response = await get<{ user: UserInfo }>('/users/me');
+      const response = await get<UserInfo>('/auth/me');
       if (response) {
-        userInfo.value = response.user;
-        localStorage.setItem('userInfo', JSON.stringify(response.user));
+        userInfo.value = response;
+        localStorage.setItem('userInfo', JSON.stringify(response));
         return true;
       }
       return false;
@@ -139,17 +145,17 @@ export const useAuthStore = defineStore('auth', () => {
     if (!refreshToken.value) return false;
     
     try {
-      const response = await post<{ token: string; refreshToken?: string }>('/auth/refresh-token', {
-        refresh_token: refreshToken.value,
+      const response = await post<{ accessToken: string; refreshToken?: string }>('/auth/refresh', {
+        refreshToken: refreshToken.value,
       });
       
-      if (response?.token) {
-        token.value = response.token;
+      if (response?.accessToken) {
+        token.value = response.accessToken;
         if (response.refreshToken) {
           refreshToken.value = response.refreshToken;
           localStorage.setItem('refreshToken', response.refreshToken);
         }
-        localStorage.setItem('token', response.token);
+        localStorage.setItem('token', response.accessToken);
         return true;
       }
       return false;
@@ -187,6 +193,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Actions
     login,
     logout,
+    clearSession,
     getUserInfo,
     doRefreshToken,
     initializeAuth,

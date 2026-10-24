@@ -1,17 +1,20 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './tests',
-  fullyParallel: true,
+  testDir: './e2e',
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
+  // Shared development hosts can spend over a minute compiling the first login.
+  timeout: 120000,
+  expect: { timeout: 15000 },
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['list']
   ],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://127.0.0.1:3001',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -38,8 +41,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
+    command: 'npm run dev -- --host 127.0.0.1 --strictPort',
+    env: { VITE_API_URL: process.env.LUME_E2E_API_URL || 'http://127.0.0.1:3012/api/v2' },
+    url: 'http://127.0.0.1:3001',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

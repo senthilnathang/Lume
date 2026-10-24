@@ -1,3 +1,10 @@
+> **Historical/reference document — status updated 2026-10-24.**
+> Earlier architecture, commands, estimates and completion claims below are not
+> current migration certification. Use the [active task list](../nestjs-migration-tasks.txt) and
+> [developer guide](../DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
+> remaining feature parity and final deployment are still pending. Shared UI is
+> now in `packages/@lume/module-ui`; the API remains at `backend/lume-nestjs`.
+
 # Lume Enterprise Parity Roadmap — TwentyHQ / Huly / ServiceNow / Salesforce
 
 **Created:** 2026-09-03 | **Completed:** 2026-09-04 — all P0/P1/P2 items done (only HSTS-preload review noted as future work)

@@ -1,3 +1,34 @@
+# Unreleased — NestJS migration and shared UI cleanup (2026-10-24)
+
+This update is not a completed migration or a deployment announcement.
+
+- Moved 375 shared UI files from 21 modules into `packages/@lume/module-ui`,
+  preserving temporary compatibility symlinks and updating both client toolchains.
+- Routed normal backend workspace commands to NestJS; retained explicit legacy commands.
+- Migrated auth/account/users, module catalog, groups/settings, automation definitions,
+  approval inbox/history and associated frontend contracts.
+- Added guarded, transactional sequence operations and consistent MySQL JSON decoding.
+- Added contract, access-control, persistence and concurrency regression cases.
+- Updated architecture, development, installation, API, testing and roadmap documentation;
+  older completion claims are marked historical.
+
+Validation: client suites passed 80 admin and 6 website tests; both builds/types
+passed. The final pre-commit backend run passed 79 suites / 809 tests in one run.
+Sequence follow-up also passed 10 targeted tests before that full run.
+Full AppModule startup, HTTP health and GraphQL were verified on isolated data.
+
+Remaining release work includes required API parity, data reconciliation, fresh-install
+verification, CI/deployment updates, canonical folder cutover and Express retirement.
+External integrations remain disabled. See [the task list](nestjs-migration-tasks.txt).
+
+---
+
+> **Migration reference notice — 2026-10-24.** This document contains historical
+> implementation details or plans. Use [current architecture](ARCHITECTURE.md),
+> [development instructions](DEVELOPMENT.md), and the [migration tracker](nestjs-migration-tasks.txt)
+> for current paths, commands and completion status. NestJS parity and final deployment
+> remain incomplete; old Express setup and completion claims are not current guidance.
+
 # Lume Framework v2.0.0 Release Notes
 
 **Release Date:** 2026-04-22  

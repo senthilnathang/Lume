@@ -228,6 +228,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@modules/base_automation/static/views/workflows.vue'),
         meta: { title: 'Workflow Management', requiresAuth: true, module: 'base', permission: 'admin.workflows' },
       },
+      {
+        path: 'admin/approval-requests',
+        name: 'approval-requests',
+        component: () => import('@modules/base_automation/static/views/approval-requests.vue'),
+        meta: { title: 'Approval Requests', requiresAuth: true, module: 'base_automation', permission: 'base_automation.approvals' },
+      },
     ],
   },
 

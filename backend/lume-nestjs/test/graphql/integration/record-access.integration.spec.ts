@@ -40,9 +40,13 @@ describe('Record endpoint rule enforcement (real MySQL and HTTP)', () => {
     await h.prisma.recordRule.deleteMany();
     await rule('read',{name:'Record 1'},{groups:'[3]'});
     await h.prisma.user.update({where:{id:2},data:{role_id:3}});
-    // Keep the stale JWT's admin bypass only for route RBAC; row-rule identity must still come from storage.
+    // A stale admin claim must not bypass the user's current route permissions.
     const { JwtService } = await import('@nestjs/jwt');
     const token = new JwtService({secret:process.env.JWT_SECRET}).sign({sub:2,role_id:2,role_name:'admin',email:'member@test.local',company_id:1});
+    const denied = await h.query('{ entityRecords(entityId:1) { total } }',token);
+    expect(denied.body.errors[0].extensions.code).toBe('FORBIDDEN');
+    const permission = await h.prisma.permission.findUniqueOrThrow({ where: { name: 'base.entity_records.read' } });
+    await h.prisma.rolePermission.create({ data: { roleId: 3, permissionId: permission.id } });
     const restricted = await h.query('{ entityRecords(entityId:1) { total } }',token);
     expect(restricted.body.errors).toBeUndefined();
     expect(restricted.body.data.entityRecords.total).toBe(1);

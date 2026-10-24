@@ -5,8 +5,14 @@
 
 import axios, { type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/auth';
+import { API_BASE_URL, apiUrl } from './url';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
+  const authStore = useAuthStore();
+  const headers = new Headers(options.headers);
+  if (authStore.token) headers.set('Authorization', `Bearer ${authStore.token}`);
+  return fetch(apiUrl(path), { ...options, headers });
+}
 
 // Create axios instance
 const request = axios.create({
@@ -62,20 +68,21 @@ request.interceptors.response.use(
         case 401: {
           const failedUrl = String(error.config?.url || '');
           const authStore = useAuthStore();
-          if (failedUrl.includes('refresh-token') || failedUrl.includes('/login')) {
-            authStore.logout();
+          if (failedUrl.includes('/auth/refresh') || failedUrl.includes('/login')) {
+            authStore.clearSession();
             if (!window.location.pathname.startsWith('/login')) {
               window.location.href = '/login';
             }
             break;
           }
-          if (authStore.refreshToken) {
+          if (authStore.refreshToken && !error.config._retried) {
+            error.config._retried = true;
             const refreshed = await authStore.doRefreshToken();
             if (refreshed) {
               return request(error.config);
             }
           }
-          authStore.logout();
+          authStore.clearSession();
           if (!window.location.pathname.startsWith('/login')) {
             window.location.href = '/login';
           }
@@ -109,7 +116,9 @@ export function get<T = any>(
   params?: Record<string, any>,
   config?: AxiosRequestConfig
 ): Promise<T> {
-  return request.get(url, { params, ...config });
+  const query = params && Object.keys(params).length === 1 && params.params
+    ? params.params : params;
+  return request.get(url, { params: query, ...config });
 }
 
 /**

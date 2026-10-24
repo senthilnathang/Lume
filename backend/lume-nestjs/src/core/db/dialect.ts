@@ -10,7 +10,6 @@ export const {
   text,
   boolean,
   timestamp,
-  json,
   bigint,
   smallint,
   decimal,
@@ -20,6 +19,15 @@ export const {
   serial,
   char,
 } = mysqlCore;
+
+// Existing Lume tables store JSON in LONGTEXT as well as native JSON columns.
+// mysql2 parses native JSON, but returns LONGTEXT unchanged. Decode text at the
+// persistence boundary so every transport receives the same arrays/objects.
+export const json = mysqlCore.customType<{ data: any; driverData: any }>({
+  dataType: () => 'json',
+  toDriver: value => JSON.stringify(value),
+  fromDriver: value => typeof value === 'string' ? JSON.parse(value) : value,
+});
 
 // Portable aliases backed by actual MySQL column builders.
 export const integer = mysqlCore.int;

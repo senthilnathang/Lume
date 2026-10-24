@@ -1,0 +1,107 @@
+NestJS migration and backend cleanup — execution tracker
+Started: 2026-10-23
+Status: IN PROGRESS. This file supersedes historical completion claims and plans.
+
+Objective
+Complete the standalone Express application's migration to NestJS, preserve
+required behavior and data, remove legacy runtime dependencies, and leave a
+documented backend layout with reproducible tests and deployment commands.
+External integrations remain disabled. Existing uncommitted work is preserved.
+NestJS's @nestjs/platform-express HTTP adapter is not the legacy application.
+
+Target ownership and folder structure
+  backend/api/                 NestJS application (move at final deployment cutover)
+    src/core/                  shared infrastructure and cross-cutting services
+    src/modules/<feature>/     module, controllers, DTOs, services, persistence
+    src/graphql/               GraphQL transport adapters
+    prisma/                    canonical Prisma schema and generation
+    migrations/                ordered SQL migrations and runner
+    test/{unit,integration}/   backend regression tests
+    scripts/                   backend maintenance and verification
+    deploy/                    deployment templates
+  packages/@lume/module-ui/    shared frontend modules; no backend runtime code
+  apps/web-lume/               Vue administration client
+  apps/riagri-website/         Nuxt public website
+  docs/                       architecture, migration evidence and operations
+
+The running service currently uses backend/lume-nestjs. Keep this location until
+deployment references and rollback are prepared. Legacy source is retained until
+required behavior, scaffolding and data-import paths have replacements.
+
+Tasks and acceptance criteria
+[x] M01 Inspect current workspace, old plans, runtime references and frontend imports.
+[x] M02 Separate shared UI from backend/src/modules; update aliases, compilation,
+        audit tooling and workspace metadata. Build both clients afterward.
+[x] M03 Make root dev/build/test commands target NestJS; retain explicit legacy
+        commands only for migration comparison. Check lockfile/install behavior.
+[ ] M04 Classify all unmatched API calls by actual routed consumer and capability.
+        Track computed paths and matching-but-incompatible payloads separately.
+[ ] M05 Finish automation: state-machine execution/transition/validation, business
+        rule editor, scheduled actions, flow execution, JSON response consistency.
+[ ] M06 Finish approval delegation/escalation/analytics and callback contracts;
+        preserve tenant, participant, record-access and stale-decision protection.
+[ ] M07 Finish import/export/backups and schema customization contracts, with
+        persistence and error-path tests; avoid placeholder success responses.
+[ ] M08 Finish security/model-access, global search and notification consumers.
+[ ] M09 Finish donations/campaigns, media upload, editor and website utility APIs.
+[ ] M10 Migrate Flowgrid/Agentgrid required behavior and module scaffolding.
+[ ] M11 Audit all Nest controllers/resolvers for stubs, registration, authorization,
+        validation, response shapes, transaction behavior and provider-off behavior.
+[ ] M12 Reconcile Express/Nest persistence and write repeatable legacy data import
+        with dry-run verification and backup/restore checks where schemas differ.
+[ ] M13 Consolidate backend configuration, database ownership, imports, tests and
+        documentation. Remove dead code only after references are accounted for.
+[ ] M14 Update CI, Docker, process manager, bootstrap scripts and root docs to use
+        the canonical NestJS application; remove accidental Express startup paths.
+[ ] M15 Run one complete backend suite plus both frontend suites/builds/types;
+        verify critical browser workflows and provider-disabled startup.
+[ ] M16 Prepare and execute canonical folder/service cutover with database backup,
+        health checks and tested rollback. Verify deployed frontends use NestJS only.
+[ ] M17 Retire standalone Express runtime/dependencies, compatibility links and
+        obsolete scaffolding after passing cutover; verify clean install/build again.
+[ ] M18 Publish final architecture, commands, verification evidence and any explicitly
+        accepted exclusions. Do not mark migration complete while required tasks remain.
+
+Existing verified work
+NestJS runtime, auth/session/RBAC, users, module catalog, menu/group/record-rule/
+sequence contracts, automation definition CRUD and approval definitions/inbox have
+been implemented in earlier batches. Detailed evidence and remaining limitations:
+docs/frontend-nestjs-migration-2026-10-23.txt.
+The source audit currently flags 74 calls; this is not a count of confirmed bugs.
+Latest frontend/backend migration edits are prepared for Git publication but are
+not yet deployed. Consult Git history for the published revision.
+
+2026-10-24 execution evidence
+- M02: extracted 375 files from 21 modules into @lume/module-ui; verified SHA-256
+  content equality for every moved file; compatibility symlinks retain legacy paths.
+  Both client builds/types passed; admin 80 tests and website 6 tests passed.
+  Updated Vite/Vitest/TypeScript/Nuxt/Tailwind paths and source-audit tooling.
+  Turbo cache inputs now include shared UI and normal package/config inputs.
+- M03: backend workspace commands delegate to the npm-locked NestJS package;
+  former commands are explicit legacy:* commands. Gateway build passed. Added
+  setup command and backend/STRUCTURE.txt. Offline lockfile-only verification passed.
+  This does not certify a fresh production installation or retire Express dependencies.
+- M04/M11: docs/backend-migration-inventory.json records 652 legacy route/mount
+  declarations and 106 Nest implementation markers for review. These are evidence
+  candidates, not confirmed defects or proof that matching routes are compatible.
+- M05/M11: shared Drizzle JSON columns now decode text-backed JSON consistently.
+  Eight targeted tests passed, including real MySQL workflow/flow/approval round trips.
+  Full backend run passed: 78 suites, 809 tests, in one uninterrupted run.
+  Remaining feature tasks stay open; passing tests do not certify missing handlers.
+- M11: replaced GraphQL sequence placeholders with permission-guarded real CRUD
+  and transactional allocation. nextSequenceValue is now a mutation (allocation
+  must not be a cacheable query). Create accepts an explicit code, defaulting to
+  name for compatible callers; unsupported custom formats fail explicitly.
+  Counter updates cannot move backwards. Ten focused/unit/MySQL tests passed,
+  including concurrent allocations and unauthorized access. This follow-up was
+  made after the 809-test full run above.
+  Final backend build and complete AppModule startup, HTTP health, and GraphQL
+  checks passed on the isolated database with delivery workers disabled.
+  The refreshed inventory contains 100 remaining Nest implementation markers.
+  Turbo dry-run confirms lume-backend#build delegates to NestJS and caches its
+  actual nested dist output. No production process restart or deployment occurred.
+
+2026-10-24 publication verification
+- Final backend full run including sequence follow-up: 79 suites / 809 tests passed.
+- Current documentation, developer guidance, acceptance cases and roadmap reconciled.
+- Git publication does not deploy these changes or complete the outstanding migration.

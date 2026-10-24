@@ -19,7 +19,7 @@ import {
 } from '../dtos';
 import { Public, Permissions, CurrentUser } from '@core/decorators';
 
-@Controller('api/media')
+@Controller(['media', 'api/media'])
 export class MediaController {
   constructor(private mediaService: MediaService) {}
 

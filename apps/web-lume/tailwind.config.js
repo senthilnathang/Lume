@@ -6,6 +6,6 @@ export default {
   content: [
     './index.html',
     './src/**/*.{vue,js,ts,jsx,tsx}',
-    '../../backend/src/modules/**/static/**/*.{vue,js,ts,jsx,tsx}',
+    '../../packages/@lume/module-ui/src/modules/**/static/**/*.{vue,js,ts,jsx,tsx}',
   ],
 }

@@ -20,7 +20,7 @@ import {
 } from '../dtos';
 import { Public, Permissions } from '@core/decorators';
 
-@Controller('api/messages')
+@Controller(['messages', 'api/messages'])
 export class MessagesController {
   constructor(private messagesService: MessagesService) {}
 

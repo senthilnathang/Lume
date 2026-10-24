@@ -1,483 +1,75 @@
-# Lume Framework — Testing Guide
+# Testing and verification
 
-## Overview
+Updated 2026-10-24. Test results certify the exercised behavior, not unfinished
+handlers. See [acceptance cases](UAT_TEST_CASES.md) and
+[the migration tracker](nestjs-migration-tasks.txt).
 
-Lume uses Jest with ESM support for backend unit testing and Vitest + Playwright for frontend testing.
-
-| Component | Framework | Location |
-|-----------|-----------|----------|
-| Backend unit tests | Jest (ESM) | `backend/tests/unit/` |
-| Frontend unit tests | Vitest | `apps/web-lume/` |
-| E2E tests | Playwright | `apps/web-lume/` |
-
----
-
-## Backend Testing (Jest)
-
-### Running Tests
+## Commands
 
 ```bash
-cd backend
-
-# Pre-commit / pre-tag aggregator (lint+typecheck+smoke+unit)
-npm run check
-
-# Run all tests
-npm test
-
-# Run specific test file
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/unit/module-loader.test.js
-
-# Run with coverage
-npm run test:coverage
-
-# Watch mode
-NODE_OPTIONS='--experimental-vm-modules' npx jest --watch
-
-# Run tests matching a pattern
-NODE_OPTIONS='--experimental-vm-modules' npx jest --testPathPattern="editor"
+npm --prefix backend/lume-nestjs test -- --runInBand --forceExit
+pnpm --filter @lume/web-lume test run --maxWorkers=1
+pnpm --filter @lume/riagri-website test run --maxWorkers=1
+pnpm --filter lume-backend build
+pnpm --filter @lume/web-lume build
+pnpm --filter @lume/riagri-website build
+pnpm --filter @lume/web-lume typecheck
+pnpm --filter @lume/riagri-website typecheck
 ```
 
-**Lint and typecheck** run as a **ratchet hard-gate** in CI (`.github/workflows/code-quality.yml`). The workflow fails if lint problems exceed `LUME_LINT_BUDGET` (currently 95) or if TS errors exceed `LUME_TS_BUDGET` (currently 0). Cleanup PRs must lower the budget in the same commit. Cleanup roadmap and current counts live in [`docs/CODE_QUALITY.md`](CODE_QUALITY.md).
+Backend tests live under `backend/lume-nestjs/test`, including GraphQL/HTTP integration
+fixtures. `backend/tests` contains legacy Express tests. The backend workspace
+`test` command delegates to NestJS, but direct npm commands above simplify passing
+Jest arguments through the task gateway.
 
-### Test Suites
+## Database isolation
 
-| Suite | File | Tests | Description |
-|-------|------|-------|-------------|
-| Utils | `utils.test.js` | ~60 | Password hashing, JWT, date formatting, string utils |
-| Security Service | `security-service.test.js` | ~25 | Security feature aggregation |
-| Module Loader | `module-loader.test.js` | ~15 | Module discovery, dependency resolution, lifecycle |
-| Manifests | `manifests.test.js` | ~50 | All 23 module manifests validation |
-| Constants | `constants.test.js` | ~20 | HTTP codes, roles, messages constants |
-| Error Handler | `error-handler.test.js` | ~30 | Global error handling middleware |
-| Editor Service | `editor-service.test.js` | ~200 | Block extensions, views, renders, widget manager, Phase 9–18 |
-| Website Service | `website-service.test.js` | ~100 | Manifest, schema tables, services, taxonomy, scheduling, locking |
-| **WebSocket Permission (P2-1)** | `websocket-permission.test.js` | 14 | Per-record permission enforcement; pins tenant isolation policy — see P2-1 in PRE_LAUNCH_IMPROVEMENTS.md |
+The integration harness creates uniquely named disposable MySQL databases, applies
+its test schema and drops only databases it created. Supply
+`GRAPHQL_TEST_DATABASE_URL` (or the configured DATABASE_URL fallback) using private
+local configuration with permissions appropriate for creating disposable databases.
+Do not print or commit credentials. Confirm test isolation before adding destructive
+setup code; never reset the application database for tests.
 
-**Total: 591 tests across 9 suites** (as of P2-1, May 2026).
+## Browser checks
 
-### Entity Parity Suites (Sept 2026)
-
-| Suite | File | Tests | Description |
-|-------|------|-------|-------------|
-| Formula Service | `formula.service.test.js` | 10 | Safe evaluator: arithmetic, refs, strings, IF, helpers, injection rejection |
-| Record Policy | `entity-record-policy.test.js` | 3 | Field-policy strip/drop, formula overwrite, default-allow |
-| Field Types | `entity-field-types.test.js` | 3 | Composite/relational validators (currency/address/fullname/file/signature/lookup) |
-| Relations | `entity-relations.test.js` | 3 | Lookup field creation, target validation, formula persistence |
-| Cascade | `cascade.service.test.js` | 5 | Master-detail soft/hard cascade, cycles, base deleteRecord |
-| Row Policy | `row-policy.test.js` | 6 | Visibility scoping on get/list/update/delete, OWD mirror |
-| OWD Visibility | `owd-visibility.test.js` | 3 | Default merge, explicit-wins, invalid fail-closed |
-| Permission Merge | `permission-merge.test.js` | 3 | Role ∪ grants, inactive-role deny, cache invalidation |
-| Field Validation | `field-validation.test.js` | 7 | Rule engine + unique enforcement on create/update |
-| Refresh Reuse | `refresh-reuse.test.js` | 3 | Rotation, replay revokes family, forged tokens ignored |
-| Model Aliases | `model-alias.test.js` | 2 | Automation model/model_name/entity_type normalization |
-| Field Mask | `field-mask.test.js` | 4 | Tail-preserving mask, rule parsing, mask-on-read, strip fallback |
-| CRUD Gate | `entity-crud-gate.test.js` | 4 | Legacy-allow, scoped deny, wildcard grants, empty input |
-| Record Webhooks | `record-webhooks.test.js` | 1 | CRUD succeeds with dispatch attached |
-| GDPR Workflow | `integration/gdpr-workflow.test.js` | 2 | Export download + erase → login blocked, live DB |
-| Role Hierarchy | `role-hierarchy.test.js` | 4 | Metadata parent links, downward inheritance, inactive exclusion, cache registry |
-| Group Grants | in `permission-merge.test.js` | 5 total | Wildcard matcher, pattern grants, admin markers, group union, no-group default |
-| Field Crypto | `field-crypto.test.js` | 6 | AES-GCM round-trip, tamper fail-closed, ciphertext storage, no double-encrypt |
-| GDPR Erasure | `gdpr.test.js` | 4 | Collect without secrets, unknown users, erase + audit proof |
-| Record Approvals | `record-approvals.test.js` | 1 | Auto-start wiring never breaks CRUD |
-| Analytics Reports | `analytics-reports.test.js` | 4 | Validation, tabular scoping, grouped aggregates, unknown entity |
-| Dashboards | `dashboards.test.js` | 4 | Validation, widget resolution, single default |
-| Import XLSX | `data-import-xlsx.test.js` | 4 | First-sheet parse, headerless, CSV routing, empty rejection |
-| Import Jobs | `import-jobs.test.js` | 4 | Job persistence, partial counters, history, no-store mode |
-| Notify Channels | `notification-channels.test.js` | 4 | In-app log, email isolation, SMS sender, missing number |
-| SMS Gateway | `sms-gateway.test.js` | 5 | Templates, default provider, validation, bulk isolation |
-| Mail Module | `mail-module.test.js` | 8 | Routing, mappings, queue, dedup, locks, error tracking |
-| Doc Search | `document-search.test.js` | 3 | fq parsing, filtered search + facets, facet whitelist |
-| Schema Graph | `schema-graph.test.js` | 5 | PK/FK flags, relationship trees, duplicate scoring |
-| API Scopes | `api-scopes.test.js` | 4 | Legacy pass-through, exact/wildcard scopes, 401s |
-| Scheduler | `scheduler.test.js` | 4 | Invalid cron skip, run tracking, graceful failures |
-| Query Monitor | `query-monitor.test.js` | 4 | Threshold parsing, ALS counting, warn-once |
-| Read Cache | `read-through-cache.test.js` | 4 | TTL, prefix invalidation, eviction, stats |
-| Error Envelope | `error-envelope.test.js` | 3 | requestId/timestamp meta, legacy shape |
-| API Quota | `api-quota.test.js` | 3 | Prefix parsing, bucketing, defaults |
-| TOTP | `totp.service.test.js` | 4 | RFC vectors, secrets, window, backup codes |
-| OAuth | `oauth.service.test.js` | 3 | Provider config, authorize URLs, stubbed flow |
-| Migrate | `migrate.test.js` | 3 | Applied/pending/drift classification |
-| Pack Module | `pack-module.test.js` | 3 | File collection, overwrite guard, dep check |
-| Flow Runner | `flow-runner.test.js` | 4 | Chains, branching, isolation, trigger filter |
-| Record Lifecycle | `record-lifecycle.test.js` | 2 | CRUD round-trip, tenant isolation (shared fakes) |
-| SSO | `sso.service.test.js` | 3 | SP metadata, config gating |
-| Theme | `useLumeTheme.test.ts` (vitest) | 5 | Presets, toggle/persist, clamps, reset |
-| Filter Builder | `FilterBuilder.test.ts` (vitest) | 3 | Empty state, add-emit, number operators |
-
-Run the parity set:
+The administrator Playwright suite reads `LUME_E2E_API_URL`,
+`LUME_TEST_ADMIN_EMAIL`, and `LUME_TEST_ADMIN_PASSWORD`. Provision an isolated API,
+fixtures and account; do not use production data. Tenant-aware approval cases
+require a real tenant claim. Test provider-disabled behavior without enabling
+external deliveries. Browser availability and required system libraries vary by host.
 
 ```bash
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/unit/formula.service.test.js tests/unit/entity-record-policy.test.js tests/unit/entity-field-types.test.js tests/unit/entity-relations.test.js tests/unit/cascade.service.test.js tests/unit/row-policy.test.js tests/unit/owd-visibility.test.js tests/unit/permission-merge.test.js tests/unit/field-validation.test.js tests/unit/refresh-reuse.test.js tests/unit/model-alias.test.js tests/unit/field-mask.test.js tests/unit/entity-crud-gate.test.js tests/unit/record-webhooks.test.js tests/unit/field-crypto.test.js tests/unit/gdpr.test.js tests/unit/record-approvals.test.js tests/unit/analytics-reports.test.js tests/unit/dashboards.test.js tests/unit/data-import-xlsx.test.js tests/unit/import-jobs.test.js tests/unit/notification-channels.test.js tests/unit/sms-gateway.test.js tests/unit/mail-module.test.js tests/unit/document-search.test.js tests/unit/schema-graph.test.js tests/unit/api-scopes.test.js tests/unit/scheduler.test.js tests/unit/query-monitor.test.js tests/unit/read-through-cache.test.js tests/unit/error-envelope.test.js tests/unit/api-quota.test.js tests/unit/totp.service.test.js tests/unit/oauth.service.test.js tests/unit/migrate.test.js tests/unit/pack-module.test.js tests/unit/flow-runner.test.js tests/unit/record-lifecycle.test.js --forceExit
+pnpm --filter @lume/web-lume test:e2e
 ```
 
-Debt burn-down (fixed, with commits): `view-store` (deep-merge update, non-empty
-columns), `entity-builder` (`this`-context crash), `manifests` (grid summaries),
-`entity-store` + `registry` + `runtime` + `runtime-registry` + `bootstrap`
-(registry dialect unification). Remaining pre-existing failures are tracked
-in `docs/roadmap/FRAMEWORK_FEATURES_PLAN.md` burn-down; verify any suspect
-suite against the clean tree before attributing.
-
-### Scaffolder Tests (node:test, no Jest)
-
-```bash
-node --test packages/create-lume-app/test/generate.test.js
-```
-
-### MCP Server Tests (node:test, no Jest)
-
-```bash
-node --test packages/lume-mcp/test/server.test.js
-```
-
-### Frontend Suite (Vitest + jsdom, 32/32 green)
-
-```bash
-cd apps/web-lume
-npx vitest run
-```
-
-The suite was unrunnable until `jsdom` + `@vue/test-utils` were added as
-devDependencies. Fixed alongside it: Header test props (`user`/`menus`
-matching the component API), `useApi` exposing `refreshToken` +
-`getAuthHeaders`, and per-test auth isolation via `clearAuth`.
-
-### Configuration
-
-Jest configuration is in `backend/jest.config.cjs`:
-
-```javascript
-module.exports = {
-  testEnvironment: 'node',
-  roots: ['<rootDir>/tests'],
-  testMatch: ['**/*.test.{js,mjs,cjs}'],
-  moduleFileExtensions: ['js', 'mjs', 'cjs', 'json'],
-  collectCoverageFrom: [
-    'src/**/*.js',
-    '!src/index.js',
-    '!src/scripts/**/*.js',
-  ],
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov'],
-  verbose: true,
-  testTimeout: 30000,
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
-  transform: {},  // ESM — no transforms needed
-};
-```
-
-### ESM Requirements
-
-The backend uses ES modules. Jest requires special configuration:
-
-1. `transform: {}` in `jest.config.cjs` — disables CommonJS transforms
-2. `NODE_OPTIONS='--experimental-vm-modules'` — enables ESM in Jest
-3. Import jest globals explicitly:
-   ```javascript
-   import { jest } from '@jest/globals';
-   ```
-
-### Writing Tests
-
-```javascript
-import { jest } from '@jest/globals';
-import { MyService } from '../../src/modules/my_module/services/my_module.service.js';
-
-describe('MyService', () => {
-  let service;
-  let mockAdapter;
-
-  beforeEach(() => {
-    mockAdapter = {
-      findAll: jest.fn().mockResolvedValue({ rows: [], count: 0 }),
-      findById: jest.fn().mockResolvedValue(null),
-      create: jest.fn().mockResolvedValue({ id: 1, name: 'Test' }),
-      update: jest.fn().mockResolvedValue({ id: 1, name: 'Updated' }),
-      destroy: jest.fn().mockResolvedValue(true),
-      count: jest.fn().mockResolvedValue(0),
-      getFields: jest.fn().mockReturnValue([]),
-    };
-    service = new MyService(mockAdapter);
-  });
-
-  describe('search', () => {
-    test('should pass domain filters to adapter', async () => {
-      const domain = [['status', '=', 'active']];
-      await service.search({ where: domain });
-      expect(mockAdapter.findAll).toHaveBeenCalledWith(
-        expect.objectContaining({ where: domain })
-      );
-    });
-  });
-
-  describe('create', () => {
-    test('should create and return new record', async () => {
-      const result = await service.create({ name: 'Test' });
-      expect(result).toEqual({ id: 1, name: 'Test' });
-      expect(mockAdapter.create).toHaveBeenCalledWith({ name: 'Test' });
-    });
-  });
-});
-```
-
-### Testing Patterns
-
-**Mocking Adapters**: Always mock the adapter layer. Tests should not touch the database.
-
-```javascript
-const mockAdapter = {
-  findAll: jest.fn(),
-  findById: jest.fn(),
-  create: jest.fn(),
-  update: jest.fn(),
-  destroy: jest.fn(),
-};
-```
-
-**Testing Module Manifests**: Validate all modules have required fields.
-
-```javascript
-import fs from 'fs';
-import path from 'path';
-
-const modulesDir = path.join(process.cwd(), 'src/modules');
-const modules = fs.readdirSync(modulesDir).filter(d =>
-  fs.existsSync(path.join(modulesDir, d, '__manifest__.js'))
-);
-
-for (const mod of modules) {
-  test(`${mod} manifest has required fields`, async () => {
-    const manifest = await import(`../../src/modules/${mod}/__manifest__.js`);
-    expect(manifest.default).toHaveProperty('name');
-    expect(manifest.default).toHaveProperty('technicalName');
-    expect(manifest.default).toHaveProperty('depends');
-  });
-}
-```
-
----
-
-## Frontend Testing
-
-### Unit Tests (Vitest)
-
-```bash
-cd apps/web-lume
-npm run test
-```
-
-### E2E Tests (Playwright)
-
-```bash
-cd apps/web-lume
-
-# Install browsers
-npm run test:e2e:install
-
-# Run E2E tests
-npm run test:e2e
-
-# Run with HTML report
-npm run test:e2e:report
-```
-
-### Available Frontend Scripts
-
-```bash
-npm run test              # Vitest unit tests
-npm run test:e2e          # Playwright E2E tests
-npm run test:e2e:report   # Playwright with HTML report
-npm run test:e2e:install  # Install Playwright browsers
-npm run typecheck         # TypeScript type checking
-npm run lint              # ESLint
-npm run lint:fix          # ESLint with auto-fix
-```
-
----
-
-## Coverage
-
-Generate and view coverage reports:
-
-```bash
-cd backend
-npm run test:coverage
-
-# Coverage report is generated in backend/coverage/
-# Open backend/coverage/lcov-report/index.html in a browser
-```
-
-Coverage is collected from all `src/**/*.js` files, excluding entry points and scripts.
-
----
-
-## Integration Testing (Phase 7)
-
-Integration tests verify complete workflows across multiple systems (API, database, authentication, caching).
-
-### Location
-
-```
-backend/tests/integration/
-├── auth-workflow.test.js          # Authentication workflows
-├── website-workflow.test.js        # CMS page and menu management
-└── performance-benchmark.test.js   # Performance SLA validation
-```
-
-### Running Integration Tests
-
-```bash
-cd backend
-
-# Run all integration tests
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration
-
-# Run specific integration test file
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/auth-workflow.test.js
-
-# Run integration tests with timeout extension (60 seconds)
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration --testTimeout=60000
-```
-
-### Integration Test Suites
-
-#### 0. Setup Smoke (`setup-smoke.test.js`) — RUN ON EVERY PR
-
-Cheap (~3-5 sec, 18 cases) contract test that prevents docs from drifting out of sync with the actual code. Wired into CI as a fail-fast gate (`.github/workflows/setup-smoke.yml`).
-
-Covers:
-
-- **Setup scripts exist** — `refreshDb.js`, `createAdmin.js`, `seedData.js`, **`setupDrizzle.js`** (P0-1), and **`ecosystem.config.cjs`** (P2-5)
-- **`createAdmin.js` uses `role_id` + `super_admin`** — guards against regression to the old string-typed `role: 'ADMIN'` schema
-- **Health endpoint contract** — `GET /health` returns 200, `/api/health` is 404, **Cache-Control: `public, max-age=5`** (P2-4)
-- **Login endpoint contract** — `POST /api/users/login` (NOT `/api/auth/login`); returns `data.token` AND `data.accessToken` (the deprecation alias from P1-3)
-- **Perf env-var defaults** — `DB_LOGGING` not `true`, `OTEL_TRACES_SAMPLER_ARG <= 0.5` in non-prod, `LOG_LEVEL` in `info|warn|error`
-- **OpenAPI surface (P2-2)** — `/api/openapi.json` is valid OpenAPI 3.0 with `/health`, `/api/modules`, `/api/users/login` documented and `Cache-Control: public, max-age=60`; `/api/docs/` serves Swagger UI; `LoginResponse` schema documents both `token` and `accessToken`
-- **Module catalogue contract (P2-3)** — `/api/modules` returns array with `actions` + `deps_resolved` per module; installed modules expose `['uninstall', 'upgrade']` actions. Drives the future admin-toggle UI.
-
-```bash
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/setup-smoke.test.js
-# Expect: Tests: 20 passed, 20 total, ~3-5s
-```
-
-When this fails, a contributor following `docs/INSTALLATION.md` will get a broken environment. Block the PR.
-
-#### 1. Authentication Workflow (`auth-workflow.test.js`)
-
-Tests complete user authentication lifecycle:
-
-- **Registration** → Create new user account
-- **Login** → Authenticate and receive JWT + refresh token
-- **Protected Access** → Use token to access secured endpoints
-- **Token Refresh** → Request new token with refresh token
-- **Rate Limiting** → Verify brute-force protection on auth endpoints
-
-```bash
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/auth-workflow.test.js
-```
-
-#### 2. Website Module Workflow (`website-workflow.test.js`)
-
-Tests CMS functionality (Pages, Menus, Settings):
-
-- **Page Creation** → Create new pages with TipTap content
-- **Page Updates** → Modify page content and metadata
-- **List Pagination** → Fetch pages with pagination
-- **Menu Management** → Create and reorder menu items
-- **Public API** → Access content without authentication
-
-```bash
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/website-workflow.test.js
-```
-
-#### 3. Performance Benchmarks (`performance-benchmark.test.js`)
-
-Validates response time SLAs and system performance:
-
-**Response Time SLAs:**
-- Health check: < 50ms
-- Public config: < 100ms
-- List endpoints: < 500ms
-- Single record fetch: < 200ms
-
-**Caching Efficiency:**
-- Cache HIT on subsequent requests
-- Cached responses faster than cache misses
-
-**Throughput:**
-- 50 concurrent health checks: < 2 seconds
-- 20 concurrent login requests: < 5 seconds
-
-**Trace IDs & Error Tracking:**
-- All responses include `X-Trace-ID` header
-- Error counts by type are tracked
-
-```bash
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/performance-benchmark.test.js
-```
-
-### Integration Test Best Practices
-
-✅ **Do:**
-- Test complete workflows end-to-end
-- Use real database (or test database) for data persistence
-- Clean up test data after each test
-- Verify cache headers and metrics
-- Test both success and failure paths
-- Use descriptive test names
-- Include setup/teardown for test isolation
-
-❌ **Don't:**
-- Mock everything (defeats purpose of integration testing)
-- Depend on test execution order
-- Leave test data in database
-- Test third-party libraries
-- Create long-running tests (target < 30s each)
-
-### Test Database Setup
-
-Integration tests use a dedicated test database:
-
-```bash
-# Create test database
-mysql -u root -p -e "CREATE DATABASE lume_test;"
-
-# Set in .env or .env.test
-NODE_ENV=test
-DATABASE_URL="mysql://user:pass@localhost/lume_test"
-```
-
-### Debugging Integration Tests
-
-```bash
-# Run single test with verbose output
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration/auth-workflow.test.js --verbose
-
-# Enable debug logging
-DEBUG=* NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration
-
-# Run in watch mode for iterative development
-NODE_OPTIONS='--experimental-vm-modules' npx jest tests/integration --watch
-```
-
-### CI/CD Integration
-
-Integration tests run on every commit to the `framework` branch:
-
-```yaml
-# Example GitHub Actions workflow
-- name: Run integration tests
-  run: |
-    cd backend
-    NODE_OPTIONS='--experimental-vm-modules' npm run test -- tests/integration
-```
-
-### Performance Regression Prevention
-
-The performance benchmark tests prevent regressions by verifying:
-- Response times don't exceed SLA thresholds
-- Cache hit rates are consistent
-- Error rates remain low
-- System can handle concurrent load
-
-Review performance reports after each test run to catch degradation early.
+## Latest recorded evidence
+
+- Shared UI extraction: admin 80 tests, website 6 tests; both builds/types passed.
+- Final pre-commit backend full run: 79 suites / 809 tests passed, including the sequence follow-up.
+- Sequence follow-up: 10 targeted tests passed, including real MySQL allocation,
+  authorization, persistence and rewind rejection; backend build/startup passed.
+- Approval inbox: 24 HTTP/JWT/MySQL tests and 11 frontend adapter tests passed.
+  Chromium verified approve, reject with reason, and terminal history including actor
+  and timestamp. The installed Firefox/CLI versions were incompatible for this check.
+- Earlier login/navigation browser checks covered five browser projects; that does
+  not establish multi-browser coverage for every newly added feature.
+
+The final full run completed on 2026-10-24; no suites failed.
+Evidence counts overlap and must not be added together as distinct test totals.
+
+## Required regression coverage
+
+Validate both positive and negative paths: role/tenant/record access, session
+revocation, unknown IDs, omitted versus false/empty fields, transaction rollback,
+concurrent decisions/allocations, malformed JSON, and disabled integrations.
+A mock returning the desired response is insufficient for a persistence contract;
+use isolated HTTP/database checks for critical data flows. Replace tests asserting
+placeholder success with tests for real state changes.
+
+## Remaining release gates
+
+Run a fresh-install/build verification, complete required API/data migration,
+verify remaining browser workflows, test backup/restore and cutover rollback,
+and verify the deployed clients contact NestJS only. Source inventory matches and
+passing tests are not substitutes for these gates.

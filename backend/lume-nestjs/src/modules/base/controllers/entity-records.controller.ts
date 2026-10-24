@@ -7,7 +7,7 @@ import { RecordService } from '../services/record.service';
 import { RelationshipService } from '../services/relationship.service';
 import { CreateRecordDto, UpdateRecordDto, LinkRecordsDto } from '../dtos';
 
-@Controller('api/entities/:entityId/records')
+@Controller(['entities/:entityId/records', 'base/entities/:entityId/records', 'api/entities/:entityId/records'])
 export class EntityRecordsController {
   constructor(
     private recordService: RecordService,

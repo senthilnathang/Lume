@@ -14,12 +14,13 @@ import globals from 'globals'
 export default [
   {
     ignores: [
-      'node_modules/**',
-      'dist/**',
-      '.nuxt/**',
-      'build/**',
-      '.next/**',
-      'coverage/**',
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.nuxt/**',
+      '**/.output/**',
+      '**/build/**',
+      '**/.next/**',
+      '**/coverage/**',
       '**/.DS_Store'
     ]
   },

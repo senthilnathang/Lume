@@ -27,7 +27,7 @@ import { Public, Permissions } from '@core/decorators';
  * Provides endpoints for RBAC permission checking primitives
  * Exposes role, permission, and permission assignment operations
  */
-@Controller('api/base-rbac')
+@Controller(['base-rbac', 'api/base-rbac'])
 export class BaseRbacController {
   constructor(
     private baseRbacService: BaseRbacService,

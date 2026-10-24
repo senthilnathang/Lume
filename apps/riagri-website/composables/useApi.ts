@@ -1,6 +1,6 @@
-import type { UseFetchOptions } from 'nuxt/app'
+import { useFetch } from '#app'
 
-export function useApi<T>(path: string, options: UseFetchOptions<T> = {}) {
+export function useApi<T>(path: string, options: Parameters<typeof useFetch<T>>[1] = {}) {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase as string
 
@@ -12,7 +12,7 @@ export function useApi<T>(path: string, options: UseFetchOptions<T> = {}) {
   })
 }
 
-export function useApiLazy<T>(path: string, options: UseFetchOptions<T> = {}) {
+export function useApiLazy<T>(path: string, options: Parameters<typeof useFetch<T>>[1] = {}) {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBase as string
 

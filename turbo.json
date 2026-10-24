@@ -1,7 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": ["NODE_ENV"],
-  "globalDependencies": ["**/package.json"],
+  "globalDependencies": ["**/package.json", "packages/@lume/module-ui/src/**"],
   "tasks": {
     "typecheck": {
       "cache": false,
@@ -18,7 +18,7 @@
     "test": {
       "cache": true,
       "outputs": ["coverage/**", ".nyc_output/**"],
-      "inputs": ["src/**/*.{ts,js,vue}", "tests/**/*.{ts,js}"]
+      "inputs": ["$TURBO_DEFAULT$", "src/**/*.{ts,js,vue}", "tests/**/*.{ts,js}"]
     },
     "test:coverage": {
       "cache": true,
@@ -26,8 +26,8 @@
     },
     "build": {
       "cache": true,
-      "outputs": ["dist/**", ".next/**", ".nuxt/**"],
-      "inputs": ["src/**/*.{ts,js,vue,tsx,jsx}", "public/**/*"]
+      "outputs": ["dist/**", "lume-nestjs/dist/**", ".next/**", ".nuxt/**", ".output/**"],
+      "inputs": ["$TURBO_DEFAULT$", "src/**/*.{ts,js,vue,tsx,jsx}", "public/**/*"]
     },
     "dev": {
       "cache": false,

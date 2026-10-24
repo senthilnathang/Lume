@@ -1,0 +1,450 @@
+{
+  "scope": "Literal calls in admin and shared static views; declarations only, not runtime or payload validation",
+  "controller_route_variants": 1023,
+  "unmatched_calls": [
+    {
+      "file": "apps/web-lume/src/components/CommandPalette.vue",
+      "line": 108,
+      "method": "GET",
+      "path": "/search"
+    },
+    {
+      "file": "apps/web-lume/src/modules/dashboard/views/DashboardView.vue",
+      "line": 141,
+      "method": "GET",
+      "path": "/dashboard/stats"
+    },
+    {
+      "file": "apps/web-lume/src/store/admin.ts",
+      "line": 147,
+      "method": "POST",
+      "path": "/admin/modules/reload"
+    },
+    {
+      "file": "apps/web-lume/src/store/admin.ts",
+      "line": 207,
+      "method": "POST",
+      "path": "/admin/workflows/_parameter_/test"
+    },
+    {
+      "file": "apps/web-lume/src/store/admin.ts",
+      "line": 312,
+      "method": "POST",
+      "path": "/admin/policies/_parameter_/test"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/agentgrid/static/views/grid-list.vue",
+      "line": 89,
+      "method": "GET",
+      "path": "/agentgrid/grids"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/agentgrid/static/views/grid-list.vue",
+      "line": 107,
+      "method": "DELETE",
+      "path": "/agentgrid/grids/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/agentgrid/static/views/grid-list.vue",
+      "line": 118,
+      "method": "PUT",
+      "path": "/agentgrid/grids/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/agentgrid/static/views/grid-list.vue",
+      "line": 121,
+      "method": "POST",
+      "path": "/agentgrid/grids"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base/static/views/activity-timeline.vue",
+      "line": 193,
+      "method": "GET",
+      "path": "/activity-logs"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base/static/views/menus.vue",
+      "line": 70,
+      "method": "GET",
+      "path": "/menus"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 140,
+      "method": "POST",
+      "path": "/base_automation/workflows/validate"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 154,
+      "method": "POST",
+      "path": "/base_automation/workflows/_parameter_/run/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 157,
+      "method": "GET",
+      "path": "/base_automation/workflows/_parameter_/executions/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 160,
+      "method": "POST",
+      "path": "/base_automation/workflows/_parameter_/executions/_parameter_/transition"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 207,
+      "method": "POST",
+      "path": "/base_automation/rules/_parameter_/toggle"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 274,
+      "method": "POST",
+      "path": "/base_automation/approvals/tasks/_parameter_/delegate"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 282,
+      "method": "POST",
+      "path": "/base_automation/approvals/_parameter_/callback"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 289,
+      "method": "POST",
+      "path": "/base_automation/approvals/_parameter_/callback"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 297,
+      "method": "GET",
+      "path": "/base_automation/approvals/escalations/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 301,
+      "method": "GET",
+      "path": "/base_automation/approvals/escalations/task/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 327,
+      "method": "GET",
+      "path": "/base_automation/approvals/analytics/metrics"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 332,
+      "method": "GET",
+      "path": "/base_automation/approvals/analytics/bottlenecks"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 336,
+      "method": "GET",
+      "path": "/base_automation/approvals/analytics/escalations"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 340,
+      "method": "GET",
+      "path": "/base_automation/approvals/analytics/roles/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/views/workflow-execution.vue",
+      "line": 163,
+      "method": "GET",
+      "path": "/base_automation/workflows/_parameter_/executions/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/views/workflow-execution.vue",
+      "line": 190,
+      "method": "POST",
+      "path": "/base_automation/workflows/_parameter_/executions/_parameter_/transition"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_customization/static/api/index.js",
+      "line": 35,
+      "method": "GET",
+      "path": "/base/entities/schema/graph"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_customization/static/api/index.js",
+      "line": 36,
+      "method": "GET",
+      "path": "/base/entities/schema/duplicates"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 89,
+      "method": "GET",
+      "path": "/base_features_data/imports"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 93,
+      "method": "POST",
+      "path": "/base_features_data/imports"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 98,
+      "method": "GET",
+      "path": "/base_features_data/exports"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 102,
+      "method": "POST",
+      "path": "/base_features_data/exports"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 107,
+      "method": "GET",
+      "path": "/base_features_data/backups"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 111,
+      "method": "POST",
+      "path": "/base_features_data/backups"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/views/data-export.vue",
+      "line": 72,
+      "method": "GET",
+      "path": "/base_features_data/export/models"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/views/data-import.vue",
+      "line": 103,
+      "method": "GET",
+      "path": "/base_features_data/import/models"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/views/data-import.vue",
+      "line": 175,
+      "method": "POST",
+      "path": "/base_features_data/import/validate"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/views/data-import.vue",
+      "line": 202,
+      "method": "POST",
+      "path": "/base_features_data/import/execute"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 129,
+      "method": "GET",
+      "path": "/model-access"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 142,
+      "method": "GET",
+      "path": "/content-types"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 151,
+      "method": "GET",
+      "path": "/groups"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 160,
+      "method": "GET",
+      "path": "/modules/installed"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 189,
+      "method": "PUT",
+      "path": "/model-access/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 192,
+      "method": "POST",
+      "path": "/model-access"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 218,
+      "method": "PUT",
+      "path": "/model-access/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/CommandPalette.vue",
+      "line": 125,
+      "method": "GET",
+      "path": "/search"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/DynamicForm.js",
+      "line": 34,
+      "method": "GET",
+      "path": "/base/form-layouts/effective/_parameter_/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/GlobalSearch.js",
+      "line": 141,
+      "method": "GET",
+      "path": "/search/models"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/GlobalSearch.js",
+      "line": 152,
+      "method": "GET",
+      "path": "/search/recent"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/GlobalSearch.js",
+      "line": 176,
+      "method": "GET",
+      "path": "/search"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 128,
+      "method": "GET",
+      "path": "/notifications"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 146,
+      "method": "GET",
+      "path": "/notifications/stats"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 161,
+      "method": "PUT",
+      "path": "/notifications/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 174,
+      "method": "POST",
+      "path": "/notifications/bulk-read"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 188,
+      "method": "DELETE",
+      "path": "/notifications/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 207,
+      "method": "POST",
+      "path": "/notifications/bulk-delete"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/donations/static/api/index.ts",
+      "line": 136,
+      "method": "PUT",
+      "path": "/donations/_parameter_/status"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/donations/static/api/index.ts",
+      "line": 166,
+      "method": "GET",
+      "path": "/donations/campaigns/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/donations/static/api/index.ts",
+      "line": 174,
+      "method": "PUT",
+      "path": "/donations/campaigns/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/donations/static/api/index.ts",
+      "line": 178,
+      "method": "DELETE",
+      "path": "/donations/campaigns/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/components/AiGeneratorModal.vue",
+      "line": 79,
+      "method": "POST",
+      "path": "/website/ai/generate-code"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/components/AiGeneratorModal.vue",
+      "line": 85,
+      "method": "POST",
+      "path": "/website/ai/generate-text"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/components/BlockPalette.vue",
+      "line": 56,
+      "method": "POST",
+      "path": "/editor/snippets/_parameter_/use"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/components/IconPicker.vue",
+      "line": 70,
+      "method": "GET",
+      "path": "/website/icons"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/widgets/renders/LoopCarouselRender.vue",
+      "line": 24,
+      "method": "UNKNOWN",
+      "path": "/website/public/query_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/widgets/renders/LoopGridRender.vue",
+      "line": 21,
+      "method": "UNKNOWN",
+      "path": "/website/public/query_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/flowgrid/static/views/workflow-list.vue",
+      "line": 85,
+      "method": "GET",
+      "path": "/flowgrid/workflows"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/flowgrid/static/views/workflow-list.vue",
+      "line": 101,
+      "method": "DELETE",
+      "path": "/flowgrid/workflows/_parameter_"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/flowgrid/static/views/workflow-list.vue",
+      "line": 117,
+      "method": "POST",
+      "path": "/flowgrid/workflows"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/website/static/api/index.ts",
+      "line": 37,
+      "method": "POST",
+      "path": "/api_parameter_/media/upload"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/website/static/api/index.ts",
+      "line": 42,
+      "method": "POST",
+      "path": "/api_parameter_/media/upload-multiple"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/website/static/components/FontPicker.vue",
+      "line": 51,
+      "method": "GET",
+      "path": "/website/fonts"
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/website/static/components/FontPicker.vue",
+      "line": 63,
+      "method": "GET",
+      "path": "/website/fonts/google-search"
+    }
+  ]
+}

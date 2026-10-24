@@ -4,7 +4,7 @@ import { RbacGuard } from '@core/guards/rbac.guard';
 import { SecurityAuditService } from '../services/security-audit.service';
 import { Permissions } from '@core/decorators';
 
-@Controller('api/security')
+@Controller(['security', 'api/security'])
 export class SecurityAuditController {
   constructor(private service: SecurityAuditService) {}
 

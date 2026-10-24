@@ -24,7 +24,7 @@ import {
 } from '../dtos';
 import { Public, Permissions } from '@core/decorators';
 
-@Controller('api/donations')
+@Controller(['donations', 'api/donations'])
 export class DonationsController {
   constructor(private donationsService: DonationsService) {}
 

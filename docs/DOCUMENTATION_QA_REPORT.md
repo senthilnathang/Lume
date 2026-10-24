@@ -1,3 +1,9 @@
+> **Migration reference notice — 2026-10-24.** This document contains historical
+> implementation details or plans. Use [current architecture](ARCHITECTURE.md),
+> [development instructions](DEVELOPMENT.md), and the [migration tracker](nestjs-migration-tasks.txt)
+> for current paths, commands and completion status. NestJS parity and final deployment
+> remain incomplete; old Express setup and completion claims are not current guidance.
+
 # Lume Framework v2.0 Documentation QA Report
 
 **Date**: 2026-04-27  

@@ -1,376 +1,53 @@
-# Lume Framework — Installation Guide
+# Installation and local setup
 
-## Prerequisites
+Updated 2026-10-24. The NestJS migration is in progress. Use an isolated development
+database; these instructions do not authorize resetting an existing installation.
 
-| Requirement | Minimum Version | Notes |
-|-------------|----------------|-------|
-| Node.js | **20.12+** | Repo's `engines` requires `>=20.12.0`; LTS recommended |
-| MariaDB | **10.11+** | **Project standard** (open-source). What CI + docker-compose run. |
-| MySQL | 8.0+ | Supported alternative; schema is portable as of 2026-05-22 |
-| PostgreSQL | 14+ | Supported via the adapter layer; requires `schema.prisma` provider switch + Drizzle dialect change |
-| pnpm | **10+** | Package manager (monorepo workspaces); `packageManager: pnpm@10.28.2` in root |
-| Git | 2.30+ | For cloning the repository |
+## Requirements
 
-## Quick Start
+- Node.js 20.12 or newer; the repository pins pnpm 10.28.2.
+- MySQL compatible with the active Prisma schema and SQL migrations.
+- Redis only where required by enabled queue/cache features.
+- Git and the platform build tools required by dependencies.
 
-```bash
-# 1. Clone the repository
-git clone <repo-url> && cd lume
-
-# 2. Install backend dependencies
-cd backend && npm install && npx prisma generate
-
-# 3. Initialize the database (clean install — destroys existing data)
-npm run db:setup     # refreshDb → prisma db push → setupDrizzle → createAdmin → seedData
-# Or step-by-step:
-#   node src/scripts/refreshDb.js              # Drop all tables (destructive)
-#   npx prisma db push --accept-data-loss      # Prisma core tables (15)
-#   node src/scripts/setupDrizzle.js           # Drizzle module tables (96 across 18 modules)
-#   node src/scripts/createAdmin.js            # admin@lume.dev / Admin@Lume!1
-#   node src/scripts/seedData.js               # sample content (3 messages + 10 settings)
-
-# 4. Install admin panel dependencies
-cd ../apps/web-lume && npm install
-
-# 5. Install public site dependencies
-cd ../riagri-website && npm install
-
-# 6. Start all development servers (3 terminals)
-# Terminal 1: backend on http://localhost:3000
-cd backend && npm run dev
-
-# Terminal 2: admin panel on http://localhost:5173
-cd apps/web-lume && npm run dev
-
-# Terminal 3: public site on http://localhost:3007
-cd apps/riagri-website && npm run dev
-```
-
-> **Note:** `prisma/seed.js` now delegates to `createAdmin.js` + `seedData.js` (rewritten in P0-2), so `npm run db:seed` works again — but the recommended path is the all-in-one `npm run db:setup` above.
-
----
-
-## Detailed Installation
-
-### 1. Clone the Repository
+## Install dependencies
 
 ```bash
-git clone <repo-url>
-cd lume
+pnpm install --frozen-lockfile
+pnpm --filter lume-backend setup
 ```
 
-### 2. Backend Setup
+The second command runs npm ci using `backend/lume-nestjs/package-lock.json`.
+Do not replace it with the legacy backend's npm install workflow.
+
+## Configure the API
+
+Copy `backend/lume-nestjs/.env.example` to `backend/lume-nestjs/.env` if that file
+is absent. Set private database credentials and a strong JWT secret outside Git.
+Keep external email/push/AI provider values empty. The template disables durable
+workers/events for local setup; enable internal workers only after required schema
+verification. The deployed local service has its own worker settings.
+
+Inspect the active schema, ledger and [migration instructions](../backend/lume-nestjs/migrations/README.md)
+before applying migrations. Existing production databases require backup/restore
+verification. Do not run legacy `db:setup`, refresh scripts or destructive schema
+push commands as a migration shortcut.
+
+## Run the applications
 
 ```bash
-cd backend
-npm install
-npx prisma generate
+pnpm run dev:admin
+pnpm --filter @lume/riagri-website dev
 ```
 
-`npx prisma generate` creates the Prisma client from the schema. This step is required before the backend can connect to the database.
-
-### 3. Admin Panel Setup (Vue 3 SPA)
-
-```bash
-cd apps/web-lume
-npm install
-```
-
-The admin panel is a Vite + Vue 3 + TypeScript application with Ant Design Vue and Tailwind CSS.
-
-### 4. Public Site Setup (Nuxt 3 SSR)
-
-```bash
-cd apps/riagri-website
-npm install
-```
-
-The public site is a Nuxt 3 server-side rendered application that consumes the website module's public API. It uses TipTap's BlockRenderer to display page content built with the visual page builder.
-
-### 5. Environment Configuration
-
-**Backend** — Create `.env` in `backend/`:
-
-```bash
-cp .env.example .env
-```
-
-| Variable | Description | Default / Example |
-|----------|-------------|-------------------|
-| `DATABASE_URL` | Database connection string | `mysql://gawdesy:gawdesy@localhost:3306/lume` |
-| `JWT_SECRET` | Secret key for access tokens | (generate a random string) |
-| `JWT_REFRESH_SECRET` | Secret key for refresh tokens | (generate a random string) |
-| `PORT` | Backend server port | `3000` |
-| `NODE_ENV` | Environment mode | `development` |
-| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:5173` |
-| `SMTP_HOST` | SMTP mail server host | `smtp.example.com` |
-| `SMTP_PORT` | SMTP mail server port | `587` |
-| `SMTP_USER` | SMTP authentication username | `noreply@example.com` |
-| `SMTP_PASSWORD` | SMTP authentication password | (your SMTP password) |
-| `APP_NAME` | Application display name | `Lume` |
-
-**Admin Panel** — Create `.env` in `apps/web-lume/`:
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VITE_API_URL` | API base path (relative for proxy) | `/api` |
-| `VITE_PUBLIC_SITE_URL` | Public site URL for preview iframe | `http://localhost:3007` |
-
-### 6. Database Initialization
-
-The canonical bring-up runs five steps in order. The all-in-one helper does them all:
-
-```bash
-cd backend
-npm run db:setup
-```
-
-Or run them individually:
-
-```bash
-cd backend
-
-# Step 1 (destructive): drop every table in the lume schema.
-# Skip this for incremental schema changes; use only for fresh installs.
-node src/scripts/refreshDb.js
-
-# Step 2: regenerate the Prisma core schema (User, Role, Permission, ...).
-# --accept-data-loss is required because refreshDb already dropped tables.
-npx prisma db push --accept-data-loss
-
-# Step 3: create the 33+ Drizzle module tables that `prisma db push`
-# does NOT create. P0-1 fix; bypasses drizzle-kit's TTY requirement.
-# Idempotent (CREATE TABLE IF NOT EXISTS).
-node src/scripts/setupDrizzle.js
-
-# Step 4: create the super_admin role + admin user.
-# Defaults: admin@lume.dev / Admin@Lume!1 (override via ADMIN_EMAIL / ADMIN_PASSWORD env vars).
-node src/scripts/createAdmin.js
-
-# Step 5: seed sample content (5 activities, 6 team members, 3 messages, 10 settings).
-node src/scripts/seedData.js
-```
-
-**Boot verification:** on startup, the backend runs a table-parity check and either logs `✅ Table parity OK (18 modules, 96 tables checked)` or a grouped warning listing missing tables. Set `LUME_STRICT_TABLE_PARITY=true` to turn the warning into a startup failure for CI/production.
-
-**What gets created:**
-
-- `super_admin` role (system-protected)
-- Admin user account: `admin@lume.dev` / `Admin@Lume!1`
-- 5 activities, 6 team members, 3 messages, 10 settings entries
-- Prisma client regenerated against the live schema
-
-**Modules** are auto-discovered from `backend/src/modules/` on first backend boot — there is no separate "install modules" step. The `installed_modules` table is populated by the module loader.
-
-**Override admin credentials:**
-
-```bash
-ADMIN_EMAIL=ops@example.com ADMIN_PASSWORD='YourStrongPass!1' node src/scripts/createAdmin.js
-```
-
-### 7. Running Development Servers
-
-Open three terminal windows:
-
-**Terminal 1 — Backend (port 3000):**
-
-```bash
-cd backend
-npm run dev
-```
-
-**Terminal 2 — Admin Panel (port 5173):**
-
-```bash
-cd apps/web-lume
-npm run dev
-```
-
-**Terminal 3 — Public Site (port 3007):**
-
-```bash
-cd apps/riagri-website
-npm run dev
-```
-
-The admin panel's Vite dev proxy routes `/api` requests to `http://localhost:3000`. The Nuxt public site also proxies API requests to the backend.
-
----
-
-## Database Configuration
-
-### MariaDB Setup (Default — project standard)
-
-```sql
-CREATE DATABASE lume CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'gawdesy'@'localhost' IDENTIFIED BY 'gawdesy';
-GRANT ALL PRIVILEGES ON lume.* TO 'gawdesy'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-```env
-DATABASE_URL="mysql://gawdesy:gawdesy@localhost:3306/lume"
-```
-
-The URL scheme stays `mysql://` — that's the wire protocol identifier
-MariaDB shares with MySQL, used by the `mysql2` driver and Prisma's
-`provider = "mysql"`. The actual engine is MariaDB.
-
-### MySQL 8.0+ Setup (Alternative)
-
-Same DDL as MariaDB. The schema is portable to MySQL 8.0+ as of
-2026-05-22 — no `prisma.schema` changes needed.
-
-### PostgreSQL Setup (Alternative)
-
-1. Update the provider in `backend/prisma/schema.prisma`:
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-```
-
-2. Create the database:
-
-```sql
-CREATE DATABASE lume;
-CREATE USER gawdesy WITH PASSWORD 'gawdesy';
-GRANT ALL PRIVILEGES ON DATABASE lume TO gawdesy;
-```
-
-3. Update `DATABASE_URL`:
-
-```env
-DATABASE_URL="postgresql://gawdesy:gawdesy@localhost:5432/lume"
-```
-
-4. Regenerate and push:
-
-```bash
-npx prisma generate
-npx prisma db push
-```
-
----
-
-## Verify Installation
-
-### Health Check
-
-```bash
-curl http://localhost:3000/health
-# Expected: { "success": true, "message": "Lume Framework is running", "metrics": {...} }
-```
-
-> Health is at `/health` (top-level), not `/api/health`. The `/api/*` namespace is reserved for module-mounted resources (`/api/users`, `/api/activities`, `/api/modules`, etc.).
-
-### Admin Login (API)
-
-```bash
-curl -X POST http://localhost:3000/api/users/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@lume.dev","password":"Admin@Lume!1"}'
-# Expected: { "success": true, "data": { "user": {...}, "token": "eyJ...", "refreshToken": "eyJ..." } }
-```
-
-> Login endpoint is `/api/users/login` (handled by the `user` module). The `auth` module owns roles/permissions but not the login endpoint.
-
-### Admin Login (UI)
-
-Open `http://localhost:5173` and log in:
-
-| Field | Value |
-|-------|-------|
-| Email | `admin@lume.dev` |
-| Password | `Admin@Lume!1` |
-
-### API Reference (Swagger UI)
-
-Open `http://localhost:3000/api/docs/` for the interactive API explorer:
-
-- Browse all documented endpoints by tag (`Platform`, `Auth`, `Activities`, …)
-- Click **Authorize** and paste `data.accessToken` from a login response to call protected endpoints in-browser
-- Raw spec for codegen / Postman / Insomnia at `http://localhost:3000/api/openapi.json`
-
-Mounted automatically in dev. Production deployments must opt in with `OPENAPI_ENABLED=true` — by default the public docs site (`docs.lume.dev`) is the canonical reference, not the runtime endpoint.
-
-### Public Site
-
-Open `http://localhost:3007` to view the public website. Pages are rendered using TipTap content from the visual page builder.
-
-### Website CMS
-
-In the admin panel, navigate to **Website > Pages** to manage public site content:
-
-- **Pages** — Visual page editor with 54 widget blocks, content scheduling, access control, page locking
-- **Menus** — Drag-and-drop hierarchical menu management
-- **Media** — Image and file upload library
-- **Categories** — Hierarchical category taxonomy for pages
-- **Tags** — Flat tag taxonomy for pages
-- **Forms** — Form builder with submission tracking
-- **Theme Builder** — Header, footer, and sidebar templates with live preview
-- **Popups** — Popup builder with 5 trigger types
-- **Settings** — Site name, logo, contact info, design tokens, SEO, robots.txt, code injection
-
----
-
-## Troubleshooting
-
-### `EADDRINUSE: address already in use :::3000`
-
-```bash
-lsof -i :3000
-kill -9 <PID>
-```
-
-### `ECONNREFUSED 127.0.0.1:3306`
-
-MySQL is not running:
-
-```bash
-sudo systemctl start mysql     # Linux
-brew services start mysql      # macOS
-```
-
-### Prisma Generate Errors
-
-```bash
-rm -rf node_modules/.prisma
-npx prisma generate
-```
-
-### ESM / Import Errors
-
-The backend uses ES modules (`"type": "module"`):
-
-- Use `import`/`export`, not `require`/`module.exports`
-- Jest requires `NODE_OPTIONS='--experimental-vm-modules'`
-
-### Frontend Module Views Not Loading
-
-1. Verify Tailwind scans module directories in `tailwind.config.js`:
-   ```js
-   content: ['../../../backend/src/modules/**/static/**/*.{vue,js,ts,jsx,tsx}']
-   ```
-2. Verify the `@modules` alias in `vite.config.ts` and `tsconfig.json`
-
-### Public Site Preview Not Working
-
-If the page editor preview shows "localhost refused to connect":
-- Check `VITE_PUBLIC_SITE_URL` in `apps/web-lume/.env`
-- Ensure the Nuxt dev server is running on the configured port
-
----
-
-## IDE Setup
-
-### Recommended VS Code Extensions
-
-| Extension | Purpose |
-|-----------|---------|
-| Vue - Official (Volar) | Vue 3 + TypeScript support |
-| ESLint | Linting |
-| Tailwind CSS IntelliSense | Class autocompletion |
-| Prisma | Schema syntax highlighting |
+Defaults: API 3000, admin 3001, website 3100. Admin Vite proxies `/api` to the API.
+For another API origin, set `VITE_API_URL` before starting/building the admin.
+The website's `NUXT_PUBLIC_API_BASE` defaults to
+`http://localhost:3000/api/v2/website/public`.
+
+## Verify
+
+Build and typecheck both clients and the backend using [DEVELOPMENT.md](DEVELOPMENT.md).
+`GET /api/v2/health` should report healthy startup. GraphQL is `/api/v2/graphql`.
+Run tests with the isolated database procedure in [TESTING.md](TESTING.md).
+A successful startup does not certify every migrated feature.

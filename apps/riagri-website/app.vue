@@ -63,7 +63,10 @@ const jsonLd = computed(() => {
 useHead(() => ({
   titleTemplate: (title?: string) =>
     title && title !== siteName ? `${title} · ${siteName}` : siteName,
-  link: [{ rel: 'canonical', href: canonical.value }],
+  link: [
+    { rel: 'canonical', href: canonical.value },
+    { rel: 'stylesheet', href: `${String(config.public.apiBase).replace(/\/$/, '')}/styles.css` },
+  ],
   meta: [{ property: 'og:url', content: canonical.value }],
   script: jsonLd.value.map((b) => ({
     type: 'application/ld+json',
