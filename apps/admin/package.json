@@ -62,7 +62,7 @@
     "rollup": "^4.60.2",
     "tailwind-merge": "^2.5.0",
     "vue": "^3.5.0",
-    "vue-echarts": "^6.6.0",
+    "vue-echarts": "^8.3.2",
     "vue-router": "^4.4.0",
     "vuedraggable": "^4.1.0",
     "xlsx": "^0.18.5"
