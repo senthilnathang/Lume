@@ -44,6 +44,15 @@ pnpm --filter @lume/admin test:e2e
 
 ## Latest recorded evidence
 
+- 2026-10-25 workflow-definition validation: backend 81 suites / 845 tests passed;
+  admin 82 tests, types and build passed. API/admin lint have zero errors.
+- 21 focused HTTP/database and JSON-persistence checks cover structural validation,
+  management permissions, activation, partial updates, rollback and concurrent edits.
+- Complete AppModule startup, health and GraphQL passed. The local API restarted
+  successfully; the deployed validation endpoint rejects anonymous requests.
+- No schema migration was required. Frontend assets remain built but undeployed.
+
+
 - Global search migration: full backend 80 suites / 826 tests passed; final focused
   search/migration rerun passed 24 tests after the document-rule follow-up.
 - Migration 017 preserves documents with or without a preexisting deleted_at column.

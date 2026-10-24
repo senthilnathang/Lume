@@ -136,8 +136,10 @@ export function createWorkflowDefinitionApi(data: Partial<Workflow>): Promise<Wo
 export function updateWorkflowDefinitionApi(id: string | number, data: Partial<Workflow>): Promise<Workflow> {
   return updateWorkflow(String(id), data);
 }
-export function validateWorkflowDefinitionApi(data: Partial<Workflow>): Promise<{ errors: string[] }> {
-  return post<{ errors: string[] }>('/base_automation/workflows/validate', data);
+export async function validateWorkflowDefinitionApi(data: Partial<Workflow>): Promise<{ errors: string[] }> {
+  const result = await post<{ errors: string[] }>('/automation/workflows/validate', workflowToNest(data));
+  if (result.errors?.length) throw new Error(result.errors.join('; '));
+  return result;
 }
 export function getWorkflowDefinitionsApi(params?: Record<string, unknown>): Promise<Workflow[]> {
   return get<any[]>('/automation/workflows', params).then(rows => rows.map(workflowFromNest));

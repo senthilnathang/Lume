@@ -47,3 +47,23 @@ or upload ownership. Deleted documents/records/entities are excluded. Documents
 lack a tenant column; unrelated private uploads are not exposed even to admins.
 Shared document grants and larger-scale indexed search remain outside this contract.
 Migration 017 aligns the Prisma document soft-delete field with Drizzle.
+
+## State-machine workflow validation
+
+`POST /api/v2/automation/workflows/validate` accepts the same canonical fields as
+workflow creation: `name`, `model`, `initialState`, `states`, and `transitions`.
+It requires `base_automation.workflows.manage`. A valid definition returns
+`{success: true, data: {errors: []}}` without writing to the database. Invalid
+input returns HTTP 400 with validation details. The editor maps legacy field
+names before sending and displays the returned errors.
+
+State codes must be unique, nonempty and at most 50 characters; exactly one start
+state and at least one end state are required. The initial state must match the
+start state. Transition codes must be unique and reference existing source and
+destination states. Graph size is limited to 500 states and 2000 transitions.
+
+Active creates and updates enforce these structural rules. Updates lock and
+validate the persisted definition merged with the patch in one transaction.
+Incomplete drafts/inactive definitions can still be stored; activation fails until
+the definition is valid. Validation does not execute actions, certify reachability,
+or replace the still-pending state-machine execution migration.

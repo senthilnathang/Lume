@@ -21,11 +21,11 @@ export class CreateWorkflowDto {
   transitions?: any[];
   @IsOptional()
   @IsString()
-  @MaxLength(100)
+  @MaxLength(50)
   initialState?: string;
   @IsOptional()
   @IsString()
-  @MaxLength(20)
+  @IsIn(['draft', 'active', 'inactive'])
   status?: string;
 }
 
@@ -51,11 +51,11 @@ export class UpdateWorkflowDto {
   transitions?: any[];
   @IsOptional()
   @IsString()
-  @MaxLength(100)
+  @MaxLength(50)
   initialState?: string;
   @IsOptional()
   @IsString()
-  @MaxLength(20)
+  @IsIn(['draft', 'active', 'inactive'])
   status?: string;
 }
 

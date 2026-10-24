@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get, post, put } from '@/api/request';
-import { getWorkflows, createWorkflow, updateWorkflow, activateFlow, deactivateFlow, cloneFlow } from '@modules/base_automation/static/api/index';
+import { getWorkflows, createWorkflow, updateWorkflow, activateFlow, deactivateFlow, cloneFlow, validateWorkflowDefinitionApi } from '@modules/base_automation/static/api/index';
 import { getGroups, updateGroup } from '@modules/rbac/static/api/groups';
 
 vi.mock('@/api/request', () => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), del: vi.fn() }));
@@ -23,6 +23,20 @@ describe('NestJS automation adapter', () => {
     vi.mocked(put).mockResolvedValue({ id: 12, status: 'inactive' });
     expect((await updateWorkflow('12', { is_active: false })).is_active).toBe(false);
     expect(put).toHaveBeenCalledWith('/automation/workflows/12', expect.objectContaining({ status: 'inactive' }));
+  });
+  it('validates the same canonical graph fields used by create/update', async () => {
+    vi.mocked(post).mockResolvedValue({ errors: [] });
+    const states = [{ code: 'new', name: 'New', sequence: 1, is_start: true, is_end: true }];
+    expect(await validateWorkflowDefinitionApi({ name: 'Review', model_name: 'Ticket', default_state: 'new', states, transitions: [], code: 'legacy' })).toEqual({ errors: [] });
+    expect(post).toHaveBeenCalledWith('/automation/workflows/validate', expect.objectContaining({ name: 'Review', model: 'Ticket', initialState: 'new', states, transitions: [] }));
+    expect(vi.mocked(post).mock.calls[0][1]).not.toHaveProperty('model_name');
+    expect(vi.mocked(post).mock.calls[0][1]).not.toHaveProperty('code');
+  });
+  it('rejects validation error envelopes instead of allowing the designer to save', async () => {
+    vi.mocked(post).mockResolvedValue({ errors: ['Duplicate state code: new', 'Unknown destination'] });
+    await expect(validateWorkflowDefinitionApi({ name: 'Review' })).rejects.toThrow('Duplicate state code: new; Unknown destination');
+    vi.mocked(post).mockRejectedValue(new Error('Workflow validation failed'));
+    await expect(validateWorkflowDefinitionApi({ name: 'Review' })).rejects.toThrow('Workflow validation failed');
   });
   it('uses update operations for flow activation and deactivation', async () => {
     await activateFlow(7);

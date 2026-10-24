@@ -67,7 +67,7 @@ NestJS runtime, auth/session/RBAC, users, module catalog, menu/group/record-rule
 sequence contracts, automation definition CRUD and approval definitions/inbox have
 been implemented in earlier batches. Detailed evidence and remaining limitations:
 docs/frontend-nestjs-migration-2026-10-23.txt.
-The source audit currently flags 76 calls; this is not a count of confirmed bugs.
+The source audit currently flags 75 calls; this is not a count of confirmed bugs.
 Latest frontend/backend migration edits are prepared for Git publication but are
 not yet deployed. Consult Git history for the published revision.
 
@@ -145,3 +145,20 @@ not yet deployed. Consult Git history for the published revision.
   Migration 017 applied locally; API restarted and health/search authentication passed.
 - Frontend source audit now has 76 unmatched calls, down from 79. Remaining call
   classification and required module parity stay open. External providers stay disabled.
+
+2026-10-25 workflow designer validation
+- M04/M05: implemented POST /automation/workflows/validate with management permission,
+  graph-shape limits, start/end checks, unique codes and transition reference checks.
+- Routed designer now maps its fields to the NestJS validation payload, displays
+  backend validation details and no longer requires an ignored workflow code.
+- Active definition writes validate the final merged graph; row locking prevents
+  concurrent valid patches from producing an invalid combined definition. Draft
+  persistence remains available. Execution/transitions are still an open M05 task.
+- Targeted real HTTP/JWT/MySQL and persistence checks: 21 tests passed. Admin tests:
+  82 passed; type check and production build passed. Both lint commands have zero
+  errors. Complete AppModule startup, HTTP health and GraphQL passed.
+- Final full backend run: 81 suites / 845 tests passed. No schema migration needed.
+- Existing active definition compatibility audit: zero active definitions needing
+  repair. Local API restarted; health and validation-route authentication passed.
+- Frontend audit: 75 unmatched calls remain. Admin assets are built but not deployed.
+  External providers remain disabled; state-machine execution is still pending.

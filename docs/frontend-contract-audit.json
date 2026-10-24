@@ -1,6 +1,6 @@
 {
   "scope": "Literal calls in admin and shared static views; declarations only, not runtime or payload validation",
-  "controller_route_variants": 1024,
+  "controller_route_variants": 1027,
   "unmatched_calls": [
     {
       "file": "apps/admin/src/modules/dashboard/views/DashboardView.vue",
@@ -76,85 +76,79 @@
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 140,
-      "method": "POST",
-      "path": "/base_automation/workflows/validate"
-    },
-    {
-      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 154,
+      "line": 156,
       "method": "POST",
       "path": "/base_automation/workflows/_parameter_/run/_parameter_"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 157,
+      "line": 159,
       "method": "GET",
       "path": "/base_automation/workflows/_parameter_/executions/_parameter_"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 160,
+      "line": 162,
       "method": "POST",
       "path": "/base_automation/workflows/_parameter_/executions/_parameter_/transition"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 207,
+      "line": 209,
       "method": "POST",
       "path": "/base_automation/rules/_parameter_/toggle"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 274,
+      "line": 276,
       "method": "POST",
       "path": "/base_automation/approvals/tasks/_parameter_/delegate"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 282,
+      "line": 284,
       "method": "POST",
       "path": "/base_automation/approvals/_parameter_/callback"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 289,
+      "line": 291,
       "method": "POST",
       "path": "/base_automation/approvals/_parameter_/callback"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 297,
+      "line": 299,
       "method": "GET",
       "path": "/base_automation/approvals/escalations/_parameter_"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 301,
+      "line": 303,
       "method": "GET",
       "path": "/base_automation/approvals/escalations/task/_parameter_"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 327,
+      "line": 329,
       "method": "GET",
       "path": "/base_automation/approvals/analytics/metrics"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 332,
+      "line": 334,
       "method": "GET",
       "path": "/base_automation/approvals/analytics/bottlenecks"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 336,
+      "line": 338,
       "method": "GET",
       "path": "/base_automation/approvals/analytics/escalations"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 340,
+      "line": 342,
       "method": "GET",
       "path": "/base_automation/approvals/analytics/roles/_parameter_"
     },

@@ -113,9 +113,6 @@
             <FormItem label="Name" required>
               <Input v-model:value="workflow.name" placeholder="Workflow name" />
             </FormItem>
-            <FormItem label="Code" required>
-              <Input v-model:value="workflow.code" placeholder="workflow_code" :disabled="isEdit" />
-            </FormItem>
             <FormItem label="Model">
               <Select v-model:value="workflow.model_name" placeholder="Select model" show-search>
                 <SelectOption v-for="m in modelOptions" :key="m.value" :value="m.value">
@@ -616,10 +613,9 @@ const drawingConnectionPath = computed(() => {
 const validationErrors = computed(() => {
   const errors = [];
   if (!workflow.value.name) errors.push('Workflow name is required');
-  if (!workflow.value.code) errors.push('Workflow code is required');
   if (!workflow.value.model_name) errors.push('Model is required');
   if (workflow.value.states.length === 0) errors.push('At least one state is required');
-  if (startStatesCount.value === 0) errors.push('At least one start state is required');
+  if (startStatesCount.value !== 1) errors.push('Exactly one start state is required');
   if (endStatesCount.value === 0) errors.push('At least one end state is required');
 
   // Check for duplicate state codes
@@ -1052,13 +1048,8 @@ async function handleSave() {
       })),
     };
 
-    // Validate before save
-    try {
-      await validateWorkflowDefinitionApi(data);
-    } catch (validationErr) {
-      message.error('Validation failed: ' + (validationErr.response?.data?.error || 'Unknown validation error'));
-      throw validationErr;
-    }
+    // The validation endpoint rejects malformed definitions before persistence.
+    await validateWorkflowDefinitionApi(data);
 
     if (isEdit.value) {
       await updateWorkflowDefinitionApi(props.workflowId, data);
@@ -1071,9 +1062,8 @@ async function handleSave() {
     emit('saved');
   } catch (err) {
     console.error('Save failed:', err);
-    if (!err.response?.status === 400) {
-      message.error(err.response?.data?.detail || 'Failed to save workflow');
-    }
+    const details = err.response?.data?.errors || err.response?.data?.message || err.message;
+    message.error(Array.isArray(details) ? details.join('; ') : details || 'Failed to save workflow');
   } finally {
     saving.value = false;
   }

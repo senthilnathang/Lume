@@ -64,6 +64,10 @@ and conflicting or replayed decisions fail rather than silently advancing.
 
 ## Automation and providers
 
+State-machine definition validation guards activation and active edits. Updates
+lock the definition row and validate the merged graph before writing; incomplete
+drafts remain permitted. This does not imply that state-machine execution is migrated.
+
 The durable metadata-workflow job engine and the state-machine definition editor
 are distinct contracts. Do not redirect state-machine execution to the job API
 without implementing its semantics. Approval definitions support sequential user

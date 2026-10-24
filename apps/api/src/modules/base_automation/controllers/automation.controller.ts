@@ -1,5 +1,6 @@
 import {
   Controller,
+  HttpCode,
   Get,
   Post,
   Put,
@@ -42,6 +43,13 @@ export class AutomationController {
   constructor(private automationService: AutomationService) {}
 
   // ── Workflows ─────────────────────────────────────────────────
+
+  @Post('workflows/validate')
+  @HttpCode(200)
+  @Permissions('base_automation.workflows.manage')
+  async validateWorkflow(@Body() dto: CreateWorkflowDto) {
+    return this.automationService.validateWorkflow(dto);
+  }
 
   @Get('workflows')
   @Permissions('base_automation.workflows')

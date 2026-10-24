@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { workflowDefinitionErrors } from './workflow-definition-validation';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import {
   automationWorkflows,
@@ -65,7 +66,14 @@ export class AutomationService {
     return { success: true, data: result[0] };
   }
 
+  validateWorkflow(dto: CreateWorkflowDto) {
+    const errors = workflowDefinitionErrors(dto);
+    if (errors.length) throw new BadRequestException({ message: 'Workflow validation failed', errors });
+    return { success: true, data: { errors: [] } };
+  }
+
   async createWorkflow(dto: CreateWorkflowDto) {
+    if (dto.status === 'active') this.validateWorkflow(dto);
     try {
       const result = await this.db.insert(automationWorkflows).values(dto);
       return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
@@ -75,25 +83,17 @@ export class AutomationService {
   }
 
   async updateWorkflow(id: number, dto: UpdateWorkflowDto) {
-    try {
-      await this.db
-        .update(automationWorkflows)
-        .set(dto)
-        .where(eq(automationWorkflows.id, id));
-
-      const result = await this.db
-        .select()
-        .from(automationWorkflows)
-        .where(eq(automationWorkflows.id, id));
-
-      if (!result.length) {
-        return { success: false, error: 'Workflow not found' };
-      }
-
-      return { success: true, data: result[0] };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
+    return this.db.transaction(async (tx) => {
+      const [current] = await tx.select().from(automationWorkflows)
+        .where(eq(automationWorkflows.id, id)).for('update');
+      if (!current) throw new NotFoundException('Workflow not found');
+      const updates = Object.fromEntries(Object.entries(dto).filter(([, value]) => value !== undefined));
+      const merged = { ...current, ...updates };
+      if (merged.status === 'active') this.validateWorkflow(merged);
+      if (Object.keys(updates).length) await tx.update(automationWorkflows).set(updates).where(eq(automationWorkflows.id, id));
+      const [saved] = await tx.select().from(automationWorkflows).where(eq(automationWorkflows.id, id));
+      return { success: true, data: saved };
+    });
   }
 
   async deleteWorkflow(id: number) {
