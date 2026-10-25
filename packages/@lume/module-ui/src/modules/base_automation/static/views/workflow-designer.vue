@@ -465,6 +465,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
+const router = useRouter();
 import {
   Alert,
   Button,
@@ -1078,14 +1079,17 @@ async function handleRunWorkflow() {
 
   executing.value = true;
   try {
-    const recordId = executionRecordId.value || null;
+    const recordId = String(executionRecordId.value || '').trim();
+    if (!/^[1-9]\d*$/.test(recordId) || !Number.isSafeInteger(Number(recordId))) {
+      message.error('Enter a valid record ID');
+      return;
+    }
     const execution = await startWorkflowExecutionApi(props.workflowId, recordId);
     message.success('Workflow execution started');
     showRunModal.value = false;
     executionRecordId.value = '';
 
     // Navigate to execution view
-    const router = useRouter();
     router.push({
       name: 'WorkflowExecution',
       params: {
@@ -1095,7 +1099,7 @@ async function handleRunWorkflow() {
     });
   } catch (err) {
     console.error('Run failed:', err);
-    message.error(err.response?.data?.error || 'Failed to start workflow execution');
+    message.error(err.response?.data?.message || err.message || 'Failed to start workflow execution');
   } finally {
     executing.value = false;
   }

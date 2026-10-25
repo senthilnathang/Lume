@@ -67,9 +67,9 @@ NestJS runtime, auth/session/RBAC, users, module catalog, menu/group/record-rule
 sequence contracts, automation definition CRUD and approval definitions/inbox have
 been implemented in earlier batches. Detailed evidence and remaining limitations:
 docs/frontend-nestjs-migration-2026-10-23.txt.
-The source audit currently flags 75 calls; this is not a count of confirmed bugs.
-Latest frontend/backend migration edits are prepared for Git publication but are
-not yet deployed. Consult Git history for the published revision.
+The source audit currently flags 70 calls; this is not a count of confirmed bugs.
+The local API is deployed through migration 018; updated admin assets are built
+but not deployed. Consult Git history for the published revision.
 
 2026-10-24 execution evidence
 - M02: extracted 375 files from 21 modules into @lume/module-ui; verified SHA-256
@@ -162,3 +162,20 @@ not yet deployed. Consult Git history for the published revision.
   repair. Local API restarted; health and validation-route authentication passed.
 - Frontend audit: 75 unmatched calls remain. Admin assets are built but not deployed.
   External providers remain disabled; state-machine execution is still pending.
+
+2026-10-25 manual state-machine execution
+- M04/M05: canonical start/detail/transition endpoints and routed execution screen.
+  Snapshot-based state codes, tenant/record authorization, version conflicts and
+  atomic history are implemented. Record data is not mutated by this contract.
+- Migration 018 adds canonical execution/history tables without changing legacy
+  data. Replay preserves rows; duplicate history versions fail. Legacy import,
+  advanced actions, approvals, conditions, timers, webhooks and SLA remain open.
+- Full backend suite: 82 suites / 861 tests; focused 15 execution tests also passed
+  with production validation. Admin: 85 tests passed. Source audit: 70 unmatched
+  calls. No full M05 or migration completion claim is made.
+- Fresh private backup restored with 141 tables and 17 migration entries. Applied
+  migration 018 locally and restarted API; health and authentication checks pass.
+  Admin assets remain undeployed and external integrations remain disabled.
+- Chromium verified two manual transitions, disabled approval action, visible
+  history and completed state after reload. Isolated fixtures were cleaned up.
+  Final API/admin lint has zero errors; builds, admin types and layout pass.

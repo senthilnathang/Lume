@@ -1,6 +1,6 @@
 {
   "scope": "Literal calls in admin and shared static views; declarations only, not runtime or payload validation",
-  "controller_route_variants": 1027,
+  "controller_route_variants": 1033,
   "unmatched_calls": [
     {
       "file": "apps/admin/src/modules/dashboard/views/DashboardView.vue",
@@ -76,24 +76,6 @@
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 156,
-      "method": "POST",
-      "path": "/base_automation/workflows/_parameter_/run/_parameter_"
-    },
-    {
-      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 159,
-      "method": "GET",
-      "path": "/base_automation/workflows/_parameter_/executions/_parameter_"
-    },
-    {
-      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
-      "line": 162,
-      "method": "POST",
-      "path": "/base_automation/workflows/_parameter_/executions/_parameter_/transition"
-    },
-    {
-      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
       "line": 209,
       "method": "POST",
       "path": "/base_automation/rules/_parameter_/toggle"
@@ -151,18 +133,6 @@
       "line": 342,
       "method": "GET",
       "path": "/base_automation/approvals/analytics/roles/_parameter_"
-    },
-    {
-      "file": "packages/@lume/module-ui/src/modules/base_automation/static/views/workflow-execution.vue",
-      "line": 163,
-      "method": "GET",
-      "path": "/base_automation/workflows/_parameter_/executions/_parameter_"
-    },
-    {
-      "file": "packages/@lume/module-ui/src/modules/base_automation/static/views/workflow-execution.vue",
-      "line": 190,
-      "method": "POST",
-      "path": "/base_automation/workflows/_parameter_/executions/_parameter_/transition"
     },
     {
       "file": "packages/@lume/module-ui/src/modules/base_customization/static/api/index.js",

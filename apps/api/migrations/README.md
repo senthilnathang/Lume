@@ -1,3 +1,13 @@
+## Migration 018: manual state execution
+
+`018_create_workflow_state_executions.sql` creates `workflow_state_executions`
+and `workflow_state_history`. Snapshots and tenant/record bindings belong to the
+execution; history has a unique `(execution_id, version)` constraint and cascades
+only when that execution is deleted. Existing legacy execution tables are untouched.
+Replay preserves rows. This is not a legacy-history import or a record-data update.
+Back up and verify a restore before applying; rollback should restore the prior
+application while preserving these additive tables and any newly written history.
+
 ## Migration 017: document soft-delete alignment
 
 `017_align_document_soft_delete.sql` adds nullable `documents.deleted_at` only if

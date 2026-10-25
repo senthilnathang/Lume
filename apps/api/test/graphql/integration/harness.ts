@@ -1,3 +1,5 @@
+import { WorkflowStateController } from '../../../src/modules/base_automation/controllers/workflow-state.controller';
+import { WorkflowStateEngineService } from '../../../src/modules/base_automation/services/workflow-state-engine.service';
 import { AutomationController } from '../../../src/modules/base_automation/controllers/automation.controller';
 import { AutomationService } from '../../../src/modules/base_automation/services/automation.service';
 import { SearchController } from '../../../src/modules/base/controllers/search.controller';
@@ -94,7 +96,7 @@ export async function createHarness(options: { rollups?: boolean; approvals?: bo
     const module = await Test.createTestingModule({
       imports: [...(options.rollups || options.approvals ? [EventEmitterModule.forRoot()] : []), PassportModule, GraphQLModule.forRoot({ ...createGraphQLConfig(context, 'test', [new ComplexityPlugin(), new LoggingPlugin()]), driver: ApolloDriver })],
       providers: [
-        SearchService, SecurityService, AutomationService,
+        SearchService, SecurityService, AutomationService, WorkflowStateEngineService,
         ...(options.sequences ? [SequenceResolver, AdminSettingsService] : []),
         RelationshipService, ApprovalChainEngineService, AdvancedFeaturesService,
         EntityResolver, EntityRecordResolver, RoleResolver, PermissionResolver, FieldPermissionResolver, FlowSubscriptionResolver, RecordRuleResolver, RecordRuleManagementService,
@@ -104,7 +106,7 @@ export async function createHarness(options: { rollups?: boolean; approvals?: bo
         ...(options.approvals ? [ApprovalTriggerService] : []),
         ...(!options.rollups && !options.approvals ? [{ provide: EventEmitter2, useValue: new EventEmitter2() }] : []), { provide: 'PubSub', useValue: pubsub },
       ],
-      controllers: [AutomationController, SearchController, EntityRecordsController, ApprovalRequestsController, AdvancedFeaturesController],
+      controllers: [WorkflowStateController, AutomationController, SearchController, EntityRecordsController, ApprovalRequestsController, AdvancedFeaturesController],
     }).compile();
     app = module.createNestApplication();
     await app.listen(0, '127.0.0.1');

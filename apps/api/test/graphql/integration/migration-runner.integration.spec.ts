@@ -92,6 +92,17 @@ describe('SQL migration runner (disposable MySQL database)', () => {
     expect(rows[0].deleted_at == null).toBe(!exists);
     if (exists) expect(rows[0].deleted_at.getFullYear()).toBe(2026);
   });
+  it('migration 018 persists executions/history and preserves them on replay', async () => {
+    const filename = '018_create_workflow_state_executions.sql';
+    file(filename, readFileSync(join('migrations', filename), 'utf8'));
+    await applyMigrations(db, [filename], directory);
+    await db.query("INSERT INTO workflow_state_executions(id,workflow_id,record_entity_id,record_id,company_id,initiated_by,definition,current_state) VALUES(1,2,3,4,5,6,'{}','new')");
+    await db.query("INSERT INTO workflow_state_history(execution_id,version,to_state,transition_code,transition_name,user_id) VALUES(1,0,'new','START','Started',6)");
+    await applyMigrations(db, [filename], directory);
+    expect((await db.query('SELECT current_state,version FROM workflow_state_executions'))[0]).toEqual([{ current_state: 'new', version: 0 }]);
+    await expect(db.query("INSERT INTO workflow_state_history(execution_id,version,to_state,transition_code,transition_name,user_id) VALUES(1,0,'done','again','Again',6)")).rejects.toThrow();
+    expect((await db.query('SELECT COUNT(*) AS n FROM workflow_state_history'))[0]).toEqual([{ n: 1 }]);
+  });
   it('validates the entire selection before any changes', async () => {
     file('001_first.sql', 'CREATE TABLE example(id INT);');
     file('002_broken.sql', "SELECT 'unterminated");

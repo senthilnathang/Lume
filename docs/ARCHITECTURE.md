@@ -45,8 +45,8 @@ standalone Express application being retired.
 Prisma and Drizzle operate on the same MySQL database. Shared Drizzle JSON columns
 decode both text-backed JSON and driver-decoded JSON at the persistence boundary.
 Use the SQL migration ledger; do not substitute legacy schema refresh scripts.
-The local ledger was verified through migration 017, including document soft-delete
-alignment. New environments must inspect
+The local ledger was verified through migration 018, including document soft-delete
+alignment and manual state execution tables. New environments must inspect
 and apply applicable migrations rather than replaying an existing database blindly.
 
 Sequence allocation locks its row and advances atomically. Counter edits cannot
@@ -66,7 +66,13 @@ and conflicting or replayed decisions fail rather than silently advancing.
 
 State-machine definition validation guards activation and active edits. Updates
 lock the definition row and validate the merged graph before writing; incomplete
-drafts remain permitted. This does not imply that state-machine execution is migrated.
+drafts remain permitted. Manual executions use an immutable definition snapshot in
+`workflow_state_executions` and ordered history in `workflow_state_history`.
+The execution and record rows are locked during decisions; a version check rejects
+stale requests, and state/history commit atomically. Tenant, record rules and
+read/write permissions are checked on each operation. Record data is not mutated.
+Advanced transition/state behavior remains unavailable; legacy history import is
+still pending. See the API reference for the supported manual contract.
 
 The durable metadata-workflow job engine and the state-machine definition editor
 are distinct contracts. Do not redirect state-machine execution to the job API

@@ -193,6 +193,13 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/dashboard/index.vue'),
         meta: { title: 'Dashboard', requiresAuth: true },
       },
+      {
+        path: 'automation/workflows/:workflowId/executions/:executionId',
+        name: 'WorkflowExecution',
+        component: () => import('@modules/base_automation/static/views/workflow-execution.vue'),
+        props: true,
+        meta: { title: 'Workflow Execution', requiresAuth: true, module: 'base_automation', permission: 'base_automation.workflows' },
+      },
       // Page editor (not a menu item — navigated to from pages list)
       {
         path: 'website/pages/editor',

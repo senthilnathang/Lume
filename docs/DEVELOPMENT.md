@@ -1,6 +1,6 @@
 # Developer guide
 
-Updated 2026-10-24. Start with [installation](INSTALLATION.md) and
+Updated 2026-10-25. Start with [installation](INSTALLATION.md) and
 [current architecture](ARCHITECTURE.md). Track remaining work in
 [nestjs-migration-tasks.txt](nestjs-migration-tasks.txt).
 
@@ -74,3 +74,15 @@ python3 scripts/audit_backend_migration.py
 These scans do not establish runtime reachability, authorization, payload compatibility
 or feature completeness. Record actual evidence in the migration tracker. Never
 commit credentials, database dumps, raw browser sessions or private logs.
+
+## Extending state-machine execution
+
+Use `WorkflowStateEngineService` for manual state transitions, separately from the
+durable job engine. Apply migration 018 before using its Prisma models. Keep the
+snapshot immutable and persist history inside the same transaction as each state
+change. Browser requests must send a transition code and the displayed version;
+never send an arbitrary destination or actor. Unsupported effects must fail closed.
+Run `workflow-state.http.integration.spec.ts` with the production `ValidatePipe`:
+empty DTO classes without validator metadata can otherwise pass controller tests
+but fail at real application startup. The shared execution view also has a component
+regression for versioned submissions, disabled actions and visible history.

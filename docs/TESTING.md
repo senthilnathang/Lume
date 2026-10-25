@@ -1,6 +1,6 @@
 # Testing and verification
 
-Updated 2026-10-24. Test results certify the exercised behavior, not unfinished
+Updated 2026-10-25. Test results certify the exercised behavior, not unfinished
 handlers. See [acceptance cases](UAT_TEST_CASES.md) and
 [the migration tracker](nestjs-migration-tasks.txt).
 
@@ -96,3 +96,22 @@ Run a fresh-install/build verification, complete required API/data migration,
 verify remaining browser workflows, test backup/restore and cutover rollback,
 and verify the deployed clients contact NestJS only. Source inventory matches and
 passing tests are not substitutes for these gates.
+
+## Manual state execution — 2026-10-25
+
+- Full backend: 82 suites / 861 tests passed. Focused execution tests: 15 passed
+  after adding the production validation pipe to cover real startup behavior.
+- Coverage includes tenant/private/record-rule denials, immutable snapshots,
+  concurrent and stale decisions, atomic rollback when history persistence fails,
+  completion, unsupported behavior and migration 018 replay/data preservation.
+- Admin: 85 tests passed; execution component checks versioned payloads, disabled
+  actions and numeric IDs. History rendering is covered by a focused regression.
+- Local backup restored successfully: 141 tables and 17 prior migrations. Migration
+  018 applied; restarted API health and missing-auth denial pass. Clients remain
+  undeployed. External provider tests remain disabled by user choice.
+- Chromium on isolated data: login, numeric execution ID, disabled approval action,
+  new → review → done, visible actor/time history and persisted completion after
+  reload passed. The initial history rendering issue was fixed and regression-tested.
+  Browser fixture creation used the API; the designer Run button was not browser-tested.
+- Final API/admin lint: zero errors (existing warning debt remains). API build,
+  admin types/build, layout validation and local GraphQL probe passed.

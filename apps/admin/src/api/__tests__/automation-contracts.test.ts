@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get, post, put } from '@/api/request';
-import { getWorkflows, createWorkflow, updateWorkflow, activateFlow, deactivateFlow, cloneFlow, validateWorkflowDefinitionApi } from '@modules/base_automation/static/api/index';
+import { getWorkflows, createWorkflow, updateWorkflow, activateFlow, deactivateFlow, cloneFlow, validateWorkflowDefinitionApi, startWorkflowExecutionApi, getWorkflowExecutionApi, transitionWorkflowStateApi } from '@modules/base_automation/static/api/index';
 import { getGroups, updateGroup } from '@modules/rbac/static/api/groups';
 
 vi.mock('@/api/request', () => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), del: vi.fn() }));
@@ -37,6 +37,14 @@ describe('NestJS automation adapter', () => {
     await expect(validateWorkflowDefinitionApi({ name: 'Review' })).rejects.toThrow('Duplicate state code: new; Unknown destination');
     vi.mocked(post).mockRejectedValue(new Error('Workflow validation failed'));
     await expect(validateWorkflowDefinitionApi({ name: 'Review' })).rejects.toThrow('Workflow validation failed');
+  });
+  it('uses canonical execution routes and the displayed version instead of caller-supplied destinations', async () => {
+    await startWorkflowExecutionApi(4, '12');
+    expect(post).toHaveBeenLastCalledWith('/automation/workflows/4/run/12', {});
+    await getWorkflowExecutionApi(4, 7);
+    expect(get).toHaveBeenLastCalledWith('/automation/workflows/4/executions/7');
+    await transitionWorkflowStateApi(4, 7, { transitionCode: 'approve', version: 2 });
+    expect(post).toHaveBeenLastCalledWith('/automation/workflows/4/executions/7/transition', { transitionCode: 'approve', version: 2 });
   });
   it('uses update operations for flow activation and deactivation', async () => {
     await activateFlow(7);

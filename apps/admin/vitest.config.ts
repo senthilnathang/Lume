@@ -19,6 +19,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      'vue': fileURLToPath(new URL('./node_modules/vue', import.meta.url)),
+      'vue-router': fileURLToPath(new URL('./node_modules/vue-router', import.meta.url)),
+      'ant-design-vue': fileURLToPath(new URL('./node_modules/ant-design-vue', import.meta.url)),
+      'dayjs': fileURLToPath(new URL('./node_modules/dayjs', import.meta.url)),
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@modules': fileURLToPath(new URL('../../packages/@lume/module-ui/src/modules', import.meta.url)),
     },

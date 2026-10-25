@@ -153,13 +153,13 @@ export function getApprovalChainsApi(): Promise<ApprovalChain[]> {
 
 // Workflow Execution
 export function startWorkflowExecutionApi(workflowId: string | number, recordId: string): Promise<any> {
-  return post<any>(`/base_automation/workflows/${workflowId}/run/${recordId}`, {});
+  return post<any>(`/automation/workflows/${workflowId}/run/${recordId}`, {});
 }
-export function getWorkflowExecutionApi(workflowId: string | number, executionId: string): Promise<any> {
-  return get<any>(`/base_automation/workflows/${workflowId}/executions/${executionId}`);
+export function getWorkflowExecutionApi(workflowId: string | number, executionId: string | number): Promise<any> {
+  return get<any>(`/automation/workflows/${workflowId}/executions/${executionId}`);
 }
-export function transitionWorkflowStateApi(workflowId: string | number, executionId: string, data: any): Promise<any> {
-  return post<any>(`/base_automation/workflows/${workflowId}/executions/${executionId}/transition`, data);
+export function transitionWorkflowStateApi(workflowId: string | number, executionId: string | number, data: { transitionCode: string; version: number }): Promise<any> {
+  return post<any>(`/automation/workflows/${workflowId}/executions/${executionId}/transition`, data);
 }
 
 // Flows

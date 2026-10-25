@@ -1,12 +1,12 @@
 # NestJS migration roadmap
 
-Updated 2026-10-24. **In progress**, not feature-complete. The detailed acceptance
+Updated 2026-10-25. **In progress**, not feature-complete. The detailed acceptance
 criteria and per-task status are in [nestjs-migration-tasks.txt](nestjs-migration-tasks.txt).
 
 | Phase | Tasks | Current status |
 |---|---|---|
 | Inventory and ownership | M01–M04 | Workspace inspected; UI extracted; default commands target NestJS; contract classification continues |
-| Feature parity | M05–M11 | Multiple contracts migrated; execution, delegation, data features and other handlers remain open |
+| Feature parity | M05–M11 | Multiple contracts migrated; advanced execution, delegation, data features and other handlers remain open |
 | Data and backend cleanup | M12–M14 | Canonical apps layout and tooling are aligned; data reconciliation and final legacy retirement remain |
 | Release verification | M15–M18 | Strong regression evidence exists; full release acceptance and deployment remain |
 
@@ -20,7 +20,7 @@ and sequence allocation now use persisted, guarded contracts.
 
 ## Review inventories
 
-- [Frontend contract inventory](frontend-contract-audit.json): 75 unmatched literal calls.
+- [Frontend contract inventory](frontend-contract-audit.json): 70 unmatched literal calls.
 - [Backend inventory](backend-migration-inventory.json): 652 legacy route/mount
   declarations and 100 Nest implementation markers.
 
@@ -35,3 +35,8 @@ pass before retiring Express. The canonical paths are `apps/api`, `apps/admin`, 
 features as complete merely to reduce the inventory.
 
 External integrations remain disabled. The local API has restarted from apps/api; newly built clients are not deployed. Publishing a Git commit is distinct from deploying or changing a database.
+
+Manual state execution now supports guarded starts, snapshot-based transitions,
+version conflicts and atomic history. Migration 018 is applied to the local API;
+advanced workflow effects and legacy data reconciliation remain open. Admin assets
+are built but not deployed. External integrations remain disabled.

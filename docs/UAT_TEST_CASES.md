@@ -1,6 +1,6 @@
 # Migration acceptance cases
 
-Updated 2026-10-24. Run on isolated data. Automated evidence is described in
+Updated 2026-10-25. Run on isolated data. Automated evidence is described in
 [TESTING.md](TESTING.md); feature tasks remain in [the tracker](nestjs-migration-tasks.txt).
 
 | ID | Case | Expected result | Evidence / status |
@@ -25,7 +25,10 @@ Updated 2026-10-24. Run on isolated data. Automated evidence is described in
 | STRUCT-01 | Canonical app roots and one lockfile | Only apps/api, apps/admin and apps/website are active; legacy excluded | scripts/check_layout.py; API image dependency smoke passed |
 | SEARCH-01 | Search across tenants, private records, hidden fields and documents | Only authorized, nondeleted results; hidden values never influence matching | 15 HTTP/JWT/MySQL tests passed |
 | DEF-02 | Validate graph and race active definition updates | Invalid graphs return 400; failed updates preserve stored definition; concurrent patches serialize | HTTP/JWT/MySQL validation and concurrency tests passed |
-| GAP-01 | State-machine execution, delegation/escalation, data/import/export and remaining modules | Required Express behavior implemented and verified in NestJS | Pending; do not sign off |
+| STATE-01 | Start, transition, finish and reload execution | State codes and actor history persist; terminal actions disappear | HTTP/MySQL, component and Chromium checks (execution created via API) |
+| STATE-02 | Race/replay, wrong tenant, revoked access or history failure | One decision wins; denial/rollback leaves state and history consistent | 15 HTTP/MySQL tests with production validation pipe |
+| STATE-03 | Approval/timer/webhook/action configuration | Unsupported transitions are disabled and server rejects execution | HTTP and component regressions |
+| GAP-01 | Advanced state-machine execution, delegation/escalation, data/import/export and remaining modules | Required Express behavior implemented and verified in NestJS | Pending; do not sign off |
 
 A release sign-off must include configuration, commit, database isolation, executed
 cases, browser coverage and failures. Do not copy historic pass counts onto untested

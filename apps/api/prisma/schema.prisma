@@ -1699,3 +1699,39 @@ enum custom_fields_status {
   active
   inactive
 }
+
+model WorkflowStateExecution {
+  id             Int      @id @default(autoincrement())
+  workflowId     Int      @map("workflow_id")
+  recordEntityId Int      @map("record_entity_id")
+  recordId       Int      @map("record_id")
+  companyId      Int      @map("company_id")
+  initiatedBy    Int      @map("initiated_by")
+  definition     String   @db.LongText
+  currentState   String   @map("current_state") @db.VarChar(50)
+  status         String   @default("active") @db.VarChar(20)
+  version        Int      @default(0)
+  startedAt      DateTime @default(now()) @map("started_at") @db.DateTime(3)
+  completedAt    DateTime? @map("completed_at") @db.DateTime(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+  history        WorkflowStateHistory[]
+
+  @@index([companyId, workflowId, recordId])
+  @@map("workflow_state_executions")
+}
+
+model WorkflowStateHistory {
+  id             Int      @id @default(autoincrement())
+  executionId    Int      @map("execution_id")
+  execution      WorkflowStateExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  version        Int
+  fromState      String?  @map("from_state") @db.VarChar(50)
+  toState        String   @map("to_state") @db.VarChar(50)
+  transitionCode String   @map("transition_code") @db.VarChar(100)
+  transitionName String   @map("transition_name") @db.VarChar(255)
+  userId         Int      @map("user_id")
+  transitionedAt DateTime @default(now()) @map("transitioned_at") @db.DateTime(3)
+
+  @@unique([executionId, version])
+  @@map("workflow_state_history")
+}

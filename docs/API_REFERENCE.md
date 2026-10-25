@@ -66,4 +66,34 @@ Active creates and updates enforce these structural rules. Updates lock and
 validate the persisted definition merged with the patch in one transaction.
 Incomplete drafts/inactive definitions can still be stored; activation fails until
 the definition is valid. Validation does not execute actions, certify reachability,
-or replace the still-pending state-machine execution migration.
+or certify support for advanced execution behavior.
+
+## Manual state-machine executions
+
+All paths below are relative to `/api/v2/automation/workflows` (the
+`/api/v2/base_automation/workflows` alias also works).
+
+| Method / path | Input | Permission / result |
+|---|---|---|
+| POST `/:workflowId/run/:recordId` | Empty JSON object | `base_automation.workflows.manage`; 201 with execution |
+| GET `/:workflowId/executions/:id` | None | `base_automation.workflows`; execution, history and safe snapshot projection |
+| POST `/:workflowId/executions/:id/transition` | `{ "transitionCode": "review", "version": 0 }` | Management permission; 200 with updated execution |
+
+Responses wrap data in `{success: true, data: ...}`. IDs are positive integers.
+An active, structurally valid definition and a matching dynamic entity record are
+required. The actor and company come from authenticated context. Reads require
+record read access; starts/transitions also require record write access. Tenant,
+private ownership and record rules are rechecked on every operation.
+
+Executions retain an immutable definition snapshot. State codes, destination,
+actor, history version and completion time are server-derived. Each transition
+locks the execution, checks the submitted version and writes state/history in one
+transaction. Stale, repeated or concurrent decisions return 409. Arbitrary state,
+actor or record data in the request is rejected. Record data itself is not changed.
+Starting again intentionally creates a separate execution.
+
+This runtime supports manual transitions only. Approval, group-restricted, timed,
+webhook, conditional/action and unknown transition configurations return 409 and
+appear disabled with a reason. Decision, SLA, state-action and unknown state
+configurations prevent starting. Existing snapshots continue to work after the
+source definition changes or is deleted. Legacy execution history is not imported.

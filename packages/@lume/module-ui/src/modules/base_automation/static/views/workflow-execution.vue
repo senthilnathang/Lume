@@ -1,9 +1,9 @@
 <template>
   <div class="workflow-execution-page">
     <PageHeader
-      :title="`Execution: ${execution?.id?.substring(0, 8)}`"
-      :sub-title="`Workflow: ${workflowName} | Record: ${execution?.recordId}`"
-      @back="emit('back')"
+      :title="`Execution: ${execution?.id ?? '…'}`"
+      :sub-title="`Workflow: ${workflow?.name || workflowName || 'Workflow'} | Record: ${execution?.recordId}`"
+      @back="router.push('/admin/workflows')"
     >
       <template #extra>
         <Space>
@@ -41,13 +41,15 @@
                 <Space direction="vertical" style="width: 100%;" v-if="availableTransitions.length">
                   <Button
                     v-for="transition in availableTransitions"
-                    :key="transition.id"
+                    :key="transition.code"
                     type="primary"
                     block
                     @click="showTransitionConfirm(transition)"
-                    :loading="transitioningId === transition.id"
+                    :loading="transitioningId === transition.code"
+                    :disabled="!!transition.unavailableReason"
+                    style="height: auto; white-space: normal"
                   >
-                    {{ transition.name }}
+                    {{ transition.name }}<span v-if="transition.unavailableReason"> — {{ transition.unavailableReason }}</span>
                   </Button>
                 </Space>
                 <Empty v-else description="No available transitions" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
@@ -60,7 +62,13 @@
         <Col :span="12">
           <Card title="Execution History" :bordered="false">
             <Spin :spinning="loading">
-              <Timeline v-if="history.length" :items="timelineItems" />
+              <Timeline v-if="history.length">
+                <TimelineItem v-for="item in history" :key="item.version">
+                  <strong>{{ item.fromState || 'Start' }} → {{ item.toState }}</strong>
+                  <div>{{ item.transitionName }} by user {{ item.userId }}</div>
+                  <time>{{ formatDate(item.transitionedAt) }}</time>
+                </TimelineItem>
+              </Timeline>
               <Empty v-else description="No transitions yet" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
             </Spin>
           </Card>
@@ -70,11 +78,11 @@
 
     <!-- Transition Confirmation Modal -->
     <Modal
-      v-model:visible="showConfirmModal"
+      v-model:open="showConfirmModal"
       title="Confirm Transition"
       @ok="handleTransition"
       @cancel="showConfirmModal = false"
-      :ok-loading="transitioning"
+      :confirm-loading="transitioning"
     >
       <p>Move from <strong>{{ execution?.currentState }}</strong> to <strong>{{ selectedTransition?.name }}</strong>?</p>
       <p v-if="selectedTransition?.description" class="transition-description">
@@ -85,7 +93,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   Card,
   Descriptions,
@@ -98,12 +107,13 @@ import {
   Spin,
   Tag,
   Timeline,
+  TimelineItem,
   Button,
   Row,
   Col,
   message,
 } from 'ant-design-vue'
-import { get, post } from '@/api/request'
+import { getWorkflowExecutionApi, transitionWorkflowStateApi } from '../api/index'
 import dayjs from 'dayjs'
 
 interface Props {
@@ -113,6 +123,8 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const router = useRouter()
+let loadVersion = 0
 const emit = defineEmits(['back', 'transitioned'])
 
 const loading = ref(false)
@@ -136,20 +148,12 @@ const statusColor = computed(() => {
 })
 
 const availableTransitions = computed(() => {
-  if (!workflow.value || !execution.value) return []
+  if (!workflow.value || !execution.value || execution.value.status !== 'active') return []
 
   const currentStateName = execution.value.currentState
   const transitions = workflow.value.transitions || []
 
-  return transitions.filter((t: any) => t.from === currentStateName)
-})
-
-const timelineItems = computed(() => {
-  return history.value.map((item: any) => ({
-    label: formatDate(item.transitionedAt),
-    title: `${item.fromState} → ${item.toState}`,
-    description: `${item.transitionName}${item.userId ? ` by user ${item.userId}` : ' (automatic)'}`,
-  }))
+  return transitions.filter((t: any) => t.from_state === currentStateName)
 })
 
 const formatDate = (date: string | Date) => {
@@ -158,20 +162,22 @@ const formatDate = (date: string | Date) => {
 }
 
 const loadExecution = async () => {
+  const version = ++loadVersion
+  execution.value = null
+  workflow.value = null
+  history.value = []
+  showConfirmModal.value = false
   loading.value = true
   try {
-    const response = await get(`/base_automation/workflows/${props.workflowId}/executions/${props.executionId}`)
+    const response = await getWorkflowExecutionApi(props.workflowId, props.executionId)
+    if (version !== loadVersion) return
     execution.value = response.execution
     history.value = response.history || []
-
-    // Load workflow for transitions
-    const wf = await get(`/base_automation/workflows/${props.workflowId}`)
-    workflow.value = wf
-  } catch (err) {
-    message.error('Failed to load execution')
-    console.error(err)
+    workflow.value = response.workflow
+  } catch {
+    if (version === loadVersion) message.error('Failed to load execution')
   } finally {
-    loading.value = false
+    if (version === loadVersion) loading.value = false
   }
 }
 
@@ -181,19 +187,18 @@ const showTransitionConfirm = (transition: any) => {
 }
 
 const handleTransition = async () => {
-  if (!selectedTransition.value) return
+  if (!selectedTransition.value || !execution.value || selectedTransition.value.unavailableReason) return
+  const viewVersion = loadVersion
 
   transitioning.value = true
-  transitioningId.value = selectedTransition.value.id
+  transitioningId.value = selectedTransition.value.code
 
   try {
-    const response = await post(
-      `/base_automation/workflows/${props.workflowId}/executions/${props.executionId}/transition`,
-      {
-        toState: selectedTransition.value.to,
-        transitionName: selectedTransition.value.name,
-      }
-    )
+    const response = await transitionWorkflowStateApi(props.workflowId, props.executionId, {
+      transitionCode: selectedTransition.value.code,
+      version: execution.value.version,
+    })
+    if (viewVersion !== loadVersion) return
 
     execution.value = response
     showConfirmModal.value = false
@@ -201,14 +206,19 @@ const handleTransition = async () => {
     emit('transitioned', response)
 
     // Reload to get updated history
-    setTimeout(() => loadExecution(), 500)
+    await loadExecution()
   } catch (err: any) {
-    message.error(err.message || 'Failed to transition workflow')
+    if (viewVersion === loadVersion) {
+      message.error(err.response?.data?.message || err.message || 'Failed to transition workflow')
+      await loadExecution()
+    }
   } finally {
     transitioning.value = false
     transitioningId.value = null
   }
 }
+
+watch(() => [props.workflowId, props.executionId], () => loadExecution())
 
 onMounted(() => {
   loadExecution()
