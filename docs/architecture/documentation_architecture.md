@@ -1,3 +1,8 @@
+> **Historical design/reference — reviewed 2026-10-25.**
+> This document records earlier plans or feature claims, not current migration
+> acceptance. Use the [current documentation index](../README.md) for implemented
+> architecture, supported commands, verification evidence and remaining tasks.
+
 # Lume v2.0: Documentation Architecture & Strategy
 
 **Date**: 2026-04-22  

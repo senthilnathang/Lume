@@ -40,3 +40,18 @@ Manual state execution now supports guarded starts, snapshot-based transitions,
 version conflicts and atomic history. Migration 018 is applied to the local API;
 advanced workflow effects and legacy data reconciliation remain open. Admin assets
 are built but not deployed. External integrations remain disabled.
+
+## Next acceptance work
+
+| Scope | Required evidence |
+|---|---|
+| M04 contract inventory | Classify the 70 unmatched literal calls by routed consumers and payload compatibility |
+| M05 automation | Implement or explicitly resolve required advanced effects, rules, schedules and flow behavior |
+| M06–M11 remaining features | Finish approvals, data tools, security consumers, public modules and runtime audits |
+| M12 data | Repeatable legacy import with dry run, reconciliation and preserved history |
+| M15–M16 release | Both client releases, critical browser cases, production routing and rollback verification |
+| M17–M18 retirement | Remove legacy only after gates pass; publish final acceptance evidence |
+
+The source inventories are review candidates, not confirmed bug counts. Provider
+integration tests are deferred by user choice. The local API rollout is complete
+for the current batch; full application cutover remains open.

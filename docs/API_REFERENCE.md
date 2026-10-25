@@ -1,6 +1,6 @@
 # Current API contract reference
 
-Updated 2026-10-24. NestJS REST base: `/api/v2`; GraphQL: `/api/v2/graphql`.
+Updated 2026-10-25. NestJS REST base: `/api/v2`; GraphQL: `/api/v2/graphql`.
 This is a guide to implemented migration contracts, not a claim of complete parity.
 
 | Area | REST contract |
@@ -12,6 +12,7 @@ This is a guide to implemented migration contracts, not a claim of complete pari
 | Record rules | `/admin/record-rules` (DELETE deactivates and audits) |
 | Sequences | `/admin/settings/sequences`; POST `/:code/next` allocates |
 | Automation definitions | `/automation/workflows`, `/automation/flows`, `/automation/approvals` |
+| Manual workflow execution | POST `/automation/workflows/:workflowId/run/:recordId`; GET `/:workflowId/executions/:id`; POST `/:workflowId/executions/:id/transition` under `/automation/workflows` |
 | Approval requests | GET/POST `/automation/approval-requests`, GET `/:id`, POST `/:id/approve`, POST `/:id/reject` |
 | Global search | GET `/search?q=...&limit=20` (authenticated; signed tenant required) |
 | Public website | `/website/public` |

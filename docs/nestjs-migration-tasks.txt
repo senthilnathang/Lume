@@ -179,3 +179,11 @@ but not deployed. Consult Git history for the published revision.
 - Chromium verified two manual transitions, disabled approval action, visible
   history and completed state after reload. Isolated fixtures were cleaned up.
   Final API/admin lint has zero errors; builds, admin types and layout pass.
+
+2026-10-25 documentation reconciliation
+- Updated active root/app READMEs, architecture, developer/setup/upgrade/deployment
+  guides, roadmap and acceptance cases against implementation 6a96a881.
+- Removed obsolete backend/api relocation and legacy schema-sync upgrade commands.
+  Added historical notices to older architecture/feature plans without changing
+  their design content. Pending designer/two-browser/production/import cases remain
+  explicit; documentation changes do not close M04–M18 acceptance gates.

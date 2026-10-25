@@ -115,3 +115,11 @@ passing tests are not substitutes for these gates.
   Browser fixture creation used the API; the designer Run button was not browser-tested.
 - Final API/admin lint: zero errors (existing warning debt remains). API build,
   admin types/build, layout validation and local GraphQL probe passed.
+
+## Documentation-only updates
+
+For documentation-only commits, validate relative links in active guides and new
+links in historical documents, run `python3 scripts/check_layout.py`, and check
+`git diff --check`. Application suites need not be rerun when runtime code and
+configuration are unchanged. Preserve the original dates and scope of application
+test evidence rather than reporting those checks as newly executed.

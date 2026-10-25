@@ -1,6 +1,6 @@
 # Current architecture
 
-Updated 2026-10-24. This describes the implemented ownership boundaries, not a
+Updated 2026-10-25. This describes the implemented ownership boundaries, not a
 claim that all Express behavior has migrated. [Open tasks](nestjs-migration-tasks.txt)
 are the source of truth for unfinished work.
 
@@ -14,6 +14,8 @@ flowchart LR
   Public --> Services
   GQL[GraphQL /api/v2/graphql] --> Services
   Services --> DB[(MySQL via Prisma and Drizzle)]
+  Services --> State[Manual state engine: snapshot and version]
+  State --> DB
   Services --> Jobs[Durable automation jobs]
   Jobs --> Workers[Worker and idempotent actions]
 ```

@@ -1,6 +1,6 @@
 # Installation and local setup
 
-Updated 2026-10-24. The NestJS migration is in progress. Use an isolated development
+Updated 2026-10-25. The NestJS migration is in progress. Use an isolated development
 database; these instructions do not authorize resetting an existing installation.
 
 ## Requirements
@@ -52,3 +52,7 @@ Build and typecheck both clients and the backend using [DEVELOPMENT.md](DEVELOPM
 `GET /api/v2/health` should report healthy startup. GraphQL is `/api/v2/graphql`.
 Run tests with the isolated database procedure in [TESTING.md](TESTING.md).
 A successful startup does not certify every migrated feature.
+
+Manual workflow execution requires migration 018 and the generated Prisma client.
+The local service's applied ledger does not imply a new database has a baseline
+schema. Follow the [upgrade guide](MIGRATION_GUIDE.md) for existing installations.

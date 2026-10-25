@@ -1,6 +1,6 @@
 # Deployment and migration cutover
 
-Updated 2026-10-24. Canonical apps are `apps/api`, `apps/admin` and `apps/website`.
+Updated 2026-10-25. Canonical apps are `apps/api`, `apps/admin` and `apps/website`.
 The installed API service now runs from `apps/api` and has passed HTTP health
 and GraphQL checks after restart. Newly built client assets are not deployed.
 Git publication is distinct from deployment.
@@ -57,3 +57,15 @@ critical browser flows, restore-test a backup, prepare rollback, and verify
 provider-disabled startup. Deploy clients and confirm requests reach NestJS.
 Remove retained legacy source only after these gates pass. See the
 [roadmap](MIGRATION_PRODUCTION_ROADMAP.md) and [tasks](nestjs-migration-tasks.txt).
+
+## Latest local rollout evidence
+
+Implementation revision `6a96a881` includes manual state execution. Before applying
+migration 018, a private backup was checksum-verified and restored successfully
+(141 tables, 17 existing ledger entries). The additive migration was applied and
+`lume-nestjs.service` restarted; HTTP health, GraphQL and missing-auth rejection
+passed. No workflow fixtures were written to the deployed database.
+
+The admin execution flow was checked against an isolated API/database. Its built
+assets are not deployed. This evidence does not certify frontend production routing,
+legacy data import, complete feature parity or a complete rollback exercise.

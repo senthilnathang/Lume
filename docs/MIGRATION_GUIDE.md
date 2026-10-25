@@ -1,491 +1,76 @@
-> **Historical/reference document — status updated 2026-10-24.**
-> Earlier architecture, commands, estimates and completion claims below are not
-> current migration certification. Use the [active task list](nestjs-migration-tasks.txt) and
-> [developer guide](DEVELOPMENT.md). NestJS is the active API; standalone Express retirement,
-> remaining feature parity and final deployment are still pending. Shared UI is
-> now in `packages/@lume/module-ui`; the API remains at `apps/api`.
+# NestJS migration and upgrade guide
 
-# Lume Framework — Migration & Upgrade Guide
+Updated 2026-10-25. The active stack is NestJS, Vue 3 administration and Nuxt 3
+public website. Required Express behavior and legacy data reconciliation remain
+in progress; this guide does not certify a complete replacement.
 
-## v1.0.0 → v2.0.0 Major Upgrade
+## Canonical ownership
 
-### What's New in v2.0.0
+| Path | Owner |
+|---|---|
+| `apps/api` | NestJS business API, Prisma/Drizzle persistence and SQL migrations |
+| `apps/admin` | Vue administration application |
+| `apps/website` | Nuxt public website |
+| `packages/@lume/module-ui` | Shared browser components and API adapters |
+| `legacy` | Inactive Express application, old generators and tooling |
 
-This is a major version update with significant improvements and architectural changes:
+Use Node.js 22.12 or newer and the root-pinned pnpm 10.28.2. Install from the root
+with the single active `pnpm-lock.yaml`; do not install the legacy applications.
+NestJS's Express HTTP adapter is distinct from the standalone application being retired.
 
-**✨ Highlights:**
-- **Monorepo Structure** - pnpm workspace + Turbo build orchestration
-- **Tailwind CSS 4** - Modern CSS variables, reduced config duplication
-- **Modern Tooling** - Jest 30, Vitest 4.1, Playwright 1.49
-- **Security Hardened** - Helmet 7.1, rate limiting, response caching
-- **Observability** - Request tracing, metrics, structured logging
-- **Performance** - Response caching, query optimization, benchmarks
-- **Node.js 20.12.0+** - Latest LTS features and improvements
+## Upgrade an existing installation
 
-### Breaking Changes
+1. Record the deployed commit, service configuration, client API origins and SQL
+   ledger. Review the [open tasks](nestjs-migration-tasks.txt) for required behavior.
+2. Create a private consistent database backup and preserve uploads/configuration.
+   Verify the checksum and restore into a disposable database before changing data.
+3. Check out the reviewed revision, install the frozen lockfile and generate the
+   Prisma client. Keep secrets in private environment files.
+4. Review applicable SQL files and apply them with the canonical ledger runner.
+   Do not use `prisma db push`, legacy refresh scripts or assumed startup schema
+   synchronization to migrate existing data.
+5. Build and test using [DEVELOPMENT.md](DEVELOPMENT.md) and [TESTING.md](TESTING.md).
+   Backend integration tests require isolated data, not the deployed database.
+6. Deploy the API using [DEPLOYMENT.md](DEPLOYMENT.md), check HTTP health and
+   GraphQL, then verify the required authenticated browser flows.
+7. Build/deploy each client with its intended NestJS API origin. Git publication
+   and a local API restart do not deploy client assets.
 
-1. **Node.js Requirement:** v1.0 required 18.0.0+, v2.0 requires 20.12.0+
-   ```bash
-   # Check your Node version
-   node --version  # Must be v20.12.0 or higher
-   ```
-
-2. **Package Manager:** v2.0 uses pnpm exclusively
-   ```bash
-   # Install pnpm if you don't have it
-   npm install -g pnpm@10.28.2
-   ```
-
-3. **Monorepo Structure:** Directory layout has changed
-   ```
-   v1.0:
-   - backend/
-   - apps/admin/
-   - apps/website/
-
-   v2.0:
-   - backend/                    (same)
-   - apps/admin/             (moved from frontend/apps)
-   - apps/website/        (moved from frontend/apps)
-   - packages/@lume/*/           (shared config packages)
-   ```
-
-4. **Tailwind CSS 4:** Config format updated, CSS variables now required
-   - Custom CSS files use `@layer base` instead of `@apply`
-   - Theme configuration moved to shared package
-   - See [Tailwind 4 Migration](#tailwind-4-migration) below
-
-5. **Environment Variables:** New vars for caching, observability, tracing
-   ```env
-   # New in v2.0
-   REDIS_URL=redis://localhost:6379  # Optional, for response caching
-   LOG_LEVEL=info                     # Control logging verbosity
-   ENABLE_RATE_LIMIT=true             # Rate limiting in development
-   ```
-
-### Migration Checklist
-
-- [ ] Backup database and uploads
-- [ ] Update Node.js to 20.12.0+
-- [ ] Install pnpm 10.28.2+
-- [ ] Pull v2.0.0 code from repository
-- [ ] Install root dependencies: `pnpm install`
-- [ ] Update database schema (Prisma/Drizzle)
-- [ ] Update environment variables
-- [ ] Rebuild frontend apps with new Tailwind 4
-- [ ] Run tests: `pnpm test`
-- [ ] Test all modules in admin UI
-
-### Step-by-Step Upgrade
+Run from the repository root:
 
 ```bash
-# 1. Backup everything (CRITICAL)
-mysqldump -u gawdesy -pgawdesy lume > backup_$(date +%Y%m%d_%H%M%S).sql.gz
-tar -czf uploads_backup_$(date +%Y%m%d_%H%M%S).tar.gz backend/uploads/
-
-# 2. Update Node.js (if needed)
-node --version  # Should be v20.12.0+
-nvm install 20.12.0  # If using nvm
-
-# 3. Fetch v2.0.0
-git fetch origin
-git checkout v2.0.0  # Check out the tag
-
-# 4. Install all dependencies (monorepo)
-pnpm install
-
-# 5. Update database schema
-cd backend
-npx prisma generate
-npx prisma db push
-npx drizzle-kit push  # For module tables
-
-# 6. Rebuild frontend apps
-pnpm run build
-
-# 7. Verify tests pass
-pnpm run test
-
-# 8. Start services
-pnpm run dev
+pnpm install --frozen-lockfile
+pnpm --filter @lume/api db:generate
+pnpm --filter @lume/api build
+pnpm --filter @lume/admin build
+pnpm --filter @lume/website build
 ```
 
----
-
-## Tailwind CSS 4 Migration
-
-### CSS Variables in Globals
-
-Tailwind 4 uses CSS variables for theming. Update your global styles:
-
-```css
-/* Before (v1.0) */
-body {
-  @apply bg-white dark:bg-slate-900 text-black dark:text-white;
-}
-
-/* After (v2.0) */
-@layer base {
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-:root {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 3.6%;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 0 0% 3.6%;
-    --foreground: 0 0% 98%;
-  }
-}
-```
-
-### Shared Config Package
-
-The shared config package (`packages/@lume/tailwind-config/`) defines:
-- Base theme (colors, spacing, typography)
-- Animations and transitions
-- Custom utilities
-
-All apps extend this config:
-
-```javascript
-// apps/admin/tailwind.config.js
-import baseConfig from '@lume/tailwind-config';
-
-export default {
-  ...baseConfig,
-  content: [
-    './src/**/*.{vue,js,ts}',
-    '../../../legacy/express/src/modules/**/static/**/*.{vue,js,ts}'
-  ]
-};
-```
-
----
-
-## Standard Upgrade Procedure (v1.x → v1.y patch)
-
-```bash
-# 1. Pull the latest changes
-cd /path/to/lume
-git pull origin main
-
-# 2. Install any new backend dependencies
-cd backend
-npm install
-
-# 3. Regenerate the Prisma client (picks up schema changes)
-npx prisma generate
-
-# 4. Apply database schema changes
-npx prisma db push
-
-# 5. Install any new admin panel dependencies
-cd ../apps/admin
-npm install
-
-# 6. Install any new public site dependencies
-cd ../riagri-website
-npm install
-
-# 7. Restart all development servers
-```
-
-### Upgrade Checklist
-
-| Step | Command | Directory |
-|------|---------|-----------|
-| Pull latest code | `git pull origin main` | project root |
-| Backend dependencies | `npm install` | `backend/` |
-| Prisma client | `npx prisma generate` | `backend/` |
-| Schema sync | `npx prisma db push` | `backend/` |
-| Admin panel dependencies | `npm install` | `apps/admin/` |
-| Public site dependencies | `npm install` | `apps/website/` |
-| Restart backend | `npm run dev` | `backend/` |
-| Restart admin panel | `npm run dev` | `apps/admin/` |
-| Restart public site | `npm run dev` | `apps/website/` |
-
----
-
-## Database Migrations
-
-### Prisma (Core Tables)
-
-Prisma manages the 11 core tables (users, roles, permissions, etc.).
-
-#### Development — Quick Sync
-
-```bash
-cd backend
-npx prisma db push
-```
-
-Synchronizes the database directly from `schema.prisma` without migration files.
-
-#### Production — Versioned Migrations
-
-```bash
-# Create a migration
-npx prisma migrate dev --name describe_your_change
-
-# Apply in production
-npx prisma migrate deploy
-
-# Check status
-npx prisma migrate status
-```
-
-#### Introspection (DB → Schema)
-
-Lume uses introspection to generate the Prisma schema from the database:
-
-```bash
-npx prisma db pull      # Updates schema.prisma from DB
-npx prisma generate     # Regenerates client
-```
-
-### Drizzle (Module Tables)
-
-Drizzle manages tables for 14 modules. Schemas are defined in `modules/{name}/models/schema.js`.
-
-#### Runtime Sync
-
-Module tables are automatically synced when the server starts. Adding a new column to a Drizzle schema will create it on the next restart.
-
-#### Manual Migration
-
-```bash
-# Generate migrations from schema changes
-npx drizzle-kit generate
-
-# Apply pending migrations
-npx drizzle-kit migrate
-
-# Push schema directly (development only)
-npx drizzle-kit push
-```
-
-#### Adding a Column to a Module Table
-
-1. Edit the schema file:
-   ```javascript
-   // modules/my_module/models/schema.js
-   export const myTable = mysqlTable('my_table', {
-     // ... existing columns
-     newField: varchar('new_field', { length: 255 }),  // Add this
-   });
-   ```
-
-2. Restart the backend — Drizzle will sync the new column.
-
-3. Or apply via SQL directly:
-   ```sql
-   ALTER TABLE my_table ADD COLUMN new_field VARCHAR(255);
-   ```
-
----
-
-## Module Management
-
-### Install a Module
-
-**Via Admin UI:**
-1. Navigate to **Settings > Modules**
-2. Find the module → Click **Install**
-
-**Via API:**
-```bash
-curl -X POST http://localhost:3000/api/modules/install \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{ "moduleName": "donations" }'
-```
-
-### Uninstall a Module
-
-**Via Admin UI:**
-1. Navigate to **Settings > Modules**
-2. Find the module → Click **Uninstall**
-
-**Via API:**
-```bash
-curl -X POST http://localhost:3000/api/modules/uninstall \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{ "moduleName": "donations" }'
-```
-
-### Module Dependencies
-
-Modules declare dependencies in `__manifest__.js`. The framework enforces:
-
-- A module cannot be installed if its dependencies are not installed
-- A module cannot be uninstalled if other installed modules depend on it
-- The `base` module cannot be uninstalled
-
-Dependency chain example:
-```
-base ← editor ← website
-base ← base_security
-base ← base_automation
-```
-
----
-
-## Content Migration
-
-### Migrating Page Content to Visual Page Builder
-
-Pages using structured JSON content can be migrated to TipTap format for the visual page builder.
-
-#### TipTap Content Format
-
-The page builder stores content as TipTap JSON:
-
-```json
-{
-  "type": "doc",
-  "content": [
-    {
-      "type": "sectionBlock",
-      "attrs": { "backgroundColor": "#f8f9fa" },
-      "content": [
-        { "type": "heading", "attrs": { "level": 1 }, "content": [{ "type": "text", "text": "Title" }] },
-        { "type": "paragraph", "content": [{ "type": "text", "text": "Body" }] }
-      ]
-    }
-  ]
-}
-```
-
-#### Detection Logic
-
-The page editor detects the content format:
-
-```javascript
-function isTipTapJson(obj) {
-  return obj && obj.type === 'doc' && Array.isArray(obj.content);
-}
-```
-
-- TipTap format → shows visual PageBuilder (3-panel layout)
-- Other JSON → shows form-based editor
-
-#### Migration Approach
-
-To migrate a page to the visual builder:
-
-1. Build the equivalent TipTap JSON using available block types (sectionBlock, columnsBlock, infoBox, testimonial, etc.)
-2. Update the page via `PUT /api/website/pages/:id` with the new content
-3. The page will automatically show the visual builder on next edit
-
-Available block types for migration: sectionBlock, columnsBlock, columnBlock, heading, paragraph, dualHeading, advancedHeading, infoBox, testimonial, teamMember, iconList, faq, contactForm, businessHours, calloutBlock, buttonBlock, marketingButton, spacerBlock, imageBlock, videoBlock, htmlBlock, priceTable, priceList, googleMap, socialShare, countdown, contentToggle, modalPopup, progressBar, postsGrid, imageGallery, carouselBlock, flipBoxBlock, animatedHeadlineBlock, hotspotBlock, tocBlock, offCanvasBlock, dynamicTagBlock, accordionBlock, audioBlock, beforeAfterBlock, blockquoteBlock, breadcrumbsBlock, chartBlock, codeHighlightBlock, counterBlock, floatingButtonsBlock, globalWidgetBlock, loopCarouselBlock, loopGridBlock, lottieBlock, navMenuBlock, progressTrackerBlock, searchFormBlock, slidesBlock, starRatingBlock, tabsBlock.
-
----
-
-## Backup Procedures
-
-### Database Backup
-
-#### MySQL
-
-```bash
-# Full dump
-mysqldump -u gawdesy -pgawdesy lume > backup_$(date +%Y%m%d_%H%M%S).sql
-
-# Compressed
-mysqldump -u gawdesy -pgawdesy lume | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
-```
-
-#### PostgreSQL
-
-```bash
-pg_dump -U gawdesy -d lume > backup_$(date +%Y%m%d_%H%M%S).sql
-pg_dump -U gawdesy -d lume -Fc > backup_$(date +%Y%m%d_%H%M%S).dump
-```
-
-### Uploads Backup
-
-```bash
-tar -czf uploads_backup_$(date +%Y%m%d_%H%M%S).tar.gz backend/uploads/
-```
-
-### Full Backup Script
-
-```bash
-#!/bin/bash
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="./backups/${TIMESTAMP}"
-mkdir -p "${BACKUP_DIR}"
-
-mysqldump -u gawdesy -pgawdesy lume | gzip > "${BACKUP_DIR}/database.sql.gz"
-tar -czf "${BACKUP_DIR}/uploads.tar.gz" backend/uploads/
-
-echo "Backup completed: ${BACKUP_DIR}"
-```
-
----
-
-## Rollback Procedures
-
-### Rolling Back Code
-
-```bash
-git log --oneline -10     # Find the target commit
-git checkout <commit>      # Revert to it
-
-# Re-sync
-cd backend && npm install && npx prisma generate
-cd ../apps/admin && npm install
-cd ../riagri-website && npm install
-```
-
-### Restoring Database
-
-```bash
-# MySQL
-gunzip < backup.sql.gz | mysql -u gawdesy -pgawdesy lume
-
-# PostgreSQL
-psql -U gawdesy -d lume < backup.sql
-pg_restore -U gawdesy -d lume --clean backup.dump
-```
-
-### Restoring Uploads
-
-```bash
-tar -xzf uploads_backup.tar.gz -C /path/to/lume/
-```
-
-### Emergency Recovery
-
-```bash
-# 1. Stop all servers
-pkill -f "node.*backend"
-pkill -f "vite"
-pkill -f "nuxt"
-
-# 2. Restore database
-gunzip < backups/latest/database.sql.gz | mysql -u gawdesy -pgawdesy lume
-
-# 3. Restore uploads
-tar -xzf backups/latest/uploads.tar.gz -C .
-
-# 4. Revert code
-git checkout <last-known-good-commit>
-
-# 5. Re-sync
-cd backend && npm install && npx prisma generate
-cd ../apps/admin && npm install
-cd ../apps/website && npm install
-
-# 6. Restart
-cd backend && npm run dev &
-cd ../apps/admin && npm run dev &
-cd ../apps/website && npm run dev &
-```
+See the [migration runner documentation](../apps/api/migrations/README.md) for
+selection and ledger commands. A fresh installation still requires a reviewed
+baseline schema; the additive SQL ledger is not a substitute for that baseline.
+
+## Current database changes
+
+Migration 017 aligns document soft deletion. Migration 018 adds
+`workflow_state_executions` and `workflow_state_history`, preserving existing
+legacy tables. Manual executions retain immutable definitions, tenant/record
+bindings and versioned history. Neither migration imports old execution history.
+The local API has applied both; other environments must inspect their own ledger.
+
+Manual workflow transitions do not execute approval, group, timer, webhook,
+condition/action or SLA behavior. Unsupported configuration is rejected or exposed
+as unavailable. See the exact [API contract](API_REFERENCE.md).
+
+## Rollback and retirement
+
+Keep the previous application artifact and a verified backup. For additive
+migration 018, an application rollback should preserve the new tables and history.
+A database restore can discard writes made since the backup; plan recovery and
+reconciliation before restoring a live database. Stop only the affected service,
+not unrelated Node processes.
+
+Retire legacy source only after required feature parity, data reconciliation,
+client cutover and rollback acceptance pass. External email/push/AI integrations
+remain disabled. [The roadmap](MIGRATION_PRODUCTION_ROADMAP.md) and
+[acceptance cases](UAT_TEST_CASES.md) define the remaining work.

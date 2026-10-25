@@ -34,3 +34,15 @@ A release sign-off must include configuration, commit, database isolation, execu
 cases, browser coverage and failures. Do not copy historic pass counts onto untested
 features. Raw credentials, browser session state and database dumps are not public
 acceptance artifacts.
+
+## Remaining manual workflow acceptance
+
+| ID | Case | Expected result | Status |
+|---|---|---|---|
+| STATE-04 | Designer Run button with valid/invalid record ID | Valid start navigates to execution; invalid ID does not start | Adapter/HTTP coverage; browser check pending |
+| STATE-05 | Two browser sessions act on the same displayed version | One wins; stale client refreshes without duplicate history | HTTP concurrency covered; two-browser check pending |
+| STATE-06 | Deploy admin and open execution through production proxy | Requests reach NestJS with correct session and tenant | Pending client deployment |
+| STATE-07 | Import required legacy executions | Reconciled IDs, snapshots and history with repeatable dry run | Pending M12 |
+
+The completed Chromium case used an API-created isolated execution. It verified
+manual decisions and reload, not the designer Run button or production deployment.

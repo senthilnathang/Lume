@@ -71,3 +71,10 @@ type checking and build. The unchanged website previously passed 6 tests, build 
 ## License
 
 [MIT](LICENSE). See [Code of Conduct](CODE_OF_CONDUCT.md) and [security reporting](SECURITY.md).
+
+## Documentation status
+
+The [documentation index](docs/README.md) links the current architecture, developer,
+upgrade, deployment and testing guides. Implementation revision `6a96a881` includes
+manual state workflows and local migration 018. Admin assets are built but not
+deployed; advanced behavior and legacy retirement remain tracked in the roadmap.

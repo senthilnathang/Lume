@@ -1,6 +1,6 @@
 # Workspace structure
 
-Updated 2026-10-24. Applications live under `apps/`; shared code lives under
+Updated 2026-10-25. Applications live under `apps/`; shared code lives under
 `packages/`. Do not recreate root backend, frontend or server applications.
 
 ```text

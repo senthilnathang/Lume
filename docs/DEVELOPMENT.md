@@ -86,3 +86,12 @@ Run `workflow-state.http.integration.spec.ts` with the production `ValidatePipe`
 empty DTO classes without validator metadata can otherwise pass controller tests
 but fail at real application startup. The shared execution view also has a component
 regression for versioned submissions, disabled actions and visible history.
+
+## Keeping documentation current
+
+Update the root and affected app READMEs, API reference, architecture, roadmap,
+tracker and acceptance cases with behavior changes. Record the tested commit,
+full versus focused checks, database isolation and deployment scope. Keep earlier
+verification results dated; do not present unchanged-app checks as new runs.
+Use [the documentation index](README.md) for current guidance and label old plans
+as historical. Never copy private configuration, tokens or backup contents into docs.

@@ -18,3 +18,10 @@ External providers remain disabled. See [structure](../../docs/STRUCTURE.md),
 [migrations](migrations/README.md), [operations](deploy/OPERATIONS.txt), and
 [open tasks](../../docs/nestjs-migration-tasks.txt). Historical completion reports
 are not current release sign-off.
+
+Manual state workflows use migration 018 and `WorkflowStateEngineService`, separate
+from durable metadata jobs. The supported contract includes immutable snapshots,
+record authorization, version checks and atomic history. Advanced workflow effects
+and legacy history import remain pending. See [API contracts](../../docs/API_REFERENCE.md).
+Latest implementation verification: 82 suites / 861 tests, with 15 focused execution
+tests rerun using the production validator. See the testing guide for scope.

@@ -1,3 +1,8 @@
+> **Historical design/reference — reviewed 2026-10-25.**
+> This document records earlier plans or feature claims, not current migration
+> acceptance. Use the [current documentation index](../README.md) for implemented
+> architecture, supported commands, verification evidence and remaining tasks.
+
 # Lume Framework Features Plan — FastVue / ServiceNow / Salesforce benchmarks
 
 **Created:** 2026-09-04 | **Supersedes direction of:** `ENTERPRISE_PARITY_ROADMAP.md` (P0/P1/P2 complete)
