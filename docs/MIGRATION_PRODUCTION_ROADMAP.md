@@ -1,6 +1,14 @@
 # NestJS migration roadmap
 
-Updated 2026-10-25. **In progress**, not feature-complete. The detailed acceptance
+Priority changed on 2026-10-27: complete the framework first, then migrate feature
+modules and individual plugins. F01–F07 in the execution tracker now govern the
+active queue: identity/security, runtime/extension host, core persistence, framework
+API completeness, release verification, rollout and sign-off. M05–M10 feature
+expansion is deferred; required shared infrastructure remains in framework scope.
+Deferred work is not marked complete. Retain legacy module source until each
+module's behavior and data migration have been verified.
+
+Updated 2026-10-27. **In progress**, not feature-complete. The detailed acceptance
 criteria and per-task status are in [nestjs-migration-tasks.txt](nestjs-migration-tasks.txt).
 
 | Phase | Tasks | Current status |
@@ -20,11 +28,11 @@ and sequence allocation now use persisted, guarded contracts.
 
 ## Review inventories
 
-- [Frontend contract inventory](frontend-contract-audit.json): 70 unmatched literal calls.
+- [Frontend contract inventory](frontend-contract-audit.json): 69 unmatched literal calls.
 - [Backend inventory](backend-migration-inventory.json): 652 legacy route/mount
-  declarations and 100 Nest implementation markers.
+  declarations and 80 Nest implementation markers.
 
-These counts include review candidates, potentially unused paths and legitimate
+Regenerated on 2026-10-27. These counts include review candidates, potentially unused paths and legitimate
 comments. Each requires reachability and behavior analysis; none is a direct bug count.
 
 ## Release criteria
@@ -45,13 +53,24 @@ are built but not deployed. External integrations remain disabled.
 
 | Scope | Required evidence |
 |---|---|
-| M04 contract inventory | Classify the 70 unmatched literal calls by routed consumers and payload compatibility |
-| M05 automation | Implement or explicitly resolve required advanced effects, rules, schedules and flow behavior |
+| M04 contract inventory | Classify the 69 unmatched literal calls by routed consumers and payload compatibility |
+| M05 automation | Field-update rule editor, registered-workflow schedules, manual flows with conditional branches, conditional transitions and manual approval gates implemented; group/timer/webhook transitions, advanced flow nodes/triggers and remaining parity/import work stay open |
 | M06–M11 remaining features | Finish approvals, data tools, security consumers, public modules and runtime audits |
 | M12 data | Repeatable legacy import with dry run, reconciliation and preserved history |
 | M15–M16 release | Both client releases, critical browser cases, production routing and rollback verification |
 | M17–M18 retirement | Remove legacy only after gates pass; publish final acceptance evidence |
 
 The source inventories are review candidates, not confirmed bug counts. Provider
-integration tests are deferred by user choice. The local API rollout is complete
-for the current batch; full application cutover remains open.
+integration tests are deferred by user choice. The last recorded local API rollout includes migration 018. The current framework
+and automation source, migrations 019–023 and client rollout remain undeployed.
+
+## Framework release gate — 2026-10-27
+
+Use the prioritized F01–F07 table in [current status](MIGRATION_STATUS.md).
+Runtime production discovery, opt-in configuration/reload, registry/membership
+checks and stored audit/settings contracts are implemented source milestones.
+They do not close their parent gates. Complete ownership/schema reconciliation,
+backup restoration, remaining core contract and publisher coverage, browser
+acceptance and rollout evidence before starting the deferred module/plugin queue.
+Keep each later module's behavior, import, permissions and browser acceptance
+individually reviewable; retain its legacy implementation until those checks pass.

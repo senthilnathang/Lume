@@ -10,6 +10,7 @@ const createRecord = 'mutation { createEntityRecord(entityId:1,input:{data:{name
 describe('GraphQL authentication and tenant integration (real MySQL)', () => {
   let h: Harness;
   beforeAll(async () => { h = await createHarness(); });
+  beforeEach(async () => { await h.prisma.tenantRegistry.deleteMany(); });
   afterAll(async () => { await h?.close(); });
   it.each([null, 'invalid.token', 'expired'])('rejects missing, invalid, or expired credentials: %s', async credential => {
     const response = await h.query(read, credential === 'expired' ? h.token('admin', 1, -1) : credential);
@@ -86,6 +87,35 @@ describe('GraphQL authentication and tenant integration (real MySQL)', () => {
       await h.pubsub.publish('flowExecuted', { flowExecuted: { id: 22, companyId: 1 } });
       expect((await event).data.flowExecuted).toEqual({ id: 22, companyId: 1 });
       expect(received).toHaveLength(1);
+    } finally { dispose(); await client.dispose(); }
+  });
+  it('rechecks an open subscription after suspension, reactivation and archive', async () => {
+    await h.prisma.tenantRegistry.create({ data: { id: 1, name: 'One', domain: 'one.example', config: '{}' } });
+    let deniedReads = 0;
+    h.prisma.$use(async (params: any, next: any) => {
+      const result = await next(params);
+      if (params.model === 'TenantRegistry' && params.action === 'findUnique' && result && (!result.active || result.deletedAt)) deniedReads++;
+      return result;
+    });
+    const client = createClient({ url: h.wsUrl, webSocketImpl: WebSocket, connectionParams: { authorization: `Bearer ${h.token('member', 1)}` }, retryAttempts: 0 });
+    const received: any[] = [], errors: any[] = [];
+    const dispose = client.subscribe({ query: 'subscription { flowExecuted { id companyId } }' }, { next: value => received.push(value), error: error => errors.push(error), complete: () => {} });
+    const until = async (ready: () => boolean) => {
+      const deadline = Date.now() + 4000;
+      while (!ready()) { if (Date.now() > deadline) throw new Error('Subscription state timed out'); await new Promise(resolve => setTimeout(resolve, 10)); }
+    };
+    const publish = (id: number) => h.pubsub.publish('flowExecuted', { flowExecuted: { id, companyId: 1 } });
+    try {
+      await until(() => (h.pubsub as any).ee.listenerCount('flowExecuted') > 0);
+      await publish(1); await until(() => received.length === 1);
+      await h.prisma.tenantRegistry.update({ where: { id: 1 }, data: { active: false } });
+      await publish(2); await until(() => deniedReads === 1);
+      await h.prisma.tenantRegistry.update({ where: { id: 1 }, data: { active: true } });
+      await publish(3); await until(() => received.length >= 2);
+      await h.prisma.tenantRegistry.update({ where: { id: 1 }, data: { active: false, deletedAt: new Date() } });
+      await publish(4); await until(() => deniedReads === 2);
+      expect(received.map(value => value.data.flowExecuted.id)).toEqual([1, 3]);
+      expect(errors).toEqual([]);
     } finally { dispose(); await client.dispose(); }
   });
 });

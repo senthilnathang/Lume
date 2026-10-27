@@ -2,9 +2,11 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { message, Modal } from 'ant-design-vue';
+import ScheduledActions from './scheduled-actions.vue';
+import FlowExecutionPanel from './flow-execution-panel.vue';
 import type { ColumnsType } from 'ant-design-vue/es/table';
 import {
-  Zap, GitBranch, GitMerge, BookOpen, CheckCircle, Clock,
+  Zap, GitBranch, GitMerge, BookOpen, CheckCircle,
   Plus, RefreshCw, Edit3, Trash2, Play, Pause, Copy,
 } from 'lucide-vue-next';
 import {
@@ -133,6 +135,7 @@ function removeTransition(i: number) { workflowForm.transitions.splice(i, 1); }
 
 // ---- Flows ----
 const flows = ref<Flow[]>([]);
+const designerFlowId = ref<number | null>(null);
 const showFlowModal = ref(false);
 const flowFormMode = ref<'create' | 'edit'>('create');
 const flowFormLoading = ref(false);
@@ -147,7 +150,7 @@ const flowColumns: ColumnsType = [
   { title: 'ID', key: 'code', width: 130 },
   { title: 'Trigger', key: 'trigger', width: 110 },
   { title: 'Status', key: 'status', width: 100 },
-  { title: 'Actions', key: 'actions', width: 180, fixed: 'right' },
+  { title: 'Actions', key: 'actions', width: 280, fixed: 'right' },
 ];
 
 async function loadFlows() {
@@ -218,25 +221,14 @@ const ruleFormMode = ref<'create' | 'edit'>('create');
 const ruleFormLoading = ref(false);
 const editingRuleItem = ref<BusinessRule | null>(null);
 const ruleForm = reactive({
-  name: '', entity_type: '', is_active: true, priority: 10,
-  trigger_on: 'INSERT' as string,
-  conditions: [] as any[], actions: [] as any[],
+  name: '', model: '', field: '', status: 'active' as 'active' | 'inactive', priority: 10,
+  conditionText: '{}', valueText: '""',
 });
-
-const operatorOptions = [
-  'EQ', 'NE', 'GT', 'LT', 'GTE', 'LTE', 'IN', 'CONTAINS', 'STARTS_WITH', 'IS_NULL', 'IS_NOT_NULL',
-].map((v) => ({ label: v, value: v }));
-
-const actionTypeOptions = [
-  'SET_FIELD', 'VALIDATE', 'SEND_EMAIL', 'WEBHOOK', 'LOG',
-].map((v) => ({ label: v.replace(/_/g, ' '), value: v }));
-
-const triggerOnColors: Record<string, string> = { INSERT: 'blue', UPDATE: 'orange', DELETE: 'red' };
 
 const ruleColumns: ColumnsType = [
   { title: 'Name', dataIndex: 'name', key: 'name' },
-  { title: 'Entity Type', dataIndex: 'entity_type', key: 'entity_type', width: 140 },
-  { title: 'Trigger', key: 'trigger', width: 100 },
+  { title: 'Model', dataIndex: 'model', key: 'model', width: 140 },
+  { title: 'Field', dataIndex: 'field', key: 'field', width: 100 },
   { title: 'Priority', dataIndex: 'priority', key: 'priority', width: 80 },
   { title: 'Active', key: 'active', width: 80 },
   { title: 'Actions', key: 'actions', width: 100, fixed: 'right' },
@@ -246,38 +238,47 @@ async function loadRules() {
   try {
     const res = await getRules();
     rules.value = Array.isArray(res) ? res : (res as any)?.data || (res as any)?.items || [];
-  } catch { rules.value = []; }
+  } catch (e: any) { message.error(e?.message || 'Failed to load rules'); }
 }
 
 function openRuleModal(mode: 'create' | 'edit', r?: BusinessRule) {
   ruleFormMode.value = mode;
   if (mode === 'edit' && r) {
+    if ((r.action?.type || r.action?.actionType) !== 'set_field') {
+      message.warning('This editor supports field-update rules. Other actions can be disabled from the list.');
+      return;
+    }
     editingRuleItem.value = r;
     Object.assign(ruleForm, {
-      name: r.name, entity_type: r.entity_type, is_active: r.is_active,
-      priority: r.priority, trigger_on: r.trigger_on,
-      conditions: r.conditions ? [...r.conditions] : [],
-      actions: r.actions ? [...r.actions] : [],
+      name: r.name, model: r.model, field: r.field, status: r.status,
+      priority: r.priority, conditionText: JSON.stringify(r.condition, null, 2),
+      valueText: JSON.stringify(r.action.value, null, 2),
     });
   } else {
     editingRuleItem.value = null;
     Object.assign(ruleForm, {
-      name: '', entity_type: '', is_active: true, priority: 10,
-      trigger_on: 'INSERT', conditions: [], actions: [],
+      name: '', model: '', field: '', status: 'active', priority: 10,
+      conditionText: '{}', valueText: '""',
     });
   }
   showRuleModal.value = true;
 }
 
 async function handleRuleSubmit() {
-  if (!ruleForm.name) { message.warning('Name is required'); return; }
+  if (!ruleForm.name.trim() || !ruleForm.model || !ruleForm.field.trim()) { message.warning('Name, model and field are required'); return; }
   ruleFormLoading.value = true;
   try {
+    const condition = JSON.parse(ruleForm.conditionText);
+    if (!condition || typeof condition !== 'object' || Array.isArray(condition)) throw new Error('Conditions must be a JSON object');
+    const data = { name: ruleForm.name.trim(), model: ruleForm.model, field: ruleForm.field.trim(),
+      status: ruleForm.status, priority: ruleForm.priority, condition,
+      action: { type: 'set_field', fieldName: ruleForm.field.trim(), value: JSON.parse(ruleForm.valueText) } };
+
     if (ruleFormMode.value === 'edit' && editingRuleItem.value) {
-      await updateRule(editingRuleItem.value.id, { ...ruleForm });
+      await updateRule(editingRuleItem.value.id, data);
       message.success('Rule updated');
     } else {
-      await createRule({ ...ruleForm });
+      await createRule(data);
       message.success('Rule created');
     }
     showRuleModal.value = false;
@@ -297,14 +298,9 @@ function handleDeleteRule(r: BusinessRule) {
 }
 
 async function handleToggleRule(r: BusinessRule) {
-  try { await toggleRule(r.id); message.success(`Rule ${r.is_active ? 'disabled' : 'enabled'}`); await loadRules(); }
+  try { await toggleRule(r.id, r.status !== 'active'); message.success(`Rule ${r.status === 'active' ? 'disabled' : 'enabled'}`); await loadRules(); }
   catch (e: any) { message.error(e?.message || 'Failed'); }
 }
-
-function addCondition() { ruleForm.conditions.push({ field: '', operator: 'EQ', value: '' }); }
-function removeCondition(i: number) { ruleForm.conditions.splice(i, 1); }
-function addAction() { ruleForm.actions.push({ action_type: 'SET_FIELD', config: {} }); }
-function removeAction(i: number) { ruleForm.actions.splice(i, 1); }
 
 // ---- Approval Chains ----
 const approvals = ref<ApprovalChain[]>([]);
@@ -469,6 +465,7 @@ onMounted(() => { loadData(); });
               <a-tooltip title="Clone">
                 <a-button type="text" size="small" @click="handleCloneFlow(record)"><Copy :size="14" /></a-button>
               </a-tooltip>
+              <a-button type="link" size="small" @click="designerFlowId = record.id">Designer / Run</a-button>
               <a-tooltip title="Edit">
                 <a-button type="text" size="small" @click="openFlowModal('edit', record)"><Edit3 :size="14" /></a-button>
               </a-tooltip>
@@ -493,9 +490,8 @@ onMounted(() => { loadData(); });
       </div>
       <a-table :columns="ruleColumns" :data-source="rules" :loading="loading" row-key="id" size="middle" :pagination="{ pageSize: 20 }">
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'trigger'"><a-tag :color="triggerOnColors[record.trigger_on] || 'default'">{{ record.trigger_on }}</a-tag></template>
-          <template v-else-if="column.key === 'active'">
-            <a-switch :checked="record.is_active" size="small" @change="handleToggleRule(record)" />
+          <template v-if="column.key === 'active'">
+            <a-switch :checked="record.status === 'active'" size="small" @change="handleToggleRule(record)" />
           </template>
           <template v-else-if="column.key === 'actions'">
             <div class="actions-cell flex items-center gap-1">
@@ -543,16 +539,10 @@ onMounted(() => { loadData(); });
       </a-table>
     </div>
 
-    <!-- SCHEDULED SECTION (placeholder) -->
-    <div v-else-if="activeSection === 'scheduled'">
-      <a-card>
-        <a-result status="info" title="Scheduled Actions" sub-title="Scheduled cron-based automation actions will be available in a future update.">
-          <template #extra>
-            <a-button disabled><Clock :size="14" class="mr-1" /> Coming Soon</a-button>
-          </template>
-        </a-result>
-      </a-card>
-    </div>
+    <ScheduledActions v-else-if="activeSection === 'scheduled'" />
+    <a-drawer :open="designerFlowId !== null" title="Flow designer and execution" :width="900" destroy-on-close @close="designerFlowId = null">
+      <FlowExecutionPanel v-if="designerFlowId !== null" :key="designerFlowId" :flow-id="designerFlowId" @saved="loadFlows" />
+    </a-drawer>
 
     <!-- WORKFLOW MODAL -->
     <a-modal v-model:open="showWorkflowModal" :title="workflowFormMode === 'create' ? 'Create Workflow' : 'Edit Workflow'" width="720px" @ok="handleWorkflowSubmit" :confirm-loading="workflowFormLoading">
@@ -615,18 +605,16 @@ onMounted(() => { loadData(); });
         <a-form-item label="Name"><a-input v-model:value="flowForm.name" placeholder="Flow name" /></a-form-item>
         <a-form-item label="ID"><a-input :value="flowForm.code" placeholder="Assigned when saved" disabled /></a-form-item>
         <a-form-item label="Model" required>
-          <a-select v-model:value="flowForm.model" placeholder="Select model" style="width:100%">
-            <a-select-option v-for="m in modelOptions" :key="m.value" :value="m.value">{{ m.label }}</a-select-option>
-          </a-select>
+          <a-input v-model:value="flowForm.model" placeholder="Entity model name" :maxlength="100" />
         </a-form-item>
         <a-form-item label="Description"><a-textarea v-model:value="flowForm.description" :rows="2" /></a-form-item>
         <a-form-item label="Trigger Type">
           <a-select v-model:value="flowForm.trigger_type" style="width:100%">
-            <a-select-option value="record">Record Change</a-select-option>
-            <a-select-option value="schedule">Scheduled</a-select-option>
+            <a-select-option value="record" disabled>Record Change (not supported yet)</a-select-option>
+            <a-select-option value="schedule" disabled>Scheduled (not supported yet)</a-select-option>
             <a-select-option value="manual">Manual</a-select-option>
-            <a-select-option value="api">API Call</a-select-option>
-            <a-select-option value="subflow">Subflow</a-select-option>
+            <a-select-option value="api" disabled>API Call (not supported yet)</a-select-option>
+            <a-select-option value="subflow" disabled>Subflow (not supported yet)</a-select-option>
           </a-select>
         </a-form-item>
       </a-form>
@@ -635,51 +623,20 @@ onMounted(() => { loadData(); });
     <!-- BUSINESS RULE MODAL -->
     <a-modal v-model:open="showRuleModal" :title="ruleFormMode === 'create' ? 'Create Business Rule' : 'Edit Business Rule'" width="680px" @ok="handleRuleSubmit" :confirm-loading="ruleFormLoading">
       <a-form layout="vertical">
-        <a-form-item label="Name"><a-input v-model:value="ruleForm.name" placeholder="Rule name" /></a-form-item>
-        <a-row :gutter="16">
-          <a-col :span="8"><a-form-item label="Entity Type"><a-input v-model:value="ruleForm.entity_type" placeholder="e.g. hr.leave" /></a-form-item></a-col>
-          <a-col :span="8">
-            <a-form-item label="Trigger On">
-              <a-select v-model:value="ruleForm.trigger_on" style="width:100%">
-                <a-select-option value="INSERT">INSERT</a-select-option>
-                <a-select-option value="UPDATE">UPDATE</a-select-option>
-                <a-select-option value="DELETE">DELETE</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-          <a-col :span="8"><a-form-item label="Priority"><a-input-number v-model:value="ruleForm.priority" :min="0" style="width:100%" /></a-form-item></a-col>
-        </a-row>
-        <a-form-item label="Active"><a-switch v-model:checked="ruleForm.is_active" /></a-form-item>
-
-        <!-- Conditions -->
-        <div class="mb-4">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-medium">Conditions</span>
-            <a-button size="small" @click="addCondition"><Plus :size="12" /> Add</a-button>
-          </div>
-          <div v-for="(c, i) in ruleForm.conditions" :key="i" class="flex gap-2 mb-2 items-center">
-            <a-input v-model:value="c.field" placeholder="Field" style="width:140px" size="small" />
-            <a-select v-model:value="c.operator" style="width:130px" size="small">
-              <a-select-option v-for="op in operatorOptions" :key="op.value" :value="op.value">{{ op.label }}</a-select-option>
-            </a-select>
-            <a-input v-model:value="c.value" placeholder="Value" style="width:140px" size="small" />
-            <a-button size="small" danger @click="removeCondition(i)"><Trash2 :size="12" /></a-button>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-medium">Actions</span>
-            <a-button size="small" @click="addAction"><Plus :size="12" /> Add</a-button>
-          </div>
-          <div v-for="(a, i) in ruleForm.actions" :key="i" class="flex gap-2 mb-2 items-center">
-            <a-select v-model:value="a.action_type" style="width:160px" size="small">
-              <a-select-option v-for="at in actionTypeOptions" :key="at.value" :value="at.value">{{ at.label }}</a-select-option>
-            </a-select>
-            <a-button size="small" danger @click="removeAction(i)"><Trash2 :size="12" /></a-button>
-          </div>
-        </div>
+        <p>Runs after record creation and updates. All conditions must match. The action updates one field using the triggering user's permissions.</p>
+        <a-form-item label="Name" required><a-input v-model:value="ruleForm.name" :maxlength="100" /></a-form-item>
+        <a-form-item label="Model" required>
+          <a-input v-model:value="ruleForm.model" :disabled="ruleFormMode === 'edit'" :maxlength="100" placeholder="Entity model name" />
+        </a-form-item>
+        <a-form-item label="Field to update" required><a-input v-model:value="ruleForm.field" :disabled="ruleFormMode === 'edit'" :maxlength="100" placeholder="e.g. status" /></a-form-item>
+        <a-form-item label="Priority"><a-input-number v-model:value="ruleForm.priority" :min="0" :precision="0" /></a-form-item>
+        <a-form-item label="Active"><a-switch :checked="ruleForm.status === 'active'" @change="ruleForm.status = $event ? 'active' : 'inactive'" /></a-form-item>
+        <a-form-item label="Conditions (JSON)" help='Use {} to match all records, or {"status":"new"}. Operators: $eq, $ne, $gt, $gte, $lt, $lte, $in, $nin, $contains.'>
+          <a-textarea v-model:value="ruleForm.conditionText" :rows="5" />
+        </a-form-item>
+        <a-form-item label="New field value (JSON)" help='Use quotes for text ("review"), or enter a number, true, false, null, array or object.'>
+          <a-textarea v-model:value="ruleForm.valueText" :rows="3" />
+        </a-form-item>
       </a-form>
     </a-modal>
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get, post, put } from '@/api/request';
-import { getWorkflows, createWorkflow, updateWorkflow, activateFlow, deactivateFlow, cloneFlow, validateWorkflowDefinitionApi, startWorkflowExecutionApi, getWorkflowExecutionApi, transitionWorkflowStateApi } from '@modules/base_automation/static/api/index';
+import { getWorkflows, createWorkflow, updateWorkflow, activateFlow, deactivateFlow, cloneFlow, validateWorkflowDefinitionApi, startWorkflowExecutionApi, getWorkflowExecutionApi, transitionWorkflowStateApi, requestWorkflowApprovalApi } from '@modules/base_automation/static/api/index';
 import { getGroups, updateGroup } from '@modules/rbac/static/api/groups';
 
 vi.mock('@/api/request', () => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), del: vi.fn() }));
@@ -45,6 +45,8 @@ describe('NestJS automation adapter', () => {
     expect(get).toHaveBeenLastCalledWith('/automation/workflows/4/executions/7');
     await transitionWorkflowStateApi(4, 7, { transitionCode: 'approve', version: 2 });
     expect(post).toHaveBeenLastCalledWith('/automation/workflows/4/executions/7/transition', { transitionCode: 'approve', version: 2 });
+    await requestWorkflowApprovalApi(4, 7, { transitionCode: 'approve', version: 2 });
+    expect(post).toHaveBeenLastCalledWith('/automation/workflows/4/executions/7/approval', { transitionCode: 'approve', version: 2 });
   });
   it('uses update operations for flow activation and deactivation', async () => {
     await activateFlow(7);

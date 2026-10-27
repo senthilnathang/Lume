@@ -1,10 +1,20 @@
 import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
-import { Controller, Get, Post, Delete, Param, HttpCode, UseGuards, Optional, ConflictException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Delete, Param, HttpCode, UseGuards, Optional, ConflictException } from '@nestjs/common';
 import { ModulesContainer } from '@nestjs/core';
-import { BUILTIN_MODULE_NAMES } from '../builtin-modules';
+import { ModuleCatalogService, deployedModuleNames, runtimeModuleActions } from '@core/module/module-catalog.service';
+import { IsObject, IsInt, Min, Max } from 'class-validator';
 import { ModuleLoaderService } from '../../../core/module/module-loader.service.js';
 import { MetadataRegistryService } from '../../../core/runtime/metadata-registry.service.js';
 import { PolicyGuard, RequireRoles } from '../../../core/permission/policy.guard.js';
+
+export class UpdateRuntimeConfigDto {
+  @IsObject()
+  config: Record<string, unknown>;
+  @IsInt()
+  @Min(0)
+  @Max(2147483646)
+  expectedRevision: number;
+}
 
 @Controller('admin/modules')
 @UseGuards(JwtAuthGuard, PolicyGuard)
@@ -13,12 +23,11 @@ export class AdminModulesController {
     private readonly moduleLoader: ModuleLoaderService,
     private readonly metadataRegistry: MetadataRegistryService,
     @Optional() private readonly modules?: ModulesContainer,
+    @Optional() private readonly catalog?: ModuleCatalogService,
   ) {}
 
   private builtins() {
-    const names = new Set(Array.from(this.modules?.values() || [])
-      .map(module => BUILTIN_MODULE_NAMES[module.metatype?.name]).filter(Boolean));
-    return Array.from(names).sort().map(name => ({
+    return deployedModuleNames(this.modules).map(name => ({
       name, display_name: name.replace(/[_-]/g, ' '), version: 'bundled',
       description: 'Included in the deployed application.', depends: [],
       state: 'installed', status: 'loaded', loaded: true, initialized: true,
@@ -37,6 +46,7 @@ export class AdminModulesController {
   async listModules() {
     const installed = this.metadataRegistry.listModules();
     const builtins = this.builtins();
+    const configurations = new Map((await this.catalog?.list() ?? []).map(module => [module.name, module]));
     return {
       success: true,
       data: [...builtins, ...installed.filter(mod => !builtins.some(builtin => builtin.name === mod.name)).map((mod) => ({
@@ -45,13 +55,14 @@ export class AdminModulesController {
         state: this.moduleLoader.isLoaded(mod.name) ? 'installed' : 'uninstalled',
         status: this.moduleLoader.isLoaded(mod.name) ? 'loaded' : 'pending',
         managedBy: 'runtime',
-        actions: this.moduleLoader.isLoaded(mod.name) ? ['uninstall'] : ['install'],
+        actions: runtimeModuleActions(mod, this.moduleLoader.isLoaded(mod.name)),
         version: mod.version,
         description: mod.description,
         depends: mod.depends || [],
         entities: mod.entities?.length || 0,
         workflows: mod.workflows?.length || 0,
         permissions: mod.permissions?.length || 0,
+        ...(configurations.get(mod.name) ?? {}),
       }))],
     };
   }
@@ -76,6 +87,7 @@ export class AdminModulesController {
         workflows: module.workflows || [],
         permissions: module.permissions || [],
         hooks: module.hooks ? Object.keys(module.hooks) : [],
+        ...(await this.catalog?.find(moduleName) ?? {}),
       },
     };
   }
@@ -112,15 +124,18 @@ export class AdminModulesController {
   @RequireRoles('admin', 'super_admin')
   async reloadModule(@Param('moduleName') moduleName: string) {
     this.assertRuntimeManaged(moduleName);
+    if (!this.metadataRegistry.getModule(moduleName)) return { success: false, message: `Module ${moduleName} not found` };
     try {
-      const module = this.metadataRegistry.getModule(moduleName);
-      if (!module) {
-        return { success: false, message: `Module ${moduleName} not found` };
-      }
-      await this.moduleLoader.loadModule(module);
-      return { success: true, message: `Module ${moduleName} reloaded successfully` };
-    } catch (error) {
-      return { success: false, message: error.message };
-    }
+      await this.moduleLoader.reloadModule(moduleName);
+      return { success: true, message: `Module ${moduleName} configuration reloaded` };
+    } catch (error) { return { success: false, message: error.message }; }
+  }
+
+  @Put(':moduleName/config')
+  @RequireRoles('admin', 'super_admin')
+  async updateConfiguration(@Param('moduleName') name: string, @Body() input: UpdateRuntimeConfigDto) {
+    this.assertRuntimeManaged(name);
+    if (!this.catalog) throw new ConflictException('Module configuration store unavailable');
+    return { success: true, data: await this.catalog.updateConfig(name, input.config, input.expectedRevision) };
   }
 }

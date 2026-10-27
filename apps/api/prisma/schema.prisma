@@ -201,6 +201,30 @@ model automation_rollup_fields {
   updated_at       DateTime                            @default(now()) @updatedAt @db.DateTime(0)
 }
 
+model WorkflowSchedule {
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(100)
+  workflowName   String    @map("workflow_name") @db.VarChar(100)
+  entityId       Int       @map("entity_id")
+  recordId       Int       @map("record_id")
+  companyId      Int       @map("company_id")
+  userId         Int       @map("user_id")
+  cronExpression String?   @map("cron_expression") @db.VarChar(100)
+  intervalMinutes Int?     @map("interval_minutes")
+  status         String    @default("inactive") @db.VarChar(20)
+  version        Int       @default(0)
+  nextRunAt      DateTime? @map("next_run_at") @db.DateTime(3)
+  lastQueuedAt   DateTime? @map("last_queued_at") @db.DateTime(3)
+  lastJobId      Int?      @map("last_job_id")
+  lastError      String?   @map("last_error") @db.VarChar(255)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@index([companyId, userId])
+  @@index([status, nextRunAt])
+  @@map("automation_workflow_schedules")
+}
+
 model automation_scheduled_actions {
   id              Int       @id @default(autoincrement())
   name            String    @db.VarChar(100)
@@ -1715,6 +1739,7 @@ model WorkflowStateExecution {
   completedAt    DateTime? @map("completed_at") @db.DateTime(3)
   updatedAt      DateTime @updatedAt @map("updated_at") @db.DateTime(3)
   history        WorkflowStateHistory[]
+  approvals      WorkflowStateApproval[]
 
   @@index([companyId, workflowId, recordId])
   @@map("workflow_state_executions")
@@ -1730,8 +1755,45 @@ model WorkflowStateHistory {
   transitionCode String   @map("transition_code") @db.VarChar(100)
   transitionName String   @map("transition_name") @db.VarChar(255)
   userId         Int      @map("user_id")
+  approvalRequestId Int?  @map("approval_request_id")
   transitionedAt DateTime @default(now()) @map("transitioned_at") @db.DateTime(3)
 
   @@unique([executionId, version])
   @@map("workflow_state_history")
+}
+
+model RuntimeModuleConfig {
+  moduleName String   @id @map("module_name") @db.VarChar(100)
+  config     String   @db.LongText
+  revision   Int      @default(1)
+  createdAt  DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@map("runtime_module_configs")
+}
+
+model TenantRegistry {
+  id        Int       @id
+  name      String    @db.VarChar(200)
+  domain    String    @unique @db.VarChar(253)
+  config    String    @db.LongText
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+  deletedAt DateTime? @map("deleted_at") @db.DateTime(3)
+
+  @@map("tenant_registry")
+}
+
+model WorkflowStateApproval {
+  id             Int      @id @default(autoincrement())
+  executionId    Int      @map("execution_id")
+  execution      WorkflowStateExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  version        Int
+  transitionCode String   @map("transition_code") @db.VarChar(100)
+  requestId      Int      @unique @map("request_id")
+  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(3)
+
+  @@index([executionId, version, transitionCode], map: "workflow_state_approval_lookup")
+  @@map("workflow_state_approvals")
 }

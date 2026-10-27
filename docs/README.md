@@ -1,6 +1,6 @@
 # Documentation index
 
-Updated 2026-10-25. The active stack is NestJS, Vue 3 and Nuxt 3. The full
+Updated 2026-10-27. The active stack is NestJS, Vue 3 and Nuxt 3. The full
 Express replacement remains in progress. The local API uses the canonical path;
 built frontend assets are not yet deployed.
 
@@ -24,11 +24,10 @@ current ownership. [Development](DEVELOPMENT.md) and [installation](INSTALLATION
 contain supported commands. [Migration guide](MIGRATION_GUIDE.md) covers upgrades;
 [deployment](DEPLOYMENT.md) separates local API changes from client release.
 
-The latest implementation revision is `6a96a881`: manual workflow execution,
-immutable snapshots, versioned transitions and atomic history. The local API ledger
-includes migration 018. Verification: 82 backend suites / 861 tests, 85 admin tests,
-focused regressions and Chromium workflow completion. The unchanged website's
-last recorded result is 6 tests plus build/types; it was not rerun for that batch.
+[Current migration status](MIGRATION_STATUS.md) summarizes implemented framework
+services and the F01–F07 release gates. Migrations 019–023 are prepared, with the
+last recorded local ledger through 018. The newest full and focused check results
+are recorded in [testing](TESTING.md); older counts are historical milestones.
 
 The [roadmap](MIGRATION_PRODUCTION_ROADMAP.md) and [acceptance cases](UAT_TEST_CASES.md)
 track remaining release gates. Historical plans under `architecture/`, `roadmap/`,

@@ -50,16 +50,30 @@ describe('AuthModule', () => {
   });
 
   describe('login', () => {
+    it.each(['user', 'role'])('rejects an inactive %s for all identity operations', async target => {
+      const user = { id: 1, email: 'test@lume.dev', password: 'hashed', isActive: true, role_id: 1,
+        role: { id: 1, name: 'admin', isActive: true } };
+      if (target === 'user') user.isActive = false; else user.role.isActive = false;
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(user as any);
+      jest.spyOn(jwtAuthService, 'comparePassword').mockResolvedValue(true);
+      jest.spyOn(jwtAuthService, 'verifyToken').mockReturnValue({ sub: 1, sid: 'session', token_use: 'refresh' } as any);
+      await expect(service.login({ email: user.email, password: 'valid' })).rejects.toThrow('Invalid credentials');
+      await expect(service.refresh('valid')).rejects.toThrow('User unavailable');
+      await expect(service.getProfile(1)).rejects.toThrow('User unavailable');
+      await expect(service.confirmPassword(1, 'valid')).rejects.toThrow('Invalid credentials');
+      expect(prismaService.sessions.create).not.toHaveBeenCalled();
+    });
     it('should return tokens on successful login', async () => {
       const loginDto: LoginDto = { email: 'test@lume.dev', password: 'password123' };
       const mockUser = {
+        isActive: true,
         id: 1,
         email: 'test@lume.dev',
         password: 'hashed',
         firstName: 'Test',
         lastName: 'User',
         role_id: 1,
-        role: { id: 1, name: 'admin' },
+        role: { id: 1, name: 'admin', isActive: true },
       };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
@@ -85,13 +99,14 @@ describe('AuthModule', () => {
     it('should throw on wrong password', async () => {
       const loginDto: LoginDto = { email: 'test@lume.dev', password: 'wrong' };
       const mockUser = {
+        isActive: true,
         id: 1,
         email: 'test@lume.dev',
         password: 'hashed',
         firstName: 'Test',
         lastName: 'User',
         role_id: 1,
-        role: { id: 1, name: 'admin' },
+        role: { id: 1, name: 'admin', isActive: true },
       };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
@@ -103,13 +118,14 @@ describe('AuthModule', () => {
     it('should include role information in response', async () => {
       const loginDto: LoginDto = { email: 'user@lume.dev', password: 'password123' };
       const mockUser = {
+        isActive: true,
         id: 2,
         email: 'user@lume.dev',
         password: 'hashed',
         firstName: 'Regular',
         lastName: 'User',
         role_id: 2,
-        role: { id: 2, name: 'user' },
+        role: { id: 2, name: 'user', isActive: true },
       };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
@@ -126,10 +142,11 @@ describe('AuthModule', () => {
       const refreshToken = 'valid-refresh-token';
       const payload = { sub: 1, email: 'test@lume.dev', sid: 'test-session', token_use: 'refresh' };
       const mockUser = {
+        isActive: true,
         id: 1,
         email: 'test@lume.dev',
         role_id: 1,
-        role: { id: 1, name: 'admin' },
+        role: { id: 1, name: 'admin', isActive: true },
       };
 
       jest.spyOn(jwtAuthService, 'verifyToken').mockReturnValue(payload as any);
@@ -161,12 +178,13 @@ describe('AuthModule', () => {
   describe('getProfile', () => {
     it('should return user profile', async () => {
       const mockUser = {
+        isActive: true,
         id: 1,
         email: 'test@lume.dev',
         firstName: 'Test',
         lastName: 'User',
         role_id: 1,
-        role: { id: 1, name: 'admin' },
+        role: { id: 1, name: 'admin', isActive: true },
       };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
@@ -187,12 +205,13 @@ describe('AuthModule', () => {
 
     it('should return profile with correct structure', async () => {
       const mockUser = {
+        isActive: true,
         id: 2,
         email: 'user@lume.dev',
         firstName: 'Regular',
         lastName: 'User',
         role_id: 2,
-        role: { id: 2, name: 'user' },
+        role: { id: 2, name: 'user', isActive: true },
       };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
@@ -219,13 +238,14 @@ describe('AuthModule', () => {
     it('login endpoint should call service.login', async () => {
       const loginDto: LoginDto = { email: 'test@lume.dev', password: 'password123' };
       const mockUser = {
+        isActive: true,
         id: 1,
         email: 'test@lume.dev',
         password: 'hashed',
         firstName: 'Test',
         lastName: 'User',
         role_id: 1,
-        role: { id: 1, name: 'admin' },
+        role: { id: 1, name: 'admin', isActive: true },
       };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);
@@ -241,10 +261,11 @@ describe('AuthModule', () => {
       const refreshToken = 'valid-token';
       const payload = { sub: 1, email: 'test@lume.dev', sid: 'test-session', token_use: 'refresh' };
       const mockUser = {
+        isActive: true,
         id: 1,
         email: 'test@lume.dev',
         role_id: 1,
-        role: { id: 1, name: 'admin' },
+        role: { id: 1, name: 'admin', isActive: true },
       };
 
       jest.spyOn(jwtAuthService, 'verifyToken').mockReturnValue(payload as any);
@@ -258,12 +279,13 @@ describe('AuthModule', () => {
 
     it('getProfile endpoint should call service.getProfile', async () => {
       const mockUser = {
+        isActive: true,
         id: 1,
         email: 'test@lume.dev',
         firstName: 'Test',
         lastName: 'User',
         role_id: 1,
-        role: { id: 1, name: 'admin' },
+        role: { id: 1, name: 'admin', isActive: true },
       };
 
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser as any);

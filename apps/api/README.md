@@ -10,7 +10,7 @@ app's `.env` from `.env.example`, then run these commands from the root:
 pnpm --filter @lume/api db:generate
 pnpm --filter @lume/api dev
 pnpm --filter @lume/api build
-pnpm --filter @lume/api test --runInBand --forceExit
+pnpm --filter @lume/api test --runInBand
 ```
 
 Tests need isolated database configuration: [testing](../../docs/TESTING.md).
@@ -19,9 +19,17 @@ External providers remain disabled. See [structure](../../docs/STRUCTURE.md),
 [open tasks](../../docs/nestjs-migration-tasks.txt). Historical completion reports
 are not current release sign-off.
 
-Manual state workflows use migration 018 and `WorkflowStateEngineService`, separate
-from durable metadata jobs. The supported contract includes immutable snapshots,
-record authorization, version checks and atomic history. Advanced workflow effects
-and legacy history import remain pending. See [API contracts](../../docs/API_REFERENCE.md).
-Latest implementation verification: 82 suites / 861 tests, with 15 focused execution
-tests rerun using the production validator. See the testing guide for scope.
+Current framework services include shared identity/RBAC and database ownership,
+persisted settings/audit APIs, tenant registry and single-company membership,
+production module discovery and optimistic module configuration/reload.
+Runtime definitions are explicitly supplied through `MODULE_ENTRYPOINTS`; examples
+are disabled by default. Required load failures abort startup before worker polling.
+See [development](../../docs/DEVELOPMENT.md) for the extension contract.
+
+The last recorded application ledger is through 018; migrations 019–023 remain
+prepared and unapplied. Review [migration instructions](migrations/README.md) before
+deploying this source. `pnpm --filter @lume/api verify:framework-db` is read-only.
+Framework sign-off, data reconciliation and client rollout remain open; see
+[current status](../../docs/MIGRATION_STATUS.md) and
+[dated test evidence](../../docs/TESTING.md). Default Jest discovery runs `.spec.ts`
+files; historical `.test.ts` examples are not certified by this suite.

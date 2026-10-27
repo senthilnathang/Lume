@@ -1,17 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { TransportThrottlerGuard } from '@core/guards/transport-throttler.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 // Core modules & services
 import { BaseModule } from '@core/modules/base.module';
 import { RuntimeModule } from '@core/modules/runtime.module';
-import { PrismaService } from '@core/services/prisma.service';
-import { LoggerService } from '@core/services/logger.service';
-import { RbacService } from '@core/services/rbac.service';
-import { DrizzleService } from '@core/services/drizzle.service';
 
 // Pipes & Filters
 import { ValidatePipe } from '@core/pipes/validation.pipe';
@@ -97,13 +94,9 @@ import { GraphQLCoreModule } from './graphql/graphql.module';
   ],
   controllers: [HealthController],
   providers: [
-    PrismaService,
-    LoggerService,
-    RbacService,
-    DrizzleService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: TransportThrottlerGuard,
     },
     {
       provide: APP_GUARD,
@@ -114,6 +107,6 @@ import { GraphQLCoreModule } from './graphql/graphql.module';
       useClass: ValidatePipe,
     },
   ],
-  exports: [RuntimeModule, PrismaService, LoggerService, RbacService, DrizzleService],
+  exports: [RuntimeModule, BaseModule],
 })
 export class AppModule {}

@@ -6,8 +6,8 @@ export class SystemSettingType {
   @Field(() => String)
   key: string;
 
-  @Field(() => GraphQLJSON)
-  value: Record<string, unknown>;
+  @Field(() => GraphQLJSON, { nullable: true })
+  value: unknown;
 
   @Field(() => String, { nullable: true })
   group?: string;

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/services/prisma.service';
+import { RbacService } from '@core/services/rbac.service';
 
 /**
  * BaseRbacService
@@ -10,212 +11,28 @@ import { PrismaService } from '@core/services/prisma.service';
 export class BaseRbacService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Check if a user has a specific permission
-   * @param userId - User ID
-   * @param permissionCode - Permission code (e.g., 'base.users.read')
-   * @returns true if user has permission, false otherwise
-   */
+  // Both RBAC entry points use the same persisted identity and permission rules.
   async hasPermission(userId: number, permissionCode: string): Promise<boolean> {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          role: {
-            include: {
-              role_permissions: {
-                include: {
-                  permission: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      if (!user || !user.role) {
-        return false;
-      }
-
-      // Super admin has all permissions
-      if (user.role.name === 'super_admin' || user.role.name === 'admin') {
-        return true;
-      }
-
-      // Check if permission exists in role's permissions
-      return user.role.role_permissions.some(
-        (rp) => rp.permission.name === permissionCode,
-      );
-    } catch (error) {
-      return false;
-    }
+    return new RbacService(this.prisma).hasPermission(userId, permissionCode);
   }
 
-  /**
-   * Check if a user has any of the provided permissions
-   * @param userId - User ID
-   * @param permissionCodes - Array of permission codes
-   * @returns true if user has any of the permissions, false otherwise
-   */
-  async hasAnyPermission(
-    userId: number,
-    permissionCodes: string[],
-  ): Promise<boolean> {
-    try {
-      if (!permissionCodes || permissionCodes.length === 0) {
-        return false;
-      }
-
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          role: {
-            include: {
-              role_permissions: {
-                include: {
-                  permission: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      if (!user || !user.role) {
-        return false;
-      }
-
-      // Super admin has all permissions
-      if (user.role.name === 'super_admin' || user.role.name === 'admin') {
-        return true;
-      }
-
-      // Check if any permission exists in role's permissions
-      return user.role.role_permissions.some((rp) =>
-        permissionCodes.includes(rp.permission.name),
-      );
-    } catch (error) {
-      return false;
-    }
+  async hasAnyPermission(userId: number, permissionCodes: string[]): Promise<boolean> {
+    return new RbacService(this.prisma).hasAnyPermission(userId, permissionCodes ?? []);
   }
 
-  /**
-   * Check if a user has all of the provided permissions
-   * @param userId - User ID
-   * @param permissionCodes - Array of permission codes
-   * @returns true if user has all permissions, false otherwise
-   */
-  async hasAllPermissions(
-    userId: number,
-    permissionCodes: string[],
-  ): Promise<boolean> {
-    try {
-      if (!permissionCodes || permissionCodes.length === 0) {
-        return true;
-      }
-
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          role: {
-            include: {
-              role_permissions: {
-                include: {
-                  permission: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      if (!user || !user.role) {
-        return false;
-      }
-
-      // Super admin has all permissions
-      if (user.role.name === 'super_admin' || user.role.name === 'admin') {
-        return true;
-      }
-
-      // Check if all permissions exist in role's permissions
-      const userPermissions = new Set(
-        user.role.role_permissions.map((rp) => rp.permission.name),
-      );
-      return permissionCodes.every((code) => userPermissions.has(code));
-    } catch (error) {
-      return false;
-    }
+  async hasAllPermissions(userId: number, permissionCodes: string[]): Promise<boolean> {
+    return new RbacService(this.prisma).hasPermissions(userId, permissionCodes ?? []);
   }
 
-  /**
-   * Get all permissions for a user
-   * @param userId - User ID
-   * @returns Array of permission codes
-   */
   async getUserPermissions(userId: number): Promise<string[]> {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          role: {
-            include: {
-              role_permissions: {
-                include: {
-                  permission: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      if (!user || !user.role) {
-        return [];
-      }
-
-      // Super admin has wildcard permission
-      if (user.role.name === 'super_admin' || user.role.name === 'admin') {
-        return ['*'];
-      }
-
-      return user.role.role_permissions.map((rp) => rp.permission.name);
-    } catch (error) {
-      return [];
-    }
+    return new RbacService(this.prisma).getUserPermissions(userId);
   }
 
-  /**
-   * Get all permissions for a role
-   * @param roleId - Role ID
-   * @returns Array of permission codes
-   */
   async getRolePermissions(roleId: number): Promise<string[]> {
-    try {
-      const role = await this.prisma.role.findUnique({
-        where: { id: roleId },
-        include: {
-          role_permissions: {
-            include: {
-              permission: true,
-            },
-          },
-        },
-      });
-
-      if (!role) {
-        return [];
-      }
-
-      // System admin roles have wildcard
-      if (role.name === 'super_admin' || role.name === 'admin') {
-        return ['*'];
-      }
-
-      return role.role_permissions.map((rp) => rp.permission.name);
-    } catch (error) {
-      return [];
-    }
+    const role = await this.prisma.role.findUnique({ where: { id: roleId } });
+    if (!role?.isActive) return [];
+    const rbac = new RbacService(this.prisma);
+    return rbac.isAdminRole(role.name) ? ['*'] : rbac.getRolePermissions(roleId);
   }
 
   /**

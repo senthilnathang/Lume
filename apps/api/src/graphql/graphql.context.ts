@@ -5,6 +5,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../core/services/prisma.service';
 import { DrizzleService } from '../core/services/drizzle.service';
 import { DataLoaderRegistry } from './dataloader/dataloader.registry';
+import { tenantAllowsAccess } from '@core/services/tenant-access';
+import { tenantClaimMatches } from '@core/services/tenant-membership';
 
 export interface JwtPayload {
   sub: number;
@@ -23,6 +25,7 @@ export interface GqlContext {
   user: JwtPayload | null;
   companyId: number | null;
   loaders: DataLoaderRegistry;
+  canReceiveTenantEvent(companyId: number | null | undefined): Promise<boolean>;
 }
 
 @Injectable()
@@ -47,6 +50,13 @@ export class GraphQLContextFactory {
     const drizzle = this.drizzleService;
     return {
       req,
+      async canReceiveTenantEvent(companyId) {
+        if (!req.user || companyId == null) return false;
+        const user = await prisma.user.findUnique({ where: { id: req.user.sub }, include: { role: true } });
+        if (!user?.isActive || !user.role?.isActive || !tenantClaimMatches(user.metadata, req.user.company_id)) return false;
+        if (companyId !== resolveTenant({ headers: req.headers, user: { ...req.user, role_name: user.role.name } })) return false;
+        return tenantAllowsAccess(prisma, companyId);
+      },
       get user() { return req.user || null; },
       get companyId() { return req.user ? resolveTenant(req) : null; },
       get loaders() { return loaders ||= new DataLoaderRegistry(prisma, drizzle, req.user ? resolveTenant(req) : null); },

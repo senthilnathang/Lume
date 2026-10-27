@@ -39,9 +39,8 @@
                 <Divider />
                 <h3 style="margin-bottom: 12px;">Available Actions</h3>
                 <Space direction="vertical" style="width: 100%;" v-if="availableTransitions.length">
+                  <div v-for="transition in availableTransitions" :key="transition.code">
                   <Button
-                    v-for="transition in availableTransitions"
-                    :key="transition.code"
                     type="primary"
                     block
                     @click="showTransitionConfirm(transition)"
@@ -51,6 +50,11 @@
                   >
                     {{ transition.name }}<span v-if="transition.unavailableReason"> — {{ transition.unavailableReason }}</span>
                   </Button>
+                  <p v-if="transition.approval" class="approval-status">Approval #{{ transition.approval.requestId }}: {{ transition.approval.status }}. Complete pending decisions in the approval inbox, then refresh.</p>
+                  <Button v-if="transition.canRequestApproval" block :loading="requestingApproval === transition.code" @click="requestApproval(transition)">
+                    {{ transition.approval?.status === 'rejected' ? 'Request approval again' : 'Request approval' }} — {{ transition.name }}
+                  </Button>
+                  </div>
                 </Space>
                 <Empty v-else description="No available transitions" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
               </div>
@@ -66,6 +70,7 @@
                 <TimelineItem v-for="item in history" :key="item.version">
                   <strong>{{ item.fromState || 'Start' }} → {{ item.toState }}</strong>
                   <div>{{ item.transitionName }} by user {{ item.userId }}</div>
+                  <div v-if="item.approvalRequestId">Approval #{{ item.approvalRequestId }}</div>
                   <time>{{ formatDate(item.transitionedAt) }}</time>
                 </TimelineItem>
               </Timeline>
@@ -113,7 +118,7 @@ import {
   Col,
   message,
 } from 'ant-design-vue'
-import { getWorkflowExecutionApi, transitionWorkflowStateApi } from '../api/index'
+import { getWorkflowExecutionApi, transitionWorkflowStateApi, requestWorkflowApprovalApi } from '../api/index'
 import dayjs from 'dayjs'
 
 interface Props {
@@ -130,6 +135,7 @@ const emit = defineEmits(['back', 'transitioned'])
 const loading = ref(false)
 const transitioning = ref(false)
 const transitioningId = ref<string | null>(null)
+const requestingApproval = ref<string | null>(null)
 const showConfirmModal = ref(false)
 
 const execution = ref<any>(null)
@@ -186,6 +192,27 @@ const showTransitionConfirm = (transition: any) => {
   showConfirmModal.value = true
 }
 
+const requestApproval = async (transition: any) => {
+  if (!execution.value || !transition.canRequestApproval || requestingApproval.value) return
+  const viewVersion = loadVersion
+  requestingApproval.value = transition.code
+  try {
+    const response = await requestWorkflowApprovalApi(props.workflowId, props.executionId, {
+      transitionCode: transition.code, version: execution.value.version,
+    })
+    if (viewVersion !== loadVersion) return
+    message.success(`Approval #${response.requestId} ${response.status}`)
+    await loadExecution()
+  } catch (err: any) {
+    if (viewVersion === loadVersion) {
+      message.error(err.response?.data?.message || err.message || 'Failed to request approval')
+      await loadExecution()
+    }
+  } finally {
+    requestingApproval.value = null
+  }
+}
+
 const handleTransition = async () => {
   if (!selectedTransition.value || !execution.value || selectedTransition.value.unavailableReason) return
   const viewVersion = loadVersion
@@ -228,6 +255,12 @@ onMounted(() => {
 <style scoped>
 .workflow-execution-page {
   padding: 24px;
+}
+
+.approval-status {
+  margin: 8px 0;
+  color: #595959;
+  font-size: 12px;
 }
 
 .execution-content {

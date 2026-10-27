@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch, defineProps, defineEmits } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -185,6 +185,7 @@ const fetchWorkflow = async () => {
         button_class: t.button_class,
         requires_approval: t.requires_approval,
         approval_chain_id: t.approval_chain_id,
+        condition: t.condition,
         sequence: t.sequence,
       })) || [],
     }
@@ -198,8 +199,7 @@ const fetchWorkflow = async () => {
 
 const fetchApprovalChains = async () => {
   try {
-    const response = await getApprovalChainsApi({ page_size: 100, is_active: true })
-    approvalChains.value = response.items || []
+    approvalChains.value = await getApprovalChainsApi()
   } catch (e) {
     // Silently fail - approval chains are optional
   }
@@ -311,7 +311,13 @@ const moveState = (index, direction) => {
 }
 
 // Transition CRUD
+const conditionText = ref('')
+const conditionError = ref('')
+watch(conditionText, () => { conditionError.value = '' })
+
 const openAddTransitionModal = () => {
+  conditionText.value = ''
+  conditionError.value = ''
   editingTransitionIndex.value = null
   transitionForm.value = {
     from_state: '',
@@ -330,6 +336,8 @@ const openAddTransitionModal = () => {
 const openEditTransitionModal = (index) => {
   editingTransitionIndex.value = index
   const transition = form.value.transitions[index]
+  conditionText.value = transition.condition === undefined ? '' : JSON.stringify(transition.condition, null, 2)
+  conditionError.value = ''
   transitionForm.value = {
     from_state: transition.from_state,
     to_state: transition.to_state,
@@ -355,13 +363,29 @@ const saveTransition = () => {
     return
   }
 
+  let condition
+  try {
+    condition = conditionText.value.trim() ? JSON.parse(conditionText.value) : undefined
+    if (condition !== undefined && (!condition || typeof condition !== 'object' || Array.isArray(condition))) {
+      throw new Error('Condition must be a JSON object')
+    }
+  } catch {
+    conditionError.value = 'Enter a valid JSON object, or leave blank for no condition.'
+    return
+  }
+  if (transitionForm.value.requires_approval && (!Number.isSafeInteger(transitionForm.value.approval_chain_id) || transitionForm.value.approval_chain_id < 1)) {
+    message.error('Select an approval chain for this transition')
+    return
+  }
+  const transition = { ...transitionForm.value, condition }
+
   if (editingTransitionIndex.value !== null) {
     form.value.transitions[editingTransitionIndex.value] = {
       ...form.value.transitions[editingTransitionIndex.value],
-      ...transitionForm.value,
+      ...transition,
     }
   } else {
-    form.value.transitions.push({ ...transitionForm.value })
+    form.value.transitions.push(transition)
   }
   showTransitionModal.value = false
 }
@@ -405,12 +429,10 @@ const handleSubmit = async () => {
         button_class: t.button_class,
         requires_approval: t.requires_approval,
         approval_chain_id: t.approval_chain_id || undefined,
+        condition: t.condition,
         sequence: t.sequence,
       })),
     }
-
-    console.log('Submitting data:', JSON.stringify(data, null, 2))
-    console.log('Transitions in data:', data.transitions)
 
     if (isEdit.value) {
       // Use the code from the loaded form data (more reliable than prop)
@@ -423,7 +445,8 @@ const handleSubmit = async () => {
     emit('saved')
     emit('back')
   } catch (err) {
-    message.error(err.response?.data?.error || 'Failed to save workflow')
+    const response = err.response?.data
+    message.error(response?.errors?.join('; ') || response?.message || response?.error || 'Failed to save workflow')
   } finally {
     saving.value = false
   }
@@ -777,10 +800,11 @@ onMounted(() => {
                         <ATag v-if="transition.requires_approval" color="orange">
                           <CheckCircleOutlined /> Approval Required
                         </ATag>
+                        <ATag v-if="transition.condition && Object.keys(transition.condition).length" color="blue">Conditional</ATag>
                       </div>
                     </div>
                     <div class="transition-actions">
-                      <AButton type="text" @click="openEditTransitionModal(index)">
+                      <AButton type="text" :aria-label="`Edit transition ${transition.name}`" @click="openEditTransitionModal(index)">
                         <template #icon><EditOutlined /></template>
                       </AButton>
                       <AButton type="text" danger @click="deleteTransition(index)">
@@ -924,6 +948,19 @@ onMounted(() => {
           </ACol>
         </ARow>
 
+        <AFormItem label="Record condition (JSON)" :validate-status="conditionError ? 'error' : undefined" :help="conditionError || undefined">
+          <ATextarea
+            v-model:value="conditionText"
+            aria-label="Transition record condition"
+            :aria-invalid="!!conditionError"
+            :rows="5"
+            placeholder='{"status": "approved", "amount": {"$gte": 100}}'
+            spellcheck="false"
+          />
+          <p class="condition-help">All conditions must match the current record. Leave blank or use {} for no condition.</p>
+          <p class="condition-help">Use field names with scalar values or $eq, $ne, $in, $nin, $gt, $gte, $lt, $lte. Ordered comparisons require numbers. Unreadable or masked fields block the transition.</p>
+        </AFormItem>
+
         <AFormItem>
           <ACheckbox v-model:checked="transitionForm.requires_approval">
             Requires Approval
@@ -936,7 +973,7 @@ onMounted(() => {
             placeholder="Select approval chain"
             allow-clear
           >
-            <ASelectOption v-for="chain in approvalChains" :key="chain.id" :value="chain.id">
+            <ASelectOption v-for="chain in approvalChains.filter(chain => chain.is_active && chain.model === form.model_name)" :key="chain.id" :value="chain.id">
               {{ chain.name }}
             </ASelectOption>
           </ASelect>
@@ -951,3 +988,12 @@ export default {
   name: 'WorkflowFormPage',
 }
 </script>
+
+<style scoped>
+.condition-help {
+  margin: 8px 0 0;
+  color: #595959;
+  font-size: 12px;
+  line-height: 1.5;
+}
+</style>

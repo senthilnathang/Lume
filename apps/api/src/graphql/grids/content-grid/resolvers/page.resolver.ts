@@ -1,3 +1,4 @@
+import { tenantEventAllowed } from '../../../tenant';
 import { Resolver, Query, Mutation, Subscription, Args, Int } from '@nestjs/graphql';
 import { UseGuards, Inject } from '@nestjs/common';
 import { PubSub } from 'graphql-subscriptions';
@@ -103,8 +104,7 @@ export class PageResolver {
 
   @Subscription(() => PageType, {
     filter: (payload, variables, context) => {
-      const companyId = context.user?.company_id;
-      return companyId != null && payload.pagePublished?.companyId === companyId;
+      return tenantEventAllowed(context, payload.pagePublished?.companyId);
     },
   })
   pagePublished(@GqlTenant() tenantId?: number) {

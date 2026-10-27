@@ -76,13 +76,13 @@ describe('FlowSubscriptionResolver', () => {
   });
 
   it.each(['flowExecuted', 'flowFailed', 'flowProgress'] as const)(
-    '%s only delivers events to an authenticated matching tenant', (event) => {
+    '%s only delivers events to an authenticated matching tenant', async (event) => {
       const { filter } = Reflect.getMetadata(SUBSCRIPTION_OPTIONS_METADATA, resolver[event]);
-      expect(filter({ [event]: { companyId: 1 } }, {}, { user: mockUser })).toBe(true);
-      expect(filter({ [event]: { companyId: 2 } }, {}, { user: mockUser })).toBe(false);
-      expect(filter({ [event]: {} }, {}, {})).toBe(false);
-      expect(filter({ [event]: { companyId: 1 } }, {}, { user: null })).toBe(false);
-      expect(filter({ [event]: { companyId: null } }, {}, { user: { company_id: null } })).toBe(false);
+      expect(await filter({ [event]: { companyId: 1 } }, {}, { canReceiveTenantEvent: async id => id === mockUser.company_id })).toBe(true);
+      expect(await filter({ [event]: { companyId: 2 } }, {}, { canReceiveTenantEvent: async id => id === mockUser.company_id })).toBe(false);
+      expect(await filter({ [event]: {} }, {}, {})).toBe(false);
+      expect(await filter({ [event]: { companyId: 1 } }, {}, { user: null })).toBe(false);
+      expect(await filter({ [event]: { companyId: null } }, {}, { user: { company_id: null } })).toBe(false);
     },
   );
 });

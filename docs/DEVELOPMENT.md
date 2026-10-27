@@ -1,6 +1,6 @@
 # Developer guide
 
-Updated 2026-10-25. Start with [installation](INSTALLATION.md) and
+Updated 2026-10-27. Start with [installation](INSTALLATION.md) and
 [current architecture](ARCHITECTURE.md). Track remaining work in
 [nestjs-migration-tasks.txt](nestjs-migration-tasks.txt).
 
@@ -95,3 +95,48 @@ full versus focused checks, database isolation and deployment scope. Keep earlie
 verification results dated; do not present unchanged-app checks as new runs.
 Use [the documentation index](README.md) for current guidance and label old plans
 as historical. Never copy private configuration, tokens or backup contents into docs.
+
+## Framework extension contract
+
+Complete the framework acceptance gates before expanding individual modules or
+plugins. Reuse RuntimeModule's shared Prisma/Drizzle and RBAC services; do not
+create independent database clients or permission implementations in extensions.
+Use persisted identity, role and company membership at each execution boundary.
+Tenant administration and company-unscoped audit reads require platform-admin
+access as well as the operation's permission. Archive tenants without deleting
+company data; membership changes revoke sessions atomically.
+
+Production definitions are deployment-owned CommonJS `.js`/`.cjs` exports or
+already-installed packages. With the API working directory, configure for example:
+
+```dotenv
+MODULES_ENABLED=true
+LOAD_EXAMPLE_MODULES=false
+MODULE_ENTRYPOINTS=[{"specifier":"./dist/extensions/acme.module.js","export":"AcmeModule"}]
+AUTO_MIGRATE_MODULES=false
+VERBOSE_MODULE_LOGGING=false
+```
+
+The JSON array allows up to 64 explicit entries. Omitted `export` selects `default`
+or direct `module.exports`. Export a runtime `ModuleDefinition` with a canonical
+lowercase name, version and declared dependencies. Builtin names are reserved;
+Nest service providers require deployment registration. Required import/graph/hook
+failures abort startup; worker and scheduler polling starts only after successful
+initialization. Imports and hook side effects are not automatically rolled back.
+Apply reviewed SQL separately; automatic module migration is unsupported.
+
+For configurable modules, supply `configuration.defaults`, a `validate(config)`
+function that throws on invalid input, and `hooks.onLoad(config)`. An optional
+`onReload(config)` enables explicit configuration replacement. Configuration is a
+JSON object capped at 60 KB. Both REST and GraphQL saves require `expectedRevision`;
+zero represents defaults without a saved row. Stale saves conflict. Saving alone
+does not change runtime behavior: check `configRevision`, `appliedConfigRevision`
+and `configPending`, then reload each capable process or restart. Preserve the
+prior runtime state when a hook fails; applied revision advances only on success.
+Uninstall retains desired configuration. This is not source-code hot reload.
+
+Use `pnpm --filter @lume/api verify:framework-db` for a read-only configured-database
+check and `python3 scripts/audit_framework_schema.py` for source reconciliation.
+Exit 2 from the database check means discrepancies need review. Neither command
+certifies data ownership, row parity or backups. See [migration status](MIGRATION_STATUS.md)
+for the outstanding 019–023 deployment prerequisites.

@@ -1,5 +1,10 @@
 import { ForbiddenException } from '@nestjs/common';
 
+/** Delivery-time status check; contexts without the real authorization hook deny events. */
+export async function tenantEventAllowed(context: { canReceiveTenantEvent?: (id: number | null | undefined) => Promise<boolean> }, companyId?: number | null): Promise<boolean> {
+  return context?.canReceiveTenantEvent ? context.canReceiveTenantEvent(companyId) : false;
+}
+
 /** Header overrides are restricted to administrators; ordinary users stay in their signed tenant. */
 export function resolveTenant(req: any): number | null {
   const claim = req?.user?.company_id;
@@ -7,7 +12,7 @@ export function resolveTenant(req: any): number | null {
   const parse = (value: unknown) => {
     if (typeof value !== 'number' && (typeof value !== 'string' || !/^[1-9]\d*$/.test(value))) throw new ForbiddenException('Invalid Company ID');
     const id = Number(value);
-    if (!Number.isSafeInteger(id) || id < 1) throw new ForbiddenException('Invalid Company ID');
+    if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) throw new ForbiddenException('Invalid Company ID');
     return id;
   };
   const signed = claim == null ? null : parse(claim);

@@ -1,6 +1,6 @@
 # Local development
 
-Updated 2026-10-25. The active stack is NestJS, Vue 3 and Nuxt 3. The full
+Updated 2026-10-27. The active stack is NestJS, Vue 3 and Nuxt 3. The full
 Express replacement remains in progress. The local API includes migration 018;
 updated admin assets are built but not deployed.
 
@@ -17,3 +17,7 @@ is at its canonical path, `apps/api`. Both clients also live under `apps/`;
 no further backend folder move is planned.
 External integrations remain disabled. Historical reports must not be used as
 current completion or deployment certification.
+
+Current source requires review of prepared migrations 019–023 before deployment.
+Use [framework status](MIGRATION_STATUS.md) and the developer guide for runtime
+entrypoints, module configuration and read-only database preflight.

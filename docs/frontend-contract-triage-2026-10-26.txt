@@ -1,0 +1,119 @@
+M04 — frontend consumer and capability classification
+Reviewed: 2026-10-26 against c7f7a315 and the 70-entry frontend-contract-audit.json.
+This is a historical baseline. The subsequent M05 field-update rule editor batch
+replaces the missing toggle call; the regenerated audit now contains 69 entries.
+
+Scope and evidence
+frontend-contract-triage.json records every input entry with its original file,
+line, method and path, consumer, classification, owning task and evidence.
+Reachability was checked against apps/admin/src/router/index.ts customViews,
+explicit routes, layout imports and the consumers of individual API exports.
+An imported API module does not make every exported function a live call.
+No-routed-consumer-found is a source-review finding, not permission to delete.
+Dynamic menu fallback returns ModuleView; it does not compile fetched Vue source.
+Persisted menus, runtime permissions and browser behavior still need acceptance
+tests under their feature tasks. No application code or deployment changed.
+
+Reviewed baseline inventory (70 calls; current regenerated inventory has 69)
+- 48 have no routed consumer found, including unused exports in otherwise active
+  adapters. Retain their required capabilities in M06–M10/M13 until parity review.
+- 14 are missing contracts used by registered views: rule toggle (M05), schema
+  graph/duplicates and import/export discovery/execution (M07), campaign detail/
+  update/delete, snippet usage, icons and fonts (M09).
+- 2 are reachable AI-generation calls whose providers must remain disabled (M09).
+- 5 are computed query suffix false positives: loop grid/carousel and marketplace.
+- 1 is the routed media-picker upload: its computed prefix obscures an existing
+  controller, but bare axios bypasses the configured API base and auth adapter.
+  The unused multiple-upload export has the same transport risk (M09).
+
+Computed paths — separate from missing literal routes
+The regex inventory is intentionally not an exhaustive JavaScript call graph.
+These families require contract checks when implementing their owning tasks;
+their absence from the literal unmatched list is not a compatibility result.
+
+M07: base_customization/static/api/index.js uses BASE=/base_customization for
+fields, views, form/list layouts, dashboard widgets and record-page configuration.
+Consumers are the explicit /settings/customization/* customViews. Preserve
+per-operation DTO/response/permission checks; graph/duplicates use separate paths
+and are already included in the 70-entry classification.
+
+M08/M11: advanced_features/static/api/index.js uses BASE=/advanced_features.
+Webhooks, notifications/channels, tags and reports have explicit routed views.
+Provider-off behavior is a separate acceptance criterion from route matching.
+
+M09: website/static/api/index.ts uses BASE=/website for pages, revisions, menus,
+media, forms/submissions, theme templates, popups, import/export, settings and
+redirects. Router registers website views and page editor; check each consumed
+export against its controller and request adapter. MediaPickerModal imports the
+single upload wrapper; multiple upload has no consumer found.
+
+M09: editor/static/widgets/renders/LoopGridRender.vue and LoopCarouselRender.vue
+append URLSearchParams to /api/website/public/query. The optional suffix is a
+query string, not another path component; GET public/query exists. BlockRenderer
+registers both widgets. Check public visibility/result envelopes separately.
+
+M10: plugins/static/api/marketplace.ts appends optional search/auth parameters.
+MarketplaceView and MarketplacePluginDetail consume it but are not registered
+in the active router. Do not treat computed suffix warnings as missing routes
+or matching declarations as proof of working installation.
+
+M09/M11: apps/website/composables/useWebsiteData.ts uses runtime apiBase with
+Nuxt useFetch; useEditMode.ts derives an admin base and uses $fetch for page saves.
+apps/website/pages/contact.vue also uses $fetch. apps/website/api/request.ts is
+the native-fetch adapter. The original inventory excludes apps/website and these
+call forms; public content, contact and authenticated edit acceptance belong to
+M09/M15. Earlier public-content test evidence remains dated in TESTING.md.
+
+M11/M13: variable apiFetch(url, options) saves remain in shared rbac/roles.vue
+and activities/user/team/donations views/list.vue. Trace the actual selected
+view before changing these: several active customViews choose other filenames.
+Direct requestClient.delete calls (for example model-access.vue) are omitted by
+the scanner's del-only verb pattern. These scan boundaries remain explicit for
+the controller/consumer audit; they are not assumed to be working contracts.
+
+Matching paths with incompatible payloads or behavior
+These findings are separate from unmatched route counts:
+
+M05 /settings/automation/business-rules:
+  automation.vue submits entity_type, is_active, trigger_on, conditions[] and
+  actions[] through base_automation/static/api/index.ts without conversion.
+  apps/api/src/modules/base_automation/dtos/index.ts CreateBusinessRuleDto
+  instead requires model and field, with condition/action/status. Update DTO
+  also does not accept the editor's representation. GET results are not mapped
+  back to the editor. A route match therefore does not make list/save functional.
+  Resolve execution semantics as well as names before replacing toggle with PUT.
+
+M07 /base-features-data/data-export:
+  features-data.controller.ts exportPreview returns hard-coded Sample Item 1
+  and total_records=1 despite accepting a real model/filter request. Matching
+  POST export/preview is a placeholder, not data parity. Test actual records,
+  field permissions and empty/error results when implementing M07.
+
+M09 /website/pages/editor media picker:
+  website/static/api/index.ts uses bare axios.post('/api/website/media/upload').
+  The Nest upload controller exists; the wrapper does not use the configured
+  /api/v2 base or request.ts token interceptor. Repair transport and test upload
+  failures and multipart behavior instead of adding duplicate routes.
+
+Capabilities with no failing request to count
+- M05 scheduled actions: automation.vue scheduled section is a Coming Soon
+  placeholder and loadData has no scheduled branch. Controller CRUD declarations
+  exist; the UI still needs migration and scheduler execution needs verification.
+- M05 flow definition CRUD is not execution certification. State-machine manual
+  execution is already implemented; advanced actions, conditions, approval and
+  timer semantics remain open as recorded in the main tracker.
+- M06 delegation/callback/escalation/analytics exports have no active callers;
+  the current approval inbox deliberately uses canonical approval-requests APIs.
+- M10 Flowgrid/Agentgrid lists are not registered customViews. Backend capability
+  and module scaffolding remain required work, not accepted exclusions.
+
+Next item in order
+M05: start with business-rule editor/service semantics, then scheduled actions,
+flow execution and remaining state-machine behavior. Require real persistence,
+authorization and production-validation tests before closing that task.
+
+Acceptance boundary
+M04 classifies the current unmatched inventory and separately records computed
+paths, payload mismatches and scan boundaries. It does not close feature tasks,
+certify exhaustive route extraction, or claim migration completion. Regenerate
+the source inventory after contract changes and reconcile this dated review.

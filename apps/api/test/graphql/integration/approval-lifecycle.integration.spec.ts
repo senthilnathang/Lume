@@ -24,6 +24,7 @@ describe('Approval lifecycle (real MySQL)', () => {
     await h.prisma.automation_approval_chains.deleteMany();
     await h.prisma.recordRule.deleteMany();
     await h.seed();
+    await h.prisma.entityRecord.updateMany({data:{visibility:'public'}});
     chain = (await h.prisma.automation_approval_chains.create({data:{
       name:'Review',model:'entity_1',steps:JSON.stringify([{name:'Review',approverId:2},{name:'Final',roleId:1}]),condition:'{}',
     }})).id;

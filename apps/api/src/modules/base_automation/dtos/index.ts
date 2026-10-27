@@ -81,10 +81,12 @@ export class CreateFlowDto {
   @IsOptional()
   @IsString()
   @MaxLength(20)
+  @IsIn(['record', 'schedule', 'manual', 'api', 'subflow'])
   trigger?: string;
   @IsOptional()
   @IsString()
   @MaxLength(20)
+  @IsIn(['draft', 'active', 'inactive'])
   status?: string;
 }
 
@@ -111,10 +113,12 @@ export class UpdateFlowDto {
   @IsOptional()
   @IsString()
   @MaxLength(20)
+  @IsIn(['record', 'schedule', 'manual', 'api', 'subflow'])
   trigger?: string;
   @IsOptional()
   @IsString()
   @MaxLength(20)
+  @IsIn(['draft', 'active', 'inactive'])
   status?: string;
 }
 
@@ -236,76 +240,6 @@ export class UpdateApprovalChainDto {
   @IsOptional()
   @Allow()
   condition?: any;
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  status?: string;
-}
-
-export class CreateScheduledActionDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  name: string;
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  model?: string;
-  @IsOptional()
-  @IsString()
-  @MaxLength(10000)
-  description?: string;
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  actionType?: string;
-  @IsOptional()
-  @Allow()
-  config?: any;
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  cronExpression?: string;
-  @IsOptional()
-  @IsInt()
-  interval?: number;
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  intervalUnit?: string;
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  status?: string;
-}
-
-export class UpdateScheduledActionDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  name?: string;
-  @IsOptional()
-  @IsString()
-  @MaxLength(10000)
-  description?: string;
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  actionType?: string;
-  @IsOptional()
-  @Allow()
-  config?: any;
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  cronExpression?: string;
-  @IsOptional()
-  @IsInt()
-  interval?: number;
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  intervalUnit?: string;
   @IsOptional()
   @IsString()
   @MaxLength(20)

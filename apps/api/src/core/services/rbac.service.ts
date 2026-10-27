@@ -38,14 +38,14 @@ export class RbacService {
         where: { id: userId },
       });
 
-      if (!user) return false;
+      if (!user?.isActive) return false;
 
       // Get user's role
       const userRole = await this.prisma.role.findUnique({
         where: { id: user.role_id },
       });
 
-      if (!userRole) return false;
+      if (!userRole?.isActive) return false;
 
       // Admin bypass - all permissions granted
       if (this.isAdminRole(userRole.name)) {
@@ -58,6 +58,7 @@ export class RbacService {
           roleId: userRole.id,
           permission: {
             name: permissionCode,
+            isActive: true,
           },
         },
       });
@@ -76,7 +77,7 @@ export class RbacService {
   async getRolePermissions(roleId: number): Promise<string[]> {
     try {
       const rolePermissions = await this.prisma.rolePermission.findMany({
-        where: { roleId: roleId },
+        where: { roleId: roleId, role: { isActive: true }, permission: { isActive: true } },
         include: { permission: true },
       });
 
@@ -94,6 +95,14 @@ export class RbacService {
    */
   isAdminRole(roleName: string): boolean {
     return ['admin', 'super_admin'].includes(roleName?.toLowerCase());
+  }
+
+  async getUserPermissions(userId: number): Promise<string[]> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.isActive) return [];
+    const role = await this.prisma.role.findUnique({ where: { id: user.role_id } });
+    if (!role?.isActive) return [];
+    return this.isAdminRole(role.name) ? ['*'] : this.getRolePermissions(role.id);
   }
 
   /**

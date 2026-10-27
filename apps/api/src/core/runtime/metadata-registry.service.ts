@@ -89,12 +89,18 @@ export interface ModuleDefinition {
   permissions?: string[];
   hooks?: ModuleLifecycleHooks;
   frontend?: ModuleFrontendManifest;
+  configuration?: {
+    defaults: Record<string, unknown>;
+    validate: (config: Readonly<Record<string, unknown>>) => void | Promise<void>;
+  };
 }
 
 export interface ModuleLifecycleHooks {
   onInstall?: (db: any) => Promise<void>;
   onUninstall?: (db: any) => Promise<void>;
-  onLoad?: () => Promise<void>;
+  onLoad?: (config?: Readonly<Record<string, unknown>>) => Promise<void>;
+  /** Opt-in replacement of runtime configuration; must leave prior state intact on failure. */
+  onReload?: (config: Readonly<Record<string, unknown>>) => Promise<void>;
   onUpgrade?: (fromVersion: string) => Promise<void>;
 }
 
@@ -126,11 +132,13 @@ export type WorkflowTrigger =
   | { type: 'field_changed'; field: string; from?: any; to?: any };
 
 export type WorkflowStep =
+  | { type: 'record_condition'; condition: Record<string, unknown>; then: WorkflowStep[]; else: WorkflowStep[] }
   | { type: 'condition'; if: ConditionExpr; then: WorkflowStep[]; else?: WorkflowStep[] }
   | { type: 'set_field'; field: string; value: any }
   | { type: 'send_notification'; to: string; template?: string; title?: string; message?: string; channel?: 'in_app' | 'email' | 'push' }
   | { type: 'call_webhook'; url: string; method: string; body?: any }
   | { type: 'create_record'; entity: string; data: Record<string, any> }
+  | { type: 'update_record'; data: Record<string, any> }
   | { type: 'ai'; prompt: string; outputField: string }
   | { type: 'delay'; duration: number; unit: 'seconds' | 'minutes' | 'hours' | 'days' }
   | { type: 'custom'; handler: string };

@@ -1,6 +1,6 @@
 # NestJS migration and upgrade guide
 
-Updated 2026-10-25. The active stack is NestJS, Vue 3 administration and Nuxt 3
+Updated 2026-10-27. The active stack is NestJS, Vue 3 administration and Nuxt 3
 public website. Required Express behavior and legacy data reconciliation remain
 in progress; this guide does not certify a complete replacement.
 
@@ -58,9 +58,18 @@ legacy tables. Manual executions retain immutable definitions, tenant/record
 bindings and versioned history. Neither migration imports old execution history.
 The local API has applied both; other environments must inspect their own ledger.
 
-Manual workflow transitions do not execute approval, group, timer, webhook,
-condition/action or SLA behavior. Unsupported configuration is rejected or exposed
-as unavailable. See the exact [API contract](API_REFERENCE.md).
+Migrations 019–023 are prepared and remain unapplied to the application database:
+019 adds schedules, 020 approval bindings, 021 field-mask columns, 022 tenant
+registry and 023 module configuration. Review the target ledger and all five
+requirements before deploying this combined source. Run the read-only
+`pnpm --filter @lume/api verify:framework-db` preflight; discrepancies require
+reconciliation rather than implicit startup repair.
+
+Manual transitions now support record-field conditions and version-bound approval
+gates. Approval completion is followed by an explicit transition with fresh access
+and condition checks. Group, timer, webhook and other advanced behavior remain
+pending. See the exact [API contract](API_REFERENCE.md) and
+[current migration status](MIGRATION_STATUS.md).
 
 ## Rollback and retirement
 

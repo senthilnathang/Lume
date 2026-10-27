@@ -1,3 +1,11 @@
+> **Historical example-suite design — reviewed 2026-10-27.**
+> The `.test.ts` examples and npm commands below are not the active release suite.
+> Jest currently discovers `test/**/*.spec.ts`; passing that suite does not certify
+> these example workflows, AI providers or browser acceptance. Use root pnpm
+> commands in [the current testing guide](../../../docs/TESTING.md) and track
+> [acceptance cases](../../../docs/UAT_TEST_CASES.md). Do not seed application data
+> using historical setup examples. Current integration tests use disposable MySQL.
+
 # End-to-End Testing Guide
 
 Comprehensive end-to-end test suites for verifying complete user workflows across all example modules.
@@ -560,5 +568,5 @@ describe('New Workflow E2E', () => {
 
 - [NestJS Testing Documentation](https://docs.nestjs.com/fundamentals/testing)
 - [Jest Documentation](https://jestjs.io/docs/getting-started)
-- [API Testing Best Practices](../docs/DEVELOPMENT.md)
+- [API Testing Best Practices](../../../docs/DEVELOPMENT.md)
 - [Example Workflows](../examples/README.md)

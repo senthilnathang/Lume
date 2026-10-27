@@ -1,0 +1,226 @@
+{
+  "scope": "Core source-schema mapping comparison only; no live data or database inspected",
+  "legacy": "legacy/express/prisma/schema.prisma",
+  "current": "apps/api/prisma/schema.prisma",
+  "models": [
+    {
+      "model": "User",
+      "status": "unchanged",
+      "legacyTable": "users",
+      "currentTable": "users",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "Role",
+      "status": "unchanged",
+      "legacyTable": "roles",
+      "currentTable": "roles",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "Permission",
+      "status": "unchanged",
+      "legacyTable": "permissions",
+      "currentTable": "permissions",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "RolePermission",
+      "status": "unchanged",
+      "legacyTable": "role_permissions",
+      "currentTable": "role_permissions",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "Group",
+      "status": "unchanged",
+      "legacyTable": "groups",
+      "currentTable": "groups",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "RecordRule",
+      "status": "unchanged",
+      "legacyTable": "record_rules",
+      "currentTable": "record_rules",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "Menu",
+      "status": "unchanged",
+      "legacyTable": "menus",
+      "currentTable": "menus",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "Sequence",
+      "status": "unchanged",
+      "legacyTable": "sequences",
+      "currentTable": "sequences",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "Setting",
+      "status": "unchanged",
+      "legacyTable": "settings",
+      "currentTable": "settings",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "sessions",
+      "status": "unchanged",
+      "legacyTable": "sessions",
+      "currentTable": "sessions",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "api_keys",
+      "status": "unchanged",
+      "legacyTable": "api_keys",
+      "currentTable": "api_keys",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "AuditLog",
+      "status": "unchanged",
+      "legacyTable": "audit_logs",
+      "currentTable": "audit_logs",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "InstalledModule",
+      "status": "unchanged",
+      "legacyTable": "installed_modules",
+      "currentTable": "installed_modules",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "feature_flags",
+      "status": "unchanged",
+      "legacyTable": "feature_flags",
+      "currentTable": "feature_flags",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "Entity",
+      "status": "review-required",
+      "legacyTable": "entities",
+      "currentTable": "entities",
+      "removedDeclarations": [],
+      "addedDeclarations": [
+        "aiMetadata String? @map(\"ai_metadata\") @db.LongText",
+        "isPublishable Boolean? @default(false) @map(\"is_publishable\")",
+        "isPublished Boolean? @default(false) @map(\"is_published\")",
+        "publishedAt DateTime? @map(\"published_at\") @db.DateTime(0)"
+      ]
+    },
+    {
+      "model": "EntityField",
+      "status": "review-required",
+      "legacyTable": "entity_fields",
+      "currentTable": "entity_fields",
+      "removedDeclarations": [],
+      "addedDeclarations": [
+        "formulaType String? @db.VarChar(20) @map(\"formula_type\")",
+        "isIndexed Boolean? @default(false) @map(\"is_indexed\")",
+        "isStored Boolean? @default(false) @map(\"is_stored\")"
+      ]
+    },
+    {
+      "model": "EntityView",
+      "status": "review-required",
+      "legacyTable": "entity_views",
+      "currentTable": "entity_views",
+      "removedDeclarations": [
+        "config String? @db.LongText"
+      ],
+      "addedDeclarations": [
+        "config String? @default(\"{}\") @db.LongText"
+      ]
+    },
+    {
+      "model": "EntityRecord",
+      "status": "unchanged",
+      "legacyTable": "entity_records",
+      "currentTable": "entity_records",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "EntityRelationship",
+      "status": "review-required",
+      "legacyTable": "entity_relationships",
+      "currentTable": "entity_relationships",
+      "removedDeclarations": [],
+      "addedDeclarations": [
+        "cascadeUpdate Boolean @default(false) @map(\"cascade_update\")"
+      ]
+    },
+    {
+      "model": "EntityRelationshipRecord",
+      "status": "unchanged",
+      "legacyTable": "entity_relationship_records",
+      "currentTable": "entity_relationship_records",
+      "removedDeclarations": [],
+      "addedDeclarations": []
+    },
+    {
+      "model": "EntityFieldPermission",
+      "status": "review-required",
+      "legacyTable": "entity_field_permissions",
+      "currentTable": "entity_field_permissions",
+      "removedDeclarations": [],
+      "addedDeclarations": [
+        "isMasked Boolean? @default(false) @map(\"is_masked\")",
+        "maskChar String? @default(\"*\") @map(\"mask_char\") @db.VarChar(5)"
+      ]
+    },
+    {
+      "model": "TenantRegistry",
+      "status": "review-required",
+      "legacyTable": null,
+      "currentTable": "tenant_registry",
+      "removedDeclarations": [],
+      "addedDeclarations": [
+        "@@map(\"tenant_registry\")",
+        "active Boolean @default(true)",
+        "config String @db.LongText",
+        "createdAt DateTime @default(now()) @map(\"created_at\") @db.DateTime(3)",
+        "deletedAt DateTime? @map(\"deleted_at\") @db.DateTime(3)",
+        "domain String @unique @db.VarChar(253)",
+        "id Int @id",
+        "name String @db.VarChar(200)",
+        "updatedAt DateTime @updatedAt @map(\"updated_at\") @db.DateTime(3)"
+      ]
+    },
+    {
+      "model": "RuntimeModuleConfig",
+      "status": "review-required",
+      "legacyTable": null,
+      "currentTable": "runtime_module_configs",
+      "removedDeclarations": [],
+      "addedDeclarations": [
+        "@@map(\"runtime_module_configs\")",
+        "config String @db.LongText",
+        "createdAt DateTime @default(now()) @map(\"created_at\") @db.DateTime(3)",
+        "moduleName String @id @map(\"module_name\") @db.VarChar(100)",
+        "revision Int @default(1)",
+        "updatedAt DateTime @updatedAt @map(\"updated_at\") @db.DateTime(3)"
+      ]
+    }
+  ]
+}

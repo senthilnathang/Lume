@@ -25,7 +25,7 @@ export function createGraphQLConfig(
     ): GraphQLFormattedError => {
       const exception = unwrapResolverError(error as Error);
       if (exception instanceof HttpException) {
-        const codes = { 400: 'BAD_REQUEST', 401: 'UNAUTHENTICATED', 403: 'FORBIDDEN', 404: 'NOT_FOUND', 409: 'CONFLICT', 429: 'TOO_MANY_REQUESTS' };
+        const codes = { 400: 'BAD_REQUEST', 401: 'UNAUTHENTICATED', 403: 'FORBIDDEN', 404: 'NOT_FOUND', 409: 'CONFLICT', 429: 'TOO_MANY_REQUESTS', 501: 'NOT_IMPLEMENTED' };
         formattedError = { ...formattedError, extensions: { ...formattedError.extensions, code: codes[exception.getStatus()] || 'INTERNAL_SERVER_ERROR' } };
       }
       // Strip internal stack traces in production

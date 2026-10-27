@@ -1,3 +1,11 @@
+> **Implementation update — 2026-10-27.**
+> Current runtime discovery, lifecycle and configuration behavior is described in
+> [architecture](../../../../../docs/ARCHITECTURE.md) and
+> [API contracts](../../../../../docs/API_REFERENCE.md). The catalog distinguishes
+> deployment-managed builtins from opt-in runtime definitions. Config saves require
+> optimistic revisions; reload is per process. The older migration overview below
+> does not certify framework completion; F01–F07 remain open.
+
 # Base Module - NestJS Migration
 
 ## Overview

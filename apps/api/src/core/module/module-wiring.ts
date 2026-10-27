@@ -6,6 +6,7 @@
  */
 
 import type { ModuleDefinition } from './define-module.js';
+import { discoverProductionModules } from './production-module-discovery';
 
 /**
  * Module loading configuration
@@ -15,7 +16,7 @@ export interface ModuleConfig {
   enabled: boolean;
   /** Load example modules for demonstration */
   loadExamples: boolean;
-  /** Automatically run module migrations on startup */
+  /** Legacy request flag; true is rejected because migrations require deployment review. */
   autoMigrate: boolean;
   /** Log detailed module loading information */
   verboseLogging: boolean;
@@ -38,45 +39,18 @@ export function getModuleConfig(): ModuleConfig {
  * These are for demonstration and can be disabled in production
  */
 export async function loadExampleModules(): Promise<ModuleDefinition[]> {
-  const modules: ModuleDefinition[] = [];
-
-  try {
-    const { CRMModule } = await import('../../examples/crm-module.example.js');
-    modules.push(CRMModule);
-  } catch (error) {
-    console.warn('[Module Wiring] Failed to load CRM module:', error.message);
-  }
-
-  try {
-    const { ECommerceModule } = await import('../../examples/ecommerce-module.example.js');
-    modules.push(ECommerceModule);
-  } catch (error) {
-    console.warn('[Module Wiring] Failed to load E-Commerce module:', error.message);
-  }
-
-  try {
-    const { ProjectManagementModule } = await import('../../examples/project-management-module.example.js');
-    modules.push(ProjectManagementModule);
-  } catch (error) {
-    console.warn('[Module Wiring] Failed to load Project Management module:', error.message);
-  }
-
-  return modules;
+  const [{ CRMModule }, { ECommerceModule }, { ProjectManagementModule }] = await Promise.all([
+    import('../../examples/crm-module.example.js'), import('../../examples/ecommerce-module.example.js'),
+    import('../../examples/project-management-module.example.js'),
+  ]);
+  return [CRMModule, ECommerceModule, ProjectManagementModule];
 }
 
 /**
- * Load production modules (custom modules)
- * These would typically come from installed packages or a plugins directory
+ * Load explicit deployment-owned runtime definitions from compiled files or installed packages.
  */
 export async function loadProductionModules(): Promise<ModuleDefinition[]> {
-  const modules: ModuleDefinition[] = [];
-
-  // TODO: Implement production module discovery
-  // - Load from npm packages
-  // - Load from local plugins directory
-  // - Load from database registry
-
-  return modules;
+  return discoverProductionModules();
 }
 
 /**
@@ -84,6 +58,7 @@ export async function loadProductionModules(): Promise<ModuleDefinition[]> {
  * Ensures modules are loaded in the correct order based on dependencies
  */
 export function resolveModuleOrder(modules: ModuleDefinition[]): ModuleDefinition[] {
+  if (new Set(modules.map(module => module.name)).size !== modules.length) throw new Error('Duplicate module names');
   const resolved: ModuleDefinition[] = [];
   const visited = new Set<string>();
   const visiting = new Set<string>();
@@ -101,6 +76,7 @@ export function resolveModuleOrder(modules: ModuleDefinition[]): ModuleDefinitio
 
     const module = modules.find((m) => m.name === moduleName);
     if (!module) {
+      if (moduleName === 'base') { visiting.delete(moduleName); visited.add(moduleName); return; }
       throw new Error(`Module not found: ${moduleName}`);
     }
 
@@ -129,18 +105,13 @@ export function resolveModuleOrder(modules: ModuleDefinition[]): ModuleDefinitio
 export function validateModuleCompatibility(modules: ModuleDefinition[]): string[] {
   const errors: string[] = [];
   const moduleNames = new Set(modules.map((m) => m.name));
-  const frameworkVersion = '2.0.0';
+  if (moduleNames.size !== modules.length) errors.push('Duplicate module names');
 
   for (const module of modules) {
-    // Check framework version compatibility
-    if (module.depends?.includes('base') && !moduleNames.has('base')) {
-      errors.push(`Module ${module.name} requires 'base' module`);
-    }
-
     // Check that all dependencies exist
     if (module.depends) {
       for (const dep of module.depends) {
-        if (!moduleNames.has(dep)) {
+        if (dep !== 'base' && !moduleNames.has(dep)) {
           errors.push(`Module ${module.name} depends on missing module: ${dep}`);
         }
       }
@@ -152,9 +123,6 @@ export function validateModuleCompatibility(modules: ModuleDefinition[]): string
     }
     if (!module.version) {
       errors.push(`Module ${module.name} missing required property: version`);
-    }
-    if (!module.entities && !module.workflows && !module.permissions) {
-      errors.push(`Module ${module.name} has no entities, workflows, or permissions`);
     }
   }
 

@@ -1,4 +1,6 @@
 import { workflowDefinitionErrors } from './workflow-definition-validation';
+import { compileFlow } from './flow-definition';
+import { businessRuleWrites, validateBusinessRule } from './business-rule-validation';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DrizzleService } from '@core/services/drizzle.service';
 import {
@@ -6,7 +8,6 @@ import {
   automationFlows,
   automationBusinessRules,
   automationApprovalChains,
-  automationScheduledActions,
   automationValidationRules,
   automationAssignmentRules,
   automationRollupFields,
@@ -20,8 +21,6 @@ import {
   UpdateBusinessRuleDto,
   CreateApprovalChainDto,
   UpdateApprovalChainDto,
-  CreateScheduledActionDto,
-  UpdateScheduledActionDto,
   CreateValidationRuleDto,
   UpdateValidationRuleDto,
   CreateAssignmentRuleDto,
@@ -145,6 +144,8 @@ export class AutomationService {
   }
 
   async createFlow(dto: CreateFlowDto) {
+    if (dto.status === null || dto.trigger === null) throw new BadRequestException('Flow status and trigger cannot be null');
+    if (dto.status === 'active') compileFlow({ ...dto, trigger: dto.trigger ?? 'manual' });
     try {
       const result = await this.db.insert(automationFlows).values(dto);
       return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
@@ -154,25 +155,17 @@ export class AutomationService {
   }
 
   async updateFlow(id: number, dto: UpdateFlowDto) {
-    try {
-      await this.db
-        .update(automationFlows)
-        .set(dto)
-        .where(eq(automationFlows.id, id));
-
-      const result = await this.db
-        .select()
-        .from(automationFlows)
-        .where(eq(automationFlows.id, id));
-
-      if (!result.length) {
-        return { success: false, error: 'Flow not found' };
-      }
-
-      return { success: true, data: result[0] };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
+    if (dto.status === null || dto.trigger === null) throw new BadRequestException('Flow status and trigger cannot be null');
+    return this.db.transaction(async tx => {
+      const [current] = await tx.select().from(automationFlows).where(eq(automationFlows.id, id)).for('update');
+      if (!current) throw new NotFoundException('Flow not found');
+      const updates = Object.fromEntries(Object.entries(dto).filter(([, value]) => value !== undefined));
+      const merged = { ...current, ...updates };
+      if (merged.status === 'active') compileFlow(merged);
+      if (Object.keys(updates).length) await tx.update(automationFlows).set(updates).where(eq(automationFlows.id, id));
+      const [saved] = await tx.select().from(automationFlows).where(eq(automationFlows.id, id));
+      return { success: true, data: saved };
+    });
   }
 
   async deleteFlow(id: number) {
@@ -215,62 +208,42 @@ export class AutomationService {
       .where(eq(automationBusinessRules.id, id));
 
     if (!result.length) {
-      return { success: false, error: 'Business rule not found' };
+      throw new NotFoundException('Business rule not found');
     }
 
     return { success: true, data: result[0] };
   }
 
   async createBusinessRule(dto: CreateBusinessRuleDto) {
-    try {
-      const result = await this.db.insert(automationBusinessRules).values(dto);
-      return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
+    const values = { ...businessRuleWrites(dto, true), status: dto.status ?? 'active', priority: dto.priority ?? 10, condition: dto.condition ?? {} };
+    validateBusinessRule(values);
+    const result = await this.db.insert(automationBusinessRules).values(values);
+    return this.getBusinessRule((Array.isArray(result) ? result[0] : result).insertId);
   }
 
   async updateBusinessRule(id: number, dto: UpdateBusinessRuleDto) {
-    try {
-      await this.db
-        .update(automationBusinessRules)
-        .set(dto)
-        .where(eq(automationBusinessRules.id, id));
-
-      const result = await this.db
-        .select()
-        .from(automationBusinessRules)
-        .where(eq(automationBusinessRules.id, id));
-
-      if (!result.length) {
-        return { success: false, error: 'Business rule not found' };
+    const updates = businessRuleWrites(dto);
+    return this.db.transaction(async (tx) => {
+      const [current] = await tx.select().from(automationBusinessRules)
+        .where(eq(automationBusinessRules.id, id)).for('update');
+      if (!current) throw new NotFoundException('Business rule not found');
+      // Permit operators to disable even a legacy rule that needs repair.
+      if (!(Object.keys(updates).length === 1 && updates.status === 'inactive')) {
+        validateBusinessRule({ ...current, ...updates });
       }
-
-      return { success: true, data: result[0] };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
+      if (Object.keys(updates).length) await tx.update(automationBusinessRules).set(updates).where(eq(automationBusinessRules.id, id));
+      const [saved] = await tx.select().from(automationBusinessRules).where(eq(automationBusinessRules.id, id));
+      return { success: true, data: saved };
+    });
   }
 
   async deleteBusinessRule(id: number) {
-    try {
-      const result = await this.db
-        .select()
-        .from(automationBusinessRules)
-        .where(eq(automationBusinessRules.id, id));
-
-      if (!result.length) {
-        return { success: false, error: 'Business rule not found' };
-      }
-
-      await this.db
-        .delete(automationBusinessRules)
-        .where(eq(automationBusinessRules.id, id));
-
+    return this.db.transaction(async (tx) => {
+      const [current] = await tx.select().from(automationBusinessRules).where(eq(automationBusinessRules.id, id)).for('update');
+      if (!current) throw new NotFoundException('Business rule not found');
+      await tx.delete(automationBusinessRules).where(eq(automationBusinessRules.id, id));
       return { success: true, message: 'Business rule deleted' };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
+    });
   }
 
   // ── Approval Chains ───────────────────────────────────────────
@@ -363,86 +336,6 @@ export class AutomationService {
   private validateApprovalTrigger(trigger: unknown) {
     if (trigger !== undefined && !['manual','record.created','record.updated','record.saved'].includes(trigger as string)) {
       throw new BadRequestException('Invalid approval trigger event');
-    }
-  }
-
-  // ── Scheduled Actions ─────────────────────────────────────────
-
-  async getScheduledActions(filters?: { status?: string }) {
-    let query = this.db.select().from(automationScheduledActions);
-
-    if (filters?.status) {
-      query = query.where(eq(automationScheduledActions.status, filters.status));
-    }
-
-    const results = await query;
-    return { success: true, data: results };
-  }
-
-  async getScheduledAction(id: number) {
-    const result = await this.db
-      .select()
-      .from(automationScheduledActions)
-      .where(eq(automationScheduledActions.id, id));
-
-    if (!result.length) {
-      return { success: false, error: 'Scheduled action not found' };
-    }
-
-    return { success: true, data: result[0] };
-  }
-
-  async createScheduledAction(dto: CreateScheduledActionDto) {
-    try {
-      const result = await this.db
-        .insert(automationScheduledActions)
-        .values(dto);
-      return { success: true, data: { ...dto, id: (Array.isArray(result) ? result[0] : result).insertId } };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  async updateScheduledAction(id: number, dto: UpdateScheduledActionDto) {
-    try {
-      await this.db
-        .update(automationScheduledActions)
-        .set(dto)
-        .where(eq(automationScheduledActions.id, id));
-
-      const result = await this.db
-        .select()
-        .from(automationScheduledActions)
-        .where(eq(automationScheduledActions.id, id));
-
-      if (!result.length) {
-        return { success: false, error: 'Scheduled action not found' };
-      }
-
-      return { success: true, data: result[0] };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  async deleteScheduledAction(id: number) {
-    try {
-      const result = await this.db
-        .select()
-        .from(automationScheduledActions)
-        .where(eq(automationScheduledActions.id, id));
-
-      if (!result.length) {
-        return { success: false, error: 'Scheduled action not found' };
-      }
-
-      await this.db
-        .delete(automationScheduledActions)
-        .where(eq(automationScheduledActions.id, id));
-
-      return { success: true, message: 'Scheduled action deleted' };
-    } catch (error: any) {
-      return { success: false, error: error.message };
     }
   }
 

@@ -28,57 +28,63 @@ export enum BuiltInEvents {
 
 @Injectable()
 export class EventBusService {
+  private subscriptions = new Map<string, Map<EventHandler, EventHandler[]>>();
+
   constructor(private eventEmitter: EventEmitter2) {}
 
   emit<T = any>(event: LumeEvent<T>): void {
     this.eventEmitter.emit(event.type, event);
   }
 
-  on<T = any>(
-    eventType: string,
-    handler: EventHandler<T>,
-  ): void {
-    this.eventEmitter.on(eventType, (event: LumeEvent<T>) => {
-      try {
-        const result = handler(event);
-        if (result instanceof Promise) {
-          result.catch(err => {
-            console.error(`Error in event handler for ${eventType}:`, err);
-          });
-        }
-      } catch (err) {
-        console.error(`Error in event handler for ${eventType}:`, err);
-      }
-    });
+  on<T = any>(eventType: string, handler: EventHandler<T>): void {
+    this.subscribe(eventType, handler, false);
   }
 
-  once<T = any>(
-    eventType: string,
-    handler: EventHandler<T>,
-  ): void {
-    this.eventEmitter.once(eventType, (event: LumeEvent<T>) => {
+  once<T = any>(eventType: string, handler: EventHandler<T>): void {
+    this.subscribe(eventType, handler, true);
+  }
+
+  private subscribe(eventType: string, handler: EventHandler, once: boolean): void {
+    const wrapped: EventHandler = event => {
+      if (once) this.forget(eventType, handler, wrapped);
       try {
-        const result = handler(event);
-        if (result instanceof Promise) {
-          result.catch(err => {
-            console.error(`Error in event handler for ${eventType}:`, err);
-          });
-        }
+        Promise.resolve(handler(event)).catch(err => {
+          console.error(`Error in event handler for ${eventType}:`, err);
+        });
       } catch (err) {
         console.error(`Error in event handler for ${eventType}:`, err);
       }
-    });
+    };
+    let handlers = this.subscriptions.get(eventType);
+    if (!handlers) this.subscriptions.set(eventType, handlers = new Map());
+    handlers.set(handler, [...(handlers.get(handler) ?? []), wrapped]);
+    if (once) this.eventEmitter.once(eventType, wrapped);
+    else this.eventEmitter.on(eventType, wrapped);
+  }
+
+  private forget(eventType: string, handler: EventHandler, wrapped: EventHandler): void {
+    const handlers = this.subscriptions.get(eventType);
+    const remaining = handlers?.get(handler)?.filter(listener => listener !== wrapped) ?? [];
+    if (remaining.length) handlers.set(handler, remaining);
+    else handlers?.delete(handler);
+    if (!handlers?.size) this.subscriptions.delete(eventType);
   }
 
   removeListener(eventType: string, handler: EventHandler): void {
-    this.eventEmitter.removeListener(eventType, handler as any);
+    const listeners = this.subscriptions.get(eventType)?.get(handler);
+    const wrapped = listeners?.[listeners.length - 1];
+    if (!wrapped) return;
+    this.eventEmitter.removeListener(eventType, wrapped);
+    this.forget(eventType, handler, wrapped);
   }
 
   removeAllListeners(eventType?: string): void {
-    if (eventType) {
+    if (eventType !== undefined) {
       this.eventEmitter.removeAllListeners(eventType);
+      this.subscriptions.delete(eventType);
     } else {
       this.eventEmitter.removeAllListeners();
+      this.subscriptions.clear();
     }
   }
 

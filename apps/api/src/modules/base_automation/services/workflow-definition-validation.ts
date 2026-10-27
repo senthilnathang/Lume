@@ -1,3 +1,12 @@
+import { transitionConditionError } from './workflow-transition-condition';
+
+export function transitionApprovalError(transition: Record<string, any>): string | undefined {
+  if (transition.requires_approval !== undefined && typeof transition.requires_approval !== 'boolean') return 'requires_approval must be a boolean';
+  if (transition.requires_approval === true) {
+    if (!Number.isSafeInteger(transition.approval_chain_id) || transition.approval_chain_id < 1) return 'Approval transition requires a positive approval_chain_id';
+  } else if (transition.approval_chain_id != null) return 'approval_chain_id requires requires_approval=true';
+}
+
 /** State-machine definition validation; this does not execute a workflow. */
 export function workflowDefinitionErrors(definition: {
   name?: unknown; model?: unknown; initialState?: unknown; states?: unknown; transitions?: unknown;
@@ -42,6 +51,10 @@ export function workflowDefinitionErrors(definition: {
     else transitionCodes.add(transition.code);
     if (!codes.has(transition.from_state)) errors.push(`Transition ${index + 1} references an unknown source state`);
     if (!codes.has(transition.to_state)) errors.push(`Transition ${index + 1} references an unknown destination state`);
+    const conditionError = transitionConditionError(transition.condition);
+    if (conditionError) errors.push(`Transition ${index + 1}: ${conditionError}`);
+    const approvalError = transitionApprovalError(transition);
+    if (approvalError) errors.push(`Transition ${index + 1}: ${approvalError}`);
   }
   return errors;
 }

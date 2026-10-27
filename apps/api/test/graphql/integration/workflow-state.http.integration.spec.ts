@@ -115,12 +115,55 @@ describe('manual workflow state executions', () => {
     expect(detail.body.data.workflow.transitions[1].code).toBe('finish');
     expect(detail.body.data.workflow.name).toBe('Manual review');
   });
-  it.each([{ requires_approval: true }, { required_groups: [1] }, { timer_hours: 1 }, { webhook_url: 'https://example.invalid' }, { actions: [{ type: 'request_approval' }] }, { condition: { secret: true } }])('fails closed for unsupported transition behavior %s', async config => {
+  it.each([{ required_groups: [1] }, { timer_hours: 1 }, { webhook_url: 'https://example.invalid' }, { actions: [{ type: 'request_approval' }] }])('fails closed for unsupported transition behavior %s', async config => {
     await h.prisma.automation_workflows.update({ where: { id: workflowId }, data: { transitions: JSON.stringify([{ ...transitions[0], ...config }, transitions[1]]) } });
     const execution = await start();
     expect((await http('get', `executions/${execution.id}`)).body.data.workflow.transitions[0].unavailableReason).toBeTruthy();
     expect((await step(execution.id, 'review', 0)).status).toBe(409);
     expect(await h.prisma.workflowStateHistory.count()).toBe(1);
+  });
+  it('evaluates snapshot conditions against current record data and leaves blocked history unchanged', async () => {
+    await h.prisma.automation_workflows.update({ where: { id: workflowId }, data: { transitions: JSON.stringify([
+      { ...transitions[0], condition: { name: { $eq: 'Ready', $nin: ['Blocked'] } } }, transitions[1],
+    ]) } });
+    const execution = await start();
+    const detail = await http('get', `executions/${execution.id}`);
+    expect(detail.body.data.workflow.transitions[0].unavailableReason).toBe('Transition condition is not met');
+    expect(detail.body.data.workflow.transitions[0]).not.toHaveProperty('condition');
+    expect((await step(execution.id, 'review', 0)).status).toBe(409);
+    expect(await h.prisma.workflowStateHistory.count()).toBe(1);
+    await h.prisma.automation_workflows.update({ where: { id: workflowId }, data: { transitions: JSON.stringify(transitions) } });
+    expect((await step(execution.id, 'review', 0)).status).toBe(409);
+    await h.prisma.entityRecord.update({ where: { id: 1 }, data: { data: JSON.stringify({ name: 'Ready' }) } });
+    expect((await http('get', `executions/${execution.id}`)).body.data.workflow.transitions[0].unavailableReason).toBeUndefined();
+    expect((await step(execution.id, 'review', 0)).status).toBe(200);
+    expect(await h.prisma.workflowStateHistory.count()).toBe(2);
+  });
+  it.each(['secret', 'masked', 'unknown'])('does not disclose condition results for unavailable field %s', async field => {
+    await h.prisma.automation_workflows.update({ where: { id: workflowId }, data: { transitions: JSON.stringify([
+      { ...transitions[0], condition: { [field]: { $ne: null } } }, transitions[1],
+    ]) } });
+    const execution = await start();
+    expect((await http('get', `executions/${execution.id}`)).body.data.workflow.transitions[0].unavailableReason).toBe('Transition condition is unavailable');
+    expect((await step(execution.id, 'review', 0)).status).toBe(409);
+    expect(await h.prisma.workflowStateHistory.count()).toBe(1);
+  });
+  it('rechecks field permission after preview before committing a transition', async () => {
+    await h.prisma.automation_workflows.update({ where: { id: workflowId }, data: { transitions: JSON.stringify([
+      { ...transitions[0], condition: { name: 'Record 1' } }, transitions[1],
+    ]) } });
+    const execution = await start();
+    expect((await http('get', `executions/${execution.id}`)).body.data.workflow.transitions[0].unavailableReason).toBeUndefined();
+    await h.prisma.entityFieldPermission.create({ data: { fieldId: 1, roleId: 2, canRead: false } });
+    expect((await step(execution.id, 'review', 0)).status).toBe(409);
+    expect(await h.prisma.workflowStateHistory.count()).toBe(1);
+  });
+  it.each([null, 'name == Ready', { name: { $regex: '.*' } }, { name: { $gt: '1' } }])('rejects malformed conditions before starting: %s', async condition => {
+    await h.prisma.automation_workflows.update({ where: { id: workflowId }, data: { transitions: JSON.stringify([
+      { ...transitions[0], condition }, transitions[1],
+    ]) } });
+    expect((await http('post', 'run/1')).status).toBe(400);
+    expect(await h.prisma.workflowStateExecution.count()).toBe(0);
   });
   it('rejects inactive/malformed definitions and untrusted caller data without writes', async () => {
     expect((await http('post', 'run/1', { userId: 1, companyId: 2, data: { secret: 'spoof' } })).status).toBe(400);

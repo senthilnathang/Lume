@@ -1,10 +1,50 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/services/prisma.service';
 import { CreateSettingDto, UpdateSettingDto } from '../dtos';
 
 @Injectable()
 export class SettingsService {
   constructor(private prisma: PrismaService) {}
+
+  private recordView(setting: any) {
+    return { key: setting.key, value: this.formatValue(setting), group: setting.category,
+      label: setting.description, updatedAt: setting.updated_at };
+  }
+
+  async records(group?: string) {
+    if (group !== undefined && (typeof group !== 'string' || group.length > 50)) throw new BadRequestException('Invalid settings group');
+    return (await this.prisma.setting.findMany({ where: group === undefined ? {} : { category: group }, orderBy: { key: 'asc' } })).map(row => this.recordView(row));
+  }
+
+  async record(key: string) {
+    if (typeof key !== 'string' || !key.trim() || key.length > 100) throw new BadRequestException('Invalid settings key');
+    const row = await this.prisma.setting.findUnique({ where: { key } });
+    return row ? this.recordView(row) : null;
+  }
+
+  async upsertRecords(inputs: Array<{ key: string; value: unknown; group?: string; label?: string }>) {
+    if (!Array.isArray(inputs) || inputs.length < 1 || inputs.length > 100) throw new BadRequestException('Use 1–100 settings');
+    const keys = new Set<string>();
+    for (const input of inputs) {
+      if (!input || typeof input.key !== 'string' || !input.key.trim() || input.key.length > 100 || keys.has(input.key) ||
+        ['__proto__', 'constructor', 'prototype'].includes(input.key) || input.value == null ||
+        (input.group !== undefined && (typeof input.group !== 'string' || input.group.length > 50)) ||
+        (input.label !== undefined && (typeof input.label !== 'string' || input.label.length > 255))) throw new BadRequestException('Invalid or duplicate setting');
+      keys.add(input.key);
+      let encoded: string;
+      try { encoded = JSON.stringify(input.value); } catch { throw new BadRequestException('Setting value must be JSON'); }
+      if (encoded === undefined || Buffer.byteLength(encoded, 'utf8') > 60000) throw new BadRequestException('Setting value exceeds supported size');
+    }
+    return this.prisma.$transaction(async tx => {
+      const settings = new SettingsService(tx as PrismaService);
+      const rows = [];
+      for (const input of inputs) {
+        await settings.set(input.key, input.value, { category: input.group, description: input.label });
+        rows.push(await settings.record(input.key));
+      }
+      return rows;
+    });
+  }
 
   async get(key: string): Promise<any> {
     const setting = await this.prisma.setting.findFirst({ where: { key } });

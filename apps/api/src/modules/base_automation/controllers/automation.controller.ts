@@ -26,8 +26,6 @@ import {
   UpdateBusinessRuleDto,
   CreateApprovalChainDto,
   UpdateApprovalChainDto,
-  CreateScheduledActionDto,
-  UpdateScheduledActionDto,
   CreateValidationRuleDto,
   UpdateValidationRuleDto,
   CreateAssignmentRuleDto,
@@ -175,38 +173,6 @@ export class AutomationController {
   @Permissions('base_automation.approvals.manage')
   async deleteApprovalChain(@Param('id', ParseIntPipe) id: number) {
     return this.automationService.deleteApprovalChain(id);
-  }
-
-  // ── Scheduled Actions ─────────────────────────────────────────
-
-  @Get('scheduled')
-  @Permissions('base_automation.scheduled')
-  async getScheduledActions(@Query('status') status?: string) {
-    return this.automationService.getScheduledActions({ status });
-  }
-
-  @Get('scheduled/:id')
-  @Permissions('base_automation.scheduled')
-  async getScheduledAction(@Param('id', ParseIntPipe) id: number) {
-    return this.automationService.getScheduledAction(id);
-  }
-
-  @Post('scheduled')
-  @Permissions('base_automation.scheduled.manage')
-  async createScheduledAction(@Body() dto: CreateScheduledActionDto) {
-    return this.automationService.createScheduledAction(dto);
-  }
-
-  @Put('scheduled/:id')
-  @Permissions('base_automation.scheduled.manage')
-  async updateScheduledAction(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateScheduledActionDto) {
-    return this.automationService.updateScheduledAction(id, dto);
-  }
-
-  @Delete('scheduled/:id')
-  @Permissions('base_automation.scheduled.manage')
-  async deleteScheduledAction(@Param('id', ParseIntPipe) id: number) {
-    return this.automationService.deleteScheduledAction(id);
   }
 
   // ── Validation Rules ──────────────────────────────────────────

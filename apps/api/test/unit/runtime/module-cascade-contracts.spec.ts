@@ -32,21 +32,22 @@ describe('Compiled example module contracts', () => {
   it('uses the same explicit opt-in for initialization and configuration', async () => {
     const previous = process.env.LOAD_EXAMPLE_MODULES;
     const previousEnabled = process.env.MODULES_ENABLED;
-    const loadModule = jest.fn(async () => undefined);
+    const loadAll = jest.fn(async () => undefined);
     const metadata = new MetadataRegistryService();
     try {
       delete process.env.LOAD_EXAMPLE_MODULES;
       process.env.MODULES_ENABLED = 'true';
       expect(getModuleConfig().loadExamples).toBe(false);
-      await new ModuleInitializerService({ loadModule } as any, metadata).onModuleInit();
-      expect(loadModule).not.toHaveBeenCalled();
+      await new ModuleInitializerService({ loadAll } as any, metadata).onModuleInit();
+      expect(loadAll).not.toHaveBeenCalled();
       process.env.LOAD_EXAMPLE_MODULES = 'true';
-      await new ModuleInitializerService({ loadModule } as any, metadata).onModuleInit();
-      expect(loadModule).toHaveBeenCalledTimes(3);
-      loadModule.mockClear();
+      await new ModuleInitializerService({ loadAll } as any, metadata).onModuleInit();
+      expect(loadAll).toHaveBeenCalledTimes(1);
+      expect(loadAll.mock.calls[0][0]).toHaveLength(3);
+      loadAll.mockClear();
       process.env.MODULES_ENABLED = 'false';
-      await new ModuleInitializerService({ loadModule } as any, metadata).onModuleInit();
-      expect(loadModule).not.toHaveBeenCalled();
+      await new ModuleInitializerService({ loadAll } as any, metadata).onModuleInit();
+      expect(loadAll).not.toHaveBeenCalled();
     } finally {
       if (previous === undefined) delete process.env.LOAD_EXAMPLE_MODULES; else process.env.LOAD_EXAMPLE_MODULES = previous;
       if (previousEnabled === undefined) delete process.env.MODULES_ENABLED; else process.env.MODULES_ENABLED = previousEnabled;

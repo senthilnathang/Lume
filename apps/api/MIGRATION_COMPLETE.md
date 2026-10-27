@@ -1,3 +1,8 @@
+> **Current status reviewed 2026-10-27:** [framework migration remains in progress](../../docs/MIGRATION_STATUS.md).
+> Complete F01–F07 before individual module/plugin expansion. Migrations 019–023
+> remain prepared and unapplied to the application database; historical completion
+> statements below are not current acceptance or deployment evidence.
+
 # Historical report — not current completion status
 
 The completion claims below are superseded by

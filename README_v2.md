@@ -1,3 +1,8 @@
+> **Current status reviewed 2026-10-27:** [framework migration remains in progress](docs/MIGRATION_STATUS.md).
+> Complete F01–F07 before individual module/plugin expansion. Migrations 019–023
+> remain prepared and unapplied to the application database; historical completion
+> statements below are not current acceptance or deployment evidence.
+
 > **Historical/reference document — status updated 2026-10-24.**
 > Earlier architecture, commands, estimates and completion claims below are not
 > current migration certification. Use the [active task list](docs/nestjs-migration-tasks.txt) and
@@ -129,8 +134,8 @@ cd frontend/riagri-website && npm run dev
 - **[API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)** — Complete API endpoints and examples
 
 ### Security
-- **[SECURITY_HARDENING_GUIDE.md](SECURITY_HARDENING_GUIDE.md)** — OWASP Top 10 best practices (8000+ words)
-- **[SECURITY_INTEGRATION_SUMMARY.md](SECURITY_INTEGRATION_SUMMARY.md)** — Security module implementation
+- **[Security policy](SECURITY.md)** — current vulnerability reporting guidance; the historical hardening guide is not present.
+- **[Current architecture](docs/ARCHITECTURE.md#identity-and-access)** — maintained identity/access boundaries; the historical integration summary is not present.
 
 ### Operations
 - **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** — Production deployment

@@ -1,0 +1,6 @@
+[
+  "User", "Role", "Permission", "RolePermission", "Group", "RecordRule",
+  "Menu", "Sequence", "Setting", "sessions", "api_keys", "AuditLog",
+  "InstalledModule", "feature_flags", "Entity", "EntityField", "EntityView",
+  "EntityRecord", "EntityRelationship", "EntityRelationshipRecord", "EntityFieldPermission", "TenantRegistry", "RuntimeModuleConfig"
+]

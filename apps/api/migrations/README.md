@@ -1,3 +1,77 @@
+# SQL migration ledger
+
+Status reviewed 2026-10-27: the last recorded application installation is through
+018. Migrations **019–023 are prepared and unapplied to the application database**.
+Review all required migrations, target ledger and verified backup/restore before
+deploying this combined source. Tests use disposable databases. Startup does not
+apply SQL automatically. See [current status](../../../docs/MIGRATION_STATUS.md)
+and [deployment procedure](../../../docs/DEPLOYMENT.md).
+
+## Migration 023: runtime module configuration
+
+`023_create_runtime_module_configs.sql` stores desired configuration and revisions
+for opt-in runtime modules. Apply before enabling configurable modules or using
+their catalog/configuration APIs. DDL replay preserves JSON and revision values;
+there is no legacy backfill. Applied revisions remain local to each API process.
+Saving does not reload running instances. Reload each capable instance explicitly
+or restart; source-code/builtin updates still require deployment. Uninstall leaves
+saved configuration intact. Migration tested only on disposable databases.
+
+## Migration 022: tenant registry
+
+`022_create_tenant_registry.sql` adds persistent registry rows keyed by numeric
+company IDs, unique domains, configuration and archive timestamps. It does not
+infer tenants from existing rows or change assignments, records or memberships.
+Apply before deploying this revision: authentication of company-scoped requests
+now reads this table. Missing-table errors are not silently ignored. DDL replay
+preserves archived rows and reserved IDs/domains. Tested on disposable databases
+only; no application database migration was performed.
+
+Run `verify:framework-db` to list observed unregistered company IDs, invalid
+company-ID sources and invalid user metadata assignments without writing data.
+Review ownership before registering these IDs; schema compatibility alone does
+not certify tenancy reconciliation. Keep a company-unscoped platform admin for
+registry administration. Registry deletion archives, with no data purge or cascade.
+Rolling back to code without these checks removes inactive-tenant enforcement;
+do not treat a code rollback alone as an equivalent access-control policy.
+
+## Migration 021: framework field masking
+
+The read-only framework preflight found `is_masked` and `mask_char` missing from
+the configured database's `entity_field_permissions` table on 2026-10-27.
+`021_align_framework_field_masking.sql` adds only missing columns, preserving
+existing permission rows and any existing mask values. Review this file with the
+target ledger and verified backup before deploying the current framework revision.
+This migration has not been applied to the application database by this change.
+
+Run `pnpm --filter @lume/api verify:framework-db` for read-only core table/column
+and null activity-flag checks. Exit 2 means discrepancies need review; exit 1
+means the check failed. This does not certify types, indexes, row parity or backups.
+
+## Migration 020: version-bound state transition approvals
+
+`020_bind_workflow_state_approvals.sql` adds `workflow_state_approvals` and nullable
+`workflow_state_history.approval_request_id`. Each request can bind to only one
+execution/version/transition; repeated rejected attempts remain separate rows.
+Deleting an execution cascades its bindings. Approval requests remain owned by the
+approval engine; a missing request blocks the transition. The DDL can be replayed
+without replacing bindings or history. Apply before deploying this API revision,
+including installations using only manual state transitions. No production/local
+application database migration has been applied by this source change.
+
+## Migration 019: durable workflow schedules
+
+`019_create_workflow_schedules.sql` adds `automation_workflow_schedules` with
+persisted actor/tenant, workflow/record identity, cron or interval timing, version,
+next due time and last queued job. It preserves legacy `automation_scheduled_actions`
+rows; those unscoped code definitions are not automatically executed or imported.
+Replay is non-destructive. Apply after taking and verifying a database backup.
+
+Deploy code with `AUTOMATION_SCHEDULER_ENABLED=false` until this migration is
+applied. Scheduling requires that flag to be `true` and the durable workflow worker
+to be enabled. No external provider is enabled by this switch. Rollback can disable
+the scheduler and keep the new table; do not drop schedules or legacy rows.
+
 ## Migration 018: manual state execution
 
 `018_create_workflow_state_executions.sql` creates `workflow_state_executions`
@@ -285,21 +359,17 @@ Creates tables for plugin management and execution logging.
 
 ## Rollback Strategy
 
-Database migrations are **forward-only**. To rollback:
+Database migrations are **forward-only**. Prepare and rehearse rollback against a
+restored copy before deployment. Preserve additive tables, columns, ledger entries
+and new business history when rolling application code back. Do not drop columns
+or delete ledger rows merely to make the old application start.
 
-1. **Rename columns** instead of deleting (for safe rollback potential)
-2. **Create shadow tables** for complex changes
-3. **Use feature flags** to disable new columns while maintaining compatibility
-
-Example rollback approach (manual):
-
-```sql
--- If migration 005 needs to be undone:
-ALTER TABLE entities DROP COLUMN description;
-ALTER TABLE entities DROP COLUMN ai_metadata;
--- Manually delete the migrations table entry
-DELETE FROM migrations WHERE filename = '005_add_ai_metadata_to_entities.sql';
-```
+Disable scheduling/workers where necessary, verify the older application's schema
+compatibility and retain tenant access enforcement. Returning to code without
+registry checks can change the access policy; code rollback alone is insufficient.
+If recovery requires a database restore, use the verified backup and an explicit
+plan for writes accepted since the backup. See the
+[deployment guide](../../../docs/DEPLOYMENT.md) for the release gates.
 
 ## Performance Notes
 

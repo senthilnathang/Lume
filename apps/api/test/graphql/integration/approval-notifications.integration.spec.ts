@@ -24,11 +24,43 @@ describe('Approval notifications and scoped inbox (real MySQL and HTTP)', () => 
     await h.prisma.automation_approval_chains.deleteMany();
     await h.prisma.recordRule.deleteMany();
     await h.seed();
+    await h.prisma.entityRecord.updateMany({data:{visibility:'public'}});
     chain = (await h.prisma.automation_approval_chains.create({data:{name:'Review',model:'entity_1',steps:'[{"approverId":2},{"roleId":1}]',condition:'{}'}})).id;
   });
   const start = () => engine.createApprovalRequest({chainId:chain,recordEntityId:1,recordId:1},admin);
   const notes = () => h.prisma.notifications.findMany({orderBy:{id:'asc'}});
   const http = (method: string, path = '', bearer = h.token('member')) => request(h.app.getHttpServer())[method]('/api/advanced-features/notifications' + path).auth(bearer,{type:'bearer'});
+
+  it('does not notify a named approver who cannot read the private record', async () => {
+    await h.prisma.entityRecord.update({where:{id:1},data:{visibility:'private'}});
+    const approval = await start();
+    expect(approval.status).toBe('pending');
+    expect(await notes()).toHaveLength(0);
+  });
+
+  it('limits private-record role notifications to the owner', async () => {
+    await h.prisma.entityRecord.update({where:{id:1},data:{visibility:'private',createdBy:2}});
+    await h.prisma.automation_approval_chains.update({where:{id:chain},data:{steps:'[{"roleId":2}]'}});
+    await h.prisma.user.create({data:{id:4,firstName:'Other',lastName:'Member',email:'other@test.local',password:'test',role_id:2,isActive:true}});
+    await start();
+    expect((await notes()).map(n => n.user_id)).toEqual([2]);
+  });
+
+  it('notifies assigned administrators for private records', async () => {
+    await h.prisma.entityRecord.update({where:{id:1},data:{visibility:'private',createdBy:2}});
+    await h.prisma.automation_approval_chains.update({where:{id:chain},data:{steps:'[{"roleId":1}]'}});
+    await engine.createApprovalRequest({chainId:chain,recordEntityId:1,recordId:1},member);
+    expect((await notes()).map(n => n.user_id)).toEqual([1]);
+  });
+
+  it.each(['completed','rejected'])('does not notify an initiator whose private access was revoked on %s', async outcome => {
+    await h.prisma.automation_approval_chains.update({where:{id:chain},data:{steps:'[{"approverId":1}]'}});
+    const approval = await engine.createApprovalRequest({chainId:chain,recordEntityId:1,recordId:1},member);
+    await h.prisma.entityRecord.update({where:{id:1},data:{visibility:'private',createdBy:1}});
+    if (outcome === 'completed') await engine.approveStep(approval.id,0,admin);
+    else await engine.rejectApproval(approval.id,0,'No',admin);
+    expect((await notes()).map(n => n.user_id)).toEqual([1]);
+  });
 
   it('notifies the first approver, next role and initiator on completion', async () => {
     const approval = await start();

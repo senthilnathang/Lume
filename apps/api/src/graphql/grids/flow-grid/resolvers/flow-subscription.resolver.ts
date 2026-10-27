@@ -1,3 +1,4 @@
+import { tenantEventAllowed } from '../../../tenant';
 import {
   Resolver,
   Subscription,
@@ -29,9 +30,7 @@ export class FlowSubscriptionResolver {
       ctx: GqlContext,
     ) => {
       // Multi-tenant isolation: only emit events for subscriber's company
-      const userCompanyId = ctx.user?.company_id;
-      const eventCompanyId = payload.flowExecuted.companyId;
-      return userCompanyId != null && eventCompanyId != null && userCompanyId === eventCompanyId;
+      return tenantEventAllowed(ctx, payload.flowExecuted?.companyId);
     },
   })
   flowExecuted(): AsyncIterator<any> {
@@ -44,9 +43,7 @@ export class FlowSubscriptionResolver {
   @Subscription(() => FlowEventType, {
     name: 'flowFailed',
     filter: (payload: { flowFailed: FlowEventType }, _, ctx: GqlContext) => {
-      const userCompanyId = ctx.user?.company_id;
-      const eventCompanyId = payload.flowFailed.companyId;
-      return userCompanyId != null && eventCompanyId != null && userCompanyId === eventCompanyId;
+      return tenantEventAllowed(ctx, payload.flowFailed?.companyId);
     },
   })
   flowFailed(): AsyncIterator<any> {
@@ -62,9 +59,7 @@ export class FlowSubscriptionResolver {
       _,
       ctx: GqlContext,
     ) => {
-      const userCompanyId = ctx.user?.company_id;
-      const eventCompanyId = payload.flowProgress.companyId;
-      return userCompanyId != null && eventCompanyId != null && userCompanyId === eventCompanyId;
+      return tenantEventAllowed(ctx, payload.flowProgress?.companyId);
     },
   })
   flowProgress(): AsyncIterator<any> {

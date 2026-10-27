@@ -1,3 +1,11 @@
+> **Current implementation pointer — 2026-10-27:** see
+> [architecture](ARCHITECTURE.md), [API contracts](API_REFERENCE.md) and
+> [migration status](MIGRATION_STATUS.md). Current settings/audit, tenant membership
+> and module configuration resolvers delegate to persisted shared services.
+> Subscription delivery rechecks active identity, membership and tenant status;
+> audit publisher completeness remains open. The historical production-ready and
+> full-grid claims below do not establish implemented parity.
+
 > **Historical/reference document — status updated 2026-10-24.**
 > Earlier architecture, commands, estimates and completion claims below are not
 > current migration certification. Use the [active task list](nestjs-migration-tasks.txt) and

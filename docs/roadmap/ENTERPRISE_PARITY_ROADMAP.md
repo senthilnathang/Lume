@@ -1,3 +1,8 @@
+> **Current status reviewed 2026-10-27:** [framework migration remains in progress](../MIGRATION_STATUS.md).
+> Complete F01–F07 before individual module/plugin expansion. Migrations 019–023
+> remain prepared and unapplied to the application database; historical completion
+> statements below are not current acceptance or deployment evidence.
+
 > **Historical/reference document — status updated 2026-10-24.**
 > Earlier architecture, commands, estimates and completion claims below are not
 > current migration certification. Use the [active task list](../nestjs-migration-tasks.txt) and

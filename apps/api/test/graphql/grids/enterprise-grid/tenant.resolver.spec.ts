@@ -2,15 +2,16 @@ import { GqlRbacGuard } from '../../../../src/graphql/guards/gql-rbac.guard';
 import { GqlJwtGuard } from '../../../../src/graphql/guards/gql-jwt.guard';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
+import { TenantRegistryService } from '../../../../src/core/services/tenant-registry.service';
 import { TenantResolver } from '../../../../src/graphql/grids/enterprise-grid/resolvers/tenant.resolver';
 
 describe('TenantResolver', () => {
   let resolver: TenantResolver;
-  const mockUser = { sub: '1', email: 'admin@test.com', role_id: 1, role_name: 'admin', company_id: 1 };
+  const mockUser = { sub: 1, email: 'admin@test.com', role_id: 1, role_name: 'admin', company_id: 1 };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [TenantResolver],
+      providers: [TenantResolver, { provide: TenantRegistryService, useValue: Object.fromEntries(['list', 'find', 'create', 'update', 'archive'].map(name => [name, async () => { throw new Error('store failure'); }])) }],
     })
       .overrideGuard(GqlJwtGuard)
       .useValue({ canActivate: () => true })
@@ -26,9 +27,8 @@ describe('TenantResolver', () => {
   });
 
   describe('tenants', () => {
-    it('should return empty array', async () => {
-      const result = await resolver.tenants(mockUser);
-      expect(result).toEqual([]);
+    it('does not present an unavailable registry as empty', async () => {
+      await expect(resolver.tenants(mockUser)).rejects.toThrow('store failure');
     });
 
     it('should throw without user', async () => {
@@ -37,9 +37,8 @@ describe('TenantResolver', () => {
   });
 
   describe('tenant', () => {
-    it('should return null for missing tenant', async () => {
-      const result = await resolver.tenant('non-existent', mockUser);
-      expect(result).toBeNull();
+    it('does not pretend to look up a tenant', async () => {
+      await expect(resolver.tenant('non-existent', mockUser)).rejects.toThrow('store failure');
     });
 
     it('should throw without user', async () => {
@@ -48,12 +47,9 @@ describe('TenantResolver', () => {
   });
 
   describe('createTenant', () => {
-    it('should create tenant', async () => {
+    it('does not report creation without persistence', async () => {
       const input = { id: 'tenant1', name: 'Tenant 1', domain: 'tenant1.com' };
-      const result = await resolver.createTenant(input, mockUser);
-      expect(result.id).toBe('tenant1');
-      expect(result.name).toBe('Tenant 1');
-      expect(result.active).toBe(true);
+      await expect(resolver.createTenant(input, mockUser)).rejects.toThrow('store failure');
     });
 
     it('should throw without user', async () => {
@@ -63,9 +59,8 @@ describe('TenantResolver', () => {
   });
 
   describe('updateTenant', () => {
-    it('should return null for non-existent tenant', async () => {
-      const result = await resolver.updateTenant('non-existent', { name: 'Updated' }, mockUser);
-      expect(result).toBeNull();
+    it('does not report an update without persistence', async () => {
+      await expect(resolver.updateTenant('non-existent', { name: 'Updated' }, mockUser)).rejects.toThrow('store failure');
     });
 
     it('should throw without user', async () => {
@@ -74,9 +69,8 @@ describe('TenantResolver', () => {
   });
 
   describe('deleteTenant', () => {
-    it('should return true', async () => {
-      const result = await resolver.deleteTenant('tenant1', mockUser);
-      expect(result).toBe(true);
+    it('does not report deletion without persistence', async () => {
+      await expect(resolver.deleteTenant('tenant1', mockUser)).rejects.toThrow('store failure');
     });
 
     it('should throw without user', async () => {

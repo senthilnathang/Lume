@@ -24,6 +24,7 @@
     "pretypecheck": "pnpm run db:generate",
     "db:migrate:sql": "tsx migrations/run-migrations.ts",
     "verify:startup": "node scripts/verify-startup.cjs",
+    "verify:framework-db": "tsx scripts/framework-preflight.ts",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage"
   },
   "dependencies": {
@@ -45,6 +46,7 @@
     "bullmq": "^5.76.4",
     "class-transformer": "^0.5.0",
     "class-validator": "^0.14.0",
+    "cron-parser": "4.9.0",
     "dataloader": "^2.2.3",
     "drizzle-orm": "^0.45.2",
     "expr-eval": "^2.0.2",

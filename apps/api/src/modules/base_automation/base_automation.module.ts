@@ -1,3 +1,7 @@
+import { WorkflowSchedulesController } from './controllers/workflow-schedules.controller';
+import { FlowRunsController } from './controllers/flow-runs.controller';
+import { FlowRunsService } from './services/flow-runs.service';
+import { WorkflowSchedulesService } from './services/workflow-schedules.service';
 import { WorkflowStateController } from './controllers/workflow-state.controller';
 import { WorkflowStateEngineService } from './services/workflow-state-engine.service';
 import { Module } from '@nestjs/common';
@@ -16,8 +20,10 @@ import { ApprovalTriggerService } from './services/approval-trigger.service';
 
 @Module({
   imports: [SharedModule],
-  controllers: [WorkflowStateController, AutomationController, ApprovalRequestsController],
+  controllers: [FlowRunsController, WorkflowSchedulesController, WorkflowStateController, AutomationController, ApprovalRequestsController],
   providers: [
+    FlowRunsService,
+    WorkflowSchedulesService,
     WorkflowStateEngineService,
     RecordService,
     FormulaService,

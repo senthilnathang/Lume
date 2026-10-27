@@ -5,7 +5,7 @@ import { EventBusService, BuiltInEvents } from '../../../src/core/runtime/event-
 import { ExecutionPipelineService } from '../../../src/core/runtime/execution-pipeline.service';
 import { WorkflowExecutorService, WorkflowActionType } from '../../../src/core/workflow/workflow-executor.service';
 
-const types: WorkflowActionType[] = ['send_notification', 'call_webhook', 'create_record', 'ai'];
+const types: WorkflowActionType[] = ['send_notification', 'call_webhook', 'create_record', 'update_record', 'ai'];
 function setup(type: WorkflowActionType, onError?: 'stop') {
   const registry = new MetadataRegistryService();
   registry.registerWorkflow({ name: 'action', entity: 'deal', trigger: { type: 'manual', key: 'action' }, onError,

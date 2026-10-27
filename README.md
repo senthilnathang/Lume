@@ -3,7 +3,7 @@
 Lume is a modular application platform with a NestJS API, Vue 3 administration
 client, and Nuxt 3 public website. Prisma and Drizzle share a MySQL database.
 
-**Migration status — 2026-10-24:** NestJS is deployed locally, but the complete
+**Migration status — 2026-10-27:** NestJS is deployed locally, but the complete
 standalone Express replacement is still in progress. The local API has restarted successfully from its canonical path; the built
 frontend assets have not been deployed. Do not interpret historical completion
 reports as release certification. Email, push and AI integrations remain disabled.
@@ -56,17 +56,21 @@ See installation instructions before initializing or migrating a database.
 
 ## Verified work and remaining scope
 
-Recent work covers authentication/session contracts, users/RBAC, settings,
-module catalog, workflow/flow definition CRUD, approval definitions and inbox,
-shared JSON persistence, and transactional sequence allocation. It does not certify
-all automation execution or module features. The current review inventory flags
-70 frontend calls and 100 Nest implementation markers; these are review candidates,
-not counts of proven defects. See the task list for data migration, feature parity,
-CI/deployment and legacy retirement gates.
+The current source includes shared identity/RBAC, persistent settings and audit
+reads, tenant registry and membership enforcement, explicit production module
+loading, dependency-safe lifecycle operations and opt-in configuration/reload.
+Existing automation work includes scheduled workflows, manual flows, record
+conditions and version-bound approval gates.
 
-The latest backend run passed 82 suites / 861 tests, including global search and
-workflow-definition validation and manual state execution. Admin verification passed 85 tests,
-type checking and build. The unchanged website previously passed 6 tests, build and types. Updated release evidence is recorded in the testing guide.
+**Framework first:** F01–F07 remain open. Data ownership reconciliation,
+backup/restore, remaining core contracts, browser acceptance and rollout must pass
+before framework sign-off; individual module/plugin expansion follows that gate.
+See [current migration status](docs/MIGRATION_STATUS.md) for the prioritized scope
+and [testing](docs/TESTING.md) for current versus historical evidence.
+
+The last recorded local database includes migration 018. Migrations **019–023**
+are prepared and tested on disposable databases, but remain unapplied to the
+application database. Publishing this code does not deploy the API or clients.
 
 ## License
 
@@ -75,6 +79,5 @@ type checking and build. The unchanged website previously passed 6 tests, build 
 ## Documentation status
 
 The [documentation index](docs/README.md) links the current architecture, developer,
-upgrade, deployment and testing guides. Implementation revision `6a96a881` includes
-manual state workflows and local migration 018. Admin assets are built but not
-deployed; advanced behavior and legacy retirement remain tracked in the roadmap.
+upgrade, deployment and testing guides. Historical completion reports are retained
+as references; the current status and execution tracker govern release acceptance.

@@ -23,3 +23,18 @@ Never commit secrets, private logs, database backups or browser authentication s
 Do not reset production data for tests. Applications under `legacy/` are migration comparison references, not workspace
 packages or setup entry points. The old generator and historical
 Express examples are not current NestJS module templates.
+
+## Migration contribution requirements
+
+Framework-first priorities F01–F07 govern the current work; preserve completed
+module work while deferring feature expansion. Use [current status](docs/MIGRATION_STATUS.md)
+and the tracker to distinguish implemented behavior, automated evidence and
+remaining rollout gates. Update README, architecture, developer/API guidance,
+roadmap and acceptance cases when their contracts change.
+
+Runtime modules must follow the [extension contract](docs/DEVELOPMENT.md#framework-extension-contract).
+Reuse shared providers, validate tenant/actor access at deferred execution boundaries,
+and test denial, concurrency and rollback behavior. Never infer executable module
+entrypoints or company ownership from unreviewed database rows. SQL changes need
+isolated replay/data-preservation evidence and a reviewed rollout plan. A successful
+commit or push does not authorize or perform application database migration.

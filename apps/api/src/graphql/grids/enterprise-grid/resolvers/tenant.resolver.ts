@@ -1,22 +1,39 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards, ForbiddenException } from '@nestjs/common';
+import { TenantRegistryService } from '@core/services/tenant-registry.service';
 import { GqlJwtGuard, GqlRbacGuard } from '../../../guards/index.js';
-import { GqlCurrentUser, GqlTenant } from '../../../decorators/index.js';
+import { GqlCurrentUser } from '../../../decorators/index.js';
 import { Permissions } from '../../../decorators/index.js';
 import type { JwtPayload } from '../../../graphql.context';
 import { TenantType } from '../types/tenant.type.js';
 import { CreateTenantInput } from '../inputs/create-tenant.input.js';
 import { UpdateTenantInput } from '../inputs/update-tenant.input.js';
+import { TenantMembershipType } from '../types/tenant-membership.type';
 
 @Resolver(() => TenantType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class TenantResolver {
+  constructor(private registry: TenantRegistryService) {}
+  @Query(() => TenantMembershipType)
+  @Permissions('base.tenants.manage')
+  async userTenantMembership(@Args('userId', { type: () => Int }) userId: number, @GqlCurrentUser() user?: JwtPayload) {
+    if (!user) throw new ForbiddenException('Authentication required');
+    return this.registry.membership(userId, user.sub);
+  }
+
+  @Mutation(() => TenantMembershipType)
+  @Permissions('base.tenants.manage')
+  async setUserTenant(@Args('userId', { type: () => Int }) userId: number,
+    @Args('tenantId', { type: () => String, nullable: true }) tenantId: string | null | undefined,
+    @GqlCurrentUser() user?: JwtPayload) {
+    if (!user) throw new ForbiddenException('Authentication required');
+    return this.registry.setMembership(userId, tenantId, user.sub);
+  }
   @Query(() => [TenantType])
   @Permissions('base.tenants.manage')
   async tenants(@GqlCurrentUser() user?: JwtPayload) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement tenant manager service call
-    return [];
+    return this.registry.list(user.sub);
   }
 
   @Query(() => TenantType, { nullable: true })
@@ -26,8 +43,7 @@ export class TenantResolver {
     @GqlCurrentUser() user?: JwtPayload,
   ) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement tenant manager service call
-    return null;
+    return this.registry.find(id, user.sub);
   }
 
   @Mutation(() => TenantType)
@@ -37,8 +53,7 @@ export class TenantResolver {
     @GqlCurrentUser() user?: JwtPayload,
   ) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement tenant manager service call
-    return { id: input.id, name: input.name, domain: input.domain, active: true };
+    return this.registry.create(input, user.sub);
   }
 
   @Mutation(() => TenantType)
@@ -49,8 +64,7 @@ export class TenantResolver {
     @GqlCurrentUser() user?: JwtPayload,
   ) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement tenant manager service call
-    return null;
+    return this.registry.update(id, input, user.sub);
   }
 
   @Mutation(() => Boolean)
@@ -60,7 +74,6 @@ export class TenantResolver {
     @GqlCurrentUser() user?: JwtPayload,
   ) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement tenant manager service call
-    return true;
+    return this.registry.archive(id, user.sub);
   }
 }

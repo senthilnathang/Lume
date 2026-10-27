@@ -116,16 +116,19 @@ describe('Drizzle service schema bindings', () => {
 
 describe('Prisma RBAC model bindings', () => {
   it('reads actual role_permissions and permission names for non-admin users', async () => {
-    const role = { name: 'member', role_permissions: [{ permission: { name: 'base.users.read' } }] };
-    const findUnique = jest.fn(async () => ({ role }));
-    const service = new BaseRbacService({ user: { findUnique }, role: { findUnique: async () => role } } as any);
+    const role = { id: 3, name: 'member', isActive: true };
+    const findUnique = jest.fn(async () => ({ id: 2, role_id: 3, isActive: true, role }));
+    const service = new BaseRbacService({ user: { findUnique }, role: { findUnique: async () => role },
+      rolePermission: { findMany: async ({ where }: any) => !where.permission.name || where.permission.name === 'base.users.read'
+        ? [{ permission: { name: 'base.users.read' } }] : [] },
+    } as any);
     expect(await service.hasPermission(2, 'base.users.read')).toBe(true);
     expect(await service.hasPermission(2, 'base.users.delete')).toBe(false);
     expect(await service.hasAnyPermission(2, ['base.users.delete', 'base.users.read'])).toBe(true);
     expect(await service.hasAllPermissions(2, ['base.users.delete', 'base.users.read'])).toBe(false);
     expect(await service.getUserPermissions(2)).toEqual(['base.users.read']);
     expect(await service.getRolePermissions(3)).toEqual(['base.users.read']);
-    expect(findUnique).toHaveBeenCalledWith({ where: { id: 2 }, include: { role: { include: { role_permissions: { include: { permission: true } } } } } });
+    expect(findUnique).toHaveBeenCalledWith({ where: { id: 2 } });
   });
 
   it('orders and groups permissions by their persisted names', async () => {

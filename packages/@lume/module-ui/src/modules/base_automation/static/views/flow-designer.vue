@@ -65,6 +65,7 @@ const FLOW_NODE_TYPES = [
   { value: 'action_set_field', label: 'Set Field Value', category: 'action' },
   { value: 'action_create_record', label: 'Create Record', category: 'action' },
   { value: 'action_update_record', label: 'Update Record', category: 'action' },
+  { value: 'action_send_notification', label: 'In-app Notification', category: 'action' },
   { value: 'action_delete_record', label: 'Delete Record', category: 'action' },
   { value: 'action_send_email', label: 'Send Email', category: 'action' },
   { value: 'action_call_webhook', label: 'Call Webhook', category: 'action' },

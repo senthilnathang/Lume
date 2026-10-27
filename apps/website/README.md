@@ -16,7 +16,9 @@ Shared widgets come from `packages/@lume/module-ui`. Start production `.output/`
 with `node .output/server/index.mjs`. See [deployment](../../docs/DEPLOYMENT.md).
 
 This application remains the Nuxt public website; administration belongs to
-`apps/admin`, and business persistence belongs to `apps/api`. The manual workflow
-batch did not change this application. Its previously recorded verification is
-6 tests plus build/type checks, not a new run. Full release acceptance remains in
+`apps/admin`, and business persistence belongs to `apps/api`. Current test/build
+evidence is maintained in [the testing guide](../../docs/TESTING.md).
+The website is verified as a consumer of the shared workspace; passing its tests
+does not certify all migrated public-module behavior. Built assets remain
+undeployed, and full release acceptance remains in
 [the migration roadmap](../../docs/MIGRATION_PRODUCTION_ROADMAP.md).

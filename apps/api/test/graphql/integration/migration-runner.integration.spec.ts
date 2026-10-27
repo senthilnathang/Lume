@@ -26,6 +26,37 @@ describe('SQL migration runner (disposable MySQL database)', () => {
     if (directory) rmSync(directory, { recursive: true });
   });
   const file = (name: string, sql: string) => writeFileSync(join(directory, name), sql);
+  it('preserves module configuration and revisions on migration replay', async () => {
+    const filename = '023_create_runtime_module_configs.sql';
+    file(filename, readFileSync(join(process.cwd(), 'migrations', filename), 'utf8'));
+    await applyMigrations(db, [filename], directory);
+    await db.query("INSERT INTO runtime_module_configs(module_name,config,revision) VALUES ('test','{\"enabled\":false}',3)");
+    await db.query('DELETE FROM migrations WHERE filename=?', [filename]);
+    await applyMigrations(db, [filename], directory);
+    expect((await db.query('SELECT module_name,config,revision FROM runtime_module_configs'))[0]).toEqual([{ module_name: 'test', config: '{"enabled":false}', revision: 3 }]);
+  });
+  it('creates the tenant registry without altering company data and preserves archives on replay', async () => {
+    const filename = '022_create_tenant_registry.sql';
+    file(filename, readFileSync(join(process.cwd(), 'migrations', filename), 'utf8'));
+    await applyMigrations(db, [filename], directory);
+    await db.query("INSERT INTO tenant_registry(id,name,domain,config,active,deleted_at) VALUES (2,'Two','two.example','{}',FALSE,NOW())");
+    await db.query('DELETE FROM migrations WHERE filename=?', [filename]);
+    await applyMigrations(db, [filename], directory);
+    expect((await db.query('SELECT id, active, deleted_at IS NOT NULL AS archived FROM tenant_registry'))[0]).toEqual([{ id: 2, active: 0, archived: 1 }]);
+  });
+
+  it('adds framework masking columns and preserves permissions and masks on replay', async () => {
+    await db.query('CREATE TABLE entity_field_permissions (id INT PRIMARY KEY, can_read BOOLEAN DEFAULT TRUE)');
+    await db.query('INSERT INTO entity_field_permissions (id, can_read) VALUES (1, FALSE)');
+    const filename = '021_align_framework_field_masking.sql';
+    file(filename, readFileSync(join(process.cwd(), 'migrations', filename), 'utf8'));
+    await applyMigrations(db, [filename], directory);
+    expect((await db.query('SELECT * FROM entity_field_permissions'))[0]).toEqual([{ id: 1, can_read: 0, is_masked: 0, mask_char: '*' }]);
+    await db.query("UPDATE entity_field_permissions SET is_masked=TRUE, mask_char='#' WHERE id=1");
+    await db.query('DELETE FROM migrations WHERE filename=?', [filename]);
+    await applyMigrations(db, [filename], directory);
+    expect((await db.query('SELECT * FROM entity_field_permissions'))[0]).toEqual([{ id: 1, can_read: 0, is_masked: 1, mask_char: '#' }]);
+  });
 
   it('reports unrecorded files without creating a ledger or executing SQL', async () => {
     file('001_first.sql', 'CREATE TABLE example(id INT);');
@@ -110,5 +141,21 @@ describe('SQL migration runner (disposable MySQL database)', () => {
     await expect(applyMigrations(db,['../001_first.sql'],directory)).rejects.toThrow('existing');
     await expect(applyMigrations(db,[],directory)).rejects.toThrow('explicitly');
     expect((await db.query('SHOW TABLES'))[0]).toEqual([]);
+  });
+  it('migration 020 preserves history and binds each approval request once, including DDL replay', async () => {
+    const names = ['018_create_workflow_state_executions.sql', '020_bind_workflow_state_approvals.sql'];
+    for (const name of names) file(name, readFileSync(join('migrations', name), 'utf8'));
+    await applyMigrations(db, [names[0]], directory);
+    await db.query("INSERT INTO workflow_state_executions(id,workflow_id,record_entity_id,record_id,company_id,initiated_by,definition,current_state) VALUES(1,2,3,4,5,6,'{}','new')");
+    await db.query("INSERT INTO workflow_state_history(execution_id,version,to_state,transition_code,transition_name,user_id) VALUES(1,0,'new','START','Started',6)");
+    await applyMigrations(db, [names[1]], directory);
+    await db.query("INSERT INTO workflow_state_approvals(execution_id,version,transition_code,request_id) VALUES(1,0,'review',7)");
+    const { sqlStatements } = await import('../../../migrations/sql-statements');
+    for (const sql of sqlStatements(readFileSync(join('migrations', names[1]), 'utf8'))) await db.query(sql);
+    expect((await db.query('SELECT approval_request_id FROM workflow_state_history'))[0]).toEqual([{ approval_request_id: null }]);
+    expect((await db.query('SELECT request_id FROM workflow_state_approvals'))[0]).toEqual([{ request_id: 7 }]);
+    await expect(db.query("INSERT INTO workflow_state_approvals(execution_id,version,transition_code,request_id) VALUES(1,1,'review',7)")).rejects.toThrow();
+    await db.query('DELETE FROM workflow_state_executions WHERE id=1');
+    expect((await db.query('SELECT COUNT(*) AS n FROM workflow_state_approvals'))[0]).toEqual([{ n: 0 }]);
   });
 });

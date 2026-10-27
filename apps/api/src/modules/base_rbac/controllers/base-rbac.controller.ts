@@ -8,6 +8,7 @@ import {
   Param,
   ParseIntPipe,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@modules/auth/guards/jwt.guard';
 import { RbacGuard } from '@core/guards/rbac.guard';
@@ -428,12 +429,7 @@ export class BaseRbacController {
    */
   @Get('me/permissions')
   @UseGuards(JwtAuthGuard)
-  async getCurrentUserPermissions() {
-    // This would be implemented with a CurrentUser decorator
-    // For now, return a placeholder
-    return {
-      success: false,
-      error: 'CurrentUser decorator not implemented',
-    };
+  async getCurrentUserPermissions(@Req() req: { user: { id: number } }) {
+    return { success: true, data: await this.baseRbacService.getUserPermissions(req.user.id) };
   }
 }

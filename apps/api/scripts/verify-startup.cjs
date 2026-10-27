@@ -2,6 +2,7 @@
 // Never runs delivery workers.
 require('dotenv').config({ quiet: true });
 process.env.AUTOMATION_WORKER_ENABLED = 'false';
+process.env.AUTOMATION_SCHEDULER_ENABLED = 'false';
 require('reflect-metadata');
 const { NestFactory } = require('@nestjs/core');
 const { AppModule } = require('../dist/app.module');

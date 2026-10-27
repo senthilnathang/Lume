@@ -22,8 +22,8 @@ describe('RbacService', () => {
   });
 
   it('should check if user has permission', async () => {
-    const mockUser = { id: 1, role_id: 1 };
-    const mockRole = { id: 1, name: 'admin' };
+    const mockUser = { id: 1, role_id: 1, isActive: true };
+    const mockRole = { id: 1, name: 'admin', isActive: true };
     const mockPermissions = [{ permission_id: 1 }, { permission_id: 2 }];
 
     (prismaService.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
@@ -35,8 +35,8 @@ describe('RbacService', () => {
   });
 
   it('should deny permission for non-admin on restricted action', async () => {
-    const mockUser = { id: 2, role_id: 2 };
-    const mockRole = { id: 2, name: 'user' };
+    const mockUser = { id: 2, role_id: 2, isActive: true };
+    const mockRole = { id: 2, name: 'user', isActive: true };
 
     (prismaService.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
     (prismaService.role.findUnique as jest.Mock).mockResolvedValue(mockRole);

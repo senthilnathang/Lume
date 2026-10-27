@@ -1,12 +1,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ModuleLoaderService } from './module-loader.service.js';
 import { MetadataRegistryService } from '../runtime/metadata-registry.service.js';
-import type { ModuleDefinition } from './define-module.js';
-import { getModuleConfig, loadExampleModules } from './module-wiring.js';
+import { getModuleConfig, loadExampleModules, loadProductionModules, planModuleLoading, logModuleLoadingPlan } from './module-wiring.js';
 
 /**
  * Initializes framework modules at application startup
- * Loads core modules and example modules based on configuration
+ * Loads explicitly configured runtime definitions and optional examples; errors abort startup.
  */
 @Injectable()
 export class ModuleInitializerService implements OnModuleInit {
@@ -16,40 +15,17 @@ export class ModuleInitializerService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    console.log('[Framework] Initializing modules...');
-
-    try {
-      // Load core example modules
-      const modulesToLoad = await this.getModulesToLoad();
-
-      for (const moduleDef of modulesToLoad) {
-        await this.loadModule(moduleDef);
-      }
-
-      console.log('[Framework] Module initialization complete');
-      this.logModuleStats();
-    } catch (error) {
-      console.error('[Framework] Module initialization failed:', error);
-      // Continue with partial module load rather than crashing
-    }
-  }
-
-  private async getModulesToLoad(): Promise<ModuleDefinition[]> {
     const config = getModuleConfig();
-    if (!config.enabled || !config.loadExamples) return [];
-    return loadExampleModules();
-  }
-
-  private async loadModule(moduleDef: ModuleDefinition): Promise<void> {
-    console.log(`[Framework] Loading module: ${moduleDef.name} v${moduleDef.version}`);
-
-    try {
-      await this.moduleLoader.loadModule(moduleDef);
-      console.log(`[Framework] ✓ Module loaded: ${moduleDef.name}`);
-    } catch (error) {
-      console.error(`[Framework] ✗ Failed to load module ${moduleDef.name}:`, error.message);
-      throw error;
-    }
+    if (!config.enabled) return;
+    if (config.autoMigrate) throw new Error('AUTO_MIGRATE_MODULES is unsupported; apply reviewed migrations before startup');
+    const production = await loadProductionModules();
+    const examples = config.loadExamples ? await loadExampleModules() : [];
+    const plan = planModuleLoading(examples, production);
+    if (plan.errors.length) throw new Error(`Module initialization failed: ${plan.errors.join('; ')}`);
+    if (config.verboseLogging) logModuleLoadingPlan(plan, true);
+    if (!plan.modules.length) return;
+    await this.moduleLoader.loadAll(plan.modules);
+    this.logModuleStats();
   }
 
   private logModuleStats(): void {

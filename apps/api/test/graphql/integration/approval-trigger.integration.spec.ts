@@ -29,6 +29,7 @@ describe('Automatic approval triggers (real MySQL and Nest events)', () => {
     await h.prisma.automation_approval_chains.deleteMany();
     await h.prisma.recordRule.deleteMany();
     await h.seed();
+    await h.prisma.entityRecord.updateMany({data:{visibility:'public'}});
     jest.spyOn(Logger.prototype,'error').mockImplementation(()=>{});
   });
   afterEach(() => jest.restoreAllMocks());
@@ -41,6 +42,16 @@ describe('Automatic approval triggers (real MySQL and Nest events)', () => {
   };
   const fire = async (kind = 'record.created', id = 1) => events.emitAsync(kind,await event(id));
   const count = () => h.prisma.automation_approval_requests.count();
+
+  it('does not automatically start approvals for an actor denied private-record access', async () => {
+    await chain();
+    await h.prisma.entityRecord.update({where:{id:1},data:{visibility:'private'}});
+    await fire();
+    expect(await count()).toBe(0);
+    await h.prisma.entityRecord.update({where:{id:1},data:{createdBy:2}});
+    await fire();
+    expect(await count()).toBe(1);
+  });
 
   it('keeps existing/default chains manual and supports explicit opt-in through configuration', async () => {
     const created = await config.createApprovalChain({name:'Manual',model:'entity_1',steps:[{approverId:1}]});

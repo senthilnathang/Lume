@@ -1,3 +1,11 @@
+> **Implementation update — 2026-10-27.**
+> BaseRbacService delegates permission decisions to the shared core RbacService.
+> Active users, roles and permission rows are required; disabled/null-active rows
+> cannot grant access. Current-user permission endpoints return persisted results.
+> Use [current architecture](../../../../../docs/ARCHITECTURE.md) and
+> [acceptance cases](../../../../../docs/UAT_TEST_CASES.md) for the maintained contract;
+> the module summary below is not full migration sign-off.
+
 # Base RBAC Module (NestJS)
 
 ## Overview

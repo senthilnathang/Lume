@@ -1,11 +1,11 @@
 # GraphQL integration tests
 
-Run from `apps/api`:
+Run from the repository root:
 
 ```sh
-npm ci
-npm run db:generate
-npm test -- --runInBand test/graphql/integration
+pnpm install --frozen-lockfile
+pnpm --filter @lume/api db:generate
+pnpm --filter @lume/api test --runInBand --testTimeout=30000 test/graphql/integration
 ```
 
 The harness runs real NestJS, Apollo, Passport, Prisma and MySQL, including HTTP
@@ -340,3 +340,8 @@ the resolved address, rejects redirects/non-2xx responses, and limits request an
 response bodies to 256 KiB with a 10-second request timeout. Source and recipient
 access are checked again before dispatch. AI actions require the AI adapter's
 separate configuration and are not covered by live-provider verification.
+
+Current full-AppModule framework tests live here under `test/graphql/integration`, covering
+startup, shared providers, tenant membership, settings, audit and schema preflight.
+See [the test guide](../../../../../docs/TESTING.md) for dated run scope and
+[acceptance cases](../../../../../docs/UAT_TEST_CASES.md) for pending browser/rollout gates.

@@ -7,6 +7,7 @@ import {
 import { EventBusService, BuiltInEvents } from '@core/runtime/event-bus.service';
 import { ExecutionPipelineService } from '@core/runtime/execution-pipeline.service';
 import { PrismaService } from '@core/services/prisma.service';
+import { assertTenantActorAccess } from '@core/services/tenant-access';
 
 export interface WorkflowRun {
   id?: number;
@@ -35,12 +36,13 @@ export interface WorkflowRunContext {
   stepsLog: Array<{ stepIndex: number; stepType: string; result?: any; error?: string }>;
 }
 
-export type WorkflowActionType = 'send_notification' | 'call_webhook' | 'create_record' | 'ai';
+export type WorkflowActionType = 'send_notification' | 'call_webhook' | 'create_record' | 'update_record' | 'ai';
 export type WorkflowActionHandler = (ctx: WorkflowRunContext, step: WorkflowStep) => Promise<unknown>;
 
 @Injectable()
 export class WorkflowExecutorService {
   private runCounter = 1;
+  private recordConditionHandler?: (ctx: WorkflowRunContext, condition: Record<string, unknown>) => Promise<boolean>;
   private actionHandlers = new Map<WorkflowActionType, WorkflowActionHandler>();
   private registeredHandlers = new Map<string, (ctx: WorkflowRunContext, step: any) => Promise<void>>();
 
@@ -91,6 +93,7 @@ export class WorkflowExecutorService {
     });
 
     try {
+      await assertTenantActorAccess(this.prisma, options.companyId, userId);
       const context: WorkflowRunContext = {
         companyId: options.companyId,
         executionKey: options.executionKey,
@@ -140,10 +143,14 @@ export class WorkflowExecutorService {
   }
 
   registerActionHandler(type: WorkflowActionType, handler: WorkflowActionHandler): void {
-    if (!['send_notification', 'call_webhook', 'create_record', 'ai'].includes(type) || typeof handler !== 'function') {
+    if (!['send_notification', 'call_webhook', 'create_record', 'update_record', 'ai'].includes(type) || typeof handler !== 'function') {
       throw new Error('A supported workflow action and callable handler are required');
     }
     this.actionHandlers.set(type, handler);
+  }
+
+  registerRecordConditionHandler(handler: (ctx: WorkflowRunContext, condition: Record<string, unknown>) => Promise<boolean>): void {
+    this.recordConditionHandler = handler;
   }
 
   registerCustomHandler(
@@ -163,8 +170,10 @@ export class WorkflowExecutorService {
     context.stepKey = stepPath;
 
     try {
+      await assertTenantActorAccess(this.prisma, context.companyId, context.userId);
       switch (step.type) {
         case 'condition':
+        case 'record_condition':
           stepLog.result = { condition: await this.executeCondition(step, context, stepIndex, stepPath) };
           break;
 
@@ -182,6 +191,7 @@ export class WorkflowExecutorService {
         case 'send_notification':
         case 'call_webhook':
         case 'create_record':
+        case 'update_record':
         case 'ai':
           {
             const handler = this.actionHandlers.get(step.type);
@@ -230,7 +240,10 @@ export class WorkflowExecutorService {
     parentStepIndex: number,
     stepPath: string,
   ): Promise<boolean> {
-    const conditionResult = this.matchesCondition(step.if, context);
+    if (step.type === 'record_condition' && !this.recordConditionHandler) throw new Error('Record condition handler is not configured');
+    const conditionResult = step.type === 'record_condition'
+      ? await this.recordConditionHandler(context, step.condition)
+      : this.matchesCondition(step.if, context);
 
     if (conditionResult) {
       // Execute 'then' steps

@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { PrismaService } from '@core/services/prisma.service';
 import { AuthService as JwtAuthService } from '@core/services/jwt.service';
 import { LoginDto } from '../dtos/login.dto';
+import { tenantMembership } from '@core/services/tenant-membership';
 
 export const sessionKey = (sid: string) => createHash('sha256').update(sid).digest('hex');
 
@@ -18,9 +19,7 @@ export class AuthService {
 
   private claims(user: any, sid: string) {
     // Tenant assignment comes only from trusted server-side user metadata.
-    let metadata: any = {};
-    try { metadata = JSON.parse(user.metadata || '{}'); } catch {}
-    const companyId = Number(metadata.company_id);
+    const { companyId } = tenantMembership(user.metadata);
     return { sub: user.id, email: user.email, role_id: user.role_id,
       role_name: user.role?.name, sid,
       ...(Number.isSafeInteger(companyId) && companyId > 0 ? { company_id: companyId } : {}) };
@@ -28,7 +27,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email }, include: { role: true } });
-    if (!user || user.isActive === false || user.role?.isActive === false ||
+    if (!user?.isActive || !user.role?.isActive ||
         (user.lock_until && user.lock_until > new Date()) ||
         !await this.jwtAuth.comparePassword(dto.password, user.password)) {
       throw new UnauthorizedException('Invalid credentials');
@@ -54,7 +53,7 @@ export class AuthService {
       throw new UnauthorizedException('Session expired');
     }
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub }, include: { role: true } });
-    if (!user || user.isActive === false || user.role?.isActive === false) throw new UnauthorizedException('User unavailable');
+    if (!user?.isActive || !user.role?.isActive) throw new UnauthorizedException('User unavailable');
     return { success: true, data: { accessToken: this.jwtAuth.generateAccessToken({
       ...this.claims(user, payload.sid), token_use: 'access',
     }) } };
@@ -62,13 +61,13 @@ export class AuthService {
 
   async getProfile(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { role: true } });
-    if (!user || user.isActive === false) throw new UnauthorizedException('User unavailable');
+    if (!user?.isActive || !user.role?.isActive) throw new UnauthorizedException('User unavailable');
     return { success: true, data: this.profile(user) };
   }
 
   async confirmPassword(userId: number, password: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !await this.jwtAuth.comparePassword(password, user.password)) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { role: true } });
+    if (!user?.isActive || !user.role?.isActive || !await this.jwtAuth.comparePassword(password, user.password)) {
       throw new ForbiddenException('Invalid credentials');
     }
     return { success: true, data: { confirmed: true } };

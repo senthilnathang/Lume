@@ -130,12 +130,12 @@ describe('Subscription runtime wiring', () => {
   it.each([
     [PageResolver.prototype.pagePublished, 'pagePublished'],
     [AuditLogResolver.prototype.auditLogCreated, 'auditLogCreated'],
-  ] as const)('isolates content/audit event payloads by tenant', (handler, key) => {
+  ] as const)('isolates content/audit event payloads by tenant', async (handler, key) => {
     const { filter } = Reflect.getMetadata(SUBSCRIPTION_OPTIONS_METADATA, handler);
-    expect(filter({ [key]: { companyId: 1 } }, {}, { user: { company_id: 1 } })).toBe(true);
-    expect(filter({ [key]: { companyId: 2 } }, {}, { user: { company_id: 1 } })).toBe(false);
-    expect(filter({ [key]: {} }, {}, {})).toBe(false);
-    expect(filter({ [key]: { companyId: 1 } }, {}, { user: null })).toBe(false);
+    expect(await filter({ [key]: { companyId: 1 } }, {}, { canReceiveTenantEvent: async id => id === 1 })).toBe(true);
+    expect(await filter({ [key]: { companyId: 2 } }, {}, { canReceiveTenantEvent: async id => id === 1 })).toBe(false);
+    expect(await filter({ [key]: {} }, {}, {})).toBe(false);
+    expect(await filter({ [key]: { companyId: 1 } }, {}, { user: null })).toBe(false);
   });
 });
 

@@ -1,3 +1,20 @@
+import { FlowRunsController } from '../../../src/modules/base_automation/controllers/flow-runs.controller';
+import { BaseRbacController } from '../../../src/modules/base_rbac/controllers/base-rbac.controller';
+import { BaseRbacService } from '../../../src/modules/base_rbac/services/base-rbac.service';
+import { AccountController } from '../../../src/modules/auth/controllers/account.controller';
+import { SettingsService } from '../../../src/modules/settings/services/settings.service';
+import { ValidationPipe } from '@nestjs/common';
+import { AuditService } from '../../../src/modules/audit/services/audit.service';
+import { TenantRegistryService } from '../../../src/core/services/tenant-registry.service';
+import { TenantResolver } from '../../../src/graphql/grids/enterprise-grid/resolvers/tenant.resolver';
+import { AuditController } from '../../../src/modules/audit/controllers/audit.controller';
+import { AuditLogResolver } from '../../../src/graphql/grids/enterprise-grid/resolvers/audit-log.resolver';
+import { SettingsController } from '../../../src/modules/settings/controllers/settings.controller';
+import { SystemSettingResolver } from '../../../src/graphql/grids/meta-grid/resolvers/system-setting.resolver';
+import { FlowRunsService } from '../../../src/modules/base_automation/services/flow-runs.service';
+import { WorkflowSchedulesController } from '../../../src/modules/base_automation/controllers/workflow-schedules.controller';
+import { WorkflowSchedulesService } from '../../../src/modules/base_automation/services/workflow-schedules.service';
+import { MetadataRegistryService } from '../../../src/core/runtime/metadata-registry.service';
 import { WorkflowStateController } from '../../../src/modules/base_automation/controllers/workflow-state.controller';
 import { WorkflowStateEngineService } from '../../../src/modules/base_automation/services/workflow-state-engine.service';
 import { AutomationController } from '../../../src/modules/base_automation/controllers/automation.controller';
@@ -55,7 +72,7 @@ import { LoggingPlugin } from '../../../src/graphql/plugins/logging.plugin';
 import { SequenceResolver } from '../../../src/graphql/grids/meta-grid/resolvers/sequence.resolver';
 import { AdminSettingsService } from '../../../src/modules/base/services/admin-settings.service';
 
-export async function createHarness(options: { rollups?: boolean; approvals?: boolean; sequences?: boolean } = {}) {
+export async function createHarness(options: { rollups?: boolean; approvals?: boolean; sequences?: boolean; schedules?: boolean; frameworkSettings?: boolean; auditQueries?: boolean; tenants?: boolean } = {}) {
   config({ quiet: true });
   const url = new URL(process.env.GRAPHQL_TEST_DATABASE_URL || process.env.DATABASE_URL!);
   const database = `lume_gql_test_${randomUUID().replaceAll('-', '')}`;
@@ -96,7 +113,12 @@ export async function createHarness(options: { rollups?: boolean; approvals?: bo
     const module = await Test.createTestingModule({
       imports: [...(options.rollups || options.approvals ? [EventEmitterModule.forRoot()] : []), PassportModule, GraphQLModule.forRoot({ ...createGraphQLConfig(context, 'test', [new ComplexityPlugin(), new LoggingPlugin()]), driver: ApolloDriver })],
       providers: [
-        SearchService, SecurityService, AutomationService, WorkflowStateEngineService,
+        ...(options.tenants ? [TenantRegistryService, TenantResolver] : []),
+        ...(options.auditQueries ? [AuditService, AuditLogResolver] : []),
+        ...(options.frameworkSettings ? [SettingsService, SystemSettingResolver] : []),
+        BaseRbacService,
+        ...(options.schedules ? [WorkflowSchedulesService, MetadataRegistryService] : []),
+        FlowRunsService, SearchService, SecurityService, AutomationService, WorkflowStateEngineService,
         ...(options.sequences ? [SequenceResolver, AdminSettingsService] : []),
         RelationshipService, ApprovalChainEngineService, AdvancedFeaturesService,
         EntityResolver, EntityRecordResolver, RoleResolver, PermissionResolver, FieldPermissionResolver, FlowSubscriptionResolver, RecordRuleResolver, RecordRuleManagementService,
@@ -106,9 +128,10 @@ export async function createHarness(options: { rollups?: boolean; approvals?: bo
         ...(options.approvals ? [ApprovalTriggerService] : []),
         ...(!options.rollups && !options.approvals ? [{ provide: EventEmitter2, useValue: new EventEmitter2() }] : []), { provide: 'PubSub', useValue: pubsub },
       ],
-      controllers: [WorkflowStateController, AutomationController, SearchController, EntityRecordsController, ApprovalRequestsController, AdvancedFeaturesController],
+      controllers: [...(options.auditQueries ? [AuditController] : []), ...(options.frameworkSettings ? [SettingsController] : []), BaseRbacController, AccountController, FlowRunsController, ...(options.schedules ? [WorkflowSchedulesController] : []), WorkflowStateController, AutomationController, SearchController, EntityRecordsController, ApprovalRequestsController, AdvancedFeaturesController],
     }).compile();
     app = module.createNestApplication();
+    if (options.auditQueries || options.tenants) app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.listen(0, '127.0.0.1');
     const jwt = new JwtService({ secret });
     const token = (role = 'admin', company: number | null = 1, expiresIn = 60) => jwt.sign({ sub: role === 'admin' ? 1 : role === 'member' ? 2 : 3, email: `${role}@test.local`, role_id: role === 'admin' ? 1 : role === 'member' ? 2 : 3, role_name: role, ...(company == null ? {} : { company_id: company }) }, { expiresIn });

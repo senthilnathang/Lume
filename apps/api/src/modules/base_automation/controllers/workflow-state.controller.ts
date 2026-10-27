@@ -38,4 +38,9 @@ export class WorkflowStateController {
   async transition(@Param('workflowId', ParseIntPipe) workflowId: number, @Param('id', ParseIntPipe) id: number, @Body() input: TransitionExecutionDto, @Req() req: any) {
     return { success: true, data: await this.engine.transition(workflowId, id, input, this.context(req)) };
   }
+  @Post(':workflowId/executions/:id/approval')
+  @Permissions('base_automation.workflows.manage', 'base_automation.approvals')
+  async requestApproval(@Param('workflowId', ParseIntPipe) workflowId: number, @Param('id', ParseIntPipe) id: number, @Body() input: TransitionExecutionDto, @Req() req: any) {
+    return { success: true, data: await this.engine.requestApproval(workflowId, id, input, this.context(req)) };
+  }
 }

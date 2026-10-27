@@ -38,10 +38,12 @@ describe('Durable approval workflows and notifications',()=>{
   });
   afterAll(async()=>{await h?.close();});
   beforeEach(async()=>{
+    await h.prisma.tenantRegistry.deleteMany();
     process.env.AUTOMATION_DURABLE_EVENTS='false';
     await h.prisma.automationReceipt.deleteMany();await h.prisma.automationJob.deleteMany();
     await h.prisma.notifications.deleteMany();await h.prisma.automation_approval_requests.deleteMany();await h.prisma.automation_approval_chains.deleteMany();
     await h.prisma.recordRule.deleteMany();await h.seed();
+    await h.prisma.entityRecord.updateMany({data:{visibility:'public'}});
     registry=new MetadataRegistryService();
     executor=new WorkflowExecutorService(registry,new EventBusService(new EventEmitter2()),new ExecutionPipelineService(),h.prisma as any);
     actions=new WorkflowActionsService(h.prisma as any,h.app.get(RecordService),executor);actions.onModuleInit();
@@ -50,6 +52,57 @@ describe('Durable approval workflows and notifications',()=>{
   afterEach(()=>{jest.restoreAllMocks();if(previousDurable===undefined)delete process.env.AUTOMATION_DURABLE_EVENTS;else process.env.AUTOMATION_DURABLE_EVENTS=previousDurable;});
   function workflow(steps:any[]){registry.registerWorkflow({name:'review_done',entity:'entity_1',trigger:{type:'manual',key:'review'},steps});}
   const enqueue=(extra={})=>h.prisma.automationJob.create({data:{eventKey:'test-job',kind:'workflow',companyId:1,userId:1,payload:JSON.stringify({workflowName:'review_done',entityId:1,recordId:1}),...extra}});
+  it.each(['workflow', 'delivery', 'record.created', 'relationship.changed'])('blocks queued %s work for an inactive tenant before side effects', async kind => {
+    await h.prisma.tenantRegistry.create({ data: { id: 1, name: 'One', domain: 'one.example', config: '{}', active: false } });
+    const execute = jest.spyOn(executor, 'execute');
+    const delivery = new WorkflowDeliveryService(), deliver = jest.spyOn(delivery, 'deliver');
+    const events = new EventEmitter2(), listener = jest.fn(); events.on(kind, listener);
+    const scopedWorker = new WorkflowJobsService(h.prisma, h.app.get(RecordService), registry, executor, delivery, events);
+    const job = await enqueue({ kind });
+    await scopedWorker.processOne();
+    expect(await h.prisma.automationJob.findUnique({ where: { id: job.id } })).toMatchObject({ status: 'retry', lastError: 'Tenant unavailable', leaseToken: null });
+    expect(execute).not.toHaveBeenCalled(); expect(deliver).not.toHaveBeenCalled(); expect(listener).not.toHaveBeenCalled();
+    expect(await h.prisma.automationReceipt.count()).toBe(0);
+  });
+  it('rechecks tenant status between nested workflow steps', async () => {
+    await h.prisma.tenantRegistry.create({ data: { id: 1, name: 'One', domain: 'one.example', config: '{}' } });
+    const later = jest.fn(async () => {});
+    executor.registerCustomHandler('suspend', async () => { await h.prisma.tenantRegistry.update({ where: { id: 1 }, data: { active: false } }); });
+    executor.registerCustomHandler('later', later);
+    workflow([{ type: 'condition', if: true, then: [{ type: 'custom', handler: 'suspend' }, { type: 'custom', handler: 'later' }] }]);
+    const result = await executor.execute('review_done', { id: 1, entityId: 1, data: {} }, 'entity_1', { type: 'manual' }, 1, { companyId: 1 });
+    expect(result.status).toBe('failed'); expect(result.errorMessage).toBe('Tenant unavailable'); expect(later).not.toHaveBeenCalled();
+  });
+  it('allows a blocked job to retry after tenant reactivation', async () => {
+    await h.prisma.tenantRegistry.create({ data: { id: 1, name: 'One', domain: 'one.example', config: '{}', active: false } });
+    const effect = jest.fn(async () => {}); executor.registerCustomHandler('effect', effect);
+    workflow([{ type: 'custom', handler: 'effect' }]);
+    const job = await enqueue(); await worker.processOne();
+    await h.prisma.tenantRegistry.update({ where: { id: 1 }, data: { active: true } });
+    await h.prisma.automationJob.update({ where: { id: job.id }, data: { availableAt: new Date(0) } });
+    await worker.processOne();
+    expect(effect).toHaveBeenCalledTimes(1);
+    expect(await h.prisma.automationJob.findUnique({ where: { id: job.id } })).toMatchObject({ status: 'completed', attempts: 2 });
+  });
+  it('denies queued member work after reassignment to a different company', async () => {
+    const effect = jest.fn(async () => {}); executor.registerCustomHandler('effect', effect);
+    workflow([{ type: 'custom', handler: 'effect' }]);
+    const job = await enqueue({ userId: 2 });
+    await h.prisma.user.update({ where: { id: 2 }, data: { metadata: '{"company_id":2}' } });
+    await worker.processOne();
+    expect(effect).not.toHaveBeenCalled();
+    expect(await h.prisma.automationJob.findUnique({ where: { id: job.id } })).toMatchObject({ status: 'retry', lastError: 'Tenant membership changed' });
+  });
+  it('denies the next workflow step when a member loses assignment', async () => {
+    await h.prisma.user.update({ where: { id: 2 }, data: { metadata: '{"company_id":1}' } });
+    const later = jest.fn(async () => {});
+    executor.registerCustomHandler('remove_membership', async () => { await h.prisma.user.update({ where: { id: 2 }, data: { metadata: '{"company_id":null}' } }); });
+    executor.registerCustomHandler('later', later);
+    workflow([{ type: 'custom', handler: 'remove_membership' }, { type: 'custom', handler: 'later' }]);
+    const run = await executor.execute('review_done', { id: 1, entityId: 1, data: {} }, 'entity_1', { type: 'manual' }, 2, { companyId: 1 });
+    expect(run).toMatchObject({ status: 'failed', errorMessage: 'Tenant membership changed' });
+    expect(later).not.toHaveBeenCalled();
+  });
   it('runs durable approvals and retry-safe outcomes through the full application polling worker',async()=>{
     const previousWorker=process.env.AUTOMATION_WORKER_ENABLED;
     process.env.AUTOMATION_WORKER_ENABLED='true';
@@ -72,6 +125,8 @@ describe('Durable approval workflows and notifications',()=>{
       ]});
       const chain=await h.prisma.automation_approval_chains.create({data:{name:'Polled approval',model:'entity_1',steps:'[{"approverId":1}]',trigger_event:'record.created',on_completed:'polled_outcome'}});
       const record=await app.get(RecordService).createRecord(1,{name:'Polled record'},1,1);
+      // This scenario deliberately sends its outcome to a non-owner.
+      await h.prisma.entityRecord.update({where:{id:record.id},data:{visibility:'public'}});
       async function until<T>(read:()=>Promise<T>,ready:(value:T)=>boolean):Promise<T>{
         const deadline=Date.now()+20000;
         do{const value=await read();if(ready(value))return value;await new Promise(resolve=>setTimeout(resolve,100));}while(Date.now()<deadline);
@@ -184,6 +239,24 @@ describe('Durable approval workflows and notifications',()=>{
     await new WorkflowJobsService(h.prisma as any,h.app.get(RecordService),registry,executor,delivery).processOne();
     expect(send).not.toHaveBeenCalled();
     expect((await h.prisma.automationJob.findFirst({where:{kind:'delivery'}})).status).toBe('retry');
+  });
+  it.each(['recipient-private', 'sender-private', 'sender-field', 'recipient-permission'])('rechecks queued notification access before delivery: %s', async reason => {
+    if (reason.startsWith('sender')) {
+      await h.prisma.role.create({ data: { id: 4, name: 'sender', display_name: 'Sender' } });
+      await h.prisma.rolePermission.create({ data: { roleId: 4, permissionId: (await h.prisma.permission.findUnique({ where: { name: 'base.entity_records.read' } })).id } });
+      await h.prisma.user.update({ where: { id: 1 }, data: { role_id: 4 } });
+    }
+    workflow([{type:'send_notification',to:'2',message:'${name}',channel:'email'}]);
+    await enqueue(); await worker.processOne();
+    expect(await h.prisma.automationJob.count({ where: { kind: 'delivery' } })).toBe(1);
+    if (reason === 'recipient-private') await h.prisma.entityRecord.update({ where: { id: 1 }, data: { visibility: 'private' } });
+    if (reason === 'sender-private') await h.prisma.entityRecord.update({ where: { id: 1 }, data: { visibility: 'private', createdBy: 2 } });
+    if (reason === 'sender-field') await h.prisma.entityFieldPermission.create({ data: { fieldId: 1, roleId: 4, canRead: false } });
+    if (reason === 'recipient-permission') await h.prisma.rolePermission.deleteMany({ where: { roleId: 2, permission: { name: 'base.entity_records.read' } } });
+    const delivery = new WorkflowDeliveryService(), send = jest.spyOn(delivery, 'deliver').mockResolvedValue({ status: 202, accepted: true });
+    await new WorkflowJobsService(h.prisma as any,h.app.get(RecordService),registry,executor,delivery).processOne();
+    expect(send).not.toHaveBeenCalled();
+    expect((await h.prisma.automationJob.findFirst({ where: { kind: 'delivery' } })).status).toBe('retry');
   });
   it('persists record events atomically and deduplicates approval triggers across retries',async()=>{
     process.env.AUTOMATION_DURABLE_EVENTS='true';

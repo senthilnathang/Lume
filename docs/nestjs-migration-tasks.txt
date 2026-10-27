@@ -2,6 +2,134 @@ NestJS migration and backend cleanup — execution tracker
 Started: 2026-10-23
 Status: IN PROGRESS. This file supersedes historical completion claims and plans.
 
+Priority reset — 2026-10-27, user instruction: framework first, then modules/plugins
+Framework completion is a separate release gate from whole-application parity.
+Do not mark deferred module work complete or delete legacy implementations needed
+for those later migrations. Preserve completed automation work; pause feature expansion.
+
+Framework-first execution queue (in priority order)
+[ ] F01 Core identity/security: active-user/role enforcement, permissions contracts,
+        tenant isolation, record/field/model access, consistent REST/GraphQL behavior.
+        [x] Shared active-identity/permission checks; real current-user permission
+            APIs; disabled permissions excluded; login/refresh/profile parity.
+[ ] F02 Runtime and extension infrastructure: metadata/entity registries, module
+        loading/dependencies/lifecycle, plugin host contracts, events, configuration,
+        shared services and transport registration. Individual extensions deferred.
+        [x] Shared Prisma/Drizzle ownership verified through complete AppModule.
+        [x] Event unsubscription; dependency/cycle/collision validation; concurrent
+            loads; owned registry cleanup; required DB hooks cannot be skipped.
+        [x] Installation preflights transitive dependency DB hooks and executes
+            dependencies first. Concurrent installs share one operation; competing
+            load/uninstall operations fail while hooks run. In-flight definitions
+            protect dependencies before registration; failed hooks release locks.
+[ ] F03 Persistence foundation: records/entities/relationships/schema operations,
+        canonical database ownership, ordered migrations, legacy core-data mapping,
+        repeatable dry-run import/reconciliation and backup/restore verification.
+        [x] Source mapping audit: 23 core models, 16 unchanged, five additive/default
+            differences and two new runtime tables. Read-only preflight reports
+            missing columns and observed company IDs without registry entries.
+        [ ] Apply reviewed migration 021 after backup/restore verification: live
+            entity_field_permissions lacks is_masked and mask_char. No data changed.
+[ ] F04 Framework API audit: classify every reachable core placeholder/compatibility
+        gap, implement required contracts and verify real persistence/error paths.
+        [x] Replaced current-user permission and GraphQL system-settings placeholders.
+            Settings share REST persistence, read/write permissions and atomic bulk writes.
+        [x] GraphQL module catalog/lifecycle now uses deployed/runtime state and the
+            real loader. Builtins and unsupported runtime operations fail explicitly.
+        [x] Global rate limiter handles GraphQL HTTP/subscription contexts; complete
+            AppModule checks exercise real guarded operations, not only introspection.
+            Verified: 5 focused suites / 26 tests, API build and lint (zero errors,
+            1174 warnings). REST/GraphQL catalog parity and real limiter behavior.
+        [x] Stored audit GraphQL list/detail/history use shared REST persistence,
+            validated filters, stable pagination and platform-admin-only access.
+            Audit rows lack tenant ownership; delegated audit permissions cannot
+            expose global history. Nullable legacy values remain truthful.
+            Verified: 4 suites / 26 tests and API build. No deployment/migration.
+        [x] Opt-in runtime module config persists validated JSON with revision
+            conflicts and desired/applied state. Load/restart consumes saved config;
+            explicit reload hooks apply snapshots per process under lifecycle guards.
+            Migration 023 prepared; builtin/source-code reload remains deployment-managed.
+            Verification: persistence/migration run 51 tests; final overlapping
+            module/schema contract run 53 tests; API build and lint passed
+            (zero errors, 1,175 warnings). No deployment or live data change.
+        [x] Production runtime discovery loads explicit deployment-owned CommonJS
+            file/package exports. Registered initializer validates the complete
+            batch and fails startup on import/graph/hook errors. Worker/scheduler
+            polling waits for application bootstrap. No unattended migrations.
+            Verified: 8 suites / 97 tests, compiled Node discovery smoke, build;
+            lint zero errors / 1,174 warnings. No deployment or new schema change.
+        [ ] Live audit publisher contracts and remaining framework placeholder/
+            release scope still require review/completion.
+        [x] Tenant GraphQL registry persists numeric company IDs/config/domain and
+            archive state; platform admins only. JWT checks registered inactive/
+            archived companies across REST/GraphQL and header overrides. Existing
+            data and metadata assignments are preserved. Migration 022 prepared.
+            Verification: 96 backend suites / 1,109 tests; final reconciliation
+            suite 4 tests; build passed; lint zero errors / 1,175 warnings.
+        [x] Shared tenant checks cover queued event/workflow/delivery dispatch,
+            nested workflow steps, due scheduling and each subscription event.
+            Denied jobs retain bounded retries; affected schedules require review;
+            streams suppress events without closing. In-flight effects are not cancelled.
+            Verified: 9 focused suites / 124 tests; API build and lint passed
+            (zero errors, 1,175 warnings). No deployment or new schema change.
+        [x] Platform-admin single-company membership read/set/clear API preserves
+            metadata and atomically revokes active sessions. Managed assignments
+            reject stale token claims and obsolete member job/schedule/step scope;
+            subscriptions recheck current user, role and assignment per event.
+            Verified: 9 suites / 127 tests plus 4 preflight tests; API build passed;
+            lint zero errors / 1,175 warnings. No new migration or deployment.
+        [ ] Apply 022 before deployment. Reconcile existing company IDs and user
+            assignments; review multi-company membership and provisioning semantics.
+            Unregistered legacy companies still retain current behavior;
+            registration does not grant membership.
+[ ] F05 Reproducible framework release: clean install, lint/types/builds, complete
+        backend regression, client compatibility checks, isolated full startup,
+        provider-disabled behavior and critical framework browser acceptance.
+[ ] F06 Framework rollout: reviewable migration/deployment artifacts, backup,
+        health/routing verification and rollback rehearsal; record deployed revision.
+[ ] F07 Framework cleanup/sign-off: eliminate active legacy runtime dependencies,
+        publish architecture and acceptance evidence; retain archived module source
+        until its own migration is verified.
+
+Later module/plugin queue: remaining automation and approvals (M05/M06), data-tool
+UI/business features (M07), feature-level search/notification consumers (M08), public
+and domain modules (M09), Flowgrid/Agentgrid behavior (M10), then individual plugins.
+M07/M08 framework persistence/security portions remain in F01/F03. M11–M18 apply
+to framework scope first and again to the eventual whole-application completion.
+All F items remain open until evidence supports completion; audit counts alone
+are not acceptance evidence.
+
+Combined publication verification — 2026-10-27
+- Full API: 98 suites / 1146 tests passed, normal exit (1114.765 seconds).
+- Admin: 20 files / 108 tests; website: 2 files / 6 tests. Both typechecks and
+  all three production builds passed. API lint: zero errors, 1174 warnings.
+- Initial unrestricted admin run timed out one test; full documented single-worker
+  rerun passed without changing assertions or application code.
+- Layout, staged whitespace and changed Markdown local file links checked.
+  No live migrations/deployment or new browser acceptance; F01–F07 remain open.
+
+Documentation and source inventory refresh — 2026-10-27
+- Canonical README, architecture, developer/API/upgrade/deployment guidance,
+  status/roadmap and acceptance cases reconciled with the current implementation.
+- Regenerated source inventories: 69 frontend calls, 652 legacy route/mount
+  declarations and 80 Nest implementation markers. Counts are review candidates,
+  not proven defects or completion measures. The 70-call triage is a historical baseline.
+- Schema source comparison: 23 models, 16 unchanged, seven requiring review.
+- Prepared migrations 019–023 remain unapplied; no API/client deployment performed.
+
+Framework verification batch — 2026-10-27
+- Complete backend regression: 92 suites / 1068 tests passed. Initial run failed
+  eight auth fixtures lacking active flags; fixtures corrected and explicit inactive
+  identity cases added. Separate later checks cover settings/startup (15 tests),
+  read-only DB preflight (3 tests), and migration runner/replay (12 tests).
+- Admin: 20 files / 108 tests. Website: 2 files / 6 tests. API build passed.
+- Both client typechecks passed. Final API lint: zero errors, 1174 warnings.
+  Module lifecycle follow-up: 2 suites / 13 tests passed, including required DB hooks.
+- Full startup test uses a disposable Prisma schema plus existing SQL-owned host
+  tables (008/016), verifies one Prisma/Drizzle provider, health, GraphQL and 401.
+- No application database mutations or deployment. Framework completion remains
+  open; feature modules/plugins remain explicitly deferred under the user priority.
+
 Objective
 Complete the standalone Express application's migration to NestJS, preserve
 required behavior and data, remove legacy runtime dependencies, and leave a
@@ -34,10 +162,24 @@ Tasks and acceptance criteria
         audit tooling and workspace metadata. Build both clients afterward.
 [x] M03 Make root dev/build/test commands target NestJS; retain explicit legacy
         commands only for migration comparison. Check lockfile/install behavior.
-[ ] M04 Classify all unmatched API calls by actual routed consumer and capability.
+[x] M04 Classify all unmatched API calls by actual routed consumer and capability.
         Track computed paths and matching-but-incompatible payloads separately.
+        Baseline 70-entry inventory reviewed; see frontend-contract-triage.json and
+        frontend-contract-triage-2026-10-26.txt for scope and scanner boundaries.
 [ ] M05 Finish automation: state-machine execution/transition/validation, business
         rule editor, scheduled actions, flow execution, JSON response consistency.
+        [x] Field-update rule editor, canonical DTOs and persistence validation.
+        [x] Actor/tenant-bound registered-workflow schedules (UTC cron/interval).
+        [x] Manual linear flow graph validation, durable execution and run history.
+        [x] Bounded condition_if branches, merged paths and durable decision receipts.
+            Verified 2026-10-27: 4 focused suites / 107 tests; API/admin builds;
+            API lint zero errors (1175 warnings). Browser acceptance pending.
+        [x] Manual-flow source access checked for queueing, duplicate submissions,
+            detail/list history and each worker attempt (2026-10-27).
+            Two focused suites / 92 tests and API build passed; private sources
+            require ownership or administrator access plus current read permission.
+        [ ] Advanced flow nodes/triggers and remaining state-machine behavior.
+        [ ] Remaining rule/action parity and legacy definition import (with M12).
 [ ] M06 Finish approval delegation/escalation/analytics and callback contracts;
         preserve tenant, participant, record-access and stale-decision protection.
 [ ] M07 Finish import/export/backups and schema customization contracts, with
@@ -67,7 +209,7 @@ NestJS runtime, auth/session/RBAC, users, module catalog, menu/group/record-rule
 sequence contracts, automation definition CRUD and approval definitions/inbox have
 been implemented in earlier batches. Detailed evidence and remaining limitations:
 docs/frontend-nestjs-migration-2026-10-23.txt.
-The source audit currently flags 70 calls; this is not a count of confirmed bugs.
+The source audit currently flags 69 calls; this is not a count of confirmed bugs.
 The local API is deployed through migration 018; updated admin assets are built
 but not deployed. Consult Git history for the published revision.
 
@@ -187,3 +329,175 @@ but not deployed. Consult Git history for the published revision.
   Added historical notices to older architecture/feature plans without changing
   their design content. Pending designer/two-browser/production/import cases remain
   explicit; documentation changes do not close M04–M18 acceptance gates.
+
+2026-10-26 consumer classification (M04)
+- Classified every current unmatched inventory entry against router registrations,
+  component imports and individual adapter export callers. The 70 calls comprise
+  48 with no routed caller found, 14 routed missing contracts, 2 disabled AI calls,
+  5 computed-query false positives and 1 routed upload transport gap.
+- docs/frontend-contract-triage.json preserves each source file/line/method/path,
+  consumer evidence and owning migration task. The accompanying dated text report
+  separately tracks computed URL families, excluded call forms, incompatible rule
+  DTOs, placeholder export preview and scheduled-action UI gaps.
+- M04 closes classification of this inventory, not feature parity or exhaustive
+  static extraction. No-caller findings do not authorize removing required behavior.
+  M05 is next: business-rule semantics/editor, scheduled actions, flow execution
+  and advanced state-machine behavior. All M05–M13/M15–M18 gates remain open.
+- No runtime, database, provider settings or deployment changes in this batch.
+
+2026-10-26 business-rule editor and persistence (M05, in progress)
+- Routed editor and adapter now use canonical model/field/condition/action/status
+  contracts. Field-update rules support typed JSON values and conditions; rules
+  run on creation and update. The unsupported trigger/multiple-action controls
+  were replaced with the implemented contract. Other action types are not silently
+  converted by the editor; existing definitions can still be disabled.
+- Explicit status updates replace the nonexistent toggle endpoint. Invalid saves
+  return 400, missing rules return 404, updates validate merged data under a row
+  lock, and invalid legacy definitions can be disabled without first repairing them.
+- Added real HTTP/JWT/MySQL lifecycle/validation checks and routed component tests.
+  Admin full suite: 17 files / 90 tests passed. API/admin builds, admin types and
+  lint pass (zero lint errors; warning debt remains). Final full API run passed
+  83 suites / 881 tests; see TESTING.md for scope and initial failed-run details.
+- Frontend inventory now has 69 unmatched calls. M04's 70-entry classification is
+  a dated baseline; its rule-toggle finding is addressed by this batch.
+- No schema migration, deployment or provider changes. Browser acceptance remains
+  pending. M05 stays open for scheduled actions, flow execution, advanced state
+  transitions and full business-rule parity; this is the field-update editor slice.
+
+2026-10-26 scheduled registered workflows (M05, in progress)
+- Replaced the routed scheduled-action placeholder with list/create/edit/delete,
+  explicit activation, version conflicts, UTC cron/interval timing, paused-worker
+  status and last-job status. Only registered executable metadata workflows are
+  offered; flow-designer and state-machine definitions are separate contracts.
+- Added migration 019 and canonical automation_workflow_schedules persistence.
+  Actor/tenant and record identity are derived and validated server-side. Legacy
+  automation_scheduled_actions rows remain unchanged for explicit M12 import.
+- Dispatch locks each due schedule and atomically queues one durable job while
+  advancing the next due time. Missed runs coalesce. Definition snapshots, stale
+  versions, actor permissions and record access are checked before execution.
+  Disable/delete/edit prevents old queued versions from starting; in-flight work
+  may finish. Polling is opt-in with AUTOMATION_SCHEDULER_ENABLED=true and an enabled
+  durable worker; external provider configuration remains disabled.
+- MySQL/HTTP tests cover concurrent dispatch, queue rollback, real record effects,
+  revoked access, model changes, migration creation/replay and polling lifecycle.
+  Admin full suite passed 18 files / 93 tests. Final API run passed 84 suites / 903
+  tests with a 30-second test timeout; TESTING.md records the initial bcrypt timeout
+  and verification scope. Builds, admin types, lint (zero errors) and layout pass.
+- No deployment, local migration application or provider changes. Local database
+  remains through 018; apply 019 before using the new API. Browser acceptance,
+  legacy-code schedule import, bulk scheduling and full M05 parity remain open.
+- Next implementation item at this checkpoint: flow-designer execution (see below).
+
+2026-10-26 manual linear flow execution (M05, in progress)
+- Added graph validation and compilation for manual trigger, field update,
+  record create and success nodes. Traversal follows edges; unsupported nodes,
+  branches, cycles and disconnected graphs cannot activate or execute.
+- Added actor/tenant-scoped durable run submission, UUID deduplication and safe
+  run history with current record access checks. Jobs pin saved graph definitions.
+  Deleted/inactive definitions and revoked run permissions prevent execution.
+- Record updates enforce write/field/record permissions and commit with action
+  receipts. Retries skip committed actions; earlier effects remain on later failure.
+- Routed Designer / Run drawer supports graph JSON editing, saved activation,
+  record execution and history refresh. Advanced visual designer parity is open.
+- Verification: API 85 suites / 919 tests; admin 19 files / 96 tests; both builds
+  and admin types passed. Lint: zero errors, 1,167 API / 160 admin warnings.
+- No new flow schema is required. Migration 019 remains unapplied, local deployed
+  schema remains through 018, and no service/provider flags or deployment changed.
+- Next implementation item: advanced state-machine behavior and remaining flow
+  nodes/triggers, followed by remaining rule/action parity. M05 stays unchecked;
+  browser acceptance and legacy data reconciliation remain open.
+
+2026-10-27 conditional manual state transitions (M05, in progress)
+- Resumed the interrupted condition implementation. Saved snapshot conditions use
+  bounded scalar AND predicates and current locked record data; missing fields,
+  unreadable/masked fields and unsupported predicates fail closed.
+- Preview returns a generic unavailable reason, and submission rechecks field
+  access and conditions before atomically advancing state/history. The existing
+  execution screen displays the reason; the workflow form preserves API-authored
+  conditions when saving. A condition editor remains pending.
+- Focused API verification passed 3 suites / 58 tests, including real HTTP/MySQL
+  current-data checks, snapshot retention, permission revocation and invalid input.
+  API build passed; lint has zero errors and 1,168 warnings.
+  Admin typecheck and 3 focused execution-screen tests passed.
+- No schema or deployment changes. M05 remains open for approval/group/timer/
+  webhook transitions, remaining flow nodes/triggers and rule/action parity.
+
+2026-10-27 transition condition editor (M05, in progress)
+- Added JSON condition editing to the workflow transition dialog, inline object
+  validation, supported-operator help and a Conditional tag in the transition list.
+  Blank input removes the condition; cancelled changes do not mutate the graph.
+- Server validation errors are displayed without leaving the form. Removed debug
+  logging of workflow/condition payloads. Added the missing shared icon-package
+  alias to Vitest, exposed by the first form component test.
+- Focused component checks passed 2 files / 11 tests; admin build passed.
+  Admin typecheck passed; admin lint reports zero errors and 170 warnings.
+- Browser acceptance remains pending. M05 stays open for the remaining runtime
+  behaviors and flow/rule parity listed above. No deployment or schema changes.
+
+2026-10-27 approval private-record access (M06 prerequisite)
+- Approval integration review found that approval requests enforced tenant and
+  record rules but omitted private-record ownership. Added ownership/current-role
+  checks to creation, detail, listing, approval/rejection and automatic starts.
+- New pending and outcome notifications now omit recipients denied private-record
+  access. Owners and active admin/super_admin roles remain eligible; participant
+  and step-assignment checks still apply. Old generic notifications are retained,
+  but request access is rechecked when opened.
+- Existing shared approval fixtures now explicitly use public records. Added
+  private-record regressions for owner/admin success, non-owner denial, changing
+  visibility/ownership, notifications and automatic initiation.
+- Verification: 5 integration suites / 97 tests passed, including durable worker
+  regression. API build passed; API lint has zero errors and 1,168 warnings.
+- No schema, provider or deployment changes. Approval-backed state transitions,
+  delegation/escalation and the remaining M05/M06 work stay open.
+
+2026-10-27 manual approval-gated state transitions (M05, in progress)
+- Added approval requests bound to execution ID/version/transition, with atomic
+  request/notification/binding persistence. Concurrent duplicate requests reuse
+  the pending/completed attempt; rejected retries preserve earlier attempts.
+- The approval inbox completes normal assigned steps. State advancement remains
+  an explicit versioned submission, rechecking access, conditions and the active
+  matching chain. History records the bound approval request ID. Requests from
+  other executions or earlier visits cannot authorize the transition.
+- Execution screen supports request/retry, pending/completed status and refresh;
+  workflow form now loads the approval adapter's array and offers active chains
+  matching the workflow model. Invalid gate configuration fails validation.
+- Migration 020 adds workflow_state_approvals and the history approval ID. DDL
+  creation/replay and preservation are tested only in disposable databases.
+  Apply before deploying this API revision; local deployed ledger remains at 018.
+- Focused backend verification passed 4 suites / 73 tests; API/admin builds pass.
+  Final full API run: 87 suites / 974 tests. Admin: 20 files / 108 tests. Final
+  focused approval rerun: 19 tests, including case/trailing-space code isolation.
+  Admin typecheck passed; lint has zero errors (1,171 API / 173 admin warnings).
+- Browser acceptance remains pending. M05 is still open for group/timer/webhook
+  transitions, remaining flow nodes/triggers and rule/action parity. M06 delegation,
+  escalation and remaining callback contracts also stay open.
+
+2026-10-27 multi-field flow update node (M05, in progress)
+- Implemented the existing designer's action_update_record node in the canonical
+  graph compiler. Config is a data object with 1–100 valid field names; updates
+  target the source record, with no arbitrary record/entity override.
+- Uses the existing transactional update adapter and durable receipt: all fields
+  validate and commit together, later actions see refreshed readable data, and
+  retrying later failures does not repeat the committed update. Typed JSON values
+  and actor-readable field expressions are preserved.
+- Updated Designer / Run guidance and API/acceptance documentation. No schema,
+  deployment or provider changes. Advanced triggers, branches, loops, timers and
+  remaining action parity stay open; browser acceptance remains pending.
+- Focused verification: 2 API suites / 46 tests passed; API/admin builds passed.
+  API lint reports zero errors and 1,171 warnings.
+
+2026-10-27 in-app flow notification node (M05, in progress)
+- Added action_send_notification to canonical manual flow graphs and designer
+  guidance. Config uses a positive recipientId, message and optional title;
+  unsupported channel/tenant overrides fail activation validation.
+- Shared notification execution now requires sender/recipient record-read access
+  and private-record ownership or administrator visibility. Field templates use
+  values readable by both actors, retaining masking. Durable receipt failures roll
+  back notification creation, and retries do not duplicate committed inbox entries.
+- Queued metadata email/push notifications recheck these restrictions at delivery.
+  External delivery tests use mocks; no live sends, flags or providers were enabled.
+- Final verification: 3 API suites / 84 tests passed; API/admin builds passed.
+  API lint: zero errors, 1,172 warnings. TESTING.md records the initial private
+  polling-fixture failure and its correction.
+- No new migration or deployment changes. Browser acceptance, advanced flow
+  triggers/branches/loops/timers and remaining M05/M06 parity remain open.

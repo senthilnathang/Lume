@@ -10,6 +10,9 @@ import { MetadataRegistryService } from '@core/runtime/metadata-registry.service
 import { ExecutionPipelineService } from '@core/runtime/execution-pipeline.service';
 import { EventBusService } from '@core/runtime/event-bus.service';
 import { ModuleLoaderService } from '@core/module/module-loader.service';
+import { ModuleCatalogService } from '@core/module/module-catalog.service';
+import { ModuleConfigurationService } from '@core/module/module-configuration.service';
+import { ModuleInitializerService } from '@core/module/module-initializer.service';
 import { EntityRegistryService } from '@core/entity/entity-registry.service';
 import { PolicyEvaluatorService } from '@core/permission/policy-evaluator.service';
 import { WorkflowExecutorService } from '@core/workflow/workflow-executor.service';
@@ -23,12 +26,15 @@ import { PluginsModule } from '../../modules/plugins/plugins.module';
 @Module({
   imports: [EventEmitterModule.forRoot(), PluginsModule, SharedModule],
   providers: [
+    ModuleInitializerService,
     RecordService, FormulaService, WorkflowActionsService, WorkflowJobsService, WorkflowDeliveryService,
     MetadataRegistryService,
     ExecutionPipelineService,
     EventBusService,
     EntityRegistryService,
     ModuleLoaderService,
+    ModuleCatalogService,
+    ModuleConfigurationService,
     PolicyEvaluatorService,
     WorkflowExecutorService,
     VersioningService,
@@ -44,6 +50,8 @@ import { PluginsModule } from '../../modules/plugins/plugins.module';
     EventBusService,
     EntityRegistryService,
     ModuleLoaderService,
+    ModuleCatalogService,
+    ModuleConfigurationService,
     PolicyEvaluatorService,
     WorkflowExecutorService,
     VersioningService,

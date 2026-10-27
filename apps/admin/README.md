@@ -18,6 +18,13 @@ See [development](../../docs/DEVELOPMENT.md) and [testing](../../docs/TESTING.md
 The manual workflow screen is routed at
 `/automation/workflows/:workflowId/executions/:executionId`. It submits a transition
 code and displayed version, shows persisted history, and disables unsupported actions.
-Latest verification: 85 tests, type check and build; isolated Chromium completion
-and reload passed. These assets have not been deployed. See
-[acceptance cases](../../docs/UAT_TEST_CASES.md) for remaining browser coverage.
+The screen now supports record-field conditions and version-bound approval gates:
+request approval, complete it in the inbox, then submit an explicit transition.
+Shared automation views also provide validated rules, scheduled workflows and
+manual flow runs with conditional branches and actor-scoped history.
+
+See [dated verification](../../docs/TESTING.md) and
+[acceptance cases](../../docs/UAT_TEST_CASES.md) for current test/build results and
+pending browser coverage. These assets remain undeployed. The combined API source
+requires review of migrations 019–023; framework-first gates remain open before
+further individual module/plugin expansion.

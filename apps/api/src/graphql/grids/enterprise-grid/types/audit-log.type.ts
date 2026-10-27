@@ -7,33 +7,33 @@ export class AuditLogType implements Node {
   @Field(() => ID)
   id: string;
 
-  @Field(() => String)
-  entity: string;
+  @Field(() => String, { nullable: true })
+  entity?: string;
 
   @Field(() => String)
   action: string; // 'create' | 'update' | 'delete'
 
-  @Field(() => Int, { nullable: true })
-  recordId?: number;
+  @Field(() => String, { nullable: true })
+  recordId?: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
   changes?: Record<string, unknown>;
 
-  @Field(() => String)
-  userId: string;
+  @Field(() => String, { nullable: true })
+  userId?: string;
 
-  @Field(() => String)
-  userEmail: string;
+  @Field(() => String, { nullable: true })
+  userEmail?: string;
 
-  @Field(() => String)
-  userRole: string;
+  @Field(() => String, { nullable: true })
+  userRole?: string;
 
-  @Field(() => String)
-  ipAddress: string;
+  @Field(() => String, { nullable: true })
+  ipAddress?: string;
 
   @Field(() => Int)
   changeCount: number;
 
-  @Field(() => Date)
-  createdAt: Date;
+  @Field(() => Date, { nullable: true })
+  createdAt?: Date;
 }

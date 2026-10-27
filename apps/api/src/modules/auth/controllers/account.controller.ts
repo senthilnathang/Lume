@@ -12,8 +12,7 @@ export class AccountController {
 
   @Get('permissions')
   async permissions(@Req() req: any) {
-    const codes = this.rbac.isAdminRole(req.user.role_name)
-      ? ['*'] : await this.rbac.getRolePermissions(req.user.role_id);
+    const codes = await this.rbac.getUserPermissions(req.user.id);
     return { success: true, data: codes };
   }
 

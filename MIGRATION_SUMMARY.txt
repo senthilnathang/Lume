@@ -1,3 +1,7 @@
+HISTORICAL PLAN — reviewed 2026-10-27. Current framework migration is IN PROGRESS.
+Use docs/MIGRATION_STATUS.md and docs/nestjs-migration-tasks.txt for current gates.
+The plan and completion language below are not release or deployment evidence.
+
 ================================================================================
 LUME EXPRESS.JS → NESTJS MIGRATION: COMPLETE DOCUMENTATION SUITE
 ================================================================================

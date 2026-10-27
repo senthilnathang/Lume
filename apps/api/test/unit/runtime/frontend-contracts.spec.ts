@@ -92,7 +92,7 @@ describe('account navigation and notification isolation', () => {
       { id: 1, parentId: null, path: '/allowed', permission: 'read.allowed' },
       { id: 2, parentId: null, path: '/secret', permission: 'read.secret' },
     ] } };
-    const rbac: any = { isAdminRole: () => false, getRolePermissions: async () => ['read.allowed'] };
+    const rbac: any = { getUserPermissions: async () => ['read.allowed'] };
     const result = await new AccountController(prisma, rbac).menus({ user: { id: 1, role_id: 2 } });
     expect(result.data.map(row => row.path)).toContain('/allowed');
     expect(result.data.map(row => row.path)).not.toContain('/secret');

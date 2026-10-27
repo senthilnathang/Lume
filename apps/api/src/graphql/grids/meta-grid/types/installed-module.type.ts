@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
 import { Node } from '../../../shared/interfaces/index.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
@@ -14,7 +14,13 @@ export class InstalledModuleType implements Node {
   version: string;
 
   @Field(() => String)
-  status: string; // 'installed' | 'disabled' | 'error'
+  status: string; // 'loaded' | 'pending'
+
+  @Field(() => String)
+  managedBy: string;
+
+  @Field(() => [String])
+  actions: string[];
 
   @Field(() => [String], { nullable: true })
   depends?: string[];
@@ -22,6 +28,15 @@ export class InstalledModuleType implements Node {
   @Field(() => GraphQLJSON, { nullable: true })
   config?: Record<string, unknown>;
 
-  @Field(() => Date)
-  installedAt: Date;
+  @Field(() => Int, { nullable: true })
+  configRevision?: number;
+
+  @Field(() => Int, { nullable: true })
+  appliedConfigRevision?: number;
+
+  @Field(() => Boolean, { nullable: true })
+  configPending?: boolean;
+
+  @Field(() => Date, { nullable: true })
+  installedAt?: Date;
 }

@@ -4568,12 +4568,6 @@
   ],
   "nestImplementationMarkers": [
     {
-      "file": "apps/api/src/core/module/module-wiring.ts",
-      "line": 74,
-      "evidence": "// TODO: Implement production module discovery",
-      "status": "needs_review"
-    },
-    {
       "file": "apps/api/src/examples/project-management-module.example.ts",
       "line": 92,
       "evidence": "status: { name: 'status', type: 'string', required: true }, // todo, in-progress, review, done, blocked",
@@ -4731,49 +4725,49 @@
     },
     {
       "file": "apps/api/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
-      "line": 27,
+      "line": 28,
       "evidence": "// TODO: Implement page service call",
       "status": "needs_review"
     },
     {
       "file": "apps/api/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
-      "line": 44,
+      "line": 45,
       "evidence": "// TODO: Implement page service call",
       "status": "needs_review"
     },
     {
       "file": "apps/api/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
-      "line": 53,
+      "line": 54,
       "evidence": "// TODO: Implement page service call",
       "status": "needs_review"
     },
     {
       "file": "apps/api/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
-      "line": 62,
+      "line": 63,
       "evidence": "// TODO: Implement page service call",
       "status": "needs_review"
     },
     {
       "file": "apps/api/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
-      "line": 72,
+      "line": 73,
       "evidence": "// TODO: Implement page service call",
       "status": "needs_review"
     },
     {
       "file": "apps/api/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
-      "line": 81,
+      "line": 82,
       "evidence": "// TODO: Implement page service call",
       "status": "needs_review"
     },
     {
       "file": "apps/api/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
-      "line": 90,
+      "line": 91,
       "evidence": "// TODO: Implement page service call",
       "status": "needs_review"
     },
     {
       "file": "apps/api/src/graphql/grids/content-grid/resolvers/page.resolver.ts",
-      "line": 100,
+      "line": 101,
       "evidence": "// TODO: Implement page service call",
       "status": "needs_review"
     },
@@ -4808,24 +4802,6 @@
       "status": "needs_review"
     },
     {
-      "file": "apps/api/src/graphql/grids/enterprise-grid/resolvers/audit-log.resolver.ts",
-      "line": 27,
-      "evidence": "// TODO: Implement audit log service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/enterprise-grid/resolvers/audit-log.resolver.ts",
-      "line": 44,
-      "evidence": "// TODO: Implement audit log service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/enterprise-grid/resolvers/audit-log.resolver.ts",
-      "line": 54,
-      "evidence": "// TODO: Implement audit log service call",
-      "status": "needs_review"
-    },
-    {
       "file": "apps/api/src/graphql/grids/enterprise-grid/resolvers/import-export.resolver.ts",
       "line": 15,
       "evidence": "// TODO: Implement import/export service call",
@@ -4844,50 +4820,20 @@
       "status": "needs_review"
     },
     {
-      "file": "apps/api/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
-      "line": 18,
-      "evidence": "// TODO: Implement tenant manager service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
-      "line": 29,
-      "evidence": "// TODO: Implement tenant manager service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
-      "line": 40,
-      "evidence": "// TODO: Implement tenant manager service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
-      "line": 52,
-      "evidence": "// TODO: Implement tenant manager service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/enterprise-grid/resolvers/tenant.resolver.ts",
-      "line": 63,
-      "evidence": "// TODO: Implement tenant manager service call",
-      "status": "needs_review"
-    },
-    {
       "file": "apps/api/src/graphql/grids/flow-grid/resolvers/flow-subscription.resolver.ts",
-      "line": 38,
+      "line": 37,
       "evidence": "// TODO: Subscribe to EventBusService.on(BuiltInEvents.WORKFLOW_COMPLETED)",
       "status": "needs_review"
     },
     {
       "file": "apps/api/src/graphql/grids/flow-grid/resolvers/flow-subscription.resolver.ts",
-      "line": 53,
+      "line": 50,
       "evidence": "// TODO: Subscribe to EventBusService.on(BuiltInEvents.WORKFLOW_FAILED)",
       "status": "needs_review"
     },
     {
       "file": "apps/api/src/graphql/grids/flow-grid/resolvers/flow-subscription.resolver.ts",
-      "line": 71,
+      "line": 66,
       "evidence": "// TODO: Subscribe to EventBusService.on(BuiltInEvents.WORKFLOW_STEP_COMPLETED)",
       "status": "needs_review"
     },
@@ -5012,60 +4958,6 @@
       "status": "needs_review"
     },
     {
-      "file": "apps/api/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
-      "line": 17,
-      "evidence": "// TODO: Implement module service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
-      "line": 28,
-      "evidence": "// TODO: Implement module service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
-      "line": 39,
-      "evidence": "// TODO: Implement module service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
-      "line": 50,
-      "evidence": "// TODO: Implement module service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/meta-grid/resolvers/module.resolver.ts",
-      "line": 61,
-      "evidence": "// TODO: Implement module service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/meta-grid/resolvers/system-setting.resolver.ts",
-      "line": 12,
-      "evidence": "// TODO: Implement system settings service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/meta-grid/resolvers/system-setting.resolver.ts",
-      "line": 18,
-      "evidence": "// TODO: Implement system settings service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/meta-grid/resolvers/system-setting.resolver.ts",
-      "line": 24,
-      "evidence": "// TODO: Implement system settings service call",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/graphql/grids/meta-grid/resolvers/system-setting.resolver.ts",
-      "line": 38,
-      "evidence": "// TODO: Implement system settings service call",
-      "status": "needs_review"
-    },
-    {
       "file": "apps/api/src/graphql/plugins/tracing.plugin.ts",
       "line": 20,
       "evidence": "// TODO: Inject @opentelemetry/api tracer via LoggerService or dedicated TraceProvider",
@@ -5154,18 +5046,6 @@
       "line": 17,
       "evidence": "placeholder: varchar('placeholder', { length: 255 }),",
       "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/modules/base_rbac/controllers/base-rbac.controller.ts",
-      "line": 433,
-      "evidence": "// For now, return a placeholder",
-      "status": "needs_review"
-    },
-    {
-      "file": "apps/api/src/modules/base_rbac/controllers/base-rbac.controller.ts",
-      "line": 436,
-      "evidence": "error: 'CurrentUser decorator not implemented',",
-      "status": "needs_review"
     }
   ],
   "legacyRoutesByFeature": {
@@ -5202,13 +5082,11 @@
   "nestMarkersByFeature": {
     "base": 2,
     "base_customization": 3,
-    "base_rbac": 2,
-    "core": 13,
+    "core": 12,
     "graphql/agent-grid": 12,
     "graphql/content-grid": 22,
-    "graphql/enterprise-grid": 14,
+    "graphql/enterprise-grid": 6,
     "graphql/flow-grid": 22,
-    "graphql/marketplace-grid": 1,
-    "graphql/meta-grid": 9
+    "graphql/marketplace-grid": 1
   }
 }

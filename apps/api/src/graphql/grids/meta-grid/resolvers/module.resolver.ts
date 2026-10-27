@@ -6,16 +6,17 @@ import { Permissions } from '../../../decorators/index.js';
 import type { JwtPayload } from '../../../graphql.context';
 import { InstalledModuleType } from '../types/installed-module.type.js';
 import { UpdateModuleConfigInput } from '../inputs/update-module-config.input.js';
+import { ModuleCatalogService } from '@core/module/module-catalog.service';
 
 @Resolver(() => InstalledModuleType)
 @UseGuards(GqlJwtGuard, GqlRbacGuard)
 export class ModuleResolver {
+  constructor(private catalog: ModuleCatalogService) {}
   @Query(() => [InstalledModuleType])
   @Permissions('base.modules.manage')
   async installedModules(@GqlCurrentUser() user?: JwtPayload) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement module service call
-    return [];
+    return this.catalog.list();
   }
 
   @Query(() => InstalledModuleType, { nullable: true })
@@ -25,8 +26,7 @@ export class ModuleResolver {
     @GqlCurrentUser() user?: JwtPayload,
   ) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement module service call
-    return null;
+    return this.catalog.find(name);
   }
 
   @Mutation(() => InstalledModuleType)
@@ -36,8 +36,14 @@ export class ModuleResolver {
     @GqlCurrentUser() user?: JwtPayload,
   ) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement module service call
-    return null;
+    return this.catalog.updateConfig(input.moduleName, input.config, input.expectedRevision);
+  }
+
+  @Mutation(() => InstalledModuleType)
+  @Permissions('base.modules.manage')
+  async reloadModule(@Args('name') name: string, @GqlCurrentUser() user?: JwtPayload) {
+    if (!user) throw new ForbiddenException('Authentication required');
+    return this.catalog.reload(name);
   }
 
   @Mutation(() => Boolean)
@@ -47,8 +53,7 @@ export class ModuleResolver {
     @GqlCurrentUser() user?: JwtPayload,
   ) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement module service call
-    return true;
+    return this.catalog.install(name);
   }
 
   @Mutation(() => Boolean)
@@ -58,7 +63,6 @@ export class ModuleResolver {
     @GqlCurrentUser() user?: JwtPayload,
   ) {
     if (!user) throw new ForbiddenException('Authentication required');
-    // TODO: Implement module service call
-    return true;
+    return this.catalog.uninstall(name);
   }
 }

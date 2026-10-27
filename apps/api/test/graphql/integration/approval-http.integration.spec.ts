@@ -13,6 +13,7 @@ describe('Approval request HTTP API (real Nest, JWT and MySQL)', () => {
     await h.prisma.automation_approval_chains.deleteMany();
     await h.prisma.recordRule.deleteMany();
     await h.seed();
+    await h.prisma.entityRecord.updateMany({data:{visibility:'public'}});
     const permission = await h.prisma.permission.create({data:{name:'base_automation.approvals',display_name:'Use approvals'}});
     await h.prisma.rolePermission.create({data:{roleId:2,permissionId:permission.id}});
     chain = (await h.prisma.automation_approval_chains.create({data:{
@@ -30,6 +31,52 @@ describe('Approval request HTTP API (real Nest, JWT and MySQL)', () => {
     return response.body.data.id as number;
   };
   const saved = (id: number) => h.prisma.automation_approval_requests.findUnique({where:{id}});
+
+  it('rejects creation on another actor’s private record and permits the owner', async () => {
+    await h.prisma.entityRecord.update({where:{id:1},data:{visibility:'private'}});
+    expect((await http('post').send(payload())).status).toBe(403);
+    expect(await h.prisma.automation_approval_requests.count()).toBe(0);
+    await h.prisma.entityRecord.update({where:{id:1},data:{createdBy:2}});
+    const response = await http('post').send(payload());
+    expect(response.status).toBe(201);
+    const id = response.body.data.id;
+    expect((await http('get','/' + id)).status).toBe(200);
+    expect((await http('post','/' + id + '/approve').send({stepIndex:0})).status).toBe(200);
+  });
+
+  it.each(['approve','reject'])('rechecks private visibility before %s and hides the pending request', async decision => {
+    const id = await start();
+    const original = await saved(id);
+    const notificationCount = await h.prisma.notifications.count();
+    await h.prisma.entityRecord.update({where:{id:1},data:{visibility:'private'}});
+    expect((await http('get','/' + id)).status).toBe(403);
+    expect((await http('get','?limit=1')).body.data).toEqual({items:[],nextCursor:id});
+    expect((await http('post',`/${id}/${decision}`).send({stepIndex:0,...(decision === 'reject' ? {reason:'No'} : {})})).status).toBe(403);
+    expect(await saved(id)).toEqual(original);
+    expect(await h.prisma.notifications.count()).toBe(notificationCount);
+    // Administrator visibility does not override the assigned approver.
+    expect((await http('get','/' + id,h.token())).status).toBe(200);
+    expect((await http('post','/' + id + '/approve',h.token()).send({stepIndex:0})).status).toBe(403);
+  });
+
+  it('hides terminal history after private-record ownership changes', async () => {
+    await h.prisma.entityRecord.update({where:{id:1},data:{visibility:'private',createdBy:2}});
+    const id = await start();
+    expect((await http('post','/' + id + '/reject').send({stepIndex:0,reason:'No'})).status).toBe(200);
+    expect((await http('get','?view=history')).body.data.items.map(row => row.id)).toEqual([id]);
+    await h.prisma.entityRecord.update({where:{id:1},data:{createdBy:1}});
+    expect((await http('get','?view=history')).body.data.items).toEqual([]);
+    expect((await http('get','/' + id)).status).toBe(403);
+  });
+
+  it.each(['admin','super_admin'])('allows assigned %s actors on private records within the tenant', async roleName => {
+    await h.prisma.role.update({where:{id:1},data:{name:roleName}});
+    await h.prisma.entityRecord.update({where:{id:1},data:{visibility:'private',createdBy:2}});
+    await h.prisma.automation_approval_chains.update({where:{id:chain},data:{steps:'[{"approverId":1}]'}});
+    const id = await start();
+    expect((await http('post','/' + id + '/approve',h.token()).send({stepIndex:0})).status).toBe(200);
+    expect((await saved(id)).status).toBe('completed');
+  });
 
   it('lists only assigned pending requests and participant history within the tenant', async () => {
     const id = await start();

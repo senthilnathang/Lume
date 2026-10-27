@@ -1,0 +1,716 @@
+{
+  "reviewed": "2026-10-26",
+  "source": "docs/frontend-contract-audit.json",
+  "source_snapshot_commit": "c7f7a315 (70 entries before the business-rule editor follow-up; current audit is regenerated separately)",
+  "scope": "Every one of the 70 baseline unmatched inventory entries, classified by source reachability and capability. Static review, not browser or runtime certification.",
+  "reachability_rule": "No routed consumer found means no import/customViews chain was found in active sources; it does not authorize deletion or exclude the feature. Backend menu data cannot compile arbitrary Vue sources: loadModuleView returns ModuleView on its fallback.",
+  "counts": {
+    "no-routed-consumer-found": 48,
+    "routed-missing-contract": 14,
+    "provider-disabled": 2,
+    "computed-query-false-positive": 5,
+    "computed-prefix-and-transport-gap": 1
+  },
+  "calls": [
+    {
+      "file": "apps/admin/src/modules/dashboard/views/DashboardView.vue",
+      "line": 141,
+      "method": "GET",
+      "path": "/dashboard/stats",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M13",
+      "evidence": "Router uses apps/admin/src/views/dashboard/index.vue, not this module view."
+    },
+    {
+      "file": "apps/admin/src/store/admin.ts",
+      "line": 147,
+      "method": "POST",
+      "path": "/admin/modules/reload",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M13",
+      "evidence": "useAdminStore references found only in integration tests; routed admin dashboard does not import it."
+    },
+    {
+      "file": "apps/admin/src/store/admin.ts",
+      "line": 207,
+      "method": "POST",
+      "path": "/admin/workflows/_parameter_/test",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M13",
+      "evidence": "useAdminStore references found only in integration tests; routed admin dashboard does not import it."
+    },
+    {
+      "file": "apps/admin/src/store/admin.ts",
+      "line": 312,
+      "method": "POST",
+      "path": "/admin/policies/_parameter_/test",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M13",
+      "evidence": "useAdminStore references found only in integration tests; routed admin dashboard does not import it."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/agentgrid/static/views/grid-list.vue",
+      "line": 89,
+      "method": "GET",
+      "path": "/agentgrid/grids",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M10",
+      "evidence": "No import/customViews entry; dynamic menu fallback renders ModuleView rather than compiling this file. Agentgrid capability still requires migration."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/agentgrid/static/views/grid-list.vue",
+      "line": 107,
+      "method": "DELETE",
+      "path": "/agentgrid/grids/_parameter_",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M10",
+      "evidence": "No import/customViews entry; dynamic menu fallback renders ModuleView rather than compiling this file. Agentgrid capability still requires migration."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/agentgrid/static/views/grid-list.vue",
+      "line": 118,
+      "method": "PUT",
+      "path": "/agentgrid/grids/_parameter_",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M10",
+      "evidence": "No import/customViews entry; dynamic menu fallback renders ModuleView rather than compiling this file. Agentgrid capability still requires migration."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/agentgrid/static/views/grid-list.vue",
+      "line": 121,
+      "method": "POST",
+      "path": "/agentgrid/grids",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M10",
+      "evidence": "No import/customViews entry; dynamic menu fallback renders ModuleView rather than compiling this file. Agentgrid capability still requires migration."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base/static/views/activity-timeline.vue",
+      "line": 193,
+      "method": "GET",
+      "path": "/activity-logs",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "No active import/customViews entry; activities routes use activities/static/views, not this timeline."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base/static/views/admin/WorkflowsManagement.vue",
+      "line": 175,
+      "method": "POST",
+      "path": "/admin/workflows",
+      "consumer": "base/static/views/admin/AdminDashboard.vue (itself not routed)",
+      "classification": "no-routed-consumer-found",
+      "task": "M13",
+      "evidence": "Router admin entry uses apps/admin/src/views/admin/dashboard/index.vue."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base/static/views/admin/WorkflowsManagement.vue",
+      "line": 197,
+      "method": "POST",
+      "path": "/admin/workflows/test/_parameter_",
+      "consumer": "base/static/views/admin/AdminDashboard.vue (itself not routed)",
+      "classification": "no-routed-consumer-found",
+      "task": "M13",
+      "evidence": "Router admin entry uses apps/admin/src/views/admin/dashboard/index.vue."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base/static/views/menus.vue",
+      "line": 70,
+      "method": "GET",
+      "path": "/menus",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M13",
+      "evidence": "settings/menus maps to menus-view.vue instead."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 209,
+      "method": "POST",
+      "path": "/base_automation/rules/_parameter_/toggle",
+      "consumer": "/settings/automation/business-rules \u2192 automation.vue \u2192 toggleRule",
+      "classification": "routed-missing-contract",
+      "task": "M05",
+      "evidence": "automation.vue imports and calls toggleRule; replace only after aligning the rule DTO and execution semantics."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 276,
+      "method": "POST",
+      "path": "/base_automation/approvals/tasks/_parameter_/delegate",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M06",
+      "evidence": "Delegate, callback, escalation and analytics exports have no callers in active source. Canonical inbox uses approval-requests endpoints; capabilities remain required under M06."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 284,
+      "method": "POST",
+      "path": "/base_automation/approvals/_parameter_/callback",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M06",
+      "evidence": "Delegate, callback, escalation and analytics exports have no callers in active source. Canonical inbox uses approval-requests endpoints; capabilities remain required under M06."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 291,
+      "method": "POST",
+      "path": "/base_automation/approvals/_parameter_/callback",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M06",
+      "evidence": "Delegate, callback, escalation and analytics exports have no callers in active source. Canonical inbox uses approval-requests endpoints; capabilities remain required under M06."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 299,
+      "method": "GET",
+      "path": "/base_automation/approvals/escalations/_parameter_",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M06",
+      "evidence": "Delegate, callback, escalation and analytics exports have no callers in active source. Canonical inbox uses approval-requests endpoints; capabilities remain required under M06."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 303,
+      "method": "GET",
+      "path": "/base_automation/approvals/escalations/task/_parameter_",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M06",
+      "evidence": "Delegate, callback, escalation and analytics exports have no callers in active source. Canonical inbox uses approval-requests endpoints; capabilities remain required under M06."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 329,
+      "method": "GET",
+      "path": "/base_automation/approvals/analytics/metrics",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M06",
+      "evidence": "Delegate, callback, escalation and analytics exports have no callers in active source. Canonical inbox uses approval-requests endpoints; capabilities remain required under M06."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 334,
+      "method": "GET",
+      "path": "/base_automation/approvals/analytics/bottlenecks",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M06",
+      "evidence": "Delegate, callback, escalation and analytics exports have no callers in active source. Canonical inbox uses approval-requests endpoints; capabilities remain required under M06."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 338,
+      "method": "GET",
+      "path": "/base_automation/approvals/analytics/escalations",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M06",
+      "evidence": "Delegate, callback, escalation and analytics exports have no callers in active source. Canonical inbox uses approval-requests endpoints; capabilities remain required under M06."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_automation/static/api/index.ts",
+      "line": 342,
+      "method": "GET",
+      "path": "/base_automation/approvals/analytics/roles/_parameter_",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M06",
+      "evidence": "Delegate, callback, escalation and analytics exports have no callers in active source. Canonical inbox uses approval-requests endpoints; capabilities remain required under M06."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_customization/static/api/index.js",
+      "line": 35,
+      "method": "GET",
+      "path": "/base/entities/schema/graph",
+      "consumer": "/settings/customization/schema \u2192 schema-erd.vue",
+      "classification": "routed-missing-contract",
+      "task": "M07",
+      "evidence": "schema-erd imports getSchemaGraph/getSchemaDuplicates; both requested paths lack controller declarations."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_customization/static/api/index.js",
+      "line": 36,
+      "method": "GET",
+      "path": "/base/entities/schema/duplicates",
+      "consumer": "/settings/customization/schema \u2192 schema-erd.vue",
+      "classification": "routed-missing-contract",
+      "task": "M07",
+      "evidence": "schema-erd imports getSchemaGraph/getSchemaDuplicates; both requested paths lack controller declarations."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 89,
+      "method": "GET",
+      "path": "/base_features_data/imports",
+      "consumer": "base_features_data/static/views/features.vue (not registered)",
+      "classification": "no-routed-consumer-found",
+      "task": "M07",
+      "evidence": "Import/export/backup wrappers used by features.vue; router registers data-import.vue and data-export.vue instead. Required data capability remains open."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 93,
+      "method": "POST",
+      "path": "/base_features_data/imports",
+      "consumer": "base_features_data/static/views/features.vue (not registered)",
+      "classification": "no-routed-consumer-found",
+      "task": "M07",
+      "evidence": "Import/export/backup wrappers used by features.vue; router registers data-import.vue and data-export.vue instead. Required data capability remains open."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 98,
+      "method": "GET",
+      "path": "/base_features_data/exports",
+      "consumer": "base_features_data/static/views/features.vue (not registered)",
+      "classification": "no-routed-consumer-found",
+      "task": "M07",
+      "evidence": "Import/export/backup wrappers used by features.vue; router registers data-import.vue and data-export.vue instead. Required data capability remains open."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 102,
+      "method": "POST",
+      "path": "/base_features_data/exports",
+      "consumer": "base_features_data/static/views/features.vue (not registered)",
+      "classification": "no-routed-consumer-found",
+      "task": "M07",
+      "evidence": "Import/export/backup wrappers used by features.vue; router registers data-import.vue and data-export.vue instead. Required data capability remains open."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 107,
+      "method": "GET",
+      "path": "/base_features_data/backups",
+      "consumer": "base_features_data/static/views/features.vue (not registered)",
+      "classification": "no-routed-consumer-found",
+      "task": "M07",
+      "evidence": "Import/export/backup wrappers used by features.vue; router registers data-import.vue and data-export.vue instead. Required data capability remains open."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/api/index.ts",
+      "line": 111,
+      "method": "POST",
+      "path": "/base_features_data/backups",
+      "consumer": "base_features_data/static/views/features.vue (not registered)",
+      "classification": "no-routed-consumer-found",
+      "task": "M07",
+      "evidence": "Import/export/backup wrappers used by features.vue; router registers data-import.vue and data-export.vue instead. Required data capability remains open."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/views/data-export.vue",
+      "line": 72,
+      "method": "GET",
+      "path": "/base_features_data/export/models",
+      "consumer": "/base-features-data/data-export",
+      "classification": "routed-missing-contract",
+      "task": "M07",
+      "evidence": "customViews explicitly imports this view; missing export model discovery."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/views/data-import.vue",
+      "line": 103,
+      "method": "GET",
+      "path": "/base_features_data/import/models",
+      "consumer": "/base-features-data/data-import",
+      "classification": "routed-missing-contract",
+      "task": "M07",
+      "evidence": "customViews explicitly imports this view; missing model discovery, validation and execution contracts."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/views/data-import.vue",
+      "line": 175,
+      "method": "POST",
+      "path": "/base_features_data/import/validate",
+      "consumer": "/base-features-data/data-import",
+      "classification": "routed-missing-contract",
+      "task": "M07",
+      "evidence": "customViews explicitly imports this view; missing model discovery, validation and execution contracts."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_features_data/static/views/data-import.vue",
+      "line": 202,
+      "method": "POST",
+      "path": "/base_features_data/import/execute",
+      "consumer": "/base-features-data/data-import",
+      "classification": "routed-missing-contract",
+      "task": "M07",
+      "evidence": "customViews explicitly imports this view; missing model discovery, validation and execution contracts."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 129,
+      "method": "GET",
+      "path": "/model-access",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "settings/security/* maps to security.vue; no import of model-access.vue found. Do not discard required model-access behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 142,
+      "method": "GET",
+      "path": "/content-types",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "settings/security/* maps to security.vue; no import of model-access.vue found. Do not discard required model-access behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 151,
+      "method": "GET",
+      "path": "/groups",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "settings/security/* maps to security.vue; no import of model-access.vue found. Do not discard required model-access behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 160,
+      "method": "GET",
+      "path": "/modules/installed",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "settings/security/* maps to security.vue; no import of model-access.vue found. Do not discard required model-access behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 189,
+      "method": "PUT",
+      "path": "/model-access/_parameter_",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "settings/security/* maps to security.vue; no import of model-access.vue found. Do not discard required model-access behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 192,
+      "method": "POST",
+      "path": "/model-access",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "settings/security/* maps to security.vue; no import of model-access.vue found. Do not discard required model-access behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/base_security/static/views/model-access.vue",
+      "line": 218,
+      "method": "PUT",
+      "path": "/model-access/_parameter_",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "settings/security/* maps to security.vue; no import of model-access.vue found. Do not discard required model-access behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/DynamicForm.js",
+      "line": 34,
+      "method": "GET",
+      "path": "/base/form-layouts/effective/_parameter_/_parameter_",
+      "consumer": "common/static/components/index.js barrel only",
+      "classification": "no-routed-consumer-found",
+      "task": "M07",
+      "evidence": "No active consumer of this barrel/export found; routed ModuleView is separate."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/GlobalSearch.js",
+      "line": 141,
+      "method": "GET",
+      "path": "/search/models",
+      "consumer": "common/static/components/index.js barrel only",
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "BasicLayout imports CommandPalette.vue; this JS search component is not that palette."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/GlobalSearch.js",
+      "line": 152,
+      "method": "GET",
+      "path": "/search/recent",
+      "consumer": "common/static/components/index.js barrel only",
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "BasicLayout imports CommandPalette.vue; this JS search component is not that palette."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 128,
+      "method": "GET",
+      "path": "/notifications",
+      "consumer": "common/static/components/index.js barrel only",
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "Header imports apps/admin/src/components/NotificationCenter.vue, not this JS component."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 146,
+      "method": "GET",
+      "path": "/notifications/stats",
+      "consumer": "common/static/components/index.js barrel only",
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "Header imports apps/admin/src/components/NotificationCenter.vue, not this JS component."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 161,
+      "method": "PUT",
+      "path": "/notifications/_parameter_",
+      "consumer": "common/static/components/index.js barrel only",
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "Header imports apps/admin/src/components/NotificationCenter.vue, not this JS component."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 174,
+      "method": "POST",
+      "path": "/notifications/bulk-read",
+      "consumer": "common/static/components/index.js barrel only",
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "Header imports apps/admin/src/components/NotificationCenter.vue, not this JS component."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 188,
+      "method": "DELETE",
+      "path": "/notifications/_parameter_",
+      "consumer": "common/static/components/index.js barrel only",
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "Header imports apps/admin/src/components/NotificationCenter.vue, not this JS component."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/common/static/components/NotificationCenter.js",
+      "line": 207,
+      "method": "POST",
+      "path": "/notifications/bulk-delete",
+      "consumer": "common/static/components/index.js barrel only",
+      "classification": "no-routed-consumer-found",
+      "task": "M08",
+      "evidence": "Header imports apps/admin/src/components/NotificationCenter.vue, not this JS component."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/donations/static/api/index.ts",
+      "line": 136,
+      "method": "PUT",
+      "path": "/donations/_parameter_/status",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M09",
+      "evidence": "updateDonationStatus has no caller in active sources; routed campaign detail/update/delete use other exports from this adapter."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/donations/static/api/index.ts",
+      "line": 166,
+      "method": "GET",
+      "path": "/donations/campaigns/_parameter_",
+      "consumer": "/donations and /donations/campaigns \u2192 index.vue/campaigns.vue",
+      "classification": "routed-missing-contract",
+      "task": "M09",
+      "evidence": "Routed donation/campaign screens use this adapter; status and campaign detail/update/delete declarations are absent."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/donations/static/api/index.ts",
+      "line": 174,
+      "method": "PUT",
+      "path": "/donations/campaigns/_parameter_",
+      "consumer": "/donations and /donations/campaigns \u2192 index.vue/campaigns.vue",
+      "classification": "routed-missing-contract",
+      "task": "M09",
+      "evidence": "Routed donation/campaign screens use this adapter; status and campaign detail/update/delete declarations are absent."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/donations/static/api/index.ts",
+      "line": 178,
+      "method": "DELETE",
+      "path": "/donations/campaigns/_parameter_",
+      "consumer": "/donations and /donations/campaigns \u2192 index.vue/campaigns.vue",
+      "classification": "routed-missing-contract",
+      "task": "M09",
+      "evidence": "Routed donation/campaign screens use this adapter; status and campaign detail/update/delete declarations are absent."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/components/AiGeneratorModal.vue",
+      "line": 79,
+      "method": "POST",
+      "path": "/website/ai/generate-code",
+      "consumer": "/website/pages/editor \u2192 PageBuilder \u2192 BlockSettings",
+      "classification": "provider-disabled",
+      "task": "M09",
+      "evidence": "BlockSettings imports this modal; code/text generation lacks routes. Keep external AI disabled; provide explicit disabled capability handling."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/components/AiGeneratorModal.vue",
+      "line": 85,
+      "method": "POST",
+      "path": "/website/ai/generate-text",
+      "consumer": "/website/pages/editor \u2192 PageBuilder \u2192 BlockSettings",
+      "classification": "provider-disabled",
+      "task": "M09",
+      "evidence": "BlockSettings imports this modal; code/text generation lacks routes. Keep external AI disabled; provide explicit disabled capability handling."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/components/BlockPalette.vue",
+      "line": 56,
+      "method": "POST",
+      "path": "/editor/snippets/_parameter_/use",
+      "consumer": "/website/pages/editor \u2192 PageBuilder",
+      "classification": "routed-missing-contract",
+      "task": "M09",
+      "evidence": "PageBuilder imports BlockPalette; snippet use tracking has no matching POST declaration."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/components/IconPicker.vue",
+      "line": 70,
+      "method": "GET",
+      "path": "/website/icons",
+      "consumer": "/website/pages/editor \u2192 PageBuilder \u2192 BlockSettings \u2192 SettingsRenderer",
+      "classification": "routed-missing-contract",
+      "task": "M09",
+      "evidence": "SettingsRenderer imports IconPicker; website/icons has no matching controller declaration."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/widgets/renders/LoopCarouselRender.vue",
+      "line": 24,
+      "method": "UNKNOWN",
+      "path": "/website/public/query_parameter_",
+      "consumer": "editor/static/widgets/BlockRenderer.vue async widget registry",
+      "classification": "computed-query-false-positive",
+      "task": "M09",
+      "evidence": "URL appends an optional query string, not a path segment. GET /website/public/query is declared in website/controllers/public.controller.ts. This does not certify result semantics."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/editor/static/widgets/renders/LoopGridRender.vue",
+      "line": 21,
+      "method": "UNKNOWN",
+      "path": "/website/public/query_parameter_",
+      "consumer": "editor/static/widgets/BlockRenderer.vue async widget registry",
+      "classification": "computed-query-false-positive",
+      "task": "M09",
+      "evidence": "URL appends an optional query string, not a path segment. GET /website/public/query is declared in website/controllers/public.controller.ts. This does not certify result semantics."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/flowgrid/static/views/workflow-list.vue",
+      "line": 85,
+      "method": "GET",
+      "path": "/flowgrid/workflows",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M10",
+      "evidence": "No import/customViews entry; dynamic menu fallback renders ModuleView. Required Flowgrid behavior remains open."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/flowgrid/static/views/workflow-list.vue",
+      "line": 101,
+      "method": "DELETE",
+      "path": "/flowgrid/workflows/_parameter_",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M10",
+      "evidence": "No import/customViews entry; dynamic menu fallback renders ModuleView. Required Flowgrid behavior remains open."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/flowgrid/static/views/workflow-list.vue",
+      "line": 117,
+      "method": "POST",
+      "path": "/flowgrid/workflows",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M10",
+      "evidence": "No import/customViews entry; dynamic menu fallback renders ModuleView. Required Flowgrid behavior remains open."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/plugins/static/api/marketplace.ts",
+      "line": 31,
+      "method": "GET",
+      "path": "/marketplace/plugins_parameter_",
+      "consumer": "MarketplaceView.vue / MarketplacePluginDetail.vue (not registered)",
+      "classification": "computed-query-false-positive",
+      "task": "M10",
+      "evidence": "Optional query suffix is misread as a path parameter. Marketplace views have no current customViews/import route; matching declarations do not certify installation behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/plugins/static/api/marketplace.ts",
+      "line": 59,
+      "method": "POST",
+      "path": "/marketplace/plugins/_parameter_/install_parameter_",
+      "consumer": "MarketplaceView.vue / MarketplacePluginDetail.vue (not registered)",
+      "classification": "computed-query-false-positive",
+      "task": "M10",
+      "evidence": "Optional query suffix is misread as a path parameter. Marketplace views have no current customViews/import route; matching declarations do not certify installation behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/plugins/static/api/marketplace.ts",
+      "line": 68,
+      "method": "GET",
+      "path": "/marketplace/plugins/_parameter_/reviews_parameter_",
+      "consumer": "MarketplaceView.vue / MarketplacePluginDetail.vue (not registered)",
+      "classification": "computed-query-false-positive",
+      "task": "M10",
+      "evidence": "Optional query suffix is misread as a path parameter. Marketplace views have no current customViews/import route; matching declarations do not certify installation behavior."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/website/static/api/index.ts",
+      "line": 37,
+      "method": "POST",
+      "path": "/api_parameter_/media/upload",
+      "consumer": "MediaPickerModal.vue \u2192 uploadMedia; uploadMultipleMedia has no Vue caller found",
+      "classification": "computed-prefix-and-transport-gap",
+      "task": "M09",
+      "evidence": "BASE is /website; both upload declarations exist. Bare axios uses /api/website without configured /api/v2 base or the authenticated request interceptor; repair transport, not duplicate handlers."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/website/static/api/index.ts",
+      "line": 42,
+      "method": "POST",
+      "path": "/api_parameter_/media/upload-multiple",
+      "consumer": null,
+      "classification": "no-routed-consumer-found",
+      "task": "M09",
+      "evidence": "uploadMultipleMedia has no caller found. BASE resolves to /website and the route exists; bare axios still bypasses the versioned authenticated adapter."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/website/static/components/FontPicker.vue",
+      "line": 51,
+      "method": "GET",
+      "path": "/website/fonts",
+      "consumer": "/website/settings \u2192 settings.vue",
+      "classification": "routed-missing-contract",
+      "task": "M09",
+      "evidence": "settings.vue imports FontPicker; local fonts and Google search routes absent. External integration remains disabled."
+    },
+    {
+      "file": "packages/@lume/module-ui/src/modules/website/static/components/FontPicker.vue",
+      "line": 63,
+      "method": "GET",
+      "path": "/website/fonts/google-search",
+      "consumer": "/website/settings \u2192 settings.vue",
+      "classification": "routed-missing-contract",
+      "task": "M09",
+      "evidence": "settings.vue imports FontPicker; local fonts and Google search routes absent. External integration remains disabled."
+    }
+  ]
+}

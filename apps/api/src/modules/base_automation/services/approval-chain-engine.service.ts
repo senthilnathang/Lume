@@ -4,6 +4,8 @@ import { PrismaService } from '@core/services/prisma.service';
 import { SecurityService } from '@modules/base/services/security.service';
 
 export interface ApprovalContext { companyId: number; userId: number }
+type ApprovalActor = { userId: number; roleId: number; roleName: string };
+type ApprovalRecord = { model: string; data: Record<string, any>; visibility: string; createdBy: number };
 export interface ApprovalStep {
   name?: string; approverId?: number; roleId?: number;
   status: 'pending' | 'approved' | 'rejected';
@@ -30,22 +32,27 @@ export class ApprovalChainEngineService {
     const user = await tx.user.findUnique({where:{id:context.userId}});
     const role = user && await tx.role.findUnique({where:{id:user.role_id}});
     if (!user?.isActive || !role?.isActive) throw new ForbiddenException('Active actor and role required');
-    return {userId:user.id,roleId:user.role_id};
+    return {userId:user.id,roleId:user.role_id,roleName:role.name};
   }
 
-  private async record(tx: Prisma.TransactionClient, entityId: number, recordId: number, context: ApprovalContext, actor: {userId:number;roleId:number}, write: boolean) {
-    const rows = await tx.$queryRaw<Array<{data:string;model:string}>>(Prisma.sql`
-      SELECT r.data, e.name AS model FROM entity_records r JOIN entities e ON e.id = r.entity_id
+  private visible(record: Pick<ApprovalRecord, 'visibility' | 'createdBy'>, actor: ApprovalActor) {
+    return record.visibility !== 'private' || record.createdBy === actor.userId || ['admin', 'super_admin'].includes(actor.roleName);
+  }
+
+  private async record(tx: Prisma.TransactionClient, entityId: number, recordId: number, context: ApprovalContext, actor: ApprovalActor, write: boolean) {
+    const rows = await tx.$queryRaw<Array<{data:string;model:string;visibility:string;createdBy:number}>>(Prisma.sql`
+      SELECT r.data, e.name AS model, r.visibility, r.created_by AS createdBy FROM entity_records r JOIN entities e ON e.id = r.entity_id
       WHERE r.id = ${recordId} AND r.entity_id = ${entityId} AND r.company_id = ${context.companyId}
         AND r.deleted_at IS NULL AND e.deleted_at IS NULL FOR UPDATE
     `);
     if (!rows.length) throw new NotFoundException('Approval record not found');
+    if (!this.visible(rows[0], actor)) throw new ForbiddenException('Approval record access denied');
     const row = rows[0], data = JSON.parse(row.data);
     const security = new SecurityService(tx as any);
     for (const action of write ? ['read','write'] : ['read']) {
       if (!(await security.recordPredicate(['EntityRecord','entity_records',row.model],action,actor))(data)) throw new ForbiddenException('Approval record access denied');
     }
-    return {model:row.model,data};
+    return {model:row.model,data,visibility:row.visibility,createdBy:row.createdBy};
   }
 
   private async steps(tx: Prisma.TransactionClient, raw: string | null): Promise<ApprovalStep[]> {
@@ -111,17 +118,18 @@ export class ApprovalChainEngineService {
 
   private view(row: any): ApprovalRequest { return {...row,stepsData:JSON.parse(row.stepsData)}; }
 
-  private async notify(tx: Prisma.TransactionClient, request: ApprovalRequest, kind: 'pending' | 'completed' | 'rejected', record: {model:string;data:Record<string,any>}) {
+  private async notify(tx: Prisma.TransactionClient, request: ApprovalRequest, kind: 'pending' | 'completed' | 'rejected', record: ApprovalRecord) {
     const step = request.stepsData[request.currentStep];
     const recipient = kind !== 'pending' ? Prisma.sql`u.id = ${request.initiatedBy}`
       : step.approverId !== undefined ? Prisma.sql`u.id = ${step.approverId}` : Prisma.sql`u.role_id = ${step.roleId}`;
-    const candidates = await tx.$queryRaw<Array<{id:number;role_id:number}>>(Prisma.sql`
-      SELECT u.id, u.role_id FROM users u JOIN roles r ON r.id = u.role_id
+    const candidates = await tx.$queryRaw<Array<{id:number;role_id:number;roleName:string}>>(Prisma.sql`
+      SELECT u.id, u.role_id, r.name AS roleName FROM users u JOIN roles r ON r.id = u.role_id
       WHERE u.is_active = 1 AND r.is_active = 1 AND ${recipient} ORDER BY u.id FOR UPDATE
     `);
     const security = new SecurityService(tx as any);
     const notifications = [];
     for (const user of candidates) {
+      if (!this.visible(record, {userId:user.id,roleId:user.role_id,roleName:user.roleName})) continue;
       let allowed = true;
       try {
         for (const action of kind === 'pending' ? ['read','write'] : ['read']) {
@@ -151,8 +159,12 @@ export class ApprovalChainEngineService {
   }
 
   private async start(input: {chainId:number;recordEntityId:number;recordId:number}, context: ApprovalContext, event?: 'record.created' | 'record.updated',eventKey?:string): Promise<ApprovalRequest | null> {
+    return this.prisma.$transaction(tx => this.startInTransaction(tx, input, context, event, eventKey));
+  }
+
+  /** Caller owns the transaction; locks must be acquired chain before record. */
+  async startInTransaction(tx: Prisma.TransactionClient, input: {chainId:number;recordEntityId:number;recordId:number}, context: ApprovalContext, event?: 'record.created' | 'record.updated',eventKey?:string): Promise<ApprovalRequest | null> {
     this.ids(input.chainId,input.recordEntityId,input.recordId);
-    return this.prisma.$transaction(async tx => {
       const actor = await this.actor(tx,context);
       // Serialize starts, including duplicate pending-request detection.
       const chains = await tx.$queryRaw<any[]>(Prisma.sql`SELECT * FROM automation_approval_chains WHERE id = ${input.chainId} FOR UPDATE`);
@@ -188,7 +200,6 @@ export class ApprovalChainEngineService {
       }}));
       await this.notify(tx,request,'pending',record);
       return request;
-    });
   }
 
   private async load(tx: Prisma.TransactionClient, requestId: number, context: ApprovalContext, write: boolean) {

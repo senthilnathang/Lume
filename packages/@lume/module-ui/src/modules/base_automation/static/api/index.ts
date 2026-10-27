@@ -16,6 +16,7 @@ export interface WorkflowState {
 }
 
 export interface WorkflowTransition {
+  condition?: Record<string, unknown>;
   from_state: string;
   to_state: string;
   name: string;
@@ -70,12 +71,12 @@ export interface RuleAction {
 export interface BusinessRule {
   id: number;
   name: string;
-  entity_type: string;
-  is_active: boolean;
+  model: string;
+  field: string;
+  status: 'active' | 'inactive';
   priority: number;
-  trigger_on: string;
-  conditions: RuleCondition[];
-  actions: RuleAction[];
+  condition: Record<string, any>;
+  action: Record<string, any>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -161,6 +162,9 @@ export function getWorkflowExecutionApi(workflowId: string | number, executionId
 export function transitionWorkflowStateApi(workflowId: string | number, executionId: string | number, data: { transitionCode: string; version: number }): Promise<any> {
   return post<any>(`/automation/workflows/${workflowId}/executions/${executionId}/transition`, data);
 }
+export function requestWorkflowApprovalApi(workflowId: string | number, executionId: string | number, data: { transitionCode: string; version: number }): Promise<{ requestId: number; status: string }> {
+  return post(`/automation/workflows/${workflowId}/executions/${executionId}/approval`, data);
+}
 
 // Flows
 const flowFromNest = (row: any): Flow => ({ ...row, code: String(row.id), trigger_type: row.trigger });
@@ -193,20 +197,27 @@ export async function cloneFlow(id: number): Promise<Flow> {
 }
 
 // Business Rules
-export function getRules(): Promise<BusinessRule[]> {
-  return get<BusinessRule[]>('/base_automation/rules');
+function ruleFromNest(row: any): BusinessRule {
+  const decode = (value: any) => typeof value === 'string' ? JSON.parse(value) : value ?? {};
+  return { ...row, condition: decode(row.condition), action: decode(row.action) };
 }
-export function createRule(data: Partial<BusinessRule>): Promise<BusinessRule> {
-  return post<BusinessRule>('/base_automation/rules', data);
+export async function getRules(): Promise<BusinessRule[]> {
+  return (await get<any[]>('/automation/rules')).map(ruleFromNest);
 }
-export function updateRule(id: number, data: Partial<BusinessRule>): Promise<BusinessRule> {
-  return put<BusinessRule>(`/base_automation/rules/${id}`, data);
+function ruleWrites(data: Partial<BusinessRule>) {
+  return { name: data.name, priority: data.priority, status: data.status, condition: data.condition, action: data.action };
+}
+export async function createRule(data: Partial<BusinessRule>): Promise<BusinessRule> {
+  return ruleFromNest(await post('/automation/rules', { ...ruleWrites(data), model: data.model, field: data.field }));
+}
+export async function updateRule(id: number, data: Partial<BusinessRule>): Promise<BusinessRule> {
+  return ruleFromNest(await put(`/automation/rules/${id}`, ruleWrites(data)));
 }
 export function deleteRule(id: number): Promise<void> {
-  return del(`/base_automation/rules/${id}`);
+  return del(`/automation/rules/${id}`);
 }
-export function toggleRule(id: number): Promise<BusinessRule> {
-  return post<BusinessRule>(`/base_automation/rules/${id}/toggle`);
+export async function toggleRule(id: number, active: boolean): Promise<BusinessRule> {
+  return ruleFromNest(await put(`/automation/rules/${id}`, { status: active ? 'active' : 'inactive' }));
 }
 
 // Approval chains execute sequentially; each step targets one user or role.
